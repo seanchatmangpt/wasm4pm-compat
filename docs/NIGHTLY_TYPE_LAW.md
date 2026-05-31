@@ -983,3 +983,51 @@ names a specific structural law — no variant catches all failures with a bare
 |---|---|---|---|---|
 | `token-replay-boundary` — `ConformanceVerdict` carries replay output, never executes token replay | graduation boundary: `conformance::ConformanceVerdict` — module doc, no engine logic present | `compile_pass/conformance_verdict_complete.rs` | — (graduation boundary; enforced by module-level doc and architecture) | van der Aalst, Replay in Process Mining (2016) |
 | `conformance-refusal-named-law` — every `ConformanceRefusal` variant names a specific structural law | `conformance::ConformanceRefusal` (no bare `InvalidInput`) | `compile_pass/conformance_verdict_complete.rs` | — (law enforced by enum shape: each variant is a named law) | Rozinat & van der Aalst, Conformance Checking (2008) |
+
+### fitness-precision-f1-metric-law
+
+The four quality dimensions of process mining (Rozinat & van der Aalst, 2008)
+are fitness, precision, F1, and generalization/simplicity. This crate reifies
+the first three as distinct const-generic types: `FitnessConst<N,D>`,
+`PrecisionConst<N,D>`, `F1Const<N,D>`. Each is a type alias for
+`Metric<KIND, NUM, DEN>` where `KIND` distinguishes the metric family. The
+`Between01<NUM, DEN>` bound in `src/law.rs` ensures `NUM/DEN ∈ [0,1]` at the
+type level — a score outside the unit interval is a compile error.
+
+`FitnessConst<3,4>` (0.75 fitness) and `PrecisionConst<3,4>` (0.75 precision)
+are different types even though NUM and DEN match — the `KIND` const param
+carries the distinction. A function requiring `FitnessConst<3,4>` cannot
+silently accept `PrecisionConst<3,4>`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `fitness-precision-f1-metric-law` — `FitnessConst`, `PrecisionConst`, `F1Const` are distinct types; `N/D ∈ [0,1]` at the type level | `conformance::Metric<KIND, NUM, DEN>` + `law::QualityMetricKind::{Fitness, Precision, F1}` | `compile_pass/conformance_verdict_complete.rs`, `compile_pass/conformance_precision_f1_aliases.rs` | `compile_fail/metric_out_of_bounds.rs` | Rozinat & van der Aalst, Conformance Checking (2008) |
+| `fitness-kind-distinctness` — `FitnessConst<N,D>` ≠ `PrecisionConst<N,D>` even when NUM/DEN match | `conformance::Metric<KIND, NUM, DEN>` — KIND const param distinguishes metric families | `compile_pass/conformance_precision_f1_aliases.rs` | — (type-level: KIND param enforces distinction) | Rozinat & van der Aalst, Conformance Checking (2008) |
+| `metric-unit-interval-law` — `Metric<KIND, N, D>` with `N > D` does not compile | `law::Between01<NUM, DEN>` where-bound on `Metric` | `compile_pass/conformance_verdict_complete.rs` | `compile_fail/metric_out_of_bounds.rs` | Rozinat & van der Aalst, Conformance Checking (2008) |
+
+---
+
+## XES Law Family — IEEE 1849 Case-Centric Exchange Structure
+
+**Standard:** IEEE 1849-2023 (XES — eXtensible Event Stream)
+**Canon family:** `XES_EVENT_LOG`
+**Sources:** Verbeek et al. (2011), IEEE 1849-2023, van der Aalst (2011 multi-perspective)
+
+XES is a case-centric, flat event-log interchange format. It is emphatically NOT
+object-centric. Every structural law in this family enforces the distinction between
+XES's flat-trace world and OCED/OCEL's object-graph world. The type surfaces live in
+`src/xes.rs`, `src/witness.rs`, and `src/formats.rs`. No XES law in this crate
+performs parsing, validation execution, or mining — those graduate to `wasm4pm`.
+
+### case-centric-marker
+
+The foundational XES structural distinction: a `XesLog` is case-centric, not
+object-centric. `CaseCentricMarker` is a zero-sized `PhantomData` tag that makes it
+impossible at the type level to confuse a flat case-centric log with an
+`OcelLog` (object-centric). The distinction is enforced by the type system, not by
+a runtime `is_object_centric()` check.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `case-centric-marker` — `XesCaseCentricLog` is not OCED; substituting one for the other is a compile error | `xes::CaseCentricMarker` (zero-sized `PhantomData` tag) | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | IEEE 1849-2023 §4 (case notion); van der Aalst & Berti (2020) divergence/convergence |
+| `xes_not_object_centric` — sealed compile-fail: `XesCaseCentricLog` rejected where `OcelLog` required | `xes::CaseCentricMarker` | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | `xes_not_object_centric.stderr` |
