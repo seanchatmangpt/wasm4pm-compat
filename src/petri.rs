@@ -394,6 +394,46 @@ impl SoundnessProof {
     }
 }
 
+/// A typed soundness-proof carrier that records *which* WF-net shape the
+/// proof was issued for, via a phantom type parameter `N`.
+///
+/// [`SoundnessProof`] is a bare token — it records that *some* net's soundness
+/// was witnessed but not *which* net. `WfNetSoundnessProofOf<N>` adds a phantom
+/// `N` so that a proof issued for one net type cannot be silently transplanted
+/// onto a different net type.
+///
+/// The phantom `N` is structural metadata only — `WfNetSoundnessProofOf` is
+/// still only constructible inside this module or via the `wasm4pm` bridge
+/// (the `_seal` field is private).
+///
+/// Structure-only: zero-cost phantom wrapper around the soundness-proof seal.
+///
+/// ```
+/// use core::marker::PhantomData;
+/// use wasm4pm_compat::petri::WfNetSoundnessProofOf;
+///
+/// // A user-defined net type marker:
+/// struct OrderFulfillmentNet;
+/// // The proof is typed to that specific net; cannot be used for other nets.
+/// let _: core::marker::PhantomData<WfNetSoundnessProofOf<OrderFulfillmentNet>>;
+/// ```
+pub struct WfNetSoundnessProofOf<N> {
+    _net: PhantomData<N>,
+    _seal: wfnet_seal::WfNetSeal,
+}
+
+impl<N> WfNetSoundnessProofOf<N> {
+    /// Module-private constructor. Only `petri` and the `wasm4pm` bridge can
+    /// produce a typed soundness proof.
+    #[allow(dead_code)]
+    pub(crate) fn new() -> Self {
+        WfNetSoundnessProofOf {
+            _net: PhantomData,
+            _seal: wfnet_seal::WfNetSeal,
+        }
+    }
+}
+
 impl Default for WfNetConst<{ SoundnessState::Unknown }> {
     fn default() -> Self {
         Self::new()
