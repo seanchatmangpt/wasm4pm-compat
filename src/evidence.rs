@@ -96,7 +96,45 @@ impl<T, W> Evidence<T, Raw, W> {
     }
 }
 
-impl<T, W> Evidence<T, Admitted, W> {
+impl<T, W> Evidence<T, crate::state::Parsed, W> {
+    /// Records that parsed evidence was structurally refused before admission.
+    ///
+    /// A value may be *well-formed* (the decoder accepted its bytes) yet still
+    /// *refuse-worthy* at the structural layer (e.g. it names no objects at all).
+    /// This method advances `Parsed → Refused` *without* going through
+    /// [`crate::admission::Admit`], which would require a named witness.  Use it
+    /// when the refusal reason is a *pre-admission structural law* rather than a
+    /// witness-specific one.
+    ///
+    /// The `value` on the resulting `Evidence<T, Refused, W>` is the same `T` that
+    /// arrived; the reason lives in the caller's
+    /// [`crate::admission::Refusal`] value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::state::{Parsed, Refused};
+    /// use wasm4pm_compat::witness::Xes1849;
+    ///
+    /// let raw: Evidence<Vec<u8>, _, Xes1849> = Evidence::raw(vec![]);
+    /// let parsed = raw.into_parsed();
+    /// // The format decoder accepted empty bytes but the log has no traces —
+    /// // refuse before even reaching the admission gate.
+    /// let refused = parsed.into_refused();
+    /// let _ = refused; // Evidence<Vec<u8>, Refused, Xes1849>
+    /// ```
+    #[inline]
+    pub fn into_refused(self) -> Evidence<T, crate::state::Refused, W> {
+        Evidence {
+            value: self.value,
+            state: core::marker::PhantomData,
+            witness: core::marker::PhantomData,
+        }
+    }
+}
+
+impl<T, W> Evidence<T, crate::state::Admitted, W> {
     /// Crate-internal: seals an admitted value.
     ///
     /// This constructor is deliberately **not** `pub`. Only
