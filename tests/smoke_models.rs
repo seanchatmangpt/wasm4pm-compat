@@ -87,6 +87,27 @@ fn smoke_powl_tree_projectable_gate() {
 }
 
 #[test]
+fn smoke_powl_refusal_arity_and_loop_body_variants() {
+    // InvalidChoiceArity carries declared and required_min.
+    let r = PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 };
+    let s = format!("{}", r);
+    assert!(s.contains("InvalidChoiceArity"), "display: {s}");
+    assert!(s.contains("declared=1"), "display: {s}");
+    assert!(s.contains("required_min=2"), "display: {s}");
+
+    // LoopMissingDoBody is a named law.
+    let l = PowlRefusal::LoopMissingDoBody;
+    assert!(format!("{}", l).contains("LoopMissingDoBody"));
+}
+
+#[test]
+fn smoke_powl_choice_node_validate_arity_refusal() {
+    // An empty choice node produces InvalidChoiceArity via validate_arity.
+    let empty = PowlChoiceNode::new(vec![]);
+    assert_eq!(empty.validate(), Err(PowlRefusal::InvalidChoice));
+}
+
+#[test]
 fn smoke_tree() {
     let mut t = ProcessTree::new();
     t.nodes.push(ProcessTreeNode::Activity("a".into()));
