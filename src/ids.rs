@@ -107,3 +107,13 @@ typed_id!(
     /// Identifies a trace (case) — a sequence of events for one process instance.
     TraceId, u64
 );
+typed_id!(
+    /// Identifies a case in a case-centric (XES-style) log.
+    ///
+    /// [`CaseId`] and [`TraceId`] are intentionally distinct: [`CaseId`] names
+    /// the case *attribute* as parsed from an external format (e.g. XES
+    /// `concept:name`), while [`TraceId`] names a structural trace position
+    /// within an already-admitted [`crate::eventlog::EventLog`]. Mixing them is
+    /// a compile error, not a naming convention.
+    CaseId, u64
+);
