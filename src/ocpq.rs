@@ -680,6 +680,21 @@ pub enum OcpqRefusal {
     /// Law: OCPQ Section 4 CBS(A, n_min, n_max) requires a non-empty branch
     /// name and `n_min ≤ n_max`.
     InvalidChildSetBound,
+    /// A [`ObjectScopeConst`] declared with [`OcpqScopeKind::SingleType`]
+    /// contains zero or more than one declared object type.
+    ///
+    /// Law: a singleton scope must bind exactly one object type.
+    EmptyScopeType,
+    /// Two predicates in the same query assert conflicting kinds over the same
+    /// variable (e.g. an event variable also asserted as an object variable).
+    ///
+    /// Law: OCPQ variable binding is monomorphic — a variable cannot be both an
+    /// event variable and an object variable in the same query.
+    ConflictingPredicateKinds,
+    /// A predicate references a variable not declared in the query's object scope.
+    ///
+    /// Law: OCPQ Section 3 — every variable must be bound in the scope before use.
+    UnboundVariable,
 }
 
 impl core::fmt::Display for OcpqRefusal {
@@ -692,7 +707,107 @@ impl core::fmt::Display for OcpqRefusal {
             OcpqRefusal::UnsafeProjection => "UnsafeProjection",
             OcpqRefusal::FlatteningRequired => "FlatteningRequired",
             OcpqRefusal::InvalidChildSetBound => "InvalidChildSetBound",
+            OcpqRefusal::EmptyScopeType => "EmptyScopeType",
+            OcpqRefusal::ConflictingPredicateKinds => "ConflictingPredicateKinds",
+            OcpqRefusal::UnboundVariable => "UnboundVariable",
         };
         write!(f, "OCPQ refused: {law}")
+    }
+}
+
+// ── Compile-time cardinality bound law ──────────────────────────────────────
+
+/// An OCPQ anonymous cardinality bound with `[MIN, MAX]` enforced **at compile
+/// time**.
+///
+/// `CardinalityBoundConst<MIN, MAX>` encodes the OCPQ invariant `MIN ≤ MAX` as
+/// a const-generic where-bound so that a violation is a **compile error**, not a
+/// runtime refusal.
+///
+/// Law: OCPQ Section 4 — a cardinality predicate requires `min ≤ max`. There is
+/// no runtime refusal path: the bound is wrong at authorship time, not at
+/// evaluation time.
+///
+/// ## Compile-time negative receipt
+///
+/// `CardinalityBoundConst<5, 2>` does **not compile**: `5 <= 2` is false and the
+/// `Require<{ MIN <= MAX }>: IsTrue` bound fails. Use [`PredicateKind::Cardinality`]
+/// for runtime-constructed bounds.
+///
+/// Structure-only: zero-cost, no engine logic.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::ocpq::CardinalityBoundConst;
+/// // [1, 5]: lawful at compile time.
+/// let b = CardinalityBoundConst::<1, 5>::new();
+/// assert_eq!(b.min(), 1);
+/// assert_eq!(b.max(), 5);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::ocpq::CardinalityBoundConst;
+/// // MIN > MAX: compile error.
+/// let _: CardinalityBoundConst<5, 2> = CardinalityBoundConst::new();
+/// ```
+pub struct CardinalityBoundConst<const MIN: usize, const MAX: usize>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    _private: (),
+}
+
+impl<const MIN: usize, const MAX: usize> CardinalityBoundConst<MIN, MAX>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    /// Construct a `CardinalityBoundConst<MIN, MAX>` — only possible when
+    /// `MIN <= MAX`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::CardinalityBoundConst;
+    /// let _: CardinalityBoundConst<0, 0> = CardinalityBoundConst::new();
+    /// let _: CardinalityBoundConst<1, 100> = CardinalityBoundConst::new();
+    /// ```
+    pub const fn new() -> Self {
+        CardinalityBoundConst { _private: () }
+    }
+
+    /// The inclusive lower bound.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::CardinalityBoundConst;
+    /// assert_eq!(CardinalityBoundConst::<2, 8>::new().min(), 2);
+    /// ```
+    pub const fn min(&self) -> usize {
+        MIN
+    }
+
+    /// The inclusive upper bound.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::CardinalityBoundConst;
+    /// assert_eq!(CardinalityBoundConst::<2, 8>::new().max(), 8);
+    /// ```
+    pub const fn max(&self) -> usize {
+        MAX
+    }
+}
+
+impl<const MIN: usize, const MAX: usize> Default for CardinalityBoundConst<MIN, MAX>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
     }
 }
