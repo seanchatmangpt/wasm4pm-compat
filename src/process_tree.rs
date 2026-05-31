@@ -26,7 +26,71 @@
 //! graduate this shape to the `wasm4pm` engine (via the `wasm4pm` feature). This
 //! module only certifies that the *structure* is well-formed.
 
-use crate::law::{IsTrue, Require};
+use crate::law::{IsTrue, ProcessTreeOperatorKind, Require};
+
+// ── Operator minimum-arity helper ─────────────────────────────────────────────
+
+/// Returns the minimum child arity for a given [`ProcessTreeOperatorKind`].
+///
+/// This is a **compile-time-observable** constant function. It encodes the
+/// structural arity law for each operator:
+///
+/// | Operator  | Minimum arity | Law                              |
+/// |-----------|:-------------:|----------------------------------|
+/// | Sequence  |       2       | ordering over one element is trivial |
+/// | Xor       |       2       | choice between one is trivial    |
+/// | Parallel  |       2       | concurrency of one is trivial    |
+/// | Loop      |       2       | do-body + redo-branch (Leemans)  |
+/// | Silent    |       0       | tau carries no children          |
+/// | Or        |       2       | inclusive choice of one is trivial |
+///
+/// ```
+/// use wasm4pm_compat::process_tree::operator_minimum_arity;
+/// use wasm4pm_compat::law::ProcessTreeOperatorKind;
+/// assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Loop), 2);
+/// assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Silent), 0);
+/// assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Xor), 2);
+/// ```
+pub const fn operator_minimum_arity(kind: ProcessTreeOperatorKind) -> usize {
+    match kind {
+        ProcessTreeOperatorKind::Sequence => 2,
+        ProcessTreeOperatorKind::Xor => 2,
+        ProcessTreeOperatorKind::Parallel => 2,
+        ProcessTreeOperatorKind::Loop => 2,
+        ProcessTreeOperatorKind::Silent => 0,
+        ProcessTreeOperatorKind::Or => 2,
+    }
+}
+
+/// Returns the maximum child arity for a given [`ProcessTreeOperatorKind`], or
+/// `usize::MAX` when the operator is unbounded.
+///
+/// | Operator  | Maximum arity | Law                                  |
+/// |-----------|:-------------:|--------------------------------------|
+/// | Sequence  |   unbounded   | arbitrarily long sequences allowed   |
+/// | Xor       |   unbounded   | n-ary exclusive choice               |
+/// | Parallel  |   unbounded   | n-ary parallel composition           |
+/// | Loop      |       2       | exactly do-body + redo (Leemans)     |
+/// | Silent    |       0       | tau has no children                  |
+/// | Or        |   unbounded   | n-ary inclusive choice               |
+///
+/// ```
+/// use wasm4pm_compat::process_tree::operator_maximum_arity;
+/// use wasm4pm_compat::law::ProcessTreeOperatorKind;
+/// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Loop), 2);
+/// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Silent), 0);
+/// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Sequence), usize::MAX);
+/// ```
+pub const fn operator_maximum_arity(kind: ProcessTreeOperatorKind) -> usize {
+    match kind {
+        ProcessTreeOperatorKind::Sequence => usize::MAX,
+        ProcessTreeOperatorKind::Xor => usize::MAX,
+        ProcessTreeOperatorKind::Parallel => usize::MAX,
+        ProcessTreeOperatorKind::Loop => 2,
+        ProcessTreeOperatorKind::Silent => 0,
+        ProcessTreeOperatorKind::Or => usize::MAX,
+    }
+}
 
 // ── Arity-typed loop node (type-law surface) ─────────────────────────────────
 
