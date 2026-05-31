@@ -839,3 +839,20 @@ The O2O link (`ObjectObjectLink`) is OCEL 2.0's second link type (absent in OCEL
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
 |---|---|---|---|---|
 | `ocel_object_relation_law` — O2O link must reference declared objects | `ocel::ObjectObjectLink` / `OcelRefusal::DanglingObjectObjectLink` | `compile_pass/ocel_object_object_relation.rs` | `compile_fail/ocel_o2o_missing_link.rs` | OCEL 2.0 §3.2 object-to-object links |
+
+### attribute-witness-law
+
+OCEL 2.0 attributes are typed at the data model level: `OcelAttributeValue` is an enum distinguishing String, Integer, Float, Boolean, and TimestampNs variants. A raw stringly-typed attribute map is structurally weaker than a typed one — conflating attribute types without a named value variant is a structural defect. The `OcelAttribute` struct enforces that every attribute carries both a key (`String`) and a typed value (`OcelAttributeValue`), preventing the silent promotion of untyped key-value pairs to OCEL attributes.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_attribute_typed_value_law` — OCEL attribute value must be a named typed variant | `ocel::OcelAttributeValue` (enum, not free string) | `compile_pass/ocel_event_object_relation.rs` | n/a (law enforced by enum exhaustiveness) | OCEL 2.0 §4.1 attribute types |
+| `ocel_attribute_key_law` — `OcelAttribute` carries both key and typed value | `ocel::OcelAttribute` (struct, not `HashMap<String, String>`) | `compile_pass/ocel_event_object_relation.rs` | n/a (structural by construction) | OCEL 2.0 §4.1 attribute types |
+
+### dimensions-law
+
+`OcelDims` captures the dimension vocabulary of an `OcelLog` — the distinct object types and activity names — as a structural surface that can be inspected without materializing the full relational tables. This prevents dimension-sensitive code from operating on an `OcelLog` without explicitly naming its dimension vocabulary. An `OcelDims` derived from an empty log is distinct from one derived from a populated log.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_dims_law` — log dimensions are a named structural vocabulary, not free sets | `ocel::OcelDims` (distinct from `OcelLog`) | `compile_pass/ocel_event_object_relation.rs` | n/a (law enforced by type distinction) | OCEL 2.0 §2 data model vocabulary |
