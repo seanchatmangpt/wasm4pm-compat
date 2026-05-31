@@ -179,6 +179,140 @@ pub type GeneralizationConst<const NUM: u64, const DEN: u64> =
 pub type SimplicityConst<const NUM: u64, const DEN: u64> =
     Metric<{ QualityMetricKind::Simplicity }, NUM, DEN>;
 
+// ── All-five quality profile ─────────────────────────────────────────────────
+
+/// A compile-time quality profile grouping all five van der Aalst metric types.
+///
+/// Carries **fitness**, **precision**, **F1**, **generalization**, and
+/// **simplicity** as const-generic rational values `NUM/DEN ∈ [0, 1]`.
+/// Every individual metric slot enforces the `Between01` law: a profile with
+/// any out-of-range component does **not compile**.
+///
+/// This is **structure only**: it describes a quality claim, never computes one.
+/// Graduate to `wasm4pm` to derive these values from a log and a model.
+///
+/// ## Parameters
+///
+/// | Pair | Metric |
+/// |------|--------|
+/// | `FN` / `FD` | Fitness numerator / denominator |
+/// | `PN` / `PD` | Precision numerator / denominator |
+/// | `EN` / `ED` | F1 numerator / denominator |
+/// | `GN` / `GD` | Generalization numerator / denominator |
+/// | `SN` / `SD` | Simplicity numerator / denominator |
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::conformance::QualityProfile;
+/// // fitness=0.9, precision=0.8, f1=0.85, generalization=0.75, simplicity=0.95
+/// let _: QualityProfile<9,10, 4,5, 17,20, 3,4, 19,20> = QualityProfile::new();
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::conformance::QualityProfile;
+/// // fitness=2/1 > 1: compile error
+/// let _: QualityProfile<2,1, 1,1, 1,1, 1,1, 1,1> = QualityProfile::new();
+/// ```
+#[allow(clippy::type_complexity)]
+pub struct QualityProfile<
+    const FN: u64, const FD: u64,
+    const PN: u64, const PD: u64,
+    const EN: u64, const ED: u64,
+    const GN: u64, const GD: u64,
+    const SN: u64, const SD: u64,
+>
+where
+    Require<{ FD > 0 }>: IsTrue,
+    Require<{ FN <= FD }>: IsTrue,
+    Require<{ PD > 0 }>: IsTrue,
+    Require<{ PN <= PD }>: IsTrue,
+    Require<{ ED > 0 }>: IsTrue,
+    Require<{ EN <= ED }>: IsTrue,
+    Require<{ GD > 0 }>: IsTrue,
+    Require<{ GN <= GD }>: IsTrue,
+    Require<{ SD > 0 }>: IsTrue,
+    Require<{ SN <= SD }>: IsTrue,
+{
+    /// The fitness component.
+    pub fitness: FitnessConst<FN, FD>,
+    /// The precision component.
+    pub precision: PrecisionConst<PN, PD>,
+    /// The F1 component.
+    pub f1: F1Const<EN, ED>,
+    /// The generalization component.
+    pub generalization: GeneralizationConst<GN, GD>,
+    /// The simplicity component.
+    pub simplicity: SimplicityConst<SN, SD>,
+}
+
+impl<
+    const FN: u64, const FD: u64,
+    const PN: u64, const PD: u64,
+    const EN: u64, const ED: u64,
+    const GN: u64, const GD: u64,
+    const SN: u64, const SD: u64,
+> QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
+where
+    Require<{ FD > 0 }>: IsTrue,
+    Require<{ FN <= FD }>: IsTrue,
+    Require<{ PD > 0 }>: IsTrue,
+    Require<{ PN <= PD }>: IsTrue,
+    Require<{ ED > 0 }>: IsTrue,
+    Require<{ EN <= ED }>: IsTrue,
+    Require<{ GD > 0 }>: IsTrue,
+    Require<{ GN <= GD }>: IsTrue,
+    Require<{ SD > 0 }>: IsTrue,
+    Require<{ SN <= SD }>: IsTrue,
+{
+    /// Constructs a `QualityProfile` — only possible when all five `NUM/DEN`
+    /// pairs are in `[0, 1]`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::conformance::QualityProfile;
+    /// let p: QualityProfile<1,1, 1,1, 1,1, 1,1, 1,1> = QualityProfile::new();
+    /// assert_eq!(p.fitness.num(), 1);
+    /// assert_eq!(p.simplicity.den(), 1);
+    /// ```
+    pub const fn new() -> Self {
+        Self {
+            fitness: Metric::new(),
+            precision: Metric::new(),
+            f1: Metric::new(),
+            generalization: Metric::new(),
+            simplicity: Metric::new(),
+        }
+    }
+}
+
+impl<
+    const FN: u64, const FD: u64,
+    const PN: u64, const PD: u64,
+    const EN: u64, const ED: u64,
+    const GN: u64, const GD: u64,
+    const SN: u64, const SD: u64,
+> Default for QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
+where
+    Require<{ FD > 0 }>: IsTrue,
+    Require<{ FN <= FD }>: IsTrue,
+    Require<{ PD > 0 }>: IsTrue,
+    Require<{ PN <= PD }>: IsTrue,
+    Require<{ ED > 0 }>: IsTrue,
+    Require<{ EN <= ED }>: IsTrue,
+    Require<{ GD > 0 }>: IsTrue,
+    Require<{ GN <= GD }>: IsTrue,
+    Require<{ SD > 0 }>: IsTrue,
+    Require<{ SN <= SD }>: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // ── Alignment move markers ──────────────────────────────────────────────────
 
 /// Witness: a **synchronous move** — log and model agree on a step.
