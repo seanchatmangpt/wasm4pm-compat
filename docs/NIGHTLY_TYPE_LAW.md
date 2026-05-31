@@ -487,6 +487,7 @@ first-class structural laws.
 **Paper:** Multi-Perspective Process Mining
 **Canon family:** `XES_EVENT_LOG`
 **Verdict:** `PARTIAL_WITH_REASON`
+**Active obligation:** `ResourcePerspective` and `DataPerspective` typed extension namespaces in `src/xes.rs`
 
 **Law-packet notes:**
 
