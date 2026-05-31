@@ -1,8 +1,8 @@
 # Paper Coverage Ledger
 
 **Repository:** wasm4pm-compat  
-**Corpus:** ~/Documents/Papers/workflow (20 papers)  
-**Generated:** 2026-05-30  
+**Corpus:** ~/Documents/Papers/workflow (20 papers) + ~/Documents/Papers/AI_LLM (1 PM paper) + ~/Documents/Papers/RDF (3 scanned, 0 PM)  
+**Generated:** 2026-05-30 | **Updated:** 2026-05-31  
 **Agent:** Paper Discovery
 
 ---
@@ -64,6 +64,10 @@
 | 18 | `YAWL- Yet Another Workflow Language.pdf` | YAWL: Yet Another Workflow Language (Revised version) | 2004 | van der Aalst, ter Hofstede | `WF_NET_SOUNDNESS` | WF-net, workflow patterns (20), AND/OR/XOR-split/join, cancellation regions, multiple instances, YAWL net, soundness via reduction | WF-net soundness is a first-class structural law; YAWL extends Petri nets precisely to cover the 20 workflow patterns; soundness can be verified compositionally | `src/petri.rs` has `WfNetConst<SOUNDNESS>` with non-forgeable witness path | Zero-cost: `WfNetConst<true>` vs `WfNetConst<false>` const-generic soundness tag | `tests/ui/compile_pass/` — lawful WF-net construction | `tests/ui/compile_fail/` — forging soundness witness | `.stderr` — expected "cannot construct WfNetSoundnessWitness" | Named cancellation region type; multiple-instance construct type | `COVERED_BY_TYPE` — WF-net soundness is the primary law in `src/petri.rs` |
 | 19 | `YAWLTechnicalManual5.0.pdf` | YAWL Technical Manual Version 5 | 2023 | The YAWL Foundation | `SYSTEMS_API` | Same as #16 — YAWL engine API, custom service, worklet service | Same as #16 | Same as #16 | Same as #16 | Same as #16 | Same as #16 | Same as #16 | Same as #16 | `DUPLICATE_OR_BACKGROUND` — same document as #16 (both are YAWL Technical Manual v5) |
 | 20 | `YAWLUserManual5.1.pdf` | YAWL User Manual Version 5.1 | 2024 | The YAWL Foundation | `SYSTEMS_API` | YAWL editor, workflow specification, control-flow perspective, data perspective, resource perspective, cancellation set, task timer | User-facing YAWL manual; no new formal laws beyond YAWL language paper (#18) | Same as #16/#19 | N/A — user manual | None | None | None | None | `OUT_OF_SCOPE_WITH_REASON` — end-user manual; no new formal objects or type-law surfaces; background reference only |
+| 21 | `AI_LLM/No AI Without PI! Object-Centric Process Mining as the Enabler for Generative, Predictive, and Prescriptive Artificial Intelligence .pdf` | No AI Without PI! Object-Centric Process Mining as the Enabler for Generative, Predictive, and Prescriptive Artificial Intelligence | 2025 | van der Aalst | `OBJECT_CENTRIC_PETRI` | OCED/OCPM pipeline (discovery, compliance analysis, performance analysis), process intelligence (PI) layer, generative/predictive/prescriptive AI boundary | Process intelligence requires OCED-grounded data; discovery, compliance, performance are typed operations over OCED; AI outputs must trace back to lawful process evidence | `src/ocel.rs` (OCED structure), `src/conformance.rs` (compliance), `src/prediction.rs` (predictive AI boundary), `src/dfg.rs` (performance) | Zero-cost: all OCED structural surfaces already defined; AI engine logic must graduate | None | None | None | None — all structural surfaces already in canon; AI integration is engine graduation boundary | `COVERED_BY_GRADUATION_BOUNDARY` — discovery/compliance/performance AI integration is engine logic graduating to wasm4pm; this crate provides the OCED structural surface that grounds all three |
+| 22 | `RDF/Ontology-Driven Model-to-Model Transformation of Workflow Specifications .pdf` | Ontology-Driven Model-to-Model Transformation of Workflow Specifications | 2025 | Abreu, Cruz, Guerreiro | `OUT_OF_SCOPE` | RML semantic lifting, OWL ontology alignment, BPMN 2.0 generation via Camunda API, M2M transformation pipeline | None | `src/bpmn.rs` already covers BPMN 2.0 target structures; RML/OWL toolchain is import pipeline concern | N/A | None | None | None | None | `OUT_OF_SCOPE_WITH_REASON` — M2M transformation toolchain paper; BPMN 2.0 target structures already in `src/bpmn.rs`; semantic lifting pipeline imposes no new type-law surface |
+| 23 | `RDF/Procedure Model for Building Knowledge Graphs for Industry Applications .pdf` | Procedure Model for Building Knowledge Graphs for Industry Applications | 2024 | Meckler | `OUT_OF_SCOPE` | KG construction lifecycle (CRISP-DM derived), RDF/OWL/SPARQL stack, competency questions, ontology modeling | None | None | N/A | None | None | None | None | `OUT_OF_SCOPE_WITH_REASON` — KG construction methodology; no process-mining formal objects (no event logs, Petri nets, process trees, or conformance surfaces) |
+| 24 | `RDF/RDFGraphGen- An RDF Graph Generator based on SHACL Shapes .pdf` | RDFGraphGen: An RDF Graph Generator based on SHACL Shapes | 2025 | Jovanovik, Vecovska, Jakubowski, Hose | `OUT_OF_SCOPE` | SHACL shapes as generation blueprints, synthetic RDF graph generation, scale-factor parameterization | None | None | N/A | None | None | None | None | `OUT_OF_SCOPE_WITH_REASON` — SHACL-based RDF data generation tool; no process-mining relevance |
 
 ---
 
@@ -102,6 +106,7 @@ Papers that provide background context, tool reference, or domain application kn
 | 16 | YAWL Technical Manual v5 | Engine API; graduation boundary |
 | 17 | YAWL Open Source BPMS | Overlaps with #16 and #18; background |
 | 19 | YAWL Technical Manual 5.0 | Duplicate of #16 |
+| 21 | No AI Without PI! | OCPM vision paper; discovery/compliance/performance AI integration is engine graduation boundary |
 
 ### OUT_OF_SCOPE
 
@@ -115,6 +120,9 @@ Papers with no process-mining type-law relevance for this crate.
 | 13 | Why Automate This? | HRI/sociology |
 | 15 | Workflows Community Summit 2024 | Scientific/HPC workflows (different domain) |
 | 20 | YAWL User Manual 5.1 | End-user manual |
+| 22 | Ontology-Driven M2M Transformation of Workflow Specifications | M2M toolchain paper; BPMN target already in canon |
+| 23 | Procedure Model for Building Knowledge Graphs | KG construction methodology; no PM objects |
+| 24 | RDFGraphGen: RDF Graph Generator based on SHACL Shapes | RDF tooling; no process-mining relevance |
 
 ---
 
@@ -123,12 +131,13 @@ Papers with no process-mining type-law relevance for this crate.
 | Status | Count | Papers |
 |---|---|---|
 | `COVERED_BY_TYPE` | 3 | #11 (BPMN), #14 (Workflow Patterns), #18 (YAWL/WF-net soundness) |
-| `COVERED_BY_GRADUATION_BOUNDARY` | 4 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual) |
+| `COVERED_BY_GRADUATION_BOUNDARY` | 5 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual), #21 (No AI Without PI!) |
 | `PARTIAL_WITH_REASON` | 3 | #1 (PPM compliance: fixture exists, witness law complete), #3 (POWL 2.0: SeparableWfNet added, WfNet2Powl bridge missing), #5 (XES/OCED: projection surface complete) |
 | `MISSING_TYPE_LAW` | 0 | (cleared: #3 upgraded to PARTIAL; #6 upgraded to PARTIAL — OCPQ query structure implemented in src/ocpq.rs) |
 | `DUPLICATE_OR_BACKGROUND` | 3 | #8 (PM4Py dup), #17 (YAWL BPMS), #19 (YAWL TM dup) |
-| `OUT_OF_SCOPE_WITH_REASON` | 7 | #2, #4, #10, #12, #13, #15, #20 |
+| `OUT_OF_SCOPE_WITH_REASON` | 10 | #2, #4, #10, #12, #13, #15, #20, #22, #23, #24 |
 
+**Total corpus scanned:** 24 papers (20 workflow/ + 4 other directories)  
 **3 papers with active PARTIAL type-law obligations** (#1, #3, #5).  
 **0 papers with fully missing type-law surfaces** — all MISSING entries have been addressed.  
 **3 papers fully covered by type** (#11, #14, #18) with compile-pass and compile-fail fixtures.
