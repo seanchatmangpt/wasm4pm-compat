@@ -23,6 +23,36 @@
 //!
 //! These tokens are **structure only**. They mark *where a value is* in the
 //! boundary protocol; they never run discovery, conformance, or replay.
+//!
+//! ## The sealed [`EvidenceState`] trait
+//!
+//! All lifecycle stage tokens implement the [`EvidenceState`] sealed trait. This
+//! prevents a downstream crate from inventing an arbitrary type and using it as
+//! the `State` parameter of [`crate::evidence::Evidence`]. Only the seven
+//! canonical stages defined here are valid lifecycle positions.
+
+mod private {
+    /// Sealing super-trait — prevents out-of-crate implementations of
+    /// [`super::EvidenceState`].
+    pub trait Sealed {}
+}
+
+/// Marker trait carried by every canonical lifecycle stage token.
+///
+/// This trait is **sealed**: only the seven stage tokens defined in this module
+/// implement it. A downstream crate cannot invent its own stage and pass it as
+/// the `State` type parameter of [`crate::evidence::Evidence`] — the
+/// missing-impl error at compile time is the law-enforcement mechanism.
+///
+/// Structure-only marker. It does not add methods or runtime cost; it only
+/// restricts the set of valid `State` arguments.
+///
+/// # What this is NOT
+///
+/// Not a validator, not a capability, not a runtime discriminant. It is a pure
+/// compile-time constraint that makes illegal stage positions unrepresentable.
+/// Graduate to `wasm4pm` when the *meaning* of a stage needs to be acted upon.
+pub trait EvidenceState: private::Sealed {}
 
 /// Untrusted input as it arrives from the outside world.
 ///
@@ -86,3 +116,26 @@ pub enum Exportable {}
 /// `wasm4pm` engine that will verify the receipt.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Receipted {}
+
+// ── EvidenceState impls ───────────────────────────────────────────────────────
+
+impl private::Sealed for Raw {}
+impl EvidenceState for Raw {}
+
+impl private::Sealed for Parsed {}
+impl EvidenceState for Parsed {}
+
+impl private::Sealed for Admitted {}
+impl EvidenceState for Admitted {}
+
+impl private::Sealed for Refused {}
+impl EvidenceState for Refused {}
+
+impl private::Sealed for Projected {}
+impl EvidenceState for Projected {}
+
+impl private::Sealed for Exportable {}
+impl EvidenceState for Exportable {}
+
+impl private::Sealed for Receipted {}
+impl EvidenceState for Receipted {}
