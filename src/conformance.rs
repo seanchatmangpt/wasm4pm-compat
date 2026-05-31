@@ -316,6 +316,92 @@ impl F1 {
     }
 }
 
+/// A generalization score in the closed unit interval `[0, 1]`.
+///
+/// `#[repr(transparent)]` over `f64`. It **carries** a verdict; it does **NOT**
+/// compute one. Generalization measures how well a discovered model covers
+/// traces *not* present in the discovery log (the opposite of overfitting).
+/// Graduate to `wasm4pm` to compute this value.
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Generalization(f64);
+
+impl Generalization {
+    /// Construct a generalization score, returning `None` unless
+    /// `0.0 <= value <= 1.0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::Generalization;
+    /// assert!(Generalization::new(0.9).is_some());
+    /// assert!(Generalization::new(1.1).is_none());
+    /// assert!(Generalization::new(f64::INFINITY).is_none());
+    /// ```
+    pub fn new(value: f64) -> Option<Self> {
+        if value.is_finite() && (0.0..=1.0).contains(&value) {
+            Some(Self(value))
+        } else {
+            None
+        }
+    }
+
+    /// The carried score as a raw `f64` in `[0, 1]`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::Generalization;
+    /// assert_eq!(Generalization::new(0.9).unwrap().get(), 0.9);
+    /// ```
+    pub fn get(self) -> f64 {
+        self.0
+    }
+}
+
+/// A simplicity score in the closed unit interval `[0, 1]`.
+///
+/// `#[repr(transparent)]` over `f64`. It **carries** a verdict; it does **NOT**
+/// compute one. Simplicity measures the structural parsimony of a process model;
+/// models with fewer redundant nodes and arcs score higher. Graduate to `wasm4pm`
+/// to compute this value.
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Simplicity(f64);
+
+impl Simplicity {
+    /// Construct a simplicity score, returning `None` unless
+    /// `0.0 <= value <= 1.0`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::Simplicity;
+    /// assert!(Simplicity::new(0.0).is_some());
+    /// assert!(Simplicity::new(1.0).is_some());
+    /// assert!(Simplicity::new(-0.5).is_none());
+    /// ```
+    pub fn new(value: f64) -> Option<Self> {
+        if value.is_finite() && (0.0..=1.0).contains(&value) {
+            Some(Self(value))
+        } else {
+            None
+        }
+    }
+
+    /// The carried score as a raw `f64` in `[0, 1]`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::Simplicity;
+    /// assert_eq!(Simplicity::new(0.6).unwrap().get(), 0.6);
+    /// ```
+    pub fn get(self) -> f64 {
+        self.0
+    }
+}
+
 // ── Deviation and verdict shapes ────────────────────────────────────────────
 
 /// A single deviation in a conformance verdict, tagged with a move witness `M`.
