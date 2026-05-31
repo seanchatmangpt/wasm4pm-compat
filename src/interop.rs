@@ -462,3 +462,116 @@ pub enum OcelShape {}
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum XesShape {}
+
+// ── XES → OCED format grammar surfaces ──────────────────────────────────────
+//
+// The OCED meta-model (Object-Centric Event Data) is a richer formalism than
+// XES: where XES is case-centric and single-case-notion, OCED is object-centric
+// and multi-entity. Converting XES to OCED is therefore a *named, lossy
+// projection*: the XES single-case assumption is dropped, object relationships
+// are inferred, and the resulting OCED log explicitly accounts for what was
+// structurally implicit in XES.
+//
+// Law: xes-to-oced-projection-named
+// Paper: "Object-Centric Analysis of XES Event Logs: Integrating OCED Modeling
+//         with SPARQL Queries"
+//
+// The reverse direction (OCEL→XES) is covered by OcelToXesProjection above.
+
+/// Shape marker for the OCED (Object-Centric Event Data) side of a XES→OCED
+/// projection.
+///
+/// Use as `To` in `LossReport<XesShape, OcedShape, …>` and in
+/// [`crate::loss::Project`] impls for XES-to-OCED projections. Zero-sized.
+///
+/// This is **not** the same as [`OcelShape`]: OCED is the upstream meta-model
+/// formalism (IEEE/WfMC academic standard), while OCEL is the concrete 2.0
+/// serialization. They are distinct projection targets.
+///
+/// ## Graduation
+///
+/// OCED evaluation, SPARQL queries over OCED graphs, and OCED-to-OCEL
+/// materialization graduate to `wasm4pm`. This marker is structure-only.
+///
+/// ```
+/// use wasm4pm_compat::interop::OcedShape;
+/// let _: OcedShape;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OcedShape {}
+
+/// A descriptor for a XES→OCED lifting projection.
+///
+/// Converting XES (case-centric, single case notion, no explicit object types)
+/// into the OCED meta-model is *lossy*: the XES single-case assumption is
+/// dropped, object relationships are inferred from the trace structure, and the
+/// single-case-notion constraint is lost. This descriptor names that projection
+/// (via [`crate::loss::ProjectionName`]) and records the object type introduced
+/// as the case notion in the OCED output.
+///
+/// It is the *grammar surface* for the XES→OCED boundary: it names and
+/// parameterises the projection so the [`crate::loss::Project`] impl an adopter
+/// writes is unambiguous and auditable. It does **not** perform the lifting.
+///
+/// Structure-only: use this as the `Self` type of a
+/// [`crate::loss::Project`] impl, with `From = XesShape`, `To = OcedShape`,
+/// `Lost = Vec<String>` (structural assumptions dropped), and
+/// `Reason = crate::xes::XesRefusal`.
+///
+/// ## Law
+///
+/// `xes-to-oced-projection-named` — Paper: "Object-Centric Analysis of XES
+/// Event Logs: Integrating OCED Modeling with SPARQL Queries"
+///
+/// ```
+/// use wasm4pm_compat::interop::XesToOcedProjection;
+/// use wasm4pm_compat::loss::ProjectionName;
+/// let proj = XesToOcedProjection::new("order");
+/// assert_eq!(proj.introduced_object_type(), "order");
+/// assert_eq!(proj.projection_name().as_str(), "xes-lift-to-oced:by-case-type");
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct XesToOcedProjection {
+    introduced_object_type: String,
+}
+
+impl XesToOcedProjection {
+    /// The stable [`crate::loss::ProjectionName`] for this family of projections.
+    pub const PROJECTION_NAME: crate::loss::ProjectionName =
+        crate::loss::ProjectionName("xes-lift-to-oced:by-case-type");
+
+    /// Construct a projection descriptor for lifting XES by introducing
+    /// `object_type` as the primary case-notion object type in OCED.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::XesToOcedProjection;
+    /// let p = XesToOcedProjection::new("order");
+    /// assert_eq!(p.introduced_object_type(), "order");
+    /// ```
+    pub fn new(object_type: impl Into<String>) -> Self {
+        XesToOcedProjection {
+            introduced_object_type: object_type.into(),
+        }
+    }
+
+    /// The object type introduced as the case notion in the OCED output.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::XesToOcedProjection;
+    /// assert_eq!(XesToOcedProjection::new("item").introduced_object_type(), "item");
+    /// ```
+    pub fn introduced_object_type(&self) -> &str {
+        &self.introduced_object_type
+    }
+
+    /// The stable [`crate::loss::ProjectionName`] for this projection family.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::XesToOcedProjection;
+    /// let p = XesToOcedProjection::new("order");
+    /// assert_eq!(p.projection_name().as_str(), "xes-lift-to-oced:by-case-type");
+    /// ```
+    pub fn projection_name(&self) -> crate::loss::ProjectionName {
+        Self::PROJECTION_NAME
+    }
+}
