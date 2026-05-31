@@ -11,6 +11,7 @@ use wasm4pm_compat::conformance::{
 };
 use wasm4pm_compat::declare::{
     Activity, DeclareConstraint, DeclareRefusal, DeclareScope, DeclareTemplate,
+    OcDeclareConstraint, OcDeclareRefusal,
 };
 use wasm4pm_compat::ocpq::{ObjectScope, OcpqQuery, OcpqRefusal, Predicate, PredicateKind};
 use wasm4pm_compat::powl::{
@@ -153,6 +154,116 @@ fn smoke_declare() {
 
     let r = DeclareRefusal::MissingTarget;
     assert!(r.to_string().contains("MissingTarget"));
+}
+
+#[test]
+fn smoke_declare_extended_templates_arity() {
+    // Unary extended templates all have arity 1.
+    assert_eq!(DeclareTemplate::Init.arity(), 1);
+    assert_eq!(DeclareTemplate::Existence2.arity(), 1);
+    assert_eq!(DeclareTemplate::Existence3.arity(), 1);
+    assert_eq!(DeclareTemplate::Absence2.arity(), 1);
+    assert_eq!(DeclareTemplate::Absence3.arity(), 1);
+
+    // Binary extended templates all have arity 2.
+    assert_eq!(DeclareTemplate::RespondedExistence.arity(), 2);
+    assert_eq!(DeclareTemplate::CoExistence.arity(), 2);
+    assert_eq!(DeclareTemplate::AlternateResponse.arity(), 2);
+    assert_eq!(DeclareTemplate::AlternatePrecedence.arity(), 2);
+    assert_eq!(DeclareTemplate::AlternateSuccession.arity(), 2);
+    assert_eq!(DeclareTemplate::ChainResponse.arity(), 2);
+    assert_eq!(DeclareTemplate::ChainPrecedence.arity(), 2);
+    assert_eq!(DeclareTemplate::ChainSuccession.arity(), 2);
+    assert_eq!(DeclareTemplate::NotSuccession.arity(), 2);
+    assert_eq!(DeclareTemplate::NotChainSuccession.arity(), 2);
+    assert_eq!(DeclareTemplate::ExclusiveChoice.arity(), 2);
+}
+
+#[test]
+fn smoke_declare_template_is_negative() {
+    // Negative templates.
+    assert!(DeclareTemplate::Absence.is_negative());
+    assert!(DeclareTemplate::Absence2.is_negative());
+    assert!(DeclareTemplate::Absence3.is_negative());
+    assert!(DeclareTemplate::NotCoExistence.is_negative());
+    assert!(DeclareTemplate::NotSuccession.is_negative());
+    assert!(DeclareTemplate::NotChainSuccession.is_negative());
+
+    // Non-negative templates.
+    assert!(!DeclareTemplate::Existence.is_negative());
+    assert!(!DeclareTemplate::Response.is_negative());
+    assert!(!DeclareTemplate::ChainSuccession.is_negative());
+    assert!(!DeclareTemplate::ExclusiveChoice.is_negative());
+}
+
+#[test]
+fn smoke_declare_template_is_chain() {
+    assert!(DeclareTemplate::ChainResponse.is_chain());
+    assert!(DeclareTemplate::ChainPrecedence.is_chain());
+    assert!(DeclareTemplate::ChainSuccession.is_chain());
+    assert!(DeclareTemplate::NotChainSuccession.is_chain());
+
+    assert!(!DeclareTemplate::Response.is_chain());
+    assert!(!DeclareTemplate::Succession.is_chain());
+    assert!(!DeclareTemplate::Existence.is_chain());
+}
+
+#[test]
+fn smoke_oc_declare_constraint_new() {
+    let inner = DeclareConstraint::binary(
+        DeclareTemplate::Response,
+        Activity::new("submit"),
+        Activity::new("approve"),
+        DeclareScope::SingleObjectScope("order".into()),
+    );
+    let oc = OcDeclareConstraint::new(inner.clone(), vec!["order".into(), "item".into()]);
+    assert_eq!(oc.object_types.len(), 2);
+    assert!(!oc.is_synchronized());
+    assert!(oc.validate().is_ok());
+
+    // Empty object type list is refused.
+    let bad = OcDeclareConstraint::new(inner, vec![]);
+    assert_eq!(bad.validate(), Err(OcDeclareRefusal::EmptyObjectTypeList));
+}
+
+#[test]
+fn smoke_oc_declare_constraint_synchronized() {
+    let inner = DeclareConstraint::binary(
+        DeclareTemplate::ChainSuccession,
+        Activity::new("ship"),
+        Activity::new("deliver"),
+        DeclareScope::SynchronizedObjectScope(vec!["order".into(), "delivery".into()]),
+    );
+    let oc =
+        OcDeclareConstraint::synchronized(inner, vec!["order".into(), "delivery".into()]);
+    assert!(oc.is_synchronized());
+    assert!(oc.validate().is_ok());
+}
+
+#[test]
+fn smoke_oc_declare_refusal_display() {
+    let e = OcDeclareRefusal::EmptyObjectTypeList;
+    assert!(e.to_string().contains("EmptyObjectTypeList"));
+
+    let s = OcDeclareRefusal::SynchronizationRequiresMultipleTypes;
+    assert!(s.to_string().contains("SynchronizationRequiresMultipleTypes"));
+
+    let m = OcDeclareRefusal::ScopeMismatch;
+    assert!(m.to_string().contains("ScopeMismatch"));
+}
+
+#[test]
+fn smoke_declare_refusal_display() {
+    let r = DeclareRefusal::MissingTarget;
+    assert!(r.to_string().contains("MissingTarget"));
+    let r2 = DeclareRefusal::InvalidTemplateArity;
+    assert!(r2.to_string().contains("InvalidTemplateArity"));
+    let r3 = DeclareRefusal::EmptyObjectScope;
+    assert!(r3.to_string().contains("EmptyObjectScope"));
+    let r4 = DeclareRefusal::SynchronizationViolation;
+    assert!(r4.to_string().contains("SynchronizationViolation"));
+    let r5 = DeclareRefusal::MissingActivation;
+    assert!(r5.to_string().contains("MissingActivation"));
 }
 
 #[test]
