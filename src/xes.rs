@@ -185,6 +185,40 @@ impl XesEvent {
         self.attribute("org:resource")
     }
 
+    /// The `lifecycle:transition` attribute as a typed [`XesLifecycleTransition`],
+    /// if the attribute is present and within the standard alphabet.
+    ///
+    /// Returns `None` when the attribute is absent. Returns `None` when the
+    /// value is outside the standard alphabet (caller must handle the unknown
+    /// value; use [`XesEvent::lifecycle_transition_raw`] to inspect it).
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::{XesEvent, XesLifecycleTransition};
+    /// let e = XesEvent::new().with("lifecycle:transition", "complete");
+    /// assert_eq!(e.lifecycle_transition(), Some(XesLifecycleTransition::Complete));
+    ///
+    /// let e2 = XesEvent::new().with("lifecycle:transition", "custom");
+    /// assert_eq!(e2.lifecycle_transition(), None);
+    /// ```
+    pub fn lifecycle_transition(&self) -> Option<XesLifecycleTransition> {
+        self.attribute("lifecycle:transition")
+            .and_then(XesLifecycleTransition::parse)
+    }
+
+    /// The raw `lifecycle:transition` attribute string, if present.
+    ///
+    /// Use when the value may be outside the standard alphabet and must be
+    /// preserved verbatim.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesEvent;
+    /// let e = XesEvent::new().with("lifecycle:transition", "custom-value");
+    /// assert_eq!(e.lifecycle_transition_raw(), Some("custom-value"));
+    /// ```
+    pub fn lifecycle_transition_raw(&self) -> Option<&str> {
+        self.attribute("lifecycle:transition")
+    }
+
     /// All attributes in declaration order.
     ///
     /// ```
