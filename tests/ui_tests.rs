@@ -31,3 +31,11 @@ fn compile_pass_fixtures() {
     let t = trybuild::TestCases::new();
     t.pass("tests/ui/compile_pass/*.rs");
 }
+
+#[test]
+#[cfg(feature = "wasm4pm")]
+#[ignore = "trybuild compile-time law receipts (wasm4pm feature) — run explicitly: cargo test --test ui_tests --features wasm4pm -- --ignored"]
+fn compile_pass_wasm4pm_fixtures() {
+    let t = trybuild::TestCases::new();
+    t.pass("tests/ui/compile_pass_wasm4pm/*.rs");
+}
