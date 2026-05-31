@@ -1659,3 +1659,31 @@ A `TimeBetweenEvents` predicate (TBE) is also in `RelationPredicate` family: it 
 - E2O/O2O link resolution against a log (variable binding, traversal)
 - TBE evaluation (timestamp difference computation)
 - Relation predicate cardinality aggregation
+
+---
+
+### projection-refusal-law
+
+**Law concept:** When a POWL model with an `Irreducible` partial order is asked
+to project to a process tree, the refusal is named `PowlRefusal::IrreducibleProjection`.
+On the process-tree side, the mirror law is `ProcessTreeRefusal::UnsupportedProjection`.
+Both names are specific structural laws — neither is a bare `InvalidInput` or
+untyped error string. The `assert_tree_projectable` gate enforces this at the
+type level: a caller must pass a `ProcessTreeProjectable`-witnessed marker, not an
+`ExceedsProcessTree`-witnessed one.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §4: conversion POWL → process tree
+is only defined for the `ProcessTreeProjectable` sub-class. Attempting conversion
+outside this sub-class must be an explicit, named refusal — not a silent failure.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `projection-refusal-law` — `PowlRefusal::IrreducibleProjection` is the named law for POWL-to-tree projection failure | `powl::PowlRefusal::IrreducibleProjection` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+| `process-tree-unsupported-projection` — `ProcessTreeRefusal::UnsupportedProjection` is the mirror law on the tree side when a foreign shape (e.g. a POWL irreducible) cannot be represented | `process_tree::ProcessTreeRefusal::UnsupportedProjection` | `compile_pass/powl_process_tree_projectable.rs` | — (same gate as IrreducibleProjection; mirror refusal) | Kourani & van der Aalst (2023) §4 |
+| `assert-tree-projectable-gate` — `assert_tree_projectable<P: TreeProjectable>` is the type-law gate; it is not a runtime assertion, it is a compiler proof obligation | `powl::assert_tree_projectable` (sealed function) | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+
+**What must NOT live in this crate:**
+
+- POWL-to-process-tree language-preserving reduction algorithm
+- Tau-loop insertion for block-structuredness recovery
+- Language loss measurement during projection
