@@ -846,3 +846,119 @@ impl OcelDims {
         self.object_types.is_empty() && self.activities.is_empty()
     }
 }
+
+// ── Object-type witness ───────────────────────────────────────────────────────
+
+/// A phantom type-level object-type tag.
+///
+/// `ObjectTypeTag` is a zero-sized marker that threads a *named object type*
+/// through generic typed surfaces. It prevents `TypedObject<OrderTag>` from
+/// being silently coerced into `TypedObject<ItemTag>` at the type level.
+///
+/// Structure-only: it is a compile-time label. Object-type classification,
+/// filtering, and DFG construction graduate to `wasm4pm`.
+///
+/// # Graduation
+///
+/// When an object-type distinction must be *enforced at runtime* (e.g. checking
+/// that all events touching a given type appear only in a certain activity set),
+/// the typed surface travels to `wasm4pm`.
+pub trait ObjectTypeTag: core::fmt::Debug + Clone + PartialEq {
+    /// The stable, lowercase, machine-facing object-type name (e.g. `"order"`).
+    const TYPE_NAME: &'static str;
+}
+
+/// A typed wrapper around [`OcelObject`] that threads an [`ObjectTypeTag`] into
+/// the type system.
+///
+/// `TypedObject<OT>` is a newtype around [`OcelObject`] whose phantom type
+/// parameter `OT: ObjectTypeTag` makes the object's type visible at compile
+/// time. It is not possible to mix `TypedObject<OrderTag>` and
+/// `TypedObject<ItemTag>` without an explicit coercion through the inner
+/// [`OcelObject`].
+///
+/// Structure-only: it carries identity, type tag, and attributes; it does not
+/// compute object behavior or validate against a schema. That graduates to
+/// `wasm4pm`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypedObject<OT: ObjectTypeTag> {
+    inner: OcelObject,
+    _tag: core::marker::PhantomData<OT>,
+}
+
+impl<OT: ObjectTypeTag> TypedObject<OT> {
+    /// Wrap an [`OcelObject`] with a compile-time object-type tag.
+    ///
+    /// The `object_type` field on the inner [`OcelObject`] is **not** replaced;
+    /// callers should ensure it matches `OT::TYPE_NAME` if that consistency is
+    /// required. The type-level tag is a compile-time claim, not a runtime check.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelObject, TypedObject, ObjectTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct OrderTag;
+    /// impl ObjectTypeTag for OrderTag { const TYPE_NAME: &'static str = "order"; }
+    ///
+    /// let obj = OcelObject::new("ord-1", "order");
+    /// let typed = TypedObject::<OrderTag>::wrap(obj);
+    /// assert_eq!(typed.inner().id(), "ord-1");
+    /// ```
+    pub fn wrap(inner: OcelObject) -> Self {
+        TypedObject {
+            inner,
+            _tag: core::marker::PhantomData,
+        }
+    }
+
+    /// Construct a [`TypedObject`] directly: id plus the tag's type name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObject, ObjectTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct ItemTag;
+    /// impl ObjectTypeTag for ItemTag { const TYPE_NAME: &'static str = "item"; }
+    ///
+    /// let obj = TypedObject::<ItemTag>::new("item-7");
+    /// assert_eq!(obj.inner().object_type(), "item");
+    /// ```
+    pub fn new(id: impl Into<String>) -> Self {
+        TypedObject {
+            inner: OcelObject::new(id, OT::TYPE_NAME),
+            _tag: core::marker::PhantomData,
+        }
+    }
+
+    /// The inner untyped [`OcelObject`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelObject, TypedObject, ObjectTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct OrderTag;
+    /// impl ObjectTypeTag for OrderTag { const TYPE_NAME: &'static str = "order"; }
+    ///
+    /// let typed = TypedObject::<OrderTag>::new("ord-3");
+    /// assert_eq!(typed.inner().object_type(), "order");
+    /// ```
+    pub fn inner(&self) -> &OcelObject {
+        &self.inner
+    }
+
+    /// Consume the wrapper and return the inner [`OcelObject`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObject, ObjectTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct OrderTag;
+    /// impl ObjectTypeTag for OrderTag { const TYPE_NAME: &'static str = "order"; }
+    ///
+    /// let obj = TypedObject::<OrderTag>::new("ord-5").into_inner();
+    /// assert_eq!(obj.id(), "ord-5");
+    /// ```
+    pub fn into_inner(self) -> OcelObject {
+        self.inner
+    }
+}
