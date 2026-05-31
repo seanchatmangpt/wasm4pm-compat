@@ -1556,3 +1556,20 @@ consistent with the crate's structure-only, graduation-boundary doctrine.
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
 |---|---|---|---|---|
 | `xes-graduation-boundary` — XES engine logic (discovery, conformance, file I/O) is absent from this crate; graduation to `wasm4pm` is required | graduation boundary: `xes::XesLog` is structure-only; module doc enforces no engine logic | `compile_pass/xes_case_centric_log.rs` | `compile_fail/engine_creep_discovery_absent.rs` | IEEE 1849-2023 §1 scope; van der Aalst (2016) process mining graduation |
+
+### XES round-trip claim law
+
+The XES format has a round-trip claim: `import(export(x)) ~ x` for a named fixture.
+`RoundTripClaim` in `src/formats.rs` is the structure-only promissory note. It does
+not perform the round trip; it names the fixture under which the equivalence is
+asserted so a test (in `tests/format_contracts.rs`) can discharge it.
+
+For XES specifically: round-trip is `lossy_tolerant` (whitespace and attribute
+ordering normalization are expected). A round-trip claim that does not name a fixture
+is not a real claim (`is_named()` returns false for empty fixture strings).
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-round-trip-claim` — XES import/export round trip is a named claim, not a guarantee; `RoundTripClaim::lossy_tolerant` names the fixture | `formats::RoundTripClaim` | `compile_pass/formats_round_trip_claim.rs` | — (law enforced by `is_named()` check; unnamed claims are rejected by tests) | IEEE 1849-2023 §4 interchange fidelity |
+| `xes-format-kind-tag` — `FormatKind::XesXml` is a distinct tag from `FormatKind::OcelJson`; a XES envelope cannot be silently treated as OCEL | `formats::FormatKind::XesXml` | `compile_pass/formats_envelope_shape.rs` | — (distinct enum variant; no implicit coercion) | IEEE 1849-2023 §3 XES XML serialization |
+| `xes-format-not-object-centric` — `FormatKind::XesXml.is_object_centric()` returns `false`; XES is structurally distinct from OCEL formats | `formats::FormatKind::is_object_centric()` | `compile_pass/formats_envelope_shape.rs` | — (structural law; method returns const bool) | IEEE 1849-2023; OCEL 2.0 §1 (object-centric vs. case-centric) |
