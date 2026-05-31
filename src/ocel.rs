@@ -1150,3 +1150,100 @@ impl<AT: AttributeTypeTag> TypedAttribute<AT> {
         self.inner
     }
 }
+
+// ── TypedObjectChange: object-change construction with typed value ────────────
+
+/// A recorded change to an object attribute, with a typed [`OcelAttributeValue`].
+///
+/// `TypedObjectChange` is the typed companion to [`ObjectChange`]: instead of
+/// storing the new value as a `String`, it stores an [`OcelAttributeValue`] so
+/// the type of the change (integer, float, boolean, …) is visible without
+/// parsing. A change naming no object or no attribute should be refused as
+/// [`OcelRefusal::InvalidObjectChange`].
+///
+/// Structure-only: it records the typed change tuple; it does not replay object
+/// evolution or compute a delta. That graduates to `wasm4pm`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypedObjectChange {
+    object_id: String,
+    attribute: String,
+    value: OcelAttributeValue,
+    timestamp_ns: Option<i64>,
+}
+
+impl TypedObjectChange {
+    /// Construct a typed object change: `object_id.attribute = value`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// let c = TypedObjectChange::new("ord-1", "price", OcelAttributeValue::Float(49.99));
+    /// assert_eq!(c.object_id(), "ord-1");
+    /// assert_eq!(c.attribute(), "price");
+    /// assert_eq!(c.value(), &OcelAttributeValue::Float(49.99));
+    /// ```
+    pub fn new(
+        object_id: impl Into<String>,
+        attribute: impl Into<String>,
+        value: OcelAttributeValue,
+    ) -> Self {
+        TypedObjectChange {
+            object_id: object_id.into(),
+            attribute: attribute.into(),
+            value,
+            timestamp_ns: None,
+        }
+    }
+
+    /// Attach a nanosecond timestamp to the change. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// let c = TypedObjectChange::new("o", "a", OcelAttributeValue::Boolean(true)).at_ns(42);
+    /// assert_eq!(c.timestamp_ns(), Some(42));
+    /// ```
+    pub fn at_ns(mut self, ts: i64) -> Self {
+        self.timestamp_ns = Some(ts);
+        self
+    }
+
+    /// The changed object's id.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// assert_eq!(TypedObjectChange::new("o", "a", OcelAttributeValue::Integer(1)).object_id(), "o");
+    /// ```
+    pub fn object_id(&self) -> &str {
+        &self.object_id
+    }
+
+    /// The changed attribute name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// assert_eq!(TypedObjectChange::new("o", "a", OcelAttributeValue::Integer(1)).attribute(), "a");
+    /// ```
+    pub fn attribute(&self) -> &str {
+        &self.attribute
+    }
+
+    /// The new typed attribute value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// let c = TypedObjectChange::new("o", "a", OcelAttributeValue::Integer(7));
+    /// assert_eq!(c.value(), &OcelAttributeValue::Integer(7));
+    /// ```
+    pub fn value(&self) -> &OcelAttributeValue {
+        &self.value
+    }
+
+    /// The optional timestamp of the change.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
+    /// assert_eq!(TypedObjectChange::new("o", "a", OcelAttributeValue::Boolean(false)).timestamp_ns(), None);
+    /// ```
+    pub fn timestamp_ns(&self) -> Option<i64> {
+        self.timestamp_ns
+    }
+}
