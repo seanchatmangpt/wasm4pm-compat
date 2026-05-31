@@ -214,6 +214,33 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
         }
     }
 
+    /// Seals admitted evidence into a provenance-bearing `Receipted` stage.
+    ///
+    /// `Receipted` is the strongest structural stage: it records that the value
+    /// has been wrapped in a receipt envelope (see [`crate::receipt`]) and is
+    /// ready for hand-off to the `wasm4pm` engine for digest verification and
+    /// replay.  This method is intentionally only available on `Admitted` evidence
+    /// — you cannot receipt something that was never admitted.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Admission;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let admitted = Admission::<_, Ocel20>::new("run-log").into_evidence();
+    /// let receipted = admitted.into_receipted();
+    /// assert_eq!(receipted.value, "run-log");
+    /// ```
+    #[inline]
+    pub fn into_receipted(self) -> Evidence<T, crate::state::Receipted, W> {
+        Evidence {
+            value: self.value,
+            state: core::marker::PhantomData,
+            witness: core::marker::PhantomData,
+        }
+    }
+
     /// Records that admitted evidence has been through a *named, accounted*
     /// projection (see [`crate::loss`]), advancing it to `Projected`.
     ///
