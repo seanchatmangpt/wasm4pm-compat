@@ -288,6 +288,37 @@ witness_marker!(
     Some(2004)
 );
 witness_marker!(
+    /// XES lifecycle extension authority (IEEE 1849-2016, §lifecycle).
+    ///
+    /// Names the authority under which a `lifecycle:transition` value is
+    /// admitted or refused against the standard alphabet. Distinct from
+    /// [`Xes1849`], which names the overall XES standard: `XesLifecycleExt`
+    /// names the sub-authority that governs the `lifecycle:transition` alphabet
+    /// specifically. Use this when tagging an admission that checks *only*
+    /// lifecycle transition values, not the full XES shape.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when lifecycle-ordering enforcement (start before complete) is required.
+    XesLifecycleExt,
+    "xes-lifecycle-extension",
+    WitnessFamily::Standard,
+    "XES lifecycle extension (IEEE 1849-2016)",
+    Some(2016)
+);
+witness_marker!(
+    /// XES concept extension authority (IEEE 1849-2016, §concept).
+    ///
+    /// Names the authority under which a `concept:name` value is admitted or
+    /// refused. Distinct from [`Xes1849`] (the overall standard) and
+    /// [`XesLifecycleExt`] (lifecycle values). Use when tagging an admission
+    /// that checks the `concept:name` key specifically.
+    XesConceptExt,
+    "xes-concept-extension",
+    WitnessFamily::Standard,
+    "XES concept extension (IEEE 1849-2016)",
+    Some(2016)
+);
+witness_marker!(
     /// OCEL 2.0 object-type namespace witness.
     ///
     /// Names the authority under which a specific *object type* (e.g. `"order"`,
