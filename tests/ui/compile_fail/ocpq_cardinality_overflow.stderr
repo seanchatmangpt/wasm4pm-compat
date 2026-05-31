@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_cardinality_overflow.rs:24:25
+   |
+24 |     add_event_predicate(card);
+   |     ------------------- ^^^^ expected `Predicate<EventPredicate>`, found `Predicate<CardinalityPredicate>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Predicate<EventPredicate>`
+              found struct `Predicate<CardinalityPredicate>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_cardinality_overflow.rs:16:4
+   |
+16 | fn add_event_predicate(_p: Predicate<EventPredicate>) {}
+   |    ^^^^^^^^^^^^^^^^^^^ -----------------------------
