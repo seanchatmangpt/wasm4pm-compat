@@ -216,3 +216,18 @@ witness_marker!(
     "Inductive Miner (Leemans, Fahland & van der Aalst)",
     Some(2013)
 );
+witness_marker!(
+    /// Declare constraint-template language (Pesic & van der Aalst, 2006).
+    ///
+    /// Names the individual *constraint* surface of Declare — the set of
+    /// constraint templates (Response, Precedence, Chain-Succession, …) and
+    /// their LTL semantics. Distinct from [`DeclareFamily`], which names the
+    /// broader *model family*. Use `DeclareConstraints` when admitting a
+    /// single constraint or a constraint-binding; use `DeclareFamily` when
+    /// admitting a whole model.
+    DeclareConstraints,
+    "declare-constraints",
+    WitnessFamily::Paper,
+    "Declare constraint-template language",
+    Some(2006)
+);
