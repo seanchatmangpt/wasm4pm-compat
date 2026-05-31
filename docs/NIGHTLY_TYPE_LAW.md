@@ -1412,3 +1412,20 @@ The five core refusal variants cover the complete structural validation surface 
 |---|---|---|---|---|
 | `xes-refusal-named-law` — every `XesRefusal` variant names a specific structural law, never bare `InvalidInput` | `xes::XesRefusal` (`#[non_exhaustive]` enum, 9 named variants) | `compile_pass/xes_case_centric_log.rs` | — (law enforced by enum shape: no catch-all variant) | IEEE 1849-2023 §4 validation; Verbeek et al. (2011) §3 |
 | `xes-missing-log-name` — `XesRefusal::MissingLogName` is the named refusal for a log without `concept:name` | `xes::XesRefusal::MissingLogName` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; shape check in `XesLog::validate()`) | IEEE 1849-2023 §5 log element |
+
+### XES witness marker law
+
+`Xes1849` in `src/witness.rs` is the named, non-forgeable receipt that ties a
+structure admitted under the XES law surface to the IEEE 1849 standard. An
+`Admission<T, Xes1849>` is distinguishable at the type level from
+`Admission<T, Ocel20>` — confusing them is a compile error, not a runtime check.
+
+The `witness_xes1849_marker.rs` compile-pass fixture seals the positive path:
+`Xes1849::KEY == "xes-1849-2016"`, `Xes1849::FAMILY == WitnessFamily::Standard`,
+`Xes1849::YEAR == Some(2016)`. These constants are the human-facing metadata layer
+that lets diagnostics explain which authority a value was admitted against.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-witness-marker-law` — `Xes1849` is the named authority label for all XES-admitted structures; distinct from `Ocel20` at the type level | `witness::Xes1849` (empty enum, implements `Witness`) | `compile_pass/witness_xes1849_marker.rs` | — (law enforced by distinct empty-enum identity; mixing requires explicit coercion) | IEEE 1849-2023; IEEE 1849-2016 |
+| `xes-witness-family-standard` — `Xes1849::FAMILY == WitnessFamily::Standard`; XES is a published interchange standard, not a paper or API grammar | `witness::WitnessFamily::Standard` | `compile_pass/witness_xes1849_marker.rs` | — | IEEE 1849-2023 (standard, not paper) |
