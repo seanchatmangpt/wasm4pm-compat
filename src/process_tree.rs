@@ -448,6 +448,85 @@ impl ProcessTree {
     pub fn node_count(&self) -> usize {
         self.nodes.len()
     }
+
+    /// Perform a **structural shape admission check** on this process tree.
+    ///
+    /// Returns `Ok(())` when the shape is well-formed, or `Err(ProcessTreeRefusal)`
+    /// naming the specific structural law that was violated. This is not a full
+    /// semantic verification — it is a first-pass structural gate.
+    ///
+    /// Checked laws:
+    /// - [`ProcessTreeRefusal::MissingRoot`] — nodes present but no root declared
+    /// - [`ProcessTreeRefusal::DanglingNodeReference`] — a child id is out of bounds
+    /// - [`ProcessTreeRefusal::TauLeafWithChildren`] — Silent node has children
+    /// - [`ProcessTreeRefusal::BelowMinimumArity`] — Sequence/Xor/Parallel/Or with < 2 children
+    /// - [`ProcessTreeRefusal::InvalidArity`] — Loop with ≠ 2 children
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::process_tree::{
+    ///     ProcessTree, ProcessTreeNode, ProcessTreeNodeId, ProcessTreeOperator,
+    ///     ProcessTreeRefusal,
+    /// };
+    ///
+    /// // Well-formed Sequence(a, b) passes.
+    /// let mut t = ProcessTree::new();
+    /// t.nodes.push(ProcessTreeNode::Activity("a".into()));
+    /// t.nodes.push(ProcessTreeNode::Activity("b".into()));
+    /// t.nodes.push(ProcessTreeNode::Operator {
+    ///     operator: ProcessTreeOperator::Sequence,
+    ///     children: vec![ProcessTreeNodeId(0), ProcessTreeNodeId(1)],
+    /// });
+    /// t.root = Some(ProcessTreeNodeId(2));
+    /// assert_eq!(t.admit_shape(), Ok(()));
+    ///
+    /// // Non-empty tree with no root is refused.
+    /// let mut t2 = ProcessTree::new();
+    /// t2.nodes.push(ProcessTreeNode::Activity("a".into()));
+    /// assert_eq!(t2.admit_shape(), Err(ProcessTreeRefusal::MissingRoot));
+    /// ```
+    pub fn admit_shape(&self) -> Result<(), ProcessTreeRefusal> {
+        // A non-empty tree must declare a root.
+        if !self.nodes.is_empty() && self.root.is_none() {
+            return Err(ProcessTreeRefusal::MissingRoot);
+        }
+
+        for node in &self.nodes {
+            match node {
+                ProcessTreeNode::Activity(_) => {}
+                ProcessTreeNode::Operator { operator, children } => {
+                    // Check all child ids are in-bounds.
+                    for child_id in children {
+                        if child_id.0 >= self.nodes.len() {
+                            return Err(ProcessTreeRefusal::DanglingNodeReference);
+                        }
+                    }
+                    match operator {
+                        ProcessTreeOperator::Silent => {
+                            if !children.is_empty() {
+                                return Err(ProcessTreeRefusal::TauLeafWithChildren);
+                            }
+                        }
+                        ProcessTreeOperator::Loop => {
+                            if children.len() != 2 {
+                                return Err(ProcessTreeRefusal::InvalidArity);
+                            }
+                        }
+                        ProcessTreeOperator::Sequence
+                        | ProcessTreeOperator::Xor
+                        | ProcessTreeOperator::Parallel
+                        | ProcessTreeOperator::Or => {
+                            if children.len() < 2 {
+                                return Err(ProcessTreeRefusal::BelowMinimumArity);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 /// First-class refusal law for process-tree shapes.
