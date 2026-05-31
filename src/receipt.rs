@@ -269,17 +269,26 @@ pub enum ReceiptRefusal {
     MissingReplayHint,
     /// The claim, as shaped, could never be replayed (no engine path exists).
     UnreplayableClaim,
+    /// A multi-step chain contained at least one ill-shaped link. The `usize`
+    /// is the zero-based index of the first broken link.
+    BrokenChainLink(usize),
+    /// A chain was constructed with zero links — a chain without provenance
+    /// steps is inadmissible.
+    EmptyChain,
 }
 
 impl core::fmt::Display for ReceiptRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let law = match self {
-            ReceiptRefusal::MissingSubject => "MissingSubject",
-            ReceiptRefusal::MissingWitness => "MissingWitness",
-            ReceiptRefusal::MissingDigest => "MissingDigest",
-            ReceiptRefusal::MissingReplayHint => "MissingReplayHint",
-            ReceiptRefusal::UnreplayableClaim => "UnreplayableClaim",
-        };
-        write!(f, "receipt refused: {law}")
+        match self {
+            ReceiptRefusal::MissingSubject => write!(f, "receipt refused: MissingSubject"),
+            ReceiptRefusal::MissingWitness => write!(f, "receipt refused: MissingWitness"),
+            ReceiptRefusal::MissingDigest => write!(f, "receipt refused: MissingDigest"),
+            ReceiptRefusal::MissingReplayHint => write!(f, "receipt refused: MissingReplayHint"),
+            ReceiptRefusal::UnreplayableClaim => write!(f, "receipt refused: UnreplayableClaim"),
+            ReceiptRefusal::BrokenChainLink(idx) => {
+                write!(f, "receipt refused: BrokenChainLink at index {idx}")
+            }
+            ReceiptRefusal::EmptyChain => write!(f, "receipt refused: EmptyChain"),
+        }
     }
 }
