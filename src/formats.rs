@@ -390,6 +390,35 @@ impl LossyFormatExport {
 /// ```
 pub fn accept_lossy_ocel_to_xes(_export: LossyFormatExport) {}
 
+/// Type-law gate for the XES→OCED direction: only accepts a
+/// [`LossyFormatExport`], not a bare [`FormatExport`].
+///
+/// The XES→OCED lifting projection is lossy: the XES single-case assumption is
+/// dropped and object relationships are inferred. Any result of this projection
+/// **must** carry a [`LossReport`] naming exactly what structural assumptions
+/// were lost. A bare [`FormatExport`] (with `loss: Option<LossReport<…>>`) does
+/// not enforce this — only [`LossyFormatExport`] (with a mandatory report) does.
+///
+/// Used in the `xes_to_oced_loss_report_rejected` compile-fail fixture to prove
+/// the XES→OCED loss accounting law is guarded on the negative side.
+///
+/// Structure-only: this function carries no XES or OCED logic. It is a
+/// zero-cost type boundary. Graduate to `wasm4pm` when the actual lifting
+/// must be performed.
+///
+/// ```ignore
+/// use wasm4pm_compat::formats::{accept_lossy_xes_to_oced, LossyFormatExport, FormatKind};
+/// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+/// let export = LossyFormatExport::new(
+///     FormatKind::OcelJson, vec![],
+///     LossReport::<(), (), Vec<String>>::new(
+///         ProjectionName("xes-lift-to-oced:by-case-type"),
+///         LossPolicy::AllowLossWithReport,
+///         vec![]));
+/// accept_lossy_xes_to_oced(export);  // ok
+/// ```
+pub fn accept_lossy_xes_to_oced(_export: LossyFormatExport) {}
+
 /// A *named claim* that a given fixture round-trips: `import(export(x)) ~ x`.
 ///
 /// `RoundTripClaim` is the crate's way of making round-trip fidelity *auditable*.
