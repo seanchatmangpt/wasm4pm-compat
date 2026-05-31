@@ -1,0 +1,5 @@
+error[E0425]: cannot find type `ProcessDiscoveryEngine` in crate `wasm4pm_compat`
+  --> tests/ui/compile_fail/engine_creep_discovery_absent.rs:14:28
+   |
+14 |     let _: wasm4pm_compat::ProcessDiscoveryEngine = todo!();
+   |                            ^^^^^^^^^^^^^^^^^^^^^^ not found in `wasm4pm_compat`
