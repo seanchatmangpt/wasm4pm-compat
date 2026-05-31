@@ -108,6 +108,48 @@ impl OcelAttribute {
             value: OcelAttributeValue::Integer(value),
         }
     }
+
+    /// Construct a float attribute.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
+    /// let a = OcelAttribute::float("price", 9.99);
+    /// assert_eq!(a.value, OcelAttributeValue::Float(9.99));
+    /// ```
+    pub fn float(key: impl Into<String>, value: f64) -> Self {
+        OcelAttribute {
+            key: key.into(),
+            value: OcelAttributeValue::Float(value),
+        }
+    }
+
+    /// Construct a boolean attribute.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
+    /// let a = OcelAttribute::boolean("active", true);
+    /// assert_eq!(a.value, OcelAttributeValue::Boolean(true));
+    /// ```
+    pub fn boolean(key: impl Into<String>, value: bool) -> Self {
+        OcelAttribute {
+            key: key.into(),
+            value: OcelAttributeValue::Boolean(value),
+        }
+    }
+
+    /// Construct a nanosecond-timestamp attribute.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
+    /// let a = OcelAttribute::timestamp_ns("created_at", 1_700_000_000_000_000_000);
+    /// assert_eq!(a.value, OcelAttributeValue::TimestampNs(1_700_000_000_000_000_000));
+    /// ```
+    pub fn timestamp_ns(key: impl Into<String>, value: i64) -> Self {
+        OcelAttribute {
+            key: key.into(),
+            value: OcelAttributeValue::TimestampNs(value),
+        }
+    }
 }
 
 /// An object: a typed, identified entity that events relate to, with OCEL 2.0
