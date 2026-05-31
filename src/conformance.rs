@@ -44,11 +44,16 @@ use crate::law::{IsTrue, QualityMetricKind, Require};
 /// ```
 /// # #![feature(generic_const_exprs, adt_const_params)]
 /// # #![allow(incomplete_features)]
-/// use wasm4pm_compat::conformance::{Metric, FitnessConst, PrecisionConst, F1Const};
+/// use wasm4pm_compat::conformance::{
+///     Metric, FitnessConst, PrecisionConst, F1Const,
+///     GeneralizationConst, SimplicityConst,
+/// };
 /// use wasm4pm_compat::law::QualityMetricKind;
-/// let _: FitnessConst<3, 4> = Metric::new();   // 0.75 fitness
-/// let _: PrecisionConst<1, 2> = Metric::new(); // 0.5 precision
-/// let _: F1Const<0, 1> = Metric::new();        // 0.0 F1
+/// let _: FitnessConst<3, 4> = Metric::new();         // 0.75 fitness
+/// let _: PrecisionConst<1, 2> = Metric::new();       // 0.5 precision
+/// let _: F1Const<0, 1> = Metric::new();              // 0.0 F1
+/// let _: GeneralizationConst<7, 8> = Metric::new();  // 0.875 generalization
+/// let _: SimplicityConst<1, 1> = Metric::new();      // 1.0 simplicity
 /// ```
 ///
 /// ```compile_fail
@@ -122,6 +127,57 @@ pub type PrecisionConst<const NUM: u64, const DEN: u64> =
 
 /// Compile-time bounded F1 score: `NUM / DEN ∈ [0, 1]`.
 pub type F1Const<const NUM: u64, const DEN: u64> = Metric<{ QualityMetricKind::F1 }, NUM, DEN>;
+
+/// Compile-time bounded generalization score: `NUM / DEN ∈ [0, 1]`.
+///
+/// Generalization measures how well a discovered model covers traces that were
+/// *not* in the discovery log — a high score means the model does not overfit
+/// to the training log. Defined by van der Aalst (2016) as one of the four
+/// canonical quality dimensions alongside fitness, precision, and simplicity.
+///
+/// `GeneralizationConst<2, 1>` does **not compile** — `2/1 > 1` violates the
+/// `Between01` bound.
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::conformance::GeneralizationConst;
+/// let _: GeneralizationConst<7, 8> = GeneralizationConst::new(); // 0.875
+/// let _: GeneralizationConst<0, 1> = GeneralizationConst::new(); // 0.0
+/// let _: GeneralizationConst<1, 1> = GeneralizationConst::new(); // 1.0
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::conformance::GeneralizationConst;
+/// let _: GeneralizationConst<2, 1> = GeneralizationConst::new(); // 2/1 > 1
+/// ```
+pub type GeneralizationConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Generalization }, NUM, DEN>;
+
+/// Compile-time bounded simplicity score: `NUM / DEN ∈ [0, 1]`.
+///
+/// Simplicity measures the structural parsimony of a process model — simpler
+/// models (fewer nodes, arcs, and duplicate activities) score higher. Defined
+/// by van der Aalst (2016) as one of the four canonical quality dimensions.
+///
+/// `SimplicityConst<2, 1>` does **not compile** — `2/1 > 1` violates the
+/// `Between01` bound.
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::conformance::SimplicityConst;
+/// let _: SimplicityConst<1, 2> = SimplicityConst::new(); // 0.5
+/// let _: SimplicityConst<0, 1> = SimplicityConst::new(); // 0.0
+/// let _: SimplicityConst<1, 1> = SimplicityConst::new(); // 1.0
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::conformance::SimplicityConst;
+/// let _: SimplicityConst<3, 2> = SimplicityConst::new(); // 3/2 > 1
+/// ```
+pub type SimplicityConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Simplicity }, NUM, DEN>;
 
 // ── Alignment move markers ──────────────────────────────────────────────────
 
