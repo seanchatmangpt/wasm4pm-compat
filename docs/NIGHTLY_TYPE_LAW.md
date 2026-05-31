@@ -1217,3 +1217,42 @@ over opaque identifiers.
 - Topological sort of partial-order nodes (execution scheduling — graduates to wasm4pm)
 - Transitive closure computation for the precedence relation
 - Partial-order replay or interleaving semantics
+
+### risk-score-witness
+
+Risk score prediction is a distinct PPM target family (van der Aalst, No AI
+Without PI, 2025): the prediction target is a threat or hazard probability
+estimate, not a categorical outcome label or a compliance check.
+`PredictionProblem<RiskScore>` is structurally distinct from
+`PredictionProblem<OutcomeLabel>`, `PredictionProblem<ComplianceTarget>`,
+and `PredictionProblem<NextActivity>`.
+
+The `RiskScore` witness marker certifies at the type level that a prediction
+problem is asking about risk quantification. This prevents risk-oriented
+monitor slots from silently accepting non-risk prediction problems — the KIND
+distinction is enforced at compile time through the phantom witness on
+`PredictionProblem<T>`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `risk-score-witness` — `PredictionProblem<RiskScore>` is distinct from outcome, compliance, next-activity, and remaining-time families | `prediction::RiskScore` witness marker on `PredictionProblem<RiskScore>` | `compile_pass/prediction_risk_target.rs` | — (cross-witness confusion covered by compliance-target-law fixtures; no dedicated risk confusion fixture) | van der Aalst, No AI Without PI (arXiv:2508.00116, 2025) |
+| `risk-target-variant` — `PredictionTarget::Risk` is a first-class enum variant, not a subcase of `OutcomeLabel` | `prediction::PredictionTarget::Risk` (distinct enum variant) | `compile_pass/prediction_risk_target.rs` | — (enum exhaustiveness prevents conflation) | van der Aalst, No AI Without PI (arXiv:2508.00116, 2025) |
+
+### extension-prefix-law
+
+Every XES attribute key is namespaced by an extension prefix (e.g. `concept:name`,
+`time:timestamp`, `lifecycle:transition`). An extension must be declared in the
+`XesLog` header before its prefix can appear in any event attribute. An attribute key
+referencing an undeclared prefix is refused as `XesRefusal::UndeclaredExtensionPrefix`.
+This is the core XES interchange law: dangling extension references are structural
+defects, not warnings.
+
+The `xes_undeclared_extension_prefix_rejected.rs` compile-fail fixture seals the
+negative path. The `xes_declared_extension_prefix.rs` compile-pass fixture seals
+the positive path.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `extension-prefix-law` — every namespaced attribute key must reference a declared extension prefix | `xes::XesRefusal::UndeclaredExtensionPrefix` | `compile_pass/xes_declared_extension_prefix.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | IEEE 1849-2023 §4 extension declaration; Verbeek et al. (2011) §3 |
+| `xes_invalid_extension` — an `XesExtension` with an empty prefix is refused as `XesRefusal::InvalidExtension` | `xes::XesRefusal::InvalidExtension` | `compile_pass/xes_declared_extension_prefix.rs` | — (runtime refusal; empty-prefix check is in `XesLog::validate()`) | IEEE 1849-2023 §4; Verbeek et al. (2011) §3 extension declaration law |
+| `xes_no_traces` — a `XesLog` with no traces is refused as `XesRefusal::NoTraces` | `xes::XesRefusal::NoTraces` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; shape check in `XesLog::validate()`) | IEEE 1849-2023 §5 log element |
