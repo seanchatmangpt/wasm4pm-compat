@@ -25,7 +25,7 @@ The wasm4pm-compat repository passes all build, lint, format, runtime-test, and 
 | `cargo clippy --all-features -- -D warnings` | PASS |
 | `cargo fmt --check` | PASS |
 | `cargo test --all-features --tests` | PASS (12 unit + 9 integration test suites, 0 failures) |
-| `cargo test --test ui_tests -- --ignored` | PASS (15 compile-fail + 25 compile-pass, 0 failures) |
+| `cargo test --test ui_tests -- --ignored` | PASS (16 compile-fail + 30 compile-pass, 0 failures) |
 
 ---
 
@@ -39,11 +39,11 @@ Warm run (all features, all tests, no trybuild): **0.07s** (< 1s threshold). PAS
 
 | Category | Count |
 |---|---|
-| compile-fail `.rs` fixtures | 15 |
-| compile-fail `.stderr` files | 15 |
-| compile-pass `.rs` fixtures | 25 |
+| compile-fail `.rs` fixtures | 16 |
+| compile-fail `.stderr` files | 16 |
+| compile-pass `.rs` fixtures | 30 |
 
-`.stderr` count == compile-fail count: YES (15 == 15).
+`.stderr` count == compile-fail count: YES (16 == 16).
 
 ---
 
@@ -57,9 +57,9 @@ Exactly 3 public Cargo features: `formats` (default on), `strict`, `wasm4pm`. No
 
 | Status | Count | Papers |
 |---|---|---|
-| `COVERED_BY_TYPE` | 3 | #11 (BPMN), #14 (Workflow Patterns), #18 (YAWL/WF-net soundness) |
+| `COVERED_BY_TYPE` | 5 | #3 (POWL 2.0 / SeparableWfNet), #11 (BPMN), #14 (Workflow Patterns), #18 (YAWL/WF-net soundness), #1 (PPM compliance: ComplianceTarget type-law sealed) |
 | `COVERED_BY_GRADUATION_BOUNDARY` | 4 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual) |
-| `PARTIAL_WITH_REASON` | 3 | #1 (PPM compliance), #3 (POWL 2.0 / SeparableWfNet added; WfNet2Powl bridge missing), #5 (XES→OCED) |
+| `PARTIAL_WITH_REASON` | 1 | #5 (XES→OCED: projection surface exists, formal paper review PARTIAL) |
 | `MISSING_TYPE_LAW` | 0 | All MISSING entries cleared |
 | `DUPLICATE_OR_BACKGROUND` | 3 | #8 (PM4Py dup), #17 (YAWL BPMS), #19 (YAWL TM dup) |
 | `OUT_OF_SCOPE_WITH_REASON` | 7 | #2, #4, #10, #12, #13, #15, #20 |
