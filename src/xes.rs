@@ -331,7 +331,10 @@ impl XesLog {
     /// - the log has at least one trace ([`XesRefusal::NoTraces`]);
     /// - every trace names itself ([`XesRefusal::MissingTraceName`]) and is
     ///   non-empty ([`XesRefusal::EmptyTrace`]);
-    /// - every event carries `concept:name` ([`XesRefusal::MissingConceptName`]).
+    /// - every event carries `concept:name` ([`XesRefusal::MissingConceptName`]);
+    /// - every namespaced attribute key (those containing `:`) references a
+    ///   prefix that is declared in the log's extensions
+    ///   ([`XesRefusal::UndeclaredExtensionPrefix`]).
     ///
     /// This is a shape check, not a parse and not mining.
     ///
@@ -353,6 +356,10 @@ impl XesLog {
         if self.traces.is_empty() {
             return Err(XesRefusal::NoTraces);
         }
+        // Collect declared prefixes for the undeclared-prefix check below.
+        let declared_prefixes: Vec<&str> =
+            self.extensions.iter().map(|x| x.prefix()).collect();
+
         for t in &self.traces {
             if t.name().is_empty() {
                 return Err(XesRefusal::MissingTraceName);
@@ -363,6 +370,18 @@ impl XesLog {
             for e in t.events() {
                 if e.concept_name().is_none() {
                     return Err(XesRefusal::MissingConceptName);
+                }
+                // Law: xes-undeclared-extension-prefix-refusal.
+                // Every namespaced key (containing ':') must reference a declared prefix.
+                for (key, _) in e.attributes() {
+                    if let Some(prefix) = key.split(':').next() {
+                        if !prefix.is_empty()
+                            && key.contains(':')
+                            && !declared_prefixes.contains(&prefix)
+                        {
+                            return Err(XesRefusal::UndeclaredExtensionPrefix);
+                        }
+                    }
                 }
             }
         }
