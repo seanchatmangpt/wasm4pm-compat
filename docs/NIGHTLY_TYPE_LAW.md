@@ -1067,3 +1067,24 @@ is a compile error.
 | `generalization-metric-law` — `Metric<{Generalization}, N, D>` enforces `N/D ∈ [0,1]` at type level | `conformance::Metric<{QualityMetricKind::Generalization}, N, D>` | `compile_pass/conformance_generalization_metric.rs` | `compile_fail/metric_out_of_bounds.rs` | Buijs, van Dongen & van der Aalst (2014) |
 | `simplicity-metric-law` — `Metric<{Simplicity}, N, D>` enforces `N/D ∈ [0,1]` at type level | `conformance::Metric<{QualityMetricKind::Simplicity}, N, D>` | `compile_pass/conformance_simplicity_metric.rs` | `compile_fail/metric_out_of_bounds.rs` | Buijs, van Dongen & van der Aalst (2014) |
 | `generalization-simplicity-kind-distinctness` — `Metric<{Generalization}, 1, 2>` ≠ `Metric<{Simplicity}, 1, 2>` even when NUM/DEN match | `conformance::Metric<KIND, N, D>` — KIND const param distinguishes generalization from simplicity | `compile_pass/conformance_simplicity_metric.rs` | — (type-level: KIND param enforces distinction) | Buijs, van Dongen & van der Aalst (2014) |
+
+### prediction-target-witness
+
+Predictive process monitoring (PPM) addresses five prediction problem families
+(Maggi et al., 2014; Tax et al., 2017): next activity, outcome label, remaining
+time, drift signal, and risk score. Each is a structurally distinct prediction
+target. The `PredictionProblem<T>` type carries the target kind at the type
+level via a phantom witness `T`. A function that accepts
+`PredictionProblem<NextActivity>` cannot silently accept
+`PredictionProblem<RemainingTime>` — they are different types.
+
+The `PrefixTrace` witness certifies that the problem's input is a lawful
+prefix (a case observed so far). Without a prefix, no prediction problem can
+be admitted: `PredictionRefusal::EmptyPrefix` and `MissingPrefix` name the
+specific structural violations.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `prediction-target-witness` — `PrefixTrace`, `OutcomeLabel`, `RemainingTime`, `NextActivity`, `DriftSignal` are distinct phantom witnesses on `PredictionProblem<T>` | `prediction::PredictionProblem<T>` target witness markers | `compile_pass/prediction_problem_shape.rs`, `compile_pass/prediction_next_activity_target.rs`, `compile_pass/prediction_remaining_time_target.rs` | — (cross-witness confusion covered by compliance-target-law fixtures) | Maggi et al. (2014); Tax et al. (2017) |
+| `prediction-problem-refusal-named-law` — every `PredictionRefusal` variant names a specific structural law | `prediction::PredictionRefusal` (no bare `InvalidInput`) | `compile_pass/prediction_problem_shape.rs` | — (law enforced by enum shape: each variant is a named law) | Tax et al., RNN-based PPM (2017) |
+| `prediction-prefix-required` — a `PredictionProblem` without a prefix trace is `PredictionRefusal::EmptyPrefix` | `prediction::PredictionRefusal::EmptyPrefix` / `MissingPrefix` | `compile_pass/prediction_problem_shape.rs` | — (refusal law enforced by named variant) | Tax et al., RNN-based PPM (2017) |
