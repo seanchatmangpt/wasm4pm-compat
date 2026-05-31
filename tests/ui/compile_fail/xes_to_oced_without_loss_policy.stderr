@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/xes_to_oced_without_loss_policy.rs:40:30
+   |
+40 |     accept_lossy_xes_to_oced(export);
+   |     ------------------------ ^^^^^^ expected `LossyFormatExport`, found `FormatExport`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> src/formats.rs
+   |
+   | pub fn accept_lossy_xes_to_oced(_export: LossyFormatExport) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^
