@@ -1363,3 +1363,52 @@ cannot substitute an `OcelLog` at the type level, regardless of direction.
 |---|---|---|---|---|
 | `xes-to-ocel-direction-law` — XES→OCEL lifting requires E2O link manufacturing and a `LossReport`; distinct from XES→OCED | `xes::XesLog` → `ocel::OcelLog` via `formats::LossyFormatExport` | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | OCEL 2.0 §3 E2O / O2O link model; van der Aalst & Berti (2020) |
 | `xes-ocel-structural-gap` — a flat XES log has no O2O links; lifting to OCEL leaves O2O structurally absent | graduation boundary: `ocel::ObjectObjectLink` absent in XES; gap named in `LossReport` | `compile_pass/xes_case_centric_log.rs` | — (gap documented in LossReport, not a compile error) | OCEL 2.0 §3 O2O link model |
+
+---
+
+## Declare/OCPQ Law Packet — Unary Constraint Templates
+
+**Paper family:** `DECLARE_CONSTRAINTS`
+**Sources:** Pesic & van der Aalst (2006)
+
+The Absence and Existence Declare templates are unary constraint templates: each requires exactly one activity argument (activation only, no target). Passing a unary template with a target activity, or a binary template with only one argument, is refused as `DeclareRefusal::InvalidTemplateArity`.
+
+### absence-constraint
+
+`DeclareTemplate::Absence` names the constraint "activity A does not occur." A constraint using `Absence` is constructed via `DeclareConstraint::unary`; passing it through `DeclareConstraint::binary` is a structural defect.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_absence_constraint` — `DeclareTemplate::Absence` is a unary template; passing it as binary is a structural defect | `declare::DeclareTemplate::Absence` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | Pesic & van der Aalst (2006) §3 |
+
+### existence-constraint
+
+`DeclareTemplate::Existence` names the constraint "activity A occurs at least once." Like `Absence`, it is a unary template enforced structurally via `DeclareTemplate::arity()`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_existence_constraint` — `DeclareTemplate::Existence` is a unary template; arity mismatch is refused at the structural level | `declare::DeclareTemplate::Existence` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | Pesic & van der Aalst (2006) §3 |
+
+### XES refusal law — structural exchange validation
+
+`XesRefusal` is the complete enumeration of named structural laws under which a
+XES interchange shape is refused. Each variant is a distinct named law — never a
+bare `InvalidInput`. The `#[non_exhaustive]` attribute ensures the law set can be
+extended in future standards revisions without breaking pattern matches.
+
+The five core refusal variants cover the complete structural validation surface of
+`XesLog::validate()`:
+1. `MissingLogName` — log lacks a `concept:name`
+2. `NoTraces` — log has no traces
+3. `MissingTraceName` — trace lacks a `concept:name` (case id)
+4. `EmptyTrace` — trace has no events
+5. `MissingConceptName` — event lacks `concept:name`
+6. `InvalidExtension` — extension has empty prefix
+7. `UndeclaredExtensionPrefix` — attribute references undeclared extension
+8. `InvalidTimestamp` — timestamp value is malformed
+9. `InvalidLifecycleTransition` — lifecycle:transition value outside alphabet
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-refusal-named-law` — every `XesRefusal` variant names a specific structural law, never bare `InvalidInput` | `xes::XesRefusal` (`#[non_exhaustive]` enum, 9 named variants) | `compile_pass/xes_case_centric_log.rs` | — (law enforced by enum shape: no catch-all variant) | IEEE 1849-2023 §4 validation; Verbeek et al. (2011) §3 |
+| `xes-missing-log-name` — `XesRefusal::MissingLogName` is the named refusal for a log without `concept:name` | `xes::XesRefusal::MissingLogName` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; shape check in `XesLog::validate()`) | IEEE 1849-2023 §5 log element |
