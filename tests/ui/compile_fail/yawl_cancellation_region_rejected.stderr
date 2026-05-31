@@ -1,0 +1,19 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_cancellation_region_rejected.rs:21:19
+   |
+21 |     attach_region(raw);
+   |     ------------- ^^^ expected `CancellationRegion`, found `Vec<String>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `CancellationRegion`
+              found struct `Vec<std::string::String>`
+note: function defined here
+  --> tests/ui/compile_fail/yawl_cancellation_region_rejected.rs:13:4
+   |
+13 | fn attach_region(_region: CancellationRegion) {}
+   |    ^^^^^^^^^^^^^ ---------------------------
+help: try wrapping the expression in `wasm4pm_compat::petri::CancellationRegion`
+   |
+21 |     attach_region(wasm4pm_compat::petri::CancellationRegion { members: raw });
+   |                   ++++++++++++++++++++++++++++++++++++++++++++++++++++     +
