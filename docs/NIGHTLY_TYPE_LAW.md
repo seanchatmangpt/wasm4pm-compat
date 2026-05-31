@@ -1088,3 +1088,56 @@ specific structural violations.
 | `prediction-target-witness` — `PrefixTrace`, `OutcomeLabel`, `RemainingTime`, `NextActivity`, `DriftSignal` are distinct phantom witnesses on `PredictionProblem<T>` | `prediction::PredictionProblem<T>` target witness markers | `compile_pass/prediction_problem_shape.rs`, `compile_pass/prediction_next_activity_target.rs`, `compile_pass/prediction_remaining_time_target.rs` | — (cross-witness confusion covered by compliance-target-law fixtures) | Maggi et al. (2014); Tax et al. (2017) |
 | `prediction-problem-refusal-named-law` — every `PredictionRefusal` variant names a specific structural law | `prediction::PredictionRefusal` (no bare `InvalidInput`) | `compile_pass/prediction_problem_shape.rs` | — (law enforced by enum shape: each variant is a named law) | Tax et al., RNN-based PPM (2017) |
 | `prediction-prefix-required` — a `PredictionProblem` without a prefix trace is `PredictionRefusal::EmptyPrefix` | `prediction::PredictionRefusal::EmptyPrefix` / `MissingPrefix` | `compile_pass/prediction_problem_shape.rs` | — (refusal law enforced by named variant) | Tax et al., RNN-based PPM (2017) |
+
+
+---
+
+## Declare/OCPQ Law Packet — Binary Constraint Templates
+
+**Paper family:** `DECLARE_CONSTRAINTS`
+**Sources:** Pesic & van der Aalst (2006); OC-Declare (van der Aalst, 2019)
+
+The Response, Precedence, and Succession Declare templates are binary constraint templates: each requires exactly two activity arguments (activation + target). These are the foundational temporal ordering laws of the Declare framework. Their arity is enforced at the structural level — a binary template with zero or one activity argument is a structural defect, not a runtime error.
+
+### response-constraint
+
+`DeclareTemplate::Response` names the constraint "every occurrence of activity A is eventually followed by activity B." It is a typed enum variant, not a string. A constraint using `Response` without a target activity is refused as `DeclareRefusal::MissingTarget`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_response_constraint` — `DeclareTemplate::Response` is a first-class binary template, not a string | `declare::DeclareTemplate::Response` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | Pesic & van der Aalst (2006) §3 |
+
+### precedence-constraint
+
+`DeclareTemplate::Precedence` names the constraint "every occurrence of B is preceded by A." Like `Response`, it is a typed enum variant requiring both activation and target.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_precedence_constraint` — `DeclareTemplate::Precedence` is a first-class binary template | `declare::DeclareTemplate::Precedence` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | Pesic & van der Aalst (2006) §3 |
+
+### succession-constraint
+
+`DeclareTemplate::Succession` is the conjunction of `Response` and `Precedence` — it is a single typed template, not a pair of constraints. A succession constraint without a target is refused as `DeclareRefusal::MissingTarget`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_succession_constraint` — `DeclareTemplate::Succession` = Response ∧ Precedence; enforced as a single typed template | `declare::DeclareTemplate::Succession` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | Pesic & van der Aalst (2006) §3 |
+
+### trace-attribute-witness
+
+A `XesTrace` carries an ordered sequence of `XesEvent`s. The trace's case
+identifier is its `concept:name` attribute. The structural law requires:
+- Traces have a non-empty name (refused as `XesRefusal::MissingTraceName`)
+- Traces have at least one event (refused as `XesRefusal::EmptyTrace`)
+- Event order is preserved verbatim — no reordering occurs at the structure layer
+
+The `xes_trace_attributes.rs` compile-pass fixture seals the positive path: a
+lawfully constructed `XesTrace` exposes its events, its name, and its length
+via typed accessors. The `XesTrace::is_empty()` / `XesTrace::len()` accessors
+are the lawful surface for structural shape checks.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `trace-attribute-witness` — `XesTrace` preserves event order and exposes named trace identifier | `xes::XesTrace` (ordered `Vec<XesEvent>` + `concept:name`) | `compile_pass/xes_trace_attributes.rs` | — (structural law; failure is runtime refusal `MissingTraceName`/`EmptyTrace`) | IEEE 1849-2023 §5.1 trace element; Verbeek et al. (2011) §3 |
+| `xes_missing_trace_name` — a `XesTrace` lacking `concept:name` is refused as `XesRefusal::MissingTraceName` | `xes::XesRefusal::MissingTraceName` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path; attribute bag does not expose missing fields at compile time) | IEEE 1849-2023 §5.1 |
+| `xes_empty_trace` — a `XesTrace` with zero events is refused as `XesRefusal::EmptyTrace` | `xes::XesRefusal::EmptyTrace` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path) | IEEE 1849-2023 §5.1 |
