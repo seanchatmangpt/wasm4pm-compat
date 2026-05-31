@@ -6,7 +6,8 @@
 //! bounded newtypes refuse out-of-range input.
 
 use wasm4pm_compat::conformance::{
-    ConformanceRefusal, ConformanceVerdict, Deviation, Fitness, Precision, F1,
+    ConformanceRefusal, ConformanceVerdict, Deviation, Fitness, Generalization, Precision,
+    Simplicity, F1,
 };
 use wasm4pm_compat::declare::{
     Activity, DeclareConstraint, DeclareRefusal, DeclareScope, DeclareTemplate,
@@ -133,6 +134,59 @@ fn smoke_conformance() {
 
     let r = ConformanceRefusal::FitnessUnavailable;
     assert!(r.to_string().contains("FitnessUnavailable"));
+}
+
+#[test]
+fn smoke_generalization_and_simplicity_newtypes() {
+    // Generalization: in-range accepted, out-of-range rejected.
+    assert!(Generalization::new(0.0).is_some());
+    assert!(Generalization::new(1.0).is_some());
+    assert!(Generalization::new(0.875).is_some());
+    assert!(Generalization::new(1.1).is_none());
+    assert!(Generalization::new(-0.01).is_none());
+    assert!(Generalization::new(f64::NAN).is_none());
+    assert!(Generalization::new(f64::INFINITY).is_none());
+
+    // Simplicity: in-range accepted, out-of-range rejected.
+    assert!(Simplicity::new(0.0).is_some());
+    assert!(Simplicity::new(1.0).is_some());
+    assert!(Simplicity::new(0.6).is_some());
+    assert!(Simplicity::new(-0.5).is_none());
+    assert!(Simplicity::new(2.0).is_none());
+    assert!(Simplicity::new(f64::NEG_INFINITY).is_none());
+
+    // get() round-trips the value.
+    assert_eq!(Generalization::new(0.9).unwrap().get(), 0.9);
+    assert_eq!(Simplicity::new(0.6).unwrap().get(), 0.6);
+}
+
+#[test]
+fn smoke_conformance_verdict_all_dimensions() {
+    // ConformanceVerdict now carries all four quality dimensions.
+    let mut v = ConformanceVerdict::new();
+    assert!(v.generalization.is_none());
+    assert!(v.simplicity.is_none());
+
+    v.fitness = Fitness::new(0.9);
+    v.precision = Precision::new(0.85);
+    v.f1 = F1::new(0.87);
+    v.generalization = Generalization::new(0.8);
+    v.simplicity = Simplicity::new(0.75);
+
+    assert!(v.fitness.is_some());
+    assert!(v.generalization.is_some());
+    assert!(v.simplicity.is_some());
+    assert_eq!(v.generalization.unwrap().get(), 0.8);
+    assert_eq!(v.simplicity.unwrap().get(), 0.75);
+}
+
+#[test]
+fn smoke_conformance_refusal_new_variants() {
+    let g = ConformanceRefusal::GeneralizationUnavailable;
+    assert!(g.to_string().contains("GeneralizationUnavailable"));
+
+    let s = ConformanceRefusal::SimplicityUnavailable;
+    assert!(s.to_string().contains("SimplicityUnavailable"));
 }
 
 #[test]
