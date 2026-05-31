@@ -1712,3 +1712,32 @@ The `Between01<NUM, DEN>` law from `src/law.rs` governs cardinality bounds when 
 
 - Cardinality predicate evaluation (counting bindings at runtime)
 - Adaptive bound derivation from log frequency statistics
+
+---
+
+### POWL-to-process-tree boundary
+
+**Law concept:** The conversion from a WF-net to a POWL model (via Kourani et al.,
+2026 Theorem 4.3) requires the `SeparableWfNet` precondition. The resulting POWL
+model is certified by a `WfNet2PowlWitness` — a non-forgeable struct with a
+private seal. The subsequent projection from POWL to a process tree requires
+`TreeProjectable`. Together these form a two-step boundary: `WfNet → POWL` requires
+separability; `POWL → ProcessTree` requires projectability.
+
+**Paper:** Kourani, Park & van der Aalst (2026) Theorem 4.3: a separable WF-net
+can be converted to a POWL 2.0 model while preserving the process language. The
+`WfNet2PowlWitness` records that the conversion happened under the separability
+precondition; it cannot be forged externally.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `wfnet2powl-separability-required` — WF-net→POWL conversion requires `SeparableWfNet` marker; plain `WfNetConst` is rejected | `petri::SeparableWfNet` precondition | `compile_pass/wfnet2powl_witness.rs` | `compile_fail/wfnet2powl_precondition_rejected.rs` | Kourani et al. (2026) Thm 4.3 |
+| `wfnet2powl-wrong-source` — plain `PetriNet` cannot enter the WF-net→POWL gate; `WfNetConst` is required | `petri::WfNetConst` required | `compile_pass/wfnet2powl_witness.rs` | `compile_fail/wfnet2powl_wrong_source.rs` | Kourani et al. (2026) Thm 4.3 |
+| `wfnet2powl-witness-non-forgeable` — `WfNet2PowlWitness` has a private seal; it cannot be constructed outside the `powl` module or the `wasm4pm` bridge | `powl::WfNet2PowlWitness` private `_seal` field | `compile_pass/wfnet2powl_witness.rs` | — (forgery is a compiler error: private field) | Kourani et al. (2026) Thm 4.3 |
+| `powl-to-tree-projectable-required` — POWL→ProcessTree projection requires `TreeProjectable`; `ExceedsProcessTree` cannot pass the gate | `powl::TreeProjectable` (sealed) | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+
+**What must NOT live in this crate:**
+
+- WF-net separability check execution (separability detection algorithm)
+- WF-net→POWL decomposition algorithm execution (graduates to wasm4pm)
+- POWL language equivalence verification after conversion
