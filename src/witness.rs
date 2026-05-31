@@ -245,3 +245,17 @@ witness_marker!(
     "Alignment-Based Conformance Checking",
     Some(2008)
 );
+witness_marker!(
+    /// Object-centric Petri nets — the notation authority.
+    ///
+    /// Names the OC-Petri-net model class itself (object types, variable arcs,
+    /// binding elements), independently of the discovery algorithm described in
+    /// the van der Aalst & Berti (2020) paper. Use `OcPetriNets` when tagging
+    /// a *model structure*; use [`ObjectCentricPetriNetPaper`] when tagging a
+    /// *discovery output* traceable to that paper's algorithm.
+    OcPetriNets,
+    "oc-petri-nets",
+    WitnessFamily::Paper,
+    "Object-Centric Petri Nets (notation)",
+    Some(2020)
+);
