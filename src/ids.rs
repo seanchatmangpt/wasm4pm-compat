@@ -108,6 +108,26 @@ typed_id!(
     TraceId, u64
 );
 typed_id!(
+    /// Identifies an object-type class in an object-centric log (OCEL).
+    ///
+    /// In OCEL every object belongs to exactly one object type (e.g. `"order"`,
+    /// `"item"`, `"payment"`). [`ObjectTypeId`] is an interned `u32` handle for
+    /// that type name. It is structurally distinct from [`ObjectId`] (which
+    /// identifies a *specific* object instance) and from [`EventTypeId`] (which
+    /// identifies an activity type). Confusing them is a compile error.
+    ObjectTypeId, u32
+);
+typed_id!(
+    /// Identifies an event-type (activity label) in a typed event log.
+    ///
+    /// [`EventTypeId`] is an interned `u32` handle for an activity name at the
+    /// *type* level (e.g. `"place_order"` as a class). It is structurally
+    /// distinct from [`ActivityId`] (which may carry log-local interning) and
+    /// from [`EventId`] (which identifies a *specific* event occurrence).
+    /// Confusing them is a compile error.
+    EventTypeId, u32
+);
+typed_id!(
     /// Identifies a case in a case-centric (XES-style) log.
     ///
     /// [`CaseId`] and [`TraceId`] are intentionally distinct: [`CaseId`] names
