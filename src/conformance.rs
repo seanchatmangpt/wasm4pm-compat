@@ -519,6 +519,10 @@ pub enum ConformanceRefusal {
     PrecisionUnavailable,
     /// An F1 score was demanded but none was carried.
     F1Unavailable,
+    /// A generalization score was demanded but none was carried.
+    GeneralizationUnavailable,
+    /// A simplicity score was demanded but none was carried.
+    SimplicityUnavailable,
 }
 
 impl core::fmt::Display for ConformanceRefusal {
@@ -530,6 +534,8 @@ impl core::fmt::Display for ConformanceRefusal {
             ConformanceRefusal::FitnessUnavailable => "FitnessUnavailable",
             ConformanceRefusal::PrecisionUnavailable => "PrecisionUnavailable",
             ConformanceRefusal::F1Unavailable => "F1Unavailable",
+            ConformanceRefusal::GeneralizationUnavailable => "GeneralizationUnavailable",
+            ConformanceRefusal::SimplicityUnavailable => "SimplicityUnavailable",
         };
         write!(f, "conformance verdict refused: {law}")
     }
