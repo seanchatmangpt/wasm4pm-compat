@@ -1183,3 +1183,37 @@ positive law surface: standard key helpers, generic accessor, attribute count.
 |---|---|---|---|---|
 | `event-attribute-witness` — `XesEvent` exposes `concept:name`, `time:timestamp`, `org:resource` via typed helpers | `xes::XesEvent::concept_name()`, `timestamp()`, `resource()` | `compile_pass/xes_trace_attributes.rs` | — (structural law; helper returns `Option<&str>`, none required at type level) | IEEE 1849-2023 §5.2 event element; van der Aalst (2011) multi-perspective |
 | `xes_missing_concept_name` — an `XesEvent` lacking `concept:name` is refused as `XesRefusal::MissingConceptName`; structural exchange law | `xes::XesRefusal::MissingConceptName` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; stringly-typed attribute bag cannot enforce presence at compile time) | IEEE 1849-2023 §5.2; Verbeek et al. (2011) §3 |
+
+---
+
+## powl-law family — POWL/Process-Tree Law Packets
+
+The following sections document the law packets for the POWL (Partially Ordered
+Workflow Language) and process-tree structural surfaces. Each subsection names
+one law concept, its enforcing Rust type surface, its fixture references, and
+the paper source.
+
+---
+
+### partial-order-law
+
+**Law concept:** A partial order over POWL child nodes is a DAG of typed
+precedence edges (`OrderEdge`), not a free list. The partial-order node kind
+(`PowlNodeKind::PartialOrder`) and its edges are first-class structural types.
+
+**Paper:** Kourani & van der Aalst (2023) — POWL §3: a `StrictPartialOrder` is
+a pair `(nodes, ≺)` where `≺` is a strict partial order (irreflexive, asymmetric,
+transitive). The precedence relation is defined over named POWL sub-models, not
+over opaque identifiers.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `partial-order-dag-law` — precedence edges form a DAG; a cycle is refused as `PowlRefusal::CyclicPartialOrder` | `powl::OrderEdge` / `powl::PowlNodeKind::PartialOrder` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `order-edge-typed-distinctness` — `OrderEdge` and `ChoiceGraphEdge` are distinct newtypes with the same field layout; substituting one for the other is a compile error | `powl::OrderEdge` vs `powl::ChoiceGraphEdge` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani & van der Aalst (2023) §3 |
+| `partial-order-concurrency-law` — two nodes lacking an edge in either direction are concurrent; `TypedNode<{PowlKind::Partial}>::are_concurrent()` formalises this at the type level | `nightly_foundry::powl_law::TypedNode<{PowlKind::Partial}>` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Topological sort of partial-order nodes (execution scheduling — graduates to wasm4pm)
+- Transitive closure computation for the precedence relation
+- Partial-order replay or interleaving semantics
