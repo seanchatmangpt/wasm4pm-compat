@@ -391,11 +391,16 @@ impl core::fmt::Display for PowlRefusal {
 /// The witness carries a label naming the conversion context. The POWL model
 /// itself is returned separately; this witness travels alongside it as a
 /// provenance claim.
+mod wfnet2powl_seal {
+    /// Private seal for `WfNet2PowlWitness` — prevents external construction.
+    pub(super) struct WfNet2PowlSeal;
+}
+
 pub struct WfNet2PowlWitness {
     /// A label naming the conversion context (e.g. the WF-net id).
     pub context: String,
     // Private seal — only constructible inside this module or wasm4pm bridge.
-    _seal: (),
+    _seal: wfnet2powl_seal::WfNet2PowlSeal,
 }
 
 impl WfNet2PowlWitness {
@@ -410,7 +415,7 @@ impl WfNet2PowlWitness {
     pub fn new_internal(context: impl Into<String>) -> Self {
         WfNet2PowlWitness {
             context: context.into(),
-            _seal: (),
+            _seal: wfnet2powl_seal::WfNet2PowlSeal,
         }
     }
 }
