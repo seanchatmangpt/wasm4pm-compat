@@ -1477,3 +1477,82 @@ distinct namespace markers — they are accessible only via the generic
 | `xes-time-perspective` — `XesEvent::timestamp()` is the typed accessor for the time perspective; `time:timestamp` key is a standard extension attribute | `xes::XesEvent::timestamp()` | `compile_pass/xes_trace_attributes.rs` | — (structural law; key is stringly-typed, accessor returns `Option<&str>`) | van der Aalst (2011) multi-perspective; IEEE 1849-2023 §5.3 time extension |
 | `xes-resource-perspective-gap` — `org:resource`, `org:role`, `org:group` are NOT yet typed as a distinct `ResourcePerspective` namespace; they are accessible only via `attribute()` | `xes::XesEvent::resource()` helper exists; typed `ResourcePerspective` namespace is the gap | `compile_pass/xes_trace_attributes.rs` | — (gap; no typed enforcement yet) | van der Aalst (2011) multi-perspective §3 resource dimension |
 | `xes-control-flow-perspective` — `concept:name` on events and traces is the typed control-flow perspective accessor | `xes::XesEvent::concept_name()` / `xes::XesTrace::name()` | `compile_pass/xes_trace_attributes.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | van der Aalst (2011) multi-perspective; IEEE 1849-2023 §5.2 |
+
+---
+
+## Declare/OCPQ Law Packet — Object-Scoped Witness
+
+**Paper family:** `DECLARE_CONSTRAINTS`
+**Sources:** OC-Declare (van der Aalst, 2019); Pesic & van der Aalst (2006)
+
+### object-scoped-witness
+
+The `DeclareScope` enum (`SingleObjectScope`, `MultiObjectScope`, `SynchronizedObjectScope`) is the OC-Declare extension of classical Declare. Each scope variant is a first-class typed value, not an optional annotation or a stringly-typed configuration. A `DeclareConstraint` without a scope cannot exist — `DeclareScope` is a required field. An OC-Declare scope with zero object types is refused as `DeclareRefusal::EmptyObjectScope`.
+
+The `DeclareFamily` witness in `src/witness.rs` is the non-forgeable named authority receipt that links any `Admission<T, DeclareFamily>` to the Declare constraint-template family, ensuring classical Declare constraints are not silently confused with OC-Declare constraints at the type level.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `declare_object_scoped_witness` — OC-Declare scope (`DeclareScope`) is a first-class typed scope, not an optional annotation | `declare::DeclareScope` / `witness::DeclareFamily` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | van der Aalst (2019) OC-Declare §2 |
+| `declare_empty_scope_refused` — `DeclareScope` with zero object types is refused as `DeclareRefusal::EmptyObjectScope` | `declare::DeclareRefusal::EmptyObjectScope` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | van der Aalst (2019) OC-Declare §2 |
+| `declare_synchronization_scope` — `SynchronizedObjectScope` requires all listed types share a joint lifecycle | `declare::DeclareScope::SynchronizedObjectScope` / `DeclareRefusal::SynchronizationViolation` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | van der Aalst (2019) OC-Declare §3 |
+
+---
+
+### loop-marker-law
+
+**Law concept:** A loop node in POWL (`PowlNodeKind::Loop`) and in the process
+tree (`TypedLoopNode<ARITY>`) is a first-class structural kind with a mandatory
+`do` body. The POWL loop carries an optional `redo` body (absent means "execute
+once with no rework"). The process-tree loop enforces exactly 2 children
+(`do` body + `redo` branch) via a `Require<{ ARITY == 2 }>: IsTrue` where-bound.
+A loop node with arity ≠ 2 does not compile.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §3: `↺(M₁, M₂)` is the loop
+operator — `M₁` is the `do` body (always executes at least once), `M₂` is the
+`redo` body (optional rework). Leemans (2013) inductive miner defines the
+process-tree loop operator as requiring exactly two children: the `do` subtree
+and the `redo` subtree.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `loop-marker-law` — `PowlNodeKind::Loop` is a first-class kind requiring a declared `do` body; absence is refused as `PowlRefusal::InvalidLoop` | `powl::PowlNodeKind::Loop` / `powl::PowlRefusal::InvalidLoop` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Kourani & van der Aalst (2023) §3 |
+| `process-tree-loop-arity-2` — `TypedLoopNode<Children, ARITY>` enforces `ARITY == 2`; `TypedLoopNode<_, 3>` does not compile | `process_tree::TypedLoopNode<Children, ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013) inductive miner; process-tree loop definition |
+| `loop-do-body-required` — the `do` body of a loop node must be declared; a loop with missing `do` is `PowlRefusal::InvalidLoop` | `powl::PowlRefusal::InvalidLoop` | `compile_pass/process_tree_loop_arity_2.rs` | — (runtime refusal path; compile-fail covers arity) | Kourani & van der Aalst (2023) §3 |
+| `loop-redo-optional` — the `redo` body is `Option<PowlNodeId>`; `None` means execute once with no rework; this is not a structural defect | `powl::PowlNodeKind::Loop::redo: Option<PowlNodeId>` | `compile_pass/process_tree_loop_arity_2.rs` | — (lawful path; no negative fixture needed) | Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Loop unrolling or loop execution (execute-do-redo semantics — graduates to wasm4pm)
+- Loop fitness measurement (how often the redo branch is taken — graduates to wasm4pm)
+- Loop detection from event logs (inductive miner loop discovery — graduates to wasm4pm)
+
+### XES law family — graduation boundary
+
+This section enumerates what must NOT live in this crate for the XES law family,
+consistent with the crate's structure-only, graduation-boundary doctrine.
+
+**Engine concerns that graduate to `wasm4pm`:**
+- XES file I/O (`.xes` / `.xes.gz` parsing and serialization)
+- XES validator execution beyond structural shape (semantic extension evaluation)
+- XES classifier evaluation (event-class identity at runtime)
+- XES discovery algorithm execution (Alpha, Inductive, Heuristic miners)
+- XES conformance checking execution (token replay, alignment over XES logs)
+- XES→OCEL lifting algorithm (object-type inference from flat case notion)
+- XES→OCED lifting algorithm (object-centric assumption inference)
+- Multi-perspective conformance (resource/data constraint evaluation)
+- Social network mining from `org:resource` perspective
+- Decision mining from data perspective attributes
+
+**What stays in this crate:**
+- `XesLog`, `XesTrace`, `XesEvent` shape definitions
+- `XesExtension` declaration shape
+- `CaseCentricMarker` type-level distinction from OCEL/OCED
+- `XesRefusal` named-law enumeration
+- `Xes1849` witness authority label
+- `accept_lossy_xes_to_oced` / `accept_lossy_ocel_to_xes` type gates
+- `LossyFormatExport` mandatory-report type for all XES projection boundaries
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-graduation-boundary` — XES engine logic (discovery, conformance, file I/O) is absent from this crate; graduation to `wasm4pm` is required | graduation boundary: `xes::XesLog` is structure-only; module doc enforces no engine logic | `compile_pass/xes_case_centric_log.rs` | `compile_fail/engine_creep_discovery_absent.rs` | IEEE 1849-2023 §1 scope; van der Aalst (2016) process mining graduation |
