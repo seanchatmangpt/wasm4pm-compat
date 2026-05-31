@@ -1141,3 +1141,28 @@ are the lawful surface for structural shape checks.
 | `trace-attribute-witness` — `XesTrace` preserves event order and exposes named trace identifier | `xes::XesTrace` (ordered `Vec<XesEvent>` + `concept:name`) | `compile_pass/xes_trace_attributes.rs` | — (structural law; failure is runtime refusal `MissingTraceName`/`EmptyTrace`) | IEEE 1849-2023 §5.1 trace element; Verbeek et al. (2011) §3 |
 | `xes_missing_trace_name` — a `XesTrace` lacking `concept:name` is refused as `XesRefusal::MissingTraceName` | `xes::XesRefusal::MissingTraceName` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path; attribute bag does not expose missing fields at compile time) | IEEE 1849-2023 §5.1 |
 | `xes_empty_trace` — a `XesTrace` with zero events is refused as `XesRefusal::EmptyTrace` | `xes::XesRefusal::EmptyTrace` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path) | IEEE 1849-2023 §5.1 |
+
+### compliance-target-law
+
+De Santis et al. (2026) introduce compliance-aware predictive process
+monitoring (PPM): the prediction target is not an outcome label but a named
+compliance rule — "does this prefix comply with constraint C?". A
+`PredictionProblem<ComplianceTarget>` is structurally distinct from a
+`PredictionProblem<OutcomeLabel>`.
+
+The structural law is twofold:
+
+1. `ComplianceTarget ≠ OutcomeLabel` as phantom witnesses on
+   `PredictionProblem<T>`. A compliance-constrained monitor slot
+   (`PredictionProblem<ComplianceTarget>`) rejects an outcome-labelled
+   problem (`PredictionProblem<OutcomeLabel>`) at compile time.
+2. A `PredictionTarget::ComplianceConstraint` problem without a named
+   constraint reference is `PredictionRefusal::ConstraintNotNamed`. An
+   anonymous compliance check is structurally inadmissible — the constraint
+   must be named so the prediction can be grounded against a specific rule.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `compliance-target-law` — `PredictionProblem<ComplianceTarget>` ≠ `PredictionProblem<OutcomeLabel>` | `prediction::ComplianceTarget` / `prediction::OutcomeLabel` (distinct phantom witnesses) | `compile_pass/compliance_prediction_target.rs` | `compile_fail/compliance_not_outcome_label.rs` | De Santis et al. (2026) |
+| `compliance-witness-wrong-target-law` — compliance slot rejects non-compliance witness | `prediction::ComplianceTarget` phantom param enforcement | `compile_pass/compliance_prediction_target.rs` | `compile_fail/compliance_witness_wrong_target.rs` | De Santis et al. (2026) |
+| `compliance-constraint-must-be-named` — `PredictionTarget::ComplianceConstraint` without named rule is `ConstraintNotNamed` | `prediction::PredictionRefusal::ConstraintNotNamed` | `compile_pass/compliance_prediction_target.rs` | — (law enforced by named refusal variant) | De Santis et al. (2026) |
