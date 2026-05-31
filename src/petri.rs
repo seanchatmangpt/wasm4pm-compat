@@ -754,6 +754,92 @@ impl Marking {
     }
 }
 
+/// A paired initial and final marking for a WF-net.
+///
+/// WF-net soundness (van der Aalst, 1998) requires both an *initial* marking
+/// (a single token on the source place) and a *final* marking (a single token
+/// on the sink place). `InitialFinalMarkingPair` bundles these two markings as
+/// a single named shape, so a WF-net construction site can pass them together
+/// without risk of swapping the two arguments.
+///
+/// ## Structural law
+///
+/// [`InitialFinalMarkingPair::validate`] checks that neither marking is empty
+/// and that the initial and final markings do not overlap (a place carrying
+/// tokens in both is a structural defect). It does **not** check that the
+/// markings reference declared places — that check is performed by
+/// [`WfNet::validate`].
+///
+/// Structure-only: a shape. No token dynamics.
+///
+/// ```
+/// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking, PetriRefusal};
+/// let pair = InitialFinalMarkingPair::new(
+///     Marking::new([("src".to_string(), 1)]),
+///     Marking::new([("snk".to_string(), 1)]),
+/// );
+/// assert!(pair.validate().is_ok());
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct InitialFinalMarkingPair {
+    /// The initial marking (typically one token on the source place).
+    pub initial: Marking,
+    /// The final marking (typically one token on the sink place).
+    pub final_marking: Marking,
+}
+
+impl InitialFinalMarkingPair {
+    /// Construct an `InitialFinalMarkingPair` from two markings.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking};
+    /// let pair = InitialFinalMarkingPair::new(
+    ///     Marking::new([("src".to_string(), 1)]),
+    ///     Marking::new([("snk".to_string(), 1)]),
+    /// );
+    /// assert_eq!(pair.initial.tokens_on("src"), 1);
+    /// assert_eq!(pair.final_marking.tokens_on("snk"), 1);
+    /// ```
+    pub fn new(initial: Marking, final_marking: Marking) -> Self {
+        InitialFinalMarkingPair {
+            initial,
+            final_marking,
+        }
+    }
+
+    /// Structurally validate the marking pair.
+    ///
+    /// Returns [`PetriRefusal::MissingInitialMarking`] if the initial marking is
+    /// empty, [`PetriRefusal::MissingFinalMarking`] if the final marking is empty,
+    /// or [`PetriRefusal::InvalidVariableArc`] if any place id appears in both
+    /// markings (overlapping initial/final places is a structural defect).
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking, PetriRefusal};
+    /// // Empty initial marking:
+    /// let bad = InitialFinalMarkingPair::new(
+    ///     Marking::empty(),
+    ///     Marking::new([("snk".to_string(), 1)]),
+    /// );
+    /// assert_eq!(bad.validate(), Err(PetriRefusal::MissingInitialMarking));
+    /// ```
+    pub fn validate(&self) -> Result<(), PetriRefusal> {
+        if self.initial.is_empty() {
+            return Err(PetriRefusal::MissingInitialMarking);
+        }
+        if self.final_marking.is_empty() {
+            return Err(PetriRefusal::MissingFinalMarking);
+        }
+        // Detect overlapping place ids between initial and final markings.
+        for (pid, cnt) in &self.initial.tokens {
+            if *cnt > 0 && self.final_marking.tokens_on(pid) > 0 {
+                return Err(PetriRefusal::InvalidVariableArc);
+            }
+        }
+        Ok(())
+    }
+}
+
 /// A plain Petri net: places, transitions, arcs, and an initial marking.
 ///
 /// [`PetriNet::validate`] checks structural shape (arcs reference declared
