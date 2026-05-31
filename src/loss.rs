@@ -694,6 +694,89 @@ impl core::fmt::Debug for LossChain {
     }
 }
 
+/// A zero-sized marker that names the **boundary** between two projection
+/// steps in a multi-step lossy pipeline.
+///
+/// In a pipeline such as `OCEL → flattened XES → aggregated DFG` there are
+/// two distinct boundaries where evidence may be dropped.  A
+/// [`ProjectionBoundary`] names each such crossing point so that a
+/// [`LossChain`] entry, a [`LossReport`], or a diagnostic can cite *which
+/// boundary* is accountable for a given loss — not just which overall
+/// pipeline.
+///
+/// The boundary is identified by a const `&'static str` NAME baked into the
+/// type so that two distinct boundaries produce distinct types at zero runtime
+/// cost.  For runtime-determined boundary names embed a [`ProjectionName`]
+/// in a [`NamedLoss`] instead.
+///
+/// Structure-only zero-sized marker.  It carries no engine logic; graduate
+/// to `wasm4pm` to reason over boundary crossings.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::ProjectionBoundary;
+///
+/// type OcelToXesBoundary    = ProjectionBoundary<"ocel→xes">;
+/// type XesToDfgBoundary     = ProjectionBoundary<"xes→dfg">;
+///
+/// assert_eq!(OcelToXesBoundary::NAME, "ocel→xes");
+/// assert_eq!(XesToDfgBoundary::NAME,  "xes→dfg");
+/// assert_ne!(OcelToXesBoundary::NAME, XesToDfgBoundary::NAME);
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ProjectionBoundary<const NAME: &'static str>;
+
+impl<const NAME: &'static str> ProjectionBoundary<NAME> {
+    /// The boundary label as a `&'static str`, recoverable at run time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionBoundary;
+    ///
+    /// assert_eq!(
+    ///     ProjectionBoundary::<"ocel→xes">::NAME,
+    ///     "ocel→xes",
+    /// );
+    /// ```
+    pub const NAME: &'static str = NAME;
+
+    /// Returns a [`ProjectionName`] for this boundary so it can be embedded
+    /// in a [`LossReport`] or [`NamedLoss`] without an extra allocation.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{ProjectionBoundary, ProjectionName};
+    ///
+    /// let pn: ProjectionName = ProjectionBoundary::<"ocel→xes">::projection_name();
+    /// assert_eq!(pn.as_str(), "ocel→xes");
+    /// ```
+    #[inline]
+    pub const fn projection_name() -> ProjectionName {
+        ProjectionName(NAME)
+    }
+}
+
+impl<const NAME: &'static str> core::fmt::Display for ProjectionBoundary<NAME> {
+    /// Formats as the boundary label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionBoundary;
+    ///
+    /// assert_eq!(
+    ///     format!("{}", ProjectionBoundary::<"ocel→xes">),
+    ///     "ocel→xes",
+    /// );
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(NAME)
+    }
+}
+
 /// The named lossy-projection law — the only sanctioned way to drop evidence.
 ///
 /// An implementor names a single projection (`Self::From → Self::To`) that may
