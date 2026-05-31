@@ -439,3 +439,138 @@ is a compile error.
 - POWL → WF-net translation execution (structural reduction)
 - POWL conformance checking (replay over partial-order models)
 - POWL serialization/deserialization (PTML wire format I/O)
+
+---
+
+## #47 — BPMN 2.0 — Business Process Model and Notation (OMG Specification, 2011)
+
+**Paper:** BPMN 2.0 — Business Process Model and Notation (OMG Specification)
+**Canon family:** `WORKFLOW_PATTERNS_BPMN`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+The OMG BPMN 2.0 specification is the normative metamodel behind the
+practical BPMN reference (#11 Real-Life BPMN). Each element class in the
+OMG metamodel is a distinct structural type — not a free string annotation.
+Gateway kinds (XOR/AND/OR) and event kinds (Start/Intermediate/End) are
+first-class structural laws.
+
+| Spec formal object | Rust surface | Enforcing law |
+|---|---|---|
+| `BpmnElement` (task, gateway, event, subprocess) | `src/bpmn.rs::BpmnElement` | — |
+| `GatewayKind` (XOR/AND/OR) | `src/bpmn.rs::GatewayKind` | structural type distinction |
+| `BpmnSubprocess` | `src/bpmn.rs::BpmnSubprocess` | — |
+| `EventKind` (Start/Intermediate/End) | `src/bpmn.rs::EventKind` | structural type distinction |
+
+**Structural laws this crate enforces:**
+
+- `GatewayKind` is a typed enum — XOR, AND, and OR gateways are distinct
+  structural types, not configuration strings. A function requiring an
+  AND-join cannot silently accept an XOR-join.
+- `EventKind` distinguishes Start, Intermediate, and End events at the
+  structural level; connecting an End event as a source is a structural
+  defect.
+- The OMG BPMN 2.0 specification is the normative grounding for all
+  gateway and event type distinctions in `src/bpmn.rs`.
+
+**What must NOT live in this crate:**
+
+- BPMN formal operational semantics (token-passing execution)
+- BPMN 2.0 XML serialization/deserialization (`.bpmn` wire format I/O)
+- BPMN simulation or process execution engine
+
+---
+
+## #48 — Multi-Perspective Process Mining (van der Aalst, 2011)
+
+**Paper:** Multi-Perspective Process Mining
+**Canon family:** `XES_EVENT_LOG`
+**Verdict:** `PARTIAL_WITH_REASON`
+
+**Law-packet notes:**
+
+Van der Aalst (2011) multi-perspective process mining extends case-centric
+XES logs with four named perspectives: control-flow (activity sequence),
+resource (who performed the activity), data (attribute values), and time
+(timestamps). Each perspective is a first-class XES extension, not a
+stringly-typed attribute.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Time perspective (timestamp) | `src/xes.rs::XesEvent` (timestamp field) | covered |
+| Control-flow perspective (concept:name) | `src/xes.rs::XesEvent` (activity attribute) | covered |
+| Resource perspective (org:resource) | `src/xes.rs` — not yet a typed namespace | **gap** |
+| Data perspective (named attribute map) | `src/xes.rs` — attribute map exists, not perspective-scoped | **gap** |
+| Perspective-specific extension declaration | `src/xes.rs::XesExtension` — generic, not per-perspective typed | **gap** |
+
+**Structural laws this crate partially enforces:**
+
+- `XesEvent` carries a timestamp (time perspective) and an attribute map
+  (data perspective substrate) in `src/xes.rs`.
+- `XesExtension` covers the generic extension declaration law
+  (`xes_undeclared_extension_prefix_rejected` compile-fail fixture).
+- Resource perspective (`org:resource`, `org:role`, `org:group`) is NOT
+  yet typed as a distinct `ResourcePerspective` namespace; an org:resource
+  attribute is structurally indistinguishable from any other string
+  attribute — this is the gap.
+- Data perspective attributes are not yet typed as a distinct
+  `DataPerspective` namespace scoped to a named extension declaration.
+
+**Gap requiring future type surface:**
+
+- `ResourcePerspective` as a `PhantomData` extension marker on `XesEvent`
+- `DataPerspective` as a typed attribute namespace with declared extension
+- Perspective-scoped attribute typed surface that prevents mixing
+  resource attributes with data attributes silently
+
+**What must NOT live in this crate:**
+
+- Multi-perspective conformance checking (resource, data, and time
+  constraint evaluation — graduates to wasm4pm)
+- Social network mining from resource perspective (graduates to wasm4pm)
+- Decision mining from data perspective (graduates to wasm4pm)
+
+---
+
+## #49 — Object-Centric Process Mining: Dealing with Divergence and Convergence (van der Aalst, Berti, 2020)
+
+**Paper:** Object-Centric Process Mining: Dealing with Divergence and Convergence in Event Data
+**Canon family:** `OCEL_OBJECT_CENTRIC`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Van der Aalst & Berti (2020) name two structural defects in flattened event
+logs: divergence (one case-id maps to many objects — events are duplicated,
+inflating frequencies) and convergence (many case-ids share one object —
+events are merged, deflating frequencies). OCEL resolves both by making
+event-to-object links first-class structural elements.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Divergence (one-to-many case-to-object) | `src/ocel.rs::EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| Convergence (many-to-one case-to-object) | `src/ocel.rs::EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| Object-centric event log (structural fix) | `src/ocel.rs::OcelLog` | — |
+| Divergence structural law witness | `src/witness.rs` — `DivergenceWitness` not yet typed | **gap** |
+| Convergence structural law witness | `src/witness.rs` — `ConvergenceWitness` not yet typed | **gap** |
+
+**Structural laws this crate enforces:**
+
+- `OcelLog` with `EventObjectLink` resolves both divergence and convergence
+  by construction — each event explicitly names the objects it relates to,
+  eliminating the ambiguity that causes duplication or merging in flat logs.
+- An `OcelEvent` without a declared `EventObjectLink` is a compile error
+  (sealed by `ocel_e2o_missing_link` compile-fail fixture), preventing the
+  divergence/convergence defect from entering the system.
+- `DivergenceWitness` and `ConvergenceWitness` as named unit-struct witness
+  types in `src/witness.rs` would complete the named law receipts — each
+  certifies that the carrying structure has been assessed for the respective
+  defect and found structurally sound.
+
+**What must NOT live in this crate:**
+
+- Divergence/convergence detection algorithms (case-id frequency analysis)
+- Flattening from OCEL to XES (this has loss; requires LossReport — handled
+  by `ocel_to_xes_no_loss_report` compile-fail fixture)
+- Object-centric process discovery execution
