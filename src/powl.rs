@@ -63,6 +63,24 @@ pub struct Silent;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Irreducible;
 
+/// Witness: the partial order has been **proven acyclic** — all precedence edges
+/// form a DAG (directed acyclic graph).
+///
+/// A [`PartialOrder`] is *structurally* a partial order, but this marker records
+/// that acyclicity has been *asserted*: no node appears as both predecessor and
+/// successor of another on any path. A [`PowlNode`] carrying [`AcyclicPartialOrder`]
+/// has passed the structural law that POWL partial orders must be DAGs.
+///
+/// Obtaining this marker does **not** run a cycle-detection algorithm — that
+/// graduates to `wasm4pm`. It records that the caller has asserted the invariant.
+/// The assertion gate is [`assert_acyclic`].
+///
+/// Paper: Kourani et al. (2026) §3 — a POWL partial order `P(M⁺, ≺)` requires
+/// `≺` to be a strict partial order (irreflexive, asymmetric, transitive), which
+/// implies acyclicity.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct AcyclicPartialOrder;
+
 /// Graduation witness: the POWL fragment **can** be projected, losslessly, into
 /// a block-structured [`crate::process_tree::ProcessTree`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
