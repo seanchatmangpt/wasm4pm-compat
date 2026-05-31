@@ -202,6 +202,118 @@ impl<T, P, Weight: Copy> TransitionToPlaceArc<T, P, Weight> {
     }
 }
 
+// ── BipartiteArcConst: const-generic bipartite arc law ───────────────────────
+
+/// A bipartite arc with direction encoded as a const-generic [`crate::law::ArcDirectionConst`]
+/// parameter.
+///
+/// `BipartiteArcConst<{ArcDirectionConst::PlaceToTransition}, Weight>` and
+/// `BipartiteArcConst<{ArcDirectionConst::TransitionToPlace}, Weight>` are
+/// **distinct types** at compile time — a slot requiring a pre-incidence arc
+/// (`PlaceToTransition`) rejects a post-incidence arc (`TransitionToPlace`) with
+/// a type error.
+///
+/// Paper: Murata (1989) §2 — `F ⊆ (P×T) ∪ (T×P)`.
+///
+/// ## Difference from [`PlaceToTransitionArc`] / [`TransitionToPlaceArc`]
+///
+/// The named-type arcs use *struct shape* to enforce direction (no common base
+/// type). `BipartiteArcConst` provides a **single type** parameterised over
+/// direction — useful for generic containers that hold arcs of either direction
+/// while still encoding direction in the type.
+///
+/// Structure-only: a typed directed edge. No token flow.
+///
+/// ```
+/// use wasm4pm_compat::petri::BipartiteArcConst;
+/// use wasm4pm_compat::law::ArcDirectionConst;
+///
+/// let pre = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
+/// assert_eq!(pre.place_id(), "p0");
+/// assert_eq!(pre.weight(), 1u8);
+/// ```
+pub struct BipartiteArcConst<const DIR: crate::law::ArcDirectionConst, Weight> {
+    place_id: alloc::string::String,
+    transition_id: alloc::string::String,
+    /// Arc weight (multiplicity).
+    pub weight: Weight,
+}
+
+extern crate alloc;
+
+impl<const DIR: crate::law::ArcDirectionConst, Weight: Copy>
+    BipartiteArcConst<DIR, Weight>
+{
+    /// Construct a bipartite arc with the given endpoints and weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::BipartiteArcConst;
+    /// use wasm4pm_compat::law::ArcDirectionConst;
+    /// let post = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u32>::new("t0", "p1", 2);
+    /// assert_eq!(post.transition_id(), "t0");
+    /// assert_eq!(post.place_id(), "p1");
+    /// ```
+    pub fn new(
+        place_id: impl Into<alloc::string::String>,
+        transition_id: impl Into<alloc::string::String>,
+        weight: Weight,
+    ) -> Self {
+        BipartiteArcConst {
+            place_id: place_id.into(),
+            transition_id: transition_id.into(),
+            weight,
+        }
+    }
+
+    /// The place endpoint id.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::BipartiteArcConst;
+    /// use wasm4pm_compat::law::ArcDirectionConst;
+    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
+    /// assert_eq!(a.place_id(), "p0");
+    /// ```
+    pub fn place_id(&self) -> &str {
+        &self.place_id
+    }
+
+    /// The transition endpoint id.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::BipartiteArcConst;
+    /// use wasm4pm_compat::law::ArcDirectionConst;
+    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
+    /// assert_eq!(a.transition_id(), "t0");
+    /// ```
+    pub fn transition_id(&self) -> &str {
+        &self.transition_id
+    }
+
+    /// The arc weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::BipartiteArcConst;
+    /// use wasm4pm_compat::law::ArcDirectionConst;
+    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 3);
+    /// assert_eq!(a.weight(), 3u8);
+    /// ```
+    pub fn weight(&self) -> Weight {
+        self.weight
+    }
+
+    /// The arc direction encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::BipartiteArcConst;
+    /// use wasm4pm_compat::law::ArcDirectionConst;
+    /// let a = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u8>::new("t0", "p0", 1);
+    /// assert_eq!(a.direction(), ArcDirectionConst::TransitionToPlace);
+    /// ```
+    pub const fn direction(&self) -> crate::law::ArcDirectionConst {
+        DIR
+    }
+}
+
 // ── IsValidArc sealed trait ──────────────────────────────────────────────────
 
 mod arc_seal {
