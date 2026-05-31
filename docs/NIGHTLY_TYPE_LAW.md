@@ -58,6 +58,8 @@ without `.stderr` is not a valid type-law receipt.
 | `declare_absence_constraint` — `DeclareTemplate::Absence` is a unary template; passing it as binary is a structural defect | `declare::DeclareTemplate::Absence` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | `declare_binary_arity_rejected.stderr` |
 | `declare_existence_constraint` — `DeclareTemplate::Existence` is a unary template; arity mismatch is refused at the structural level | `declare::DeclareTemplate::Existence` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | `declare_binary_arity_rejected.stderr` |
 | `declare_object_scoped_witness` — OC-Declare scope (`DeclareScope`) is a first-class typed scope, not an optional annotation | `declare::DeclareScope` / `witness::DeclareFamily` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | `declare_binary_arity_rejected.stderr` |
+| `ocpq_object_scope_law` — `ObjectScope` with zero object types is refused as `OcpqRefusal::MissingObjectScope` | `ocpq::ObjectScope` / `ocpq::OcpqRefusal::MissingObjectScope` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_missing_scope_rejected.rs` | `ocpq_missing_scope_rejected.stderr` |
+| `ocpq_event_predicate_law` — `Predicate<EventPredicate>` is a first-class typed predicate; `EventPredicate` cannot substitute `ObjectPredicate` | `ocpq::Predicate<EventPredicate>` / `ocpq::EventPredicate` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_object_type_mixing.rs` | `ocpq_object_type_mixing.stderr` |
 | `ocel_v1_e2o_required` — OCEL 1.0 event-to-object link is a first-class structural law (not optional annotation) | `ocel::EventObjectLink` / `ocel::OcelEvent` | `compile_pass/ocel_event_object_relation.rs` | `compile_fail/ocel_e2o_missing_link.rs` | `ocel_e2o_missing_link.stderr` |
 | `yawl_cancellation_region_rejected` — raw `Vec<String>` not accepted as `CancellationRegion` | `yawl::CancellationRegion` newtype | `compile_pass/yawl_cancellation_region.rs` | `compile_fail/yawl_cancellation_region_rejected.rs` | `yawl_cancellation_region_rejected.stderr` |
 | `yawl_multi_instance_bounds_rejected` — `MultipleInstanceSpecConst<MIN, MAX>` enforces MIN ≤ MAX | `yawl::MultipleInstanceSpecConst<MIN, MAX>` | `compile_pass/yawl_multi_instance.rs` | `compile_fail/yawl_multi_instance_bounds_rejected.rs` | `yawl_multi_instance_bounds_rejected.stderr` |
@@ -802,3 +804,37 @@ already reified in `src/xes.rs`.
 - XES classifier evaluation (computing event identity at runtime)
 - XES validator execution (checks beyond structural extension declaration)
 - OpenXES library API (Java implementation concerns)
+
+---
+
+## OCEL Law Packet — Object-Change and Relation Laws
+
+**Paper family:** `OCEL_OBJECT_CENTRIC`
+**Sources:** OCEL 2.0 Specification (van der Aalst et al., 2023); OCEL 1.0 (van der Aalst, Berti, 2020)
+
+The OCEL law family covers structural laws governing object evolution, event-to-object and object-to-object relations, attribute typing, dimension vocabulary, and the OCEL-to-XES boundary. Each law is a distinct named type surface — not a runtime validation flag.
+
+### object-change-law
+
+An `ObjectChange` records which object's which attribute changed to which value, optionally when. A change naming an undeclared object or an empty attribute name is refused as `OcelRefusal::InvalidObjectChange`. The law prevents silent attribute mutation without a named object and a non-empty attribute key.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_object_change_law` — `ObjectChange` must name a declared object and non-empty attribute | `ocel::ObjectChange` / `OcelRefusal::InvalidObjectChange` | `compile_pass/ocel_event_object_relation.rs` | `compile_fail/ocel_e2o_missing_link.rs` | OCEL 2.0 §4.2 object evolution |
+
+### event-relation-law
+
+The E2O link (`EventObjectLink`) is the structural law that makes OCEL different from XES. Every `OcelLog` must have at least one `EventObjectLink`. A log with no E2O links is refused as `OcelRefusal::EmptyEventObjectLinks`. A link pointing at an undeclared event or object is refused as `OcelRefusal::DanglingEventObjectLink`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_event_relation_law` — E2O link must reference declared event and object | `ocel::EventObjectLink` / `OcelRefusal::DanglingEventObjectLink` | `compile_pass/ocel_event_object_relation.rs` | `compile_fail/ocel_e2o_missing_link.rs` | OCEL 2.0 §3 formal model |
+| `ocel_empty_e2o_law` — log without E2O links is structurally empty | `ocel::OcelLog` / `OcelRefusal::EmptyEventObjectLinks` | `compile_pass/ocel_event_object_relation.rs` | `compile_fail/ocel_e2o_missing_link.rs` | OCEL 2.0 §3 formal model |
+
+### object-relation-law
+
+The O2O link (`ObjectObjectLink`) is OCEL 2.0's second link type (absent in OCEL 1.0). A link referencing an undeclared object is refused as `OcelRefusal::DanglingObjectObjectLink`. The law prevents ghost object relationships.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_object_relation_law` — O2O link must reference declared objects | `ocel::ObjectObjectLink` / `OcelRefusal::DanglingObjectObjectLink` | `compile_pass/ocel_object_object_relation.rs` | `compile_fail/ocel_o2o_missing_link.rs` | OCEL 2.0 §3.2 object-to-object links |
