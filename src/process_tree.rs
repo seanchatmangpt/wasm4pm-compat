@@ -266,6 +266,12 @@ pub enum ProcessTreeOperator {
     Loop,
     /// Silent leaf (tau) — observable-activity-free step.
     Silent,
+    /// Inclusive OR: one or more branches chosen non-deterministically (`o`).
+    ///
+    /// Not part of the original Leemans (2013) inductive miner base set, but
+    /// present in extended process-tree formalisms. Structure-only label; the
+    /// semantics are interpreted only by the `wasm4pm` engine on graduation.
+    Or,
 }
 
 /// A single node of a process tree: either an operator with children, or an
@@ -347,6 +353,24 @@ pub enum ProcessTreeRefusal {
     UnsupportedProjection,
     /// The claimed language of the tree does not match the admitted reference.
     LanguageMismatch,
+    /// A tau (silent) leaf was given children — tau carries no children.
+    ///
+    /// A `Silent` operator with a non-empty child list is structurally invalid.
+    TauLeafWithChildren,
+    /// A root node is missing from a non-empty tree.
+    ///
+    /// The tree has nodes but no declared root, making the shape inadmissible.
+    MissingRoot,
+    /// A node referenced by its id does not exist in the arena.
+    ///
+    /// A child `ProcessTreeNodeId` refers to an index that is out of bounds.
+    DanglingNodeReference,
+    /// An operator node received fewer children than its minimum arity.
+    ///
+    /// XOR, AND, and SEQ all require at least 2 children; Loop requires exactly 2.
+    BelowMinimumArity,
+    /// Cycles were detected in the child-id graph — process trees are acyclic.
+    CycleDetected,
 }
 
 impl core::fmt::Display for ProcessTreeRefusal {
@@ -356,6 +380,11 @@ impl core::fmt::Display for ProcessTreeRefusal {
             ProcessTreeRefusal::InvalidLoop => "InvalidLoop",
             ProcessTreeRefusal::UnsupportedProjection => "UnsupportedProjection",
             ProcessTreeRefusal::LanguageMismatch => "LanguageMismatch",
+            ProcessTreeRefusal::TauLeafWithChildren => "TauLeafWithChildren",
+            ProcessTreeRefusal::MissingRoot => "MissingRoot",
+            ProcessTreeRefusal::DanglingNodeReference => "DanglingNodeReference",
+            ProcessTreeRefusal::BelowMinimumArity => "BelowMinimumArity",
+            ProcessTreeRefusal::CycleDetected => "CycleDetected",
         };
         write!(f, "process tree refused: {law}")
     }
