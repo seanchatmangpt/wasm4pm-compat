@@ -1573,3 +1573,31 @@ is not a real claim (`is_named()` returns false for empty fixture strings).
 | `xes-round-trip-claim` — XES import/export round trip is a named claim, not a guarantee; `RoundTripClaim::lossy_tolerant` names the fixture | `formats::RoundTripClaim` | `compile_pass/formats_round_trip_claim.rs` | — (law enforced by `is_named()` check; unnamed claims are rejected by tests) | IEEE 1849-2023 §4 interchange fidelity |
 | `xes-format-kind-tag` — `FormatKind::XesXml` is a distinct tag from `FormatKind::OcelJson`; a XES envelope cannot be silently treated as OCEL | `formats::FormatKind::XesXml` | `compile_pass/formats_envelope_shape.rs` | — (distinct enum variant; no implicit coercion) | IEEE 1849-2023 §3 XES XML serialization |
 | `xes-format-not-object-centric` — `FormatKind::XesXml.is_object_centric()` returns `false`; XES is structurally distinct from OCEL formats | `formats::FormatKind::is_object_centric()` | `compile_pass/formats_envelope_shape.rs` | — (structural law; method returns const bool) | IEEE 1849-2023; OCEL 2.0 §1 (object-centric vs. case-centric) |
+
+---
+
+## Declare/OCPQ Law Packet — OCPQ Object Scope and Event Predicate
+
+**Paper family:** `OCPQ_QUERYING`
+**Sources:** OCPQ (Ghahfarokhi et al., 2024); van der Aalst (2019)
+
+### OCPQ-object-scope
+
+`ObjectScope` is the declaration of which object types a query ranges over. An `OcpqQuery` without an `ObjectScope` (or with an empty scope) is refused as `OcpqRefusal::MissingObjectScope`. This is the structural grounding of OCPQ Definition 6 (Def 6): a query that does not name any object type is not a query over an object-centric log — it is a structural defect.
+
+The scope check is the first gate in OCPQ admission: before any predicate is evaluated, the scope must be non-empty. A scope referencing an object type not present in the admitted log is refused as `OcpqRefusal::UnknownObjectType`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocpq_object_scope_law` — `ObjectScope` with zero object types is refused as `OcpqRefusal::MissingObjectScope` | `ocpq::ObjectScope` / `ocpq::OcpqRefusal::MissingObjectScope` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_missing_scope_rejected.rs` | OCPQ §3 Def 6 |
+| `ocpq_unknown_object_type_refused` — scope referencing undeclared object type is refused as `OcpqRefusal::UnknownObjectType` | `ocpq::OcpqRefusal::UnknownObjectType` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_missing_scope_rejected.rs` | OCPQ §3 Def 6 |
+
+### event-predicate
+
+`Predicate<EventPredicate>` is the typed marker for predicates over single events. The witness `EventPredicate` (a zero-sized `struct`) prevents an event predicate from being substituted for an object predicate at the type level — `Predicate<EventPredicate>` and `Predicate<ObjectPredicate>` are distinct types.
+
+`PredicateKind::Event(String)` is the opaque event condition (retained for compatibility). For OCPQ Section 4 typed predicates, use `PredicateKind::E2ORelation` (event-to-object link) instead of a free-form string.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocpq_event_predicate_law` — `Predicate<EventPredicate>` is a first-class typed predicate; `EventPredicate` cannot substitute `ObjectPredicate` | `ocpq::Predicate<EventPredicate>` / `ocpq::EventPredicate` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_object_type_mixing.rs` | OCPQ §4 BASIC_L |
