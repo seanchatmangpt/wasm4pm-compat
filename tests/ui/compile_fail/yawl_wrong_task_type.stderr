@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_wrong_task_type.rs:25:19
+   |
+25 |     attach_region(spec);
+   |     ------------- ^^^^ expected `CancellationRegion`, found `MultipleInstanceSpecConst<1, 4>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `CancellationRegion`
+              found struct `MultipleInstanceSpecConst<1, 4>`
+note: function defined here
+  --> tests/ui/compile_fail/yawl_wrong_task_type.rs:17:4
+   |
+17 | fn attach_region(_region: CancellationRegion) {}
+   |    ^^^^^^^^^^^^^ ---------------------------
