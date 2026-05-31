@@ -117,6 +117,76 @@ pub enum Exportable {}
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Receipted {}
 
+// ── StateTransition markers ───────────────────────────────────────────────────
+
+/// Zero-sized type-level marker asserting that `Raw → Parsed` is the
+/// transition at hand.
+///
+/// Used as a const/type witness when an API must distinguish *which* boundary
+/// crossing it is operating on without carrying runtime state.
+///
+/// Structure-only marker. Does not implement any logic; it names a transition.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct RawToParsed;
+
+/// Zero-sized type-level marker asserting that `Parsed → Admitted` is the
+/// transition at hand (i.e. the admission gate was passed).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ParsedToAdmitted;
+
+/// Zero-sized type-level marker asserting that `Parsed → Refused` is the
+/// transition at hand (i.e. the evidence was declined before full admission).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ParsedToRefused;
+
+/// Zero-sized type-level marker asserting that `Admitted → Projected` is the
+/// transition at hand (i.e. a named lossy projection was applied).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AdmittedToProjected;
+
+/// Zero-sized type-level marker asserting that `Admitted → Exportable` is the
+/// transition at hand (i.e. the exit-visa was granted directly from admission).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AdmittedToExportable;
+
+/// Zero-sized type-level marker asserting that `Admitted → Receipted` is the
+/// transition at hand (i.e. a receipt envelope was sealed directly on admitted
+/// evidence).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AdmittedToReceipted;
+
+/// Zero-sized type-level marker asserting that `Projected → Exportable` is
+/// the transition at hand.
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ProjectedToExportable;
+
+/// Zero-sized type-level marker asserting that `Projected → Receipted` is
+/// the transition at hand.
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ProjectedToReceipted;
+
+/// Zero-sized type-level marker asserting that `Exportable → Receipted` is
+/// the transition at hand (i.e. the receipt envelope was sealed on an already
+/// export-cleared value).
+///
+/// Structure-only marker.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ExportableToReceipted;
+
 // ── EvidenceState impls ───────────────────────────────────────────────────────
 
 impl private::Sealed for Raw {}
