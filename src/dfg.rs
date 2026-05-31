@@ -24,6 +24,55 @@
 //! represents and structurally validates an already-known DFG so it can travel
 //! across the compat boundary.
 
+/// A typed activity identifier: a `&'static str` newtype that names a specific
+/// activity in a DFG at the type level.
+///
+/// `DfgActivityId` differs from the bare `String` stored inside [`DfgNode`]: it
+/// is a *zero-cost* wrapper intended for code that must name a specific activity
+/// at compile time (e.g. a test fixture, a hard-coded process template) rather
+/// than build one from runtime data.
+///
+/// Structure-only: a labeled name, not a mined entity.
+///
+/// ```
+/// use wasm4pm_compat::dfg::DfgActivityId;
+/// const SHIP: DfgActivityId = DfgActivityId::new("ship");
+/// assert_eq!(SHIP.as_str(), "ship");
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DfgActivityId(pub &'static str);
+
+impl DfgActivityId {
+    /// Construct a typed activity identifier from a static string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgActivityId;
+    /// let id = DfgActivityId::new("pay");
+    /// assert_eq!(id.as_str(), "pay");
+    /// ```
+    #[must_use]
+    pub const fn new(name: &'static str) -> Self {
+        DfgActivityId(name)
+    }
+
+    /// The activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgActivityId;
+    /// assert_eq!(DfgActivityId::new("audit").as_str(), "audit");
+    /// ```
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        self.0
+    }
+}
+
+impl core::fmt::Display for DfgActivityId {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
 /// A directly-follows frequency weight on a [`DfgEdge`].
 ///
 /// A zero-cost `#[repr(transparent)]` wrapper over a `u64` count. Negative
