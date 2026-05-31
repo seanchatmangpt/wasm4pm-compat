@@ -631,3 +631,62 @@ pub mod graduation_seal {
     /// [`super::GraduationCandidate`].
     pub trait Sealed {}
 }
+
+// ── Compile-time filter-shape law ────────────────────────────────────────────
+//
+// `FilterShapeConst<IS_OC>` is the type-level surface for the pm4py shape law:
+// an object-centric filter dimension (ObjectType) must only be applied to an
+// object-centric artifact shape.  The boolean const parameter names whether the
+// artifact is object-centric.  `assert_filter_oc_compatible` requires the
+// sealed `RequiresObjectCentric` bound, which only `FilterShapeConst<true>`
+// satisfies — so passing `FilterShapeConst<false>` (a flat artifact) is a
+// compile error named `DimensionShapeMismatch`.
+//
+// Law: DimensionShapeMismatch — FilterShape::ObjectType over a flat Pm4pyShape.
+
+/// A compile-time artifact-centricity tag for the filter-shape law.
+///
+/// `IS_OC` encodes whether the artifact is object-centric (`true`) or flat
+/// (`false`). Pass `FilterShapeConst::<true>` to surfaces that require an
+/// object-centric shape; `FilterShapeConst::<false>` fails those surfaces at
+/// compile time with the `DimensionShapeMismatch` law.
+///
+/// This is **structure only** and **zero-cost**: no runtime value is stored.
+///
+/// ```
+/// use wasm4pm_compat::interop::{FilterShapeConst, assert_filter_oc_compatible};
+/// assert_filter_oc_compatible(&FilterShapeConst::<true>);  // object-centric: lawful
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::interop::{FilterShapeConst, assert_filter_oc_compatible};
+/// // flat artifact: DimensionShapeMismatch law — FilterShape::ObjectType is refused
+/// assert_filter_oc_compatible(&FilterShapeConst::<false>);
+/// ```
+pub struct FilterShapeConst<const IS_OC: bool>;
+
+mod filter_shape_seal {
+    pub trait Sealed {}
+    impl Sealed for super::FilterShapeConst<true> {}
+    // FilterShapeConst<false> is deliberately NOT sealed:
+    // applying an ObjectType filter to a flat shape violates DimensionShapeMismatch.
+}
+
+/// Sealed marker: only `FilterShapeConst<true>` (object-centric) satisfies this
+/// bound. Attempting to apply an object-centric filter (`FilterShape::ObjectType`)
+/// to a flat artifact shape (`FilterShapeConst<false>`) is a compile error
+/// enforcing the `DimensionShapeMismatch` law.
+pub trait RequiresObjectCentric: filter_shape_seal::Sealed {}
+impl RequiresObjectCentric for FilterShapeConst<true> {}
+
+/// Type-law gate: only object-centric artifact shapes compile through this
+/// function when an `ObjectType` filter is declared.
+///
+/// Passing `FilterShapeConst::<false>` (a flat shape) is a compile error that
+/// enforces the `DimensionShapeMismatch` pm4py shape law at the type level.
+///
+/// ```
+/// use wasm4pm_compat::interop::{FilterShapeConst, assert_filter_oc_compatible};
+/// assert_filter_oc_compatible(&FilterShapeConst::<true>);
+/// ```
+pub fn assert_filter_oc_compatible<F: RequiresObjectCentric>(_: &F) {}

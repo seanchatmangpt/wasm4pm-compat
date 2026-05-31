@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `FilterShapeConst<false>: RequiresObjectCentric` is not satisfied
+  --> tests/ui/compile_fail/interop_filter_shape_mismatch.rs:26:33
+   |
+26 |     assert_filter_oc_compatible(&flat_artifact);
+   |     --------------------------- ^^^^^^^^^^^^^^ the trait `RequiresObjectCentric` is not implemented for `FilterShapeConst<false>`
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `RequiresObjectCentric` is implemented for `FilterShapeConst<true>`
+  --> src/interop.rs
+   |
+   | impl RequiresObjectCentric for FilterShapeConst<true> {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `assert_filter_oc_compatible`
+  --> src/interop.rs
+   |
+   | pub fn assert_filter_oc_compatible<F: RequiresObjectCentric>(_: &F) {}
+   |                                       ^^^^^^^^^^^^^^^^^^^^^ required by this bound in `assert_filter_oc_compatible`
