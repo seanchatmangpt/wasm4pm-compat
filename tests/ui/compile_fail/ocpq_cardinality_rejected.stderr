@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_cardinality_rejected.rs:35:38
+   |
+35 |     let _ = register_event_predicate(cardinality);
+   |             ------------------------ ^^^^^^^^^^^ expected `Predicate<EventPredicate>`, found `Predicate<CardinalityPredicate>`
+   |             |
+   |             arguments to this function are incorrect
+   |
+   = note: expected struct `Predicate<EventPredicate>`
+              found struct `Predicate<CardinalityPredicate>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_cardinality_rejected.rs:22:4
+   |
+22 | fn register_event_predicate(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^
+23 |     _p: Predicate<EventPredicate>,
+   |     -----------------------------
