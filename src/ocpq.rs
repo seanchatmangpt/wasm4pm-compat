@@ -811,3 +811,112 @@ where
         Self::new()
     }
 }
+
+// ── Compile-time typed child-set bound law ───────────────────────────────────
+
+/// A typed OCPQ child-set bound (CBS predicate) with `[MIN, MAX]` enforced
+/// **at compile time** and a labelled branch name in the type.
+///
+/// Unlike [`CardinalityBoundConst`] (an anonymous count bound),
+/// `ChildSetBoundConst` is **labelled**: the `LABEL` const parameter is a
+/// `&'static str` naming the branch, so `ChildSetBoundConst<"items", 1, 5>` and
+/// `ChildSetBoundConst<"lines", 1, 5>` are **different types** at compile time.
+///
+/// Law: OCPQ Section 4 CBS(A, n_min, n_max) — `n_min ≤ n_max`, non-empty branch
+/// label required. The const where-bound `Require<{ MIN <= MAX }>: IsTrue`
+/// enforces this at the type level.
+///
+/// ## Compile-time negative receipt
+///
+/// `ChildSetBoundConst<"items", 5, 2>` does **not compile**: `5 <= 2` is false.
+/// Use [`PredicateKind::ChildSetBound`] for runtime-constructed CBS predicates.
+///
+/// Structure-only: zero-cost, no engine logic.
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+/// let b = ChildSetBoundConst::<"items", 1, 5>::new();
+/// assert_eq!(b.branch_label(), "items");
+/// assert_eq!(b.min(), 1);
+/// assert_eq!(b.max(), 5);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+/// // MIN > MAX: compile error.
+/// let _: ChildSetBoundConst<"items", 5, 2> = ChildSetBoundConst::new();
+/// ```
+pub struct ChildSetBoundConst<const LABEL: &'static str, const MIN: usize, const MAX: usize>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    _private: (),
+}
+
+impl<const LABEL: &'static str, const MIN: usize, const MAX: usize>
+    ChildSetBoundConst<LABEL, MIN, MAX>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    /// Construct a `ChildSetBoundConst` — only possible when `MIN <= MAX`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+    /// let _: ChildSetBoundConst<"lines", 0, 10> = ChildSetBoundConst::new();
+    /// ```
+    pub const fn new() -> Self {
+        ChildSetBoundConst { _private: () }
+    }
+
+    /// The branch label encoded in the const parameter.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+    /// assert_eq!(ChildSetBoundConst::<"items", 1, 4>::new().branch_label(), "items");
+    /// ```
+    pub const fn branch_label(&self) -> &'static str {
+        LABEL
+    }
+
+    /// The inclusive lower bound.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+    /// assert_eq!(ChildSetBoundConst::<"items", 2, 6>::new().min(), 2);
+    /// ```
+    pub const fn min(&self) -> usize {
+        MIN
+    }
+
+    /// The inclusive upper bound.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::ocpq::ChildSetBoundConst;
+    /// assert_eq!(ChildSetBoundConst::<"items", 2, 6>::new().max(), 6);
+    /// ```
+    pub const fn max(&self) -> usize {
+        MAX
+    }
+}
+
+impl<const LABEL: &'static str, const MIN: usize, const MAX: usize> Default
+    for ChildSetBoundConst<LABEL, MIN, MAX>
+where
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}

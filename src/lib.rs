@@ -66,6 +66,7 @@
 // ── Nightly features — unconditional (nightly toolchain required) ────────────
 #![feature(generic_const_exprs)]
 #![feature(adt_const_params)]
+#![feature(unsized_const_params)]
 #![feature(const_trait_impl)]
 #![feature(min_specialization)]
 #![feature(portable_simd)]
