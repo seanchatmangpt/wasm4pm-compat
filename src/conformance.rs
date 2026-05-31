@@ -442,16 +442,25 @@ impl<M> Deviation<M> {
 /// An aggregate conformance verdict: the carried scores plus the deviation path.
 ///
 /// The top-level **shape** of a conformance result. It does **NOT** compute
-/// fitness, precision, F1, or alignments — those values are produced by an
-/// engine and merely *carried* here. Graduate to `wasm4pm` to compute them.
+/// fitness, precision, F1, generalization, simplicity, or alignments — those
+/// values are produced by an engine and merely *carried* here. Graduate to
+/// `wasm4pm` to compute them.
+///
+/// All four van der Aalst quality dimensions are represented:
+/// fitness, precision, generalization, and simplicity, together with the
+/// harmonic F1 of fitness and precision.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct ConformanceVerdict {
     /// The carried fitness score, if available.
     pub fitness: Option<Fitness>,
     /// The carried precision score, if available.
     pub precision: Option<Precision>,
-    /// The carried F1 score, if available.
+    /// The carried F1 score (harmonic mean of fitness and precision), if available.
     pub f1: Option<F1>,
+    /// The carried generalization score, if available.
+    pub generalization: Option<Generalization>,
+    /// The carried simplicity score, if available.
+    pub simplicity: Option<Simplicity>,
     /// The deviation path (untyped at the collection level).
     pub deviations: Vec<Deviation>,
 }
