@@ -1741,3 +1741,31 @@ precondition; it cannot be forged externally.
 - WF-net separability check execution (separability detection algorithm)
 - WF-net→POWL decomposition algorithm execution (graduates to wasm4pm)
 - POWL language equivalence verification after conversion
+
+---
+
+## Declare/OCPQ Law Packet — Typed Child Set Law
+
+**Paper family:** `OCPQ_QUERYING`
+**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+
+### typed-child-set-law
+
+`PredicateKind::ChildSetBound` is the OCPQ Section 4 Child Set (CBS) predicate: it asserts that a parent node has between `min` and `max` child bindings satisfying the branch named `branch_label`. Unlike `PredicateKind::Cardinality` (an anonymous count bound), `ChildSetBound` requires a non-empty `branch_label` — the branch name is structurally required.
+
+Two structural laws apply:
+1. `branch_label` must be non-empty — a CBS predicate without a branch name cannot be grounded to a specific child branch.
+2. `min <= max` — a CBS predicate with an inverted bound is refused as `OcpqRefusal::InvalidChildSetBound`.
+
+`OcpqRefusal::InvalidChildSetBound` is the named first-class refusal law for CBS violations — it is a specific structural law, not a generic `InvalidInput`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocpq_typed_child_set_law` — `PredicateKind::ChildSetBound` requires a non-empty `branch_label` and `min <= max`; violated is refused as `OcpqRefusal::InvalidChildSetBound` | `ocpq::PredicateKind::ChildSetBound` / `ocpq::OcpqRefusal::InvalidChildSetBound` | `compile_pass/ocpq_cbs_predicate.rs` | `compile_fail/ocpq_cardinality_overflow.rs` | OCPQ §4 CBS |
+| `ocpq_cbs_empty_label_refused` — CBS predicate with empty `branch_label` is refused as `OcpqRefusal::InvalidChildSetBound` | `ocpq::PredicateKind::ChildSetBound` (`branch_label` non-empty invariant) | `compile_pass/ocpq_cbs_predicate.rs` | — (gap: empty-label compile-fail fixture TBD) | OCPQ §4 CBS |
+
+**What must NOT live in this crate:**
+
+- CBS evaluation (child-binding counting against a log)
+- CBS branch-label resolution against query variables
+- CBS predicate optimization (query planning)
