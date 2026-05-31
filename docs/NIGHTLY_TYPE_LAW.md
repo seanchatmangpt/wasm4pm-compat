@@ -21,6 +21,7 @@ without `.stderr` is not a valid type-law receipt.
 | `place_marker_law` — `Place` is a distinct named token-holding location; not interchangeable with `Transition` | `petri::Place` (newtype over id) | `compile_pass/petri_place_to_transition_arc.rs` | — | — |
 | `transition_marker_law` — `Transition` is a distinct firing element; `is_silent()` distinguishes silent (tau) from labeled transitions at the API level | `petri::Transition` (newtype with label) | `compile_pass/petri_transition_to_place_arc.rs` | — | — |
 | `marking_shape_law` — `Marking` is the token-count snapshot; WF-net requires a non-empty initial and a non-empty final marking or is refused with named law | `petri::Marking` / `PetriRefusal::MissingInitialMarking` / `PetriRefusal::MissingFinalMarking` | `compile_pass/refusal_missing_final_marking.rs` | — | — |
+| `absence_of_dead_transitions_law` — a dead transition (one that can never fire from any reachable marking) is a named soundness defect; `PetriRefusal::DeadTransition` is the typed boundary law | `petri::PetriRefusal::DeadTransition` (named refusal variant) | `compile_pass/wfnet_with_soundness_witness.rs` | — | — |
 | `bpmn_pool_as_lane` — BPMN Pool cannot substitute a Lane | `bpmn::Pool` / `bpmn::Lane` (distinct newtypes) | `compile_pass/bpmn_pool_lane.rs` | `compile_fail/bpmn_pool_as_lane.rs` | `bpmn_pool_as_lane.stderr` |
 | `compliance_not_outcome_label` — conformance metric is not a label | `conformance::Metric<KIND, NUM, DEN>` | `compile_pass/conformance_verdict_complete.rs` | `compile_fail/compliance_not_outcome_label.rs` | `compliance_not_outcome_label.stderr` |
 | `declare_binary_arity_rejected` — Declare constraint arity ≥ 2 | `declare::DeclareConstraint` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | `declare_binary_arity_rejected.stderr` |
@@ -856,3 +857,19 @@ OCEL 2.0 attributes are typed at the data model level: `OcelAttributeValue` is a
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
 |---|---|---|---|---|
 | `ocel_dims_law` — log dimensions are a named structural vocabulary, not free sets | `ocel::OcelDims` (distinct from `OcelLog`) | `compile_pass/ocel_event_object_relation.rs` | n/a (law enforced by type distinction) | OCEL 2.0 §2 data model vocabulary |
+
+### object-type-witness-law
+
+Every `OcelObject` must declare a non-empty object type. An object with an empty type string is refused as `OcelRefusal::MissingObjectType`. In OCEL the object type is not an annotation — it is the structural identity of the object. A typeless object cannot participate lawfully in E2O or O2O links because the type determines which process perspective the object belongs to.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_object_type_witness_law` — every object must have a non-empty type | `ocel::OcelObject` / `OcelRefusal::MissingObjectType` | `compile_pass/ocel_event_object_relation.rs` | `compile_fail/ocel_e2o_missing_link.rs` | OCEL 2.0 §3.1 object types |
+
+### event-type-witness-law
+
+Every `OcelEvent` carries an activity name (the event type in OCEL terminology). The activity name is the process-centric label of the event and must be a non-empty string. A nameless activity collapses all event types into an indistinguishable set, which defeats process mining. The `OcelEvent::new` constructor accepts only a non-empty activity name; a validation that checks for empty activity names must be added to `OcelLog::validate` to complete this law.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_event_type_witness_law` — every event must carry a non-empty activity name | `ocel::OcelEvent` (activity field, non-empty) | `compile_pass/ocel_event_object_relation.rs` | n/a (gap: validation pending in `OcelLog::validate`) | OCEL 2.0 §3.3 activity (event type) |
