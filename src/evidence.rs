@@ -90,6 +90,42 @@ impl<T, W> Evidence<T, Raw, W> {
         }
     }
 
+    /// Advances `Raw → Refused` directly, without a parse step.
+    ///
+    /// This is the *fast-reject* path: when a raw value is structurally
+    /// identifiable as bad *before* a full format decode is worth attempting
+    /// (e.g. empty bytes, wrong magic header, obviously wrong size), call
+    /// `refuse()` to terminate the lifecycle immediately.
+    ///
+    /// The returned `Evidence<T, Refused, W>` carries the original value for
+    /// diagnostic inspection; the *reason* for refusal must be conveyed by the
+    /// caller's [`crate::admission::Refusal`] value or equivalent.
+    ///
+    /// Note: if you want to refuse *after* parsing (well-formed but structurally
+    /// inadmissible), use [`Evidence::into_parsed`] followed by
+    /// [`crate::evidence::Evidence::into_refused`] on the `Parsed` evidence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::state::Refused;
+    /// use wasm4pm_compat::witness::Xes1849;
+    ///
+    /// let raw: Evidence<&[u8], _, Xes1849> = Evidence::raw(b"".as_ref());
+    /// // Empty bytes: refuse before attempting a full parse.
+    /// let refused: Evidence<&[u8], Refused, Xes1849> = raw.refuse();
+    /// assert_eq!(*refused.as_refused_value(), b"".as_ref());
+    /// ```
+    #[inline]
+    pub fn refuse(self) -> Evidence<T, crate::state::Refused, W> {
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
+    }
+
     /// Advances `Raw → Parsed` once a format decoder has accepted the shape.
     ///
     /// Parsing proves the value is *well-formed*, not that it is *admissible*.
