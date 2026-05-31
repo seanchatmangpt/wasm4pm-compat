@@ -143,6 +143,112 @@ impl core::fmt::Display for ProjectionName {
     }
 }
 
+/// A named descriptor for a specific category of loss under a projection.
+///
+/// A [`NamedLoss`] pairs a [`ProjectionName`] with a `&'static str` label that
+/// names the *kind* of loss that occurred (e.g. `"DroppedObjectTypeLinks"` or
+/// `"FlattenedMultiObjectRelation"`).  Together they make a specific loss
+/// occurrence *auditable by name*: both *which projection* ran and *which law*
+/// it violated are explicit on the type, not buried in a `String`.
+///
+/// Use [`NamedLoss`] as the `Lost` type parameter of a [`LossReport`] when the
+/// most important fact is the *category* of loss rather than a full item list.
+///
+/// Structure-only: carries no engine logic. Graduate to `wasm4pm` to act on it.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::{LossPolicy, LossReport, NamedLoss, ProjectionName};
+///
+/// enum OcelShape {}
+/// enum XesShape {}
+///
+/// let loss = NamedLoss::new(
+///     ProjectionName("ocel-flatten-to-xes:by-order"),
+///     "DroppedObjectTypeLinks",
+/// );
+/// assert_eq!(loss.projection().as_str(), "ocel-flatten-to-xes:by-order");
+/// assert_eq!(loss.category(), "DroppedObjectTypeLinks");
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NamedLoss {
+    projection: ProjectionName,
+    category: &'static str,
+}
+
+impl NamedLoss {
+    /// Constructs a [`NamedLoss`] from a projection name and a loss category label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{NamedLoss, ProjectionName};
+    ///
+    /// let loss = NamedLoss::new(
+    ///     ProjectionName("ocel-flatten-to-xes:by-order"),
+    ///     "DroppedObjectTypeLinks",
+    /// );
+    /// assert_eq!(loss.category(), "DroppedObjectTypeLinks");
+    /// ```
+    #[inline]
+    pub const fn new(projection: ProjectionName, category: &'static str) -> Self {
+        NamedLoss { projection, category }
+    }
+
+    /// Returns the [`ProjectionName`] under which this loss occurred.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{NamedLoss, ProjectionName};
+    ///
+    /// let loss = NamedLoss::new(ProjectionName("p"), "SomeLoss");
+    /// assert_eq!(loss.projection().as_str(), "p");
+    /// ```
+    #[inline]
+    pub const fn projection(self) -> ProjectionName {
+        self.projection
+    }
+
+    /// Returns the named loss category label.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{NamedLoss, ProjectionName};
+    ///
+    /// let loss = NamedLoss::new(ProjectionName("p"), "FlattenedMultiObjectRelation");
+    /// assert_eq!(loss.category(), "FlattenedMultiObjectRelation");
+    /// ```
+    #[inline]
+    pub const fn category(self) -> &'static str {
+        self.category
+    }
+}
+
+impl core::fmt::Display for NamedLoss {
+    /// Formats as `<projection>/<category>` for diagnostic and log output.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{NamedLoss, ProjectionName};
+    ///
+    /// let loss = NamedLoss::new(
+    ///     ProjectionName("ocel-flatten-to-xes:by-order"),
+    ///     "DroppedObjectTypeLinks",
+    /// );
+    /// assert_eq!(
+    ///     format!("{}", loss),
+    ///     "ocel-flatten-to-xes:by-order/DroppedObjectTypeLinks",
+    /// );
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}/{}", self.projection, self.category)
+    }
+}
+
 /// The receipt of a lossy projection: what projection ran, under what policy,
 /// and exactly which items were discarded.
 ///
