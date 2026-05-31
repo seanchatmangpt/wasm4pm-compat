@@ -1798,3 +1798,33 @@ to atoms silently.
 - Silent transition elimination (tau-loop reduction algorithm — graduates to wasm4pm)
 - Observability checking over POWL models at runtime
 - Silent-step language projection (trace-level vs. event-level projection)
+
+---
+
+### process-tree-operator-law
+
+**Law concept:** `ProcessTreeOperator` is a closed enum of exactly five structural
+operators: `Sequence`, `Xor`, `Parallel`, `Loop`, and `Silent`. Each operator has
+a distinct structural identity — an `Xor` node cannot silently substitute a
+`Parallel` node. The closed enum prevents adding ad-hoc operators without modifying
+the canonical definition. Each variant's child-count requirements are enforced
+structurally: a `Loop` operator node must have exactly two children.
+
+**Paper:** Leemans (2013) — Process trees in the inductive miner define the same
+five operators: sequence (`->`), exclusive choice (`×`), parallel (`+`), loop (`*`),
+and silent (`τ`). These are the canonical block-structured building blocks. Each
+maps bijectively to one `ProcessTreeOperator` variant.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `process-tree-operator-law` — `ProcessTreeOperator` is a closed enum of five distinct operators; a function parameterized on one variant cannot accept another | `process_tree::ProcessTreeOperator` (closed enum) | `compile_pass/process_tree_operator_node_shape.rs` | — (type-level law: distinct enum variants → distinct match arms) | Leemans (2013) inductive miner; process-tree definition |
+| `process-tree-loop-arity-2` — a `ProcessTreeOperator::Loop` node must have exactly 2 children; enforced via `TypedLoopNode<Children, 2>` const-generic | `process_tree::TypedLoopNode<Children, ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013) inductive miner |
+| `process-tree-silent-leaf` — `ProcessTreeOperator::Silent` is a zero-child operator node, not an activity leaf with an empty label | `process_tree::ProcessTreeOperator::Silent` (zero children) | `compile_pass/process_tree_operator_node_shape.rs` | — (structural: `Silent` is always zero-child by operator convention) | Leemans (2013) inductive miner |
+| `process-tree-refusal-named-law` — every `ProcessTreeRefusal` variant names a specific structural law; `InvalidInput` is not a valid refusal variant | `process_tree::ProcessTreeRefusal` (no `InvalidInput` variant) | `compile_pass/process_tree_operator_node_shape.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013); Blue River Dam covenant |
+
+**What must NOT live in this crate:**
+
+- Process tree execution / token replay (inductive miner replay — graduates to wasm4pm)
+- Process tree simplification (redundant tau removal, operator folding)
+- Process tree to Petri net conversion execution
+- Language metrics over process trees (fitness, precision — graduates to wasm4pm)
