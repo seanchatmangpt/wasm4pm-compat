@@ -25,6 +25,30 @@
 //! graduate this shape to the `wasm4pm` engine (via the `wasm4pm` feature). This
 //! module only certifies that the *receipt form* is well-shaped.
 
+// ── WellShaped trait ─────────────────────────────────────────────────────────
+
+/// A uniform shape-checking trait for all receipt types in this module.
+///
+/// Every receipt type — [`ReceiptShape`], [`ReceiptEnvelope`],
+/// [`ReceiptChain`], and [`GraduationReceipt`] — implements `WellShaped`.
+/// A caller that holds a `dyn WellShaped` (or `T: WellShaped`) can check
+/// structural admissibility without knowing the concrete type.
+///
+/// This trait is **structure only**: it checks *presence* of required fields,
+/// never *authenticity* or *semantic validity*.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{WellShaped, ReceiptShape, Digest, ReplayHint};
+/// let r = ReceiptShape::new("w", Digest::new("d"), ReplayHint::new("h"));
+/// assert!(r.well_shaped());
+/// ```
+pub trait WellShaped {
+    /// Whether this receipt value carries all required fields non-empty.
+    fn well_shaped(&self) -> bool;
+}
+
 /// A content digest carried by a receipt.
 ///
 /// `#[repr(transparent)]` over `String`: an opaque, structural digest string
@@ -546,5 +570,36 @@ impl GraduationReceipt {
     #[must_use]
     pub fn is_well_shaped(&self) -> bool {
         self.envelope.is_well_shaped() && !self.reason_tag.is_empty()
+    }
+}
+
+// ── WellShaped impls ─────────────────────────────────────────────────────────
+
+impl WellShaped for ReceiptShape {
+    /// Delegates to [`ReceiptShape::is_well_shaped`].
+    fn well_shaped(&self) -> bool {
+        self.is_well_shaped()
+    }
+}
+
+impl WellShaped for ReceiptEnvelope {
+    /// Delegates to [`ReceiptEnvelope::is_well_shaped`].
+    fn well_shaped(&self) -> bool {
+        self.is_well_shaped()
+    }
+}
+
+impl WellShaped for ReceiptChain {
+    /// A chain is well-shaped when it is non-empty and every link is
+    /// well-shaped. Delegates to [`ReceiptChain::is_empty`] and link checks.
+    fn well_shaped(&self) -> bool {
+        !self.is_empty() && self.iter().all(|link| link.is_well_shaped())
+    }
+}
+
+impl WellShaped for GraduationReceipt {
+    /// Delegates to [`GraduationReceipt::is_well_shaped`].
+    fn well_shaped(&self) -> bool {
+        self.is_well_shaped()
     }
 }
