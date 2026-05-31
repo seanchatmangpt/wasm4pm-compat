@@ -1630,3 +1630,32 @@ carry the `ExceedsProcessTree` marker — projection would silently lose languag
   any process tree — graduates to wasm4pm)
 - Process-tree induction from an irreducible partial order
 - Language equivalence checking between POWL and process tree shapes
+
+---
+
+## Declare/OCPQ Law Packet — Relation Predicate
+
+**Paper family:** `OCPQ_QUERYING`
+**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+
+### relation-predicate
+
+`Predicate<RelationPredicate>` is the typed marker for predicates over event-to-object (E2O) or object-to-object (O2O) links. OCPQ Section 4 (BASIC_L) introduces two typed relation predicate variants:
+
+- `PredicateKind::E2ORelation { event_var, object_var, qualifier? }` — asserts that a named event is related to a named object, optionally via a qualifier.
+- `PredicateKind::O2ORelation { object_var1, object_var2, qualifier? }` — asserts that two named objects are related, optionally via a qualifier.
+
+These replace the opaque `Relation(String)` variant for call sites where the link type is known. The `RelationPredicate` witness prevents E2O predicates from being silently substituted for O2O predicates — they are structurally distinct because `E2ORelation` carries an `event_var` while `O2ORelation` carries two `object_var` fields.
+
+A `TimeBetweenEvents` predicate (TBE) is also in `RelationPredicate` family: it asserts that the duration between two named events lies in `[t_min, t_max]`. Structure-only; temporal evaluation graduates to `wasm4pm`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocpq_relation_predicate_law` — `Predicate<RelationPredicate>` with `E2ORelation` and `O2ORelation` variants enforces typed link-kind distinction at the structural level | `ocpq::Predicate<RelationPredicate>` / `ocpq::PredicateKind::E2ORelation` / `ocpq::PredicateKind::O2ORelation` | `compile_pass/ocpq_typed_relation.rs` | `compile_fail/ocpq_object_type_mixing.rs` | OCPQ §4 BASIC_L |
+| `ocpq_tbe_predicate_law` — `PredicateKind::TimeBetweenEvents` names time-between-events constraint with `[t_min, t_max]` bounds | `ocpq::PredicateKind::TimeBetweenEvents` | `compile_pass/ocpq_typed_relation.rs` | — (structure-only, evaluation graduates to wasm4pm) | OCPQ §4 BASIC_L TBE |
+
+**What must NOT live in this crate:**
+
+- E2O/O2O link resolution against a log (variable binding, traversal)
+- TBE evaluation (timestamp difference computation)
+- Relation predicate cardinality aggregation
