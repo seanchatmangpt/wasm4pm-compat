@@ -425,3 +425,60 @@ impl<T, W> Evidence<T, Exportable, W> {
         }
     }
 }
+
+#[cfg(test)]
+mod state_transition_tests {
+    use super::*;
+    use crate::admission::Admission;
+    use crate::state::{Exportable, Projected, Receipted, Refused};
+    use crate::witness::Ocel20;
+
+    /// Full lifecycle: Raw → Parsed → (via Admit) Admitted → Projected → Receipted
+    #[test]
+    fn full_lifecycle_raw_to_receipted_via_projected() {
+        let raw: Evidence<u32, Raw, Ocel20> = Evidence::raw(1u32);
+        let _parsed: Evidence<u32, Parsed, Ocel20> = raw.into_parsed();
+        // Admission is the only path to Admitted; we simulate it here via the
+        // public `Admission::new` path (which mirrors what an `Admit` impl does).
+        let admitted: Evidence<u32, Admitted, Ocel20> = Admission::new(1u32).into_evidence();
+        let projected: Evidence<u32, Projected, Ocel20> = admitted.into_projected();
+        let receipted: Evidence<u32, Receipted, Ocel20> = projected.into_receipted();
+        assert_eq!(receipted.value, 1u32);
+    }
+
+    /// Lifecycle path: Admitted → Exportable → Receipted
+    #[test]
+    fn admitted_to_exportable_to_receipted() {
+        let admitted: Evidence<&str, Admitted, Ocel20> = Admission::new("payload").into_evidence();
+        let exportable: Evidence<&str, Exportable, Ocel20> = admitted.into_exportable();
+        let receipted: Evidence<&str, Receipted, Ocel20> = exportable.into_receipted();
+        assert_eq!(receipted.value, "payload");
+    }
+
+    /// Lifecycle path: Admitted → Receipted (direct)
+    #[test]
+    fn admitted_directly_to_receipted() {
+        let admitted: Evidence<u8, Admitted, Ocel20> = Admission::new(42u8).into_evidence();
+        let receipted: Evidence<u8, Receipted, Ocel20> = admitted.into_receipted();
+        assert_eq!(receipted.value, 42u8);
+    }
+
+    /// Refuse path: Parsed → Refused — value is recoverable for diagnostics.
+    #[test]
+    fn parsed_to_refused_carries_value() {
+        let refused: Evidence<&str, Refused, Ocel20> =
+            Evidence::<_, _, Ocel20>::raw("malformed").into_parsed().into_refused();
+        assert_eq!(refused.as_refused_value(), &"malformed");
+        assert_eq!(refused.into_refused_value(), "malformed");
+    }
+
+    /// Projected evidence can also be cleared for export.
+    #[test]
+    fn projected_to_exportable() {
+        let ev: Evidence<u32, Exportable, Ocel20> = Admission::<_, Ocel20>::new(7u32)
+            .into_evidence()
+            .into_projected()
+            .into_exportable();
+        assert_eq!(ev.value, 7u32);
+    }
+}
