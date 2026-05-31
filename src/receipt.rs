@@ -199,6 +199,56 @@ impl ReceiptEnvelope {
             && !self.digest.0.is_empty()
             && !self.replay_hint.0.is_empty()
     }
+
+    /// Attempt to build a well-shaped envelope, refusing with the first named
+    /// law that is violated.
+    ///
+    /// The four required fields are checked in law order: subject → witness →
+    /// digest → replay_hint. The first missing field produces a named
+    /// [`ReceiptRefusal`] — there is no catch-all error here.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptEnvelope, Digest, ReplayHint, ReceiptRefusal};
+    /// let ok = ReceiptEnvelope::try_from_parts(
+    ///     "case-7",
+    ///     "discovery-run",
+    ///     Digest::new("blake3:abc"),
+    ///     ReplayHint::new("rerun:plan#7"),
+    /// );
+    /// assert!(ok.is_ok());
+    ///
+    /// let bad = ReceiptEnvelope::try_from_parts(
+    ///     "",
+    ///     "discovery-run",
+    ///     Digest::new("blake3:abc"),
+    ///     ReplayHint::new("rerun:plan#7"),
+    /// );
+    /// assert_eq!(bad, Err(ReceiptRefusal::MissingSubject));
+    /// ```
+    pub fn try_from_parts(
+        subject: impl Into<String>,
+        witness: impl Into<String>,
+        digest: Digest,
+        replay_hint: ReplayHint,
+    ) -> Result<Self, ReceiptRefusal> {
+        let subject = subject.into();
+        let witness = witness.into();
+        if subject.is_empty() {
+            return Err(ReceiptRefusal::MissingSubject);
+        }
+        if witness.is_empty() {
+            return Err(ReceiptRefusal::MissingWitness);
+        }
+        if digest.0.is_empty() {
+            return Err(ReceiptRefusal::MissingDigest);
+        }
+        if replay_hint.0.is_empty() {
+            return Err(ReceiptRefusal::MissingReplayHint);
+        }
+        Ok(Self { subject, witness, digest, replay_hint })
+    }
 }
 
 /// First-class refusal law for receipt shapes.
