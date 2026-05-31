@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/case_id_as_trace_id.rs:17:23
+   |
+17 |     requires_trace_id(case);
+   |     ----------------- ^^^^ expected `TraceId<MyLog>`, found `CaseId<MyLog>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `TraceId<MyLog>`
+              found struct `CaseId<MyLog>`
+note: function defined here
+  --> tests/ui/compile_fail/case_id_as_trace_id.rs:12:4
+   |
+12 | fn requires_trace_id(_id: TraceId<MyLog>) {}
+   |    ^^^^^^^^^^^^^^^^^ -------------------
