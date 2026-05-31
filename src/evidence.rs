@@ -27,7 +27,7 @@
 
 use core::marker::PhantomData;
 
-use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted};
+use crate::state::{Admitted, EvidenceState, Exportable, Parsed, Projected, Raw, Receipted};
 
 /// A value carried with its lifecycle `State` and answering to witness `W`.
 ///
@@ -35,10 +35,17 @@ use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted};
 /// [`value`](Evidence::value) holds data. See the [module docs](self) for the
 /// admission one-way-door rule.
 ///
+/// ## `State: EvidenceState` bound
+///
+/// The `State` type parameter is constrained to [`crate::state::EvidenceState`],
+/// a sealed trait implemented only by the seven canonical lifecycle stage tokens.
+/// A downstream crate cannot substitute an arbitrary type for `State` — the
+/// missing-impl error at compile time enforces the lifecycle contract.
+///
 /// Structure-only carrier. It does not act on `T`; it only positions and labels
 /// it. Graduate to `wasm4pm` when the carried value must be *executed against*
 /// its witness.
-pub struct Evidence<T, State, W> {
+pub struct Evidence<T, State: EvidenceState, W> {
     /// The underlying evidence shape.
     pub value: T,
     /// Type-level lifecycle stage (zero-sized).
