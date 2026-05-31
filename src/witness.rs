@@ -202,3 +202,17 @@ witness_marker!(
     "Workflow Patterns: The Definitive Guide",
     Some(2016)
 );
+witness_marker!(
+    /// Inductive Miner (Leemans, Fahland & van der Aalst, 2013).
+    ///
+    /// Names the Inductive Miner family of process discovery algorithms. An
+    /// `Admission<T, InductiveMiner>` is distinguishable from
+    /// `Admission<T, AlphaMiner>` — both are discovery algorithms but name
+    /// orthogonal authorities. Graduate to `wasm4pm` when the miner must
+    /// actually execute.
+    InductiveMiner,
+    "inductive-miner",
+    WitnessFamily::Paper,
+    "Inductive Miner (Leemans, Fahland & van der Aalst)",
+    Some(2013)
+);
