@@ -488,6 +488,43 @@ impl WfNetConst<{ SoundnessState::Claimed }> {
     }
 }
 
+/// A shared query surface for [`WfNetConst`] that is independent of soundness state.
+///
+/// `WfNetConst<S>` has three concrete impls (one per `SoundnessState` variant).
+/// This blanket impl adds a `soundness_state()` query so callers that receive a
+/// `WfNetConst<S>` in generic context can read the soundness state as a runtime
+/// value without knowing `S` statically.
+///
+/// The method is separately documented from the struct because the docs are on
+/// the trait, not on the three concrete impls.
+///
+/// ```
+/// use wasm4pm_compat::petri::{WfNetConst, WfNetQuery};
+/// use wasm4pm_compat::law::SoundnessState;
+/// let wf = WfNetConst::<{ SoundnessState::Claimed }>::new().claim_sound();
+/// assert_eq!(wf.soundness_state(), SoundnessState::Claimed);
+/// ```
+pub trait WfNetQuery {
+    /// The soundness state of this WF-net as a runtime value.
+    fn soundness_state(&self) -> SoundnessState;
+}
+
+impl WfNetQuery for WfNetConst<{ SoundnessState::Unknown }> {
+    fn soundness_state(&self) -> SoundnessState {
+        SoundnessState::Unknown
+    }
+}
+impl WfNetQuery for WfNetConst<{ SoundnessState::Claimed }> {
+    fn soundness_state(&self) -> SoundnessState {
+        SoundnessState::Claimed
+    }
+}
+impl WfNetQuery for WfNetConst<{ SoundnessState::Witnessed }> {
+    fn soundness_state(&self) -> SoundnessState {
+        SoundnessState::Witnessed
+    }
+}
+
 /// A place: a named token-holding location in a Petri net.
 ///
 /// Structure-only: identity and name; no token dynamics.
