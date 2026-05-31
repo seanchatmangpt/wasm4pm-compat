@@ -550,8 +550,25 @@ pub enum PowlRefusal {
     CyclicPartialOrder,
     /// A choice node was malformed (e.g. fewer than two branches).
     InvalidChoice,
+    /// A choice node had the wrong number of branches — arity violation.
+    ///
+    /// Distinct from [`PowlRefusal::InvalidChoice`]: this variant names the
+    /// arity law specifically (the branch count was structurally wrong, not
+    /// merely malformed in some other way). `InvalidChoice` covers the general
+    /// case; `InvalidChoiceArity` carries the specific arity violation evidence.
+    InvalidChoiceArity {
+        /// The number of branches declared.
+        declared: usize,
+        /// The minimum number of branches required (always ≥ 2).
+        required_min: usize,
+    },
     /// A loop node was malformed (e.g. missing `do` body).
     InvalidLoop,
+    /// A loop node is missing its mandatory `do` body — the first child of a
+    /// POWL loop `L(M₁, M₂)` is the `do` body and must always be present.
+    ///
+    /// Paper: Kourani et al. (2026) §3 — `L(M₁, M₂)` requires `M₁` (do body).
+    LoopMissingDoBody,
     /// Projection to a process tree was requested for an
     /// [`Irreducible`] partial order that [`ExceedsProcessTree`].
     IrreducibleProjection,
@@ -571,15 +588,23 @@ pub enum PowlRefusal {
 
 impl core::fmt::Display for PowlRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let law = match self {
-            PowlRefusal::CyclicPartialOrder => "CyclicPartialOrder",
-            PowlRefusal::InvalidChoice => "InvalidChoice",
-            PowlRefusal::InvalidLoop => "InvalidLoop",
-            PowlRefusal::IrreducibleProjection => "IrreducibleProjection",
-            PowlRefusal::LanguageMismatch => "LanguageMismatch",
-            PowlRefusal::ChoiceGraphDisconnected => "ChoiceGraphDisconnected",
-        };
-        write!(f, "POWL refused: {law}")
+        match self {
+            PowlRefusal::CyclicPartialOrder => write!(f, "POWL refused: CyclicPartialOrder"),
+            PowlRefusal::InvalidChoice => write!(f, "POWL refused: InvalidChoice"),
+            PowlRefusal::InvalidChoiceArity { declared, required_min } => write!(
+                f,
+                "POWL refused: InvalidChoiceArity (declared={declared}, required_min={required_min})"
+            ),
+            PowlRefusal::InvalidLoop => write!(f, "POWL refused: InvalidLoop"),
+            PowlRefusal::LoopMissingDoBody => write!(f, "POWL refused: LoopMissingDoBody"),
+            PowlRefusal::IrreducibleProjection => {
+                write!(f, "POWL refused: IrreducibleProjection")
+            }
+            PowlRefusal::LanguageMismatch => write!(f, "POWL refused: LanguageMismatch"),
+            PowlRefusal::ChoiceGraphDisconnected => {
+                write!(f, "POWL refused: ChoiceGraphDisconnected")
+            }
+        }
     }
 }
 
