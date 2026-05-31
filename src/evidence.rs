@@ -27,7 +27,7 @@
 
 use core::marker::PhantomData;
 
-use crate::state::{Admitted, Parsed, Projected, Raw};
+use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted};
 
 /// A value carried with its lifecycle `State` and answering to witness `W`.
 ///
@@ -259,6 +259,91 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
     /// ```
     #[inline]
     pub fn into_projected(self) -> Evidence<T, Projected, W> {
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
+    }
+}
+
+impl<T, W> Evidence<T, Projected, W> {
+    /// Stamps projected evidence as *export-cleared*, advancing to `Exportable`.
+    ///
+    /// After a named lossy projection (see [`crate::loss::Project`]) the value
+    /// may be cleared for export.  This method is only available on `Projected`
+    /// evidence, preventing unadmitted values from reaching the export boundary.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Admission;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let ev = Admission::<_, Ocel20>::new(42u32)
+    ///     .into_evidence()
+    ///     .into_projected()
+    ///     .into_exportable();
+    /// assert_eq!(ev.value, 42);
+    /// ```
+    #[inline]
+    pub fn into_exportable(self) -> Evidence<T, Exportable, W> {
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
+    }
+
+    /// Seals projected evidence into a `Receipted` stage.
+    ///
+    /// A projected value may be receipted directly — the projection is on the
+    /// record (see [`crate::loss::LossReport`]) and the evidence is ready for
+    /// the `wasm4pm` engine's provenance chain.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Admission;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let ev = Admission::<_, Ocel20>::new("flattened")
+    ///     .into_evidence()
+    ///     .into_projected()
+    ///     .into_receipted();
+    /// assert_eq!(ev.value, "flattened");
+    /// ```
+    #[inline]
+    pub fn into_receipted(self) -> Evidence<T, Receipted, W> {
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
+    }
+}
+
+impl<T, W> Evidence<T, Exportable, W> {
+    /// Seals export-cleared evidence into a `Receipted` stage.
+    ///
+    /// An exportable value may be promoted to `Receipted` once the receipt
+    /// envelope has been built (see [`crate::receipt::ReceiptShape`]).  This
+    /// completes the lifecycle: `Admitted → Exportable → Receipted`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Admission;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let ev = Admission::<_, Ocel20>::new("export-ready")
+    ///     .into_evidence()
+    ///     .into_exportable()
+    ///     .into_receipted();
+    /// assert_eq!(ev.value, "export-ready");
+    /// ```
+    #[inline]
+    pub fn into_receipted(self) -> Evidence<T, Receipted, W> {
         Evidence {
             value: self.value,
             state: PhantomData,
