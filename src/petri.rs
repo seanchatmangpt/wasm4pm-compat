@@ -1440,6 +1440,39 @@ impl<const SOUNDNESS: crate::law::SoundnessState> SeparableWfNet<SOUNDNESS> {
     }
 }
 
+/// An uninhabited type-level marker asserting the *separability claim* about a
+/// WF-net, independent of the [`SeparableWfNet`] wrapper struct.
+///
+/// `SeparableWfNetMarker` is used as a `PhantomData` type parameter in
+/// downstream types that need to carry a separability claim through a pipeline
+/// without wrapping the whole WF-net. The marker is an empty enum and therefore
+/// uninhabited — it can only appear as a `PhantomData` field.
+///
+/// ## Why both `SeparableWfNet` and `SeparableWfNetMarker`?
+///
+/// [`SeparableWfNet`] wraps a [`WfNetConst`] — it is a value-carrying container.
+/// `SeparableWfNetMarker` is a *phantom* — it marks a type as "was derived from
+/// a separable net" without copying the net value. Use the marker when the net
+/// itself does not need to travel with the downstream type.
+///
+/// ## Paper
+///
+/// Kourani, Park & van der Aalst (2026) — *Hierarchical Decomposition of
+/// Separable Workflow-Nets*. Definition 4.1.
+///
+/// Structure-only: uninhabited, zero-cost phantom marker.
+///
+/// ```
+/// use core::marker::PhantomData;
+/// use wasm4pm_compat::petri::SeparableWfNetMarker;
+///
+/// // A downstream type that remembers the net was separable.
+/// struct PowlConversionResult<S>(PhantomData<S>);
+/// let _: PowlConversionResult<SeparableWfNetMarker>;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum SeparableWfNetMarker {}
+
 impl core::fmt::Display for PetriRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let law = match self {
