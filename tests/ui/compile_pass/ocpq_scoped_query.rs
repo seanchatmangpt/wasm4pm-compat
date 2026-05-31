@@ -9,9 +9,7 @@
 // 1. An OcpqQuery with a non-empty ObjectScope constructs and admits successfully.
 // 2. OcpqRefusal::MissingObjectScope is the named law for the empty-scope refusal.
 // 3. The lawful scoped path is open and the refusal path names itself correctly.
-use wasm4pm_compat::ocpq::{
-    EventPredicate, OcpqQuery, OcpqRefusal, ObjectScope, Predicate, PredicateKind,
-};
+use wasm4pm_compat::ocpq::{OcpqQuery, OcpqRefusal, ObjectScope, Predicate, PredicateKind};
 
 /// Structural scope admission gate: refuses a query with no object types bound.
 /// Structure-only — does not evaluate the query.
@@ -25,7 +23,7 @@ fn admit_scoped(q: &OcpqQuery) -> Result<(), OcpqRefusal> {
 fn main() {
     // Well-scoped query: two object types — lawful.
     let mut q = OcpqQuery::new(ObjectScope::new(["order", "item"]));
-    q.predicates.push(Predicate::<EventPredicate>::new(PredicateKind::Event(
+    q.predicates.push(Predicate::new(PredicateKind::Event(
         "activity = 'ship'".into(),
     )));
     assert!(admit_scoped(&q).is_ok());

@@ -9,9 +9,7 @@
 // 2. OcpqRefusal::FlatteningRequired is the named law guarding the boundary
 //    between admitted object-centric query and inadmissible flat-evaluation.
 // 3. The refusal path is reachable and names itself correctly.
-use wasm4pm_compat::ocpq::{
-    EventPredicate, OcpqQuery, OcpqRefusal, ObjectScope, Predicate, PredicateKind,
-};
+use wasm4pm_compat::ocpq::{OcpqQuery, OcpqRefusal, ObjectScope, Predicate, PredicateKind};
 
 /// A structural admission gate: refuses any query whose structure would require
 /// flattening (e.g. exactly one object type in scope — a proxy for case-centric
@@ -27,7 +25,7 @@ fn admit_non_flattening(q: &OcpqQuery) -> Result<(), OcpqRefusal> {
 fn main() {
     // Well-formed multi-scope query: two object types, object-centric — not flat.
     let mut q = OcpqQuery::new(ObjectScope::new(["order", "item"]));
-    q.predicates.push(Predicate::<EventPredicate>::new(PredicateKind::Event(
+    q.predicates.push(Predicate::new(PredicateKind::Event(
         "activity = 'pay'".into(),
     )));
     assert!(admit_non_flattening(&q).is_ok());
