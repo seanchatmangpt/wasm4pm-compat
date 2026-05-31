@@ -962,3 +962,106 @@ impl<OT: ObjectTypeTag> TypedObject<OT> {
         self.inner
     }
 }
+
+// ── Event-type witness ────────────────────────────────────────────────────────
+
+/// A phantom type-level event-type tag.
+///
+/// `EventTypeTag` is a zero-sized marker that threads a *named activity type*
+/// through generic typed surfaces. It prevents `TypedEvent<PlaceOrderTag>` from
+/// being silently coerced into `TypedEvent<ShipTag>` at the type level.
+///
+/// Structure-only: it is a compile-time label. Activity-type classification
+/// and typed process-tree construction graduate to `wasm4pm`.
+pub trait EventTypeTag: core::fmt::Debug + Clone + PartialEq {
+    /// The stable, lowercase, machine-facing activity-type name (e.g. `"place_order"`).
+    const ACTIVITY_NAME: &'static str;
+}
+
+/// A typed wrapper around [`OcelEvent`] that threads an [`EventTypeTag`] into
+/// the type system.
+///
+/// `TypedEvent<ET>` is a newtype around [`OcelEvent`] whose phantom type
+/// parameter `ET: EventTypeTag` makes the event's activity visible at compile
+/// time.
+///
+/// Structure-only: it carries identity, activity tag, timestamp, and
+/// attributes; it does not replay, mine, or conform. That graduates to `wasm4pm`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypedEvent<ET: EventTypeTag> {
+    inner: OcelEvent,
+    _tag: core::marker::PhantomData<ET>,
+}
+
+impl<ET: EventTypeTag> TypedEvent<ET> {
+    /// Wrap an [`OcelEvent`] with a compile-time activity-type tag.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelEvent, TypedEvent, EventTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct PlaceOrderTag;
+    /// impl EventTypeTag for PlaceOrderTag { const ACTIVITY_NAME: &'static str = "place_order"; }
+    ///
+    /// let ev = OcelEvent::new("e1", "place_order");
+    /// let typed = TypedEvent::<PlaceOrderTag>::wrap(ev);
+    /// assert_eq!(typed.inner().activity(), "place_order");
+    /// ```
+    pub fn wrap(inner: OcelEvent) -> Self {
+        TypedEvent {
+            inner,
+            _tag: core::marker::PhantomData,
+        }
+    }
+
+    /// Construct a [`TypedEvent`] directly: id plus the tag's activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedEvent, EventTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct ShipTag;
+    /// impl EventTypeTag for ShipTag { const ACTIVITY_NAME: &'static str = "ship"; }
+    ///
+    /// let ev = TypedEvent::<ShipTag>::new("e2");
+    /// assert_eq!(ev.inner().activity(), "ship");
+    /// ```
+    pub fn new(id: impl Into<String>) -> Self {
+        TypedEvent {
+            inner: OcelEvent::new(id, ET::ACTIVITY_NAME),
+            _tag: core::marker::PhantomData,
+        }
+    }
+
+    /// The inner untyped [`OcelEvent`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedEvent, EventTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct ShipTag;
+    /// impl EventTypeTag for ShipTag { const ACTIVITY_NAME: &'static str = "ship"; }
+    ///
+    /// let ev = TypedEvent::<ShipTag>::new("e3");
+    /// assert_eq!(ev.inner().id(), "e3");
+    /// ```
+    pub fn inner(&self) -> &OcelEvent {
+        &self.inner
+    }
+
+    /// Consume the wrapper and return the inner [`OcelEvent`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{TypedEvent, EventTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct ShipTag;
+    /// impl EventTypeTag for ShipTag { const ACTIVITY_NAME: &'static str = "ship"; }
+    ///
+    /// let ev = TypedEvent::<ShipTag>::new("e4").into_inner();
+    /// assert_eq!(ev.activity(), "ship");
+    /// ```
+    pub fn into_inner(self) -> OcelEvent {
+        self.inner
+    }
+}
