@@ -920,3 +920,31 @@ The `ocel_to_xes_no_loss_report` compile-fail fixture already seals the law that
 | `ocel_to_xes_boundary_law` — OCEL-to-XES flattening requires named projection + loss report | `interop::OcelToXesProjection` + `formats::LossyFormatExport` | `compile_pass/ocel_to_xes_with_named_projection.rs` | `compile_fail/ocel_to_xes_no_loss_report.rs` | OCEL 1.0 §3 (convergence/divergence) |
 | `ocel_shape_direction_law` — OCEL→XES `LossReport` must use `OcelShape` as `From` and `XesShape` as `To` | `interop::OcelShape` / `interop::XesShape` (distinct uninhabited markers) | `compile_pass/ocel_to_xes_with_named_projection.rs` | n/a (law enforced by type parameter direction) | OCEL 2.0 §5.1 format boundary |
 | `ocel_flattening_loss_law` — `OcelRefusal::FlatteningLoss` names the convergence/divergence loss explicitly | `ocel::OcelRefusal::FlatteningLoss` | `compile_pass/ocel_to_xes_with_named_projection.rs` | `compile_fail/ocel_to_xes_no_loss_report.rs` | OCEL 1.0 (van der Aalst & Berti, 2020) convergence/divergence |
+
+---
+
+## Conformance-Prediction Law Packet
+
+**Paper family:** `CONFORMANCE_ALIGNMENT` / `PREDICTIVE_MONITORING`
+**Sources:** Rozinat & van der Aalst (2008); van der Aalst et al. alignments (2012); Tax et al. (2017); De Santis et al. (2026)
+
+The conformance-prediction family covers structural laws for alignment cost,
+token-replay boundary, four quality metrics (fitness, precision, F1,
+generalization, simplicity), prediction target witnesses, compliance-target law,
+and risk-score witness. Every law is structure-only: this crate carries and
+refuses shapes but never computes alignment, replays tokens, or trains models.
+
+### alignment-cost-law
+
+Alignment-based conformance represents each log-model comparison step as a
+named move. Three move kinds are structurally distinct: `SyncMove` (log and
+model agree), `LogOnlyMove` (log had a step the model could not match),
+`ModelOnlyMove` (model required a step the log did not show). Confusing move
+kinds is a structural defect. `Deviation<M>` is parametric over the move
+witness `M` — `Deviation<SyncMove>` and `Deviation<LogOnlyMove>` are different
+types, not aliases and not runtime-tagged variants.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `alignment-cost-law` — `SyncMove`, `LogOnlyMove`, `ModelOnlyMove` are distinct move witnesses on `Deviation<M>` | `conformance::SyncMove` / `conformance::LogOnlyMove` / `conformance::ModelOnlyMove` + `conformance::Deviation<M>` | `compile_pass/conformance_deviation_shape.rs` | — (structure-only; no cross-move confusion fixture) | van der Aalst et al., Alignments in Process Mining (2012) |
+| `alignment-move-type-distinction` — `Deviation<SyncMove>` and `Deviation<LogOnlyMove>` are not interchangeable types | `conformance::Deviation<M>` (phantom move witness `M`) | `compile_pass/conformance_deviation_shape.rs` | — (distinct phantom params prevent conflation at compile time) | van der Aalst et al., Alignments in Process Mining (2012) |
