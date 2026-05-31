@@ -1440,6 +1440,46 @@ impl<const SOUNDNESS: crate::law::SoundnessState> SeparableWfNet<SOUNDNESS> {
     }
 }
 
+/// A standalone, named error type for the *missing final marking* law.
+///
+/// [`PetriRefusal::MissingFinalMarking`] names the law as a variant on the
+/// shared refusal enum. `MissingFinalMarkingError` is a separate zero-sized
+/// struct that names the same law as a **first-class type** — useful when a
+/// function returns `Result<_, MissingFinalMarkingError>` instead of the broad
+/// `Result<_, PetriRefusal>`, making the specific law visible in the return
+/// type signature.
+///
+/// Law: a WF-net must have a declared, non-empty final marking (van der Aalst,
+/// 1998 — "proper completion" requires a designated final state).
+///
+/// ## Conversion
+///
+/// `MissingFinalMarkingError` converts to [`PetriRefusal::MissingFinalMarking`]
+/// via `From<MissingFinalMarkingError> for PetriRefusal`.
+///
+/// Structure-only: zero-sized, carries no data.
+///
+/// ```
+/// use wasm4pm_compat::petri::{MissingFinalMarkingError, PetriRefusal};
+/// let e = MissingFinalMarkingError;
+/// let r: PetriRefusal = e.into();
+/// assert_eq!(r, PetriRefusal::MissingFinalMarking);
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct MissingFinalMarkingError;
+
+impl core::fmt::Display for MissingFinalMarkingError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "WF-net refused by law: MissingFinalMarking")
+    }
+}
+
+impl From<MissingFinalMarkingError> for PetriRefusal {
+    fn from(_: MissingFinalMarkingError) -> Self {
+        PetriRefusal::MissingFinalMarking
+    }
+}
+
 /// An uninhabited type-level marker asserting the *separability claim* about a
 /// WF-net, independent of the [`SeparableWfNet`] wrapper struct.
 ///
