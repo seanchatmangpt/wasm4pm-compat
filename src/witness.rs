@@ -368,3 +368,25 @@ witness_marker!(
     "OCEL 2.0 attribute-type namespace",
     Some(2023)
 );
+witness_marker!(
+    /// WF-net → POWL 2.0 conversion authority (Kourani, Park & van der Aalst, 2026).
+    ///
+    /// Names the authority that governs lossless conversion of a *separable*
+    /// WF-net into a POWL 2.0 model via the decomposition theorem (Definition 4.1
+    /// and Theorem 4.3 of the 2026 paper). An `Admission<T, WfNet2Powl>` asserts
+    /// that the admitted value was produced by — or is compatible with — the
+    /// Kourani 2026 WF-net→POWL conversion path.
+    ///
+    /// Distinct from [`SeparableWfNetPaper`], which names the *separability
+    /// subclass* authority, and from [`PowlPaper`], which names the POWL language
+    /// authority. `WfNet2Powl` names the *conversion* authority: the boundary
+    /// where a WF-net *becomes* a POWL model.
+    ///
+    /// Structure-only authority label; see [`Witness`]. The actual conversion
+    /// (decomposition, language-equivalence check) graduates to `wasm4pm`.
+    WfNet2Powl,
+    "wfnet-to-powl",
+    WitnessFamily::Paper,
+    "WF-net to POWL 2.0 conversion (Kourani, Park & van der Aalst)",
+    Some(2026)
+);
