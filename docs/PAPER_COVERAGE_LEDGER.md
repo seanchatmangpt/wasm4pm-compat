@@ -183,3 +183,7 @@ Papers with no process-mining type-law relevance for this crate.
 3. **#1 PPM Compliance** — `ComplianceConstraintWitness<W>` binding prediction target to a named law; compliance score as `Between01<NUM, DEN>` metric
 4. **#5 XES→OCED** — `XesToOcedProjection` with explicit `LossPolicy` and `LossReport` in `src/interop.rs`
 5. **#14 Workflow Patterns** — Named `WorkflowPattern` enum as `ConstParamTy`; attach pattern coverage claim to `WfNetConst<SOUNDNESS>`
+6. **#45 Heuristics Miner** — `CausalNet` dedicated shape (heuristics net) in `src/petri.rs` or new `src/causal_net.rs`; dependency measure as `Between01<NUM, DEN>` const-generic fraction
+7. **#46 Weske BPM** — `GatewaySemantics<KIND>` const-generic type in `src/bpmn.rs` binding `GatewayKind` variant to its semantic law (XOR routes one token, AND duplicates, OR activates subset)
+8. **#48 Multi-Perspective PM** — `ResourcePerspective` and `DataPerspective` as `PhantomData` extension markers on `XesEvent` in `src/xes.rs`; perspective-scoped attribute typed surface
+9. **#49 OC-PM Divergence/Convergence** — `DivergenceWitness` and `ConvergenceWitness` as unit-struct witness types in `src/witness.rs`; each certifies a structure has been assessed for the respective defect
