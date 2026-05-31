@@ -19,6 +19,67 @@
 
 use core::marker::PhantomData;
 
+/// Sealed marker trait shared by every kind-typed identifier in this module.
+///
+/// # What this is
+///
+/// `TypedId` is a *sealed* trait: it is implemented only by the newtypes
+/// declared in this module ([`EventId`], [`ObjectId`], [`CaseId`], etc.) and
+/// cannot be implemented outside the crate. It lets generic code express
+/// "any typed id" without reaching for a raw `u64`/`u32`.
+///
+/// # What this is NOT
+///
+/// This is not a resolving interface. A `TypedId` still only **names** an
+/// entity — it does not look it up, validate liveness, or dereference a link.
+/// Graduate to `wasm4pm` for resolution.
+///
+/// # When to graduate
+///
+/// When you need to dereference an id to the value it names, or validate that
+/// a link exists, move that logic to the `wasm4pm` execution engine.
+///
+/// # Example
+///
+/// ```
+/// use wasm4pm_compat::ids::{EventId, TypedId};
+/// enum MyLog {}
+/// fn id_is_positive<I: TypedId>(id: &I) -> bool { !id.is_zero() }
+/// let ev = EventId::<MyLog>::new(7);
+/// assert!(id_is_positive(&ev));
+/// ```
+pub trait TypedId: sealed::SealedId + Copy + Eq + core::hash::Hash + core::fmt::Debug {
+    /// The underlying raw primitive type (`u64` or `u32`).
+    type Raw: Copy + Eq + core::hash::Hash + core::fmt::Debug;
+
+    /// Returns the underlying raw value.
+    fn raw_value(&self) -> Self::Raw;
+
+    /// Returns `true` when the raw value is the zero sentinel.
+    ///
+    /// Zero is conventionally "no id" in many process-mining tools; this method
+    /// lets generic code check for the sentinel without knowing the raw type.
+    fn is_zero(&self) -> bool;
+}
+
+mod sealed {
+    pub trait SealedId {}
+}
+
+/// Implements [`TypedId`] and [`sealed::SealedId`] for a given newtype.
+macro_rules! impl_typed_id {
+    ($name:ident, $raw:ty, $zero:expr) => {
+        impl<K> sealed::SealedId for $name<K> {}
+        impl<K> TypedId for $name<K> {
+            type Raw = $raw;
+            #[inline]
+            fn raw_value(&self) -> $raw { self.raw }
+            #[inline]
+            fn is_zero(&self) -> bool { self.raw == $zero }
+        }
+    };
+}
+
 /// Declares a `#[repr(transparent)]` kind-typed id newtype over `$raw`.
 macro_rules! typed_id {
     ($(#[$meta:meta])* $name:ident, $raw:ty) => {
@@ -155,3 +216,14 @@ typed_id!(
     /// a compile error, not a naming convention.
     CaseId, u64
 );
+
+// ── TypedId sealed-trait implementations ─────────────────────────────────────
+
+impl_typed_id!(EventId,      u64, 0u64);
+impl_typed_id!(ObjectId,     u64, 0u64);
+impl_typed_id!(ActivityId,   u32, 0u32);
+impl_typed_id!(RelationId,   u32, 0u32);
+impl_typed_id!(TraceId,      u64, 0u64);
+impl_typed_id!(ObjectTypeId, u32, 0u32);
+impl_typed_id!(EventTypeId,  u32, 0u32);
+impl_typed_id!(CaseId,       u64, 0u64);
