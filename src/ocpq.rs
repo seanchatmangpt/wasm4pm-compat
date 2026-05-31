@@ -393,6 +393,58 @@ pub struct NestedQuery;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Constraint;
 
+// ── Sealed predicate-family trait ────────────────────────────────────────────
+
+mod predicate_seal {
+    /// Private seal — only the seven canonical OCPQ predicate witness markers
+    /// are predicate witnesses. No user type can sneak in.
+    pub trait Sealed {}
+    impl Sealed for super::EventPredicate {}
+    impl Sealed for super::ObjectPredicate {}
+    impl Sealed for super::RelationPredicate {}
+    impl Sealed for super::TemporalPredicate {}
+    impl Sealed for super::CardinalityPredicate {}
+    impl Sealed for super::NestedQuery {}
+    impl Sealed for super::Constraint {}
+}
+
+/// Sealed trait — only the seven canonical OCPQ predicate witness markers
+/// satisfy this bound.
+///
+/// `IsOcpqPredicate` prevents arbitrary user-defined types from being used as
+/// predicate witnesses in functions that require a genuine OCPQ predicate family.
+/// The seven sealed implementations correspond to the seven witness markers:
+/// [`EventPredicate`], [`ObjectPredicate`], [`RelationPredicate`],
+/// [`TemporalPredicate`], [`CardinalityPredicate`], [`NestedQuery`],
+/// [`Constraint`].
+///
+/// ## Structure-only
+///
+/// This trait has no associated methods — it is a compile-time membership
+/// certificate, not a behavior surface.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{EventPredicate, ObjectPredicate, IsOcpqPredicate};
+/// fn needs_predicate<W: IsOcpqPredicate>() {}
+/// needs_predicate::<EventPredicate>();
+/// needs_predicate::<ObjectPredicate>();
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::ocpq::IsOcpqPredicate;
+/// struct NotAPredicate;
+/// fn needs_predicate<W: IsOcpqPredicate>() {}
+/// needs_predicate::<NotAPredicate>();
+/// ```
+pub trait IsOcpqPredicate: predicate_seal::Sealed {}
+impl IsOcpqPredicate for EventPredicate {}
+impl IsOcpqPredicate for ObjectPredicate {}
+impl IsOcpqPredicate for RelationPredicate {}
+impl IsOcpqPredicate for TemporalPredicate {}
+impl IsOcpqPredicate for CardinalityPredicate {}
+impl IsOcpqPredicate for NestedQuery {}
+impl IsOcpqPredicate for Constraint {}
+
 // ── Core shapes ─────────────────────────────────────────────────────────────
 
 /// The object scope a query ranges over: the object types it binds.
