@@ -385,3 +385,57 @@ structural compliance surface.
 - Object-centric token replay
 - OC-Petri net discovery from OCEL logs
 - Variable arc vs. regular arc execution distinction (runtime semantics)
+
+---
+
+## #43 — POWL: Partially Ordered Workflow Language (Kourani, van der Aalst, 2023)
+
+**Paper:** POWL: Partially Ordered Workflow Language  
+**Canon family:** `POWL`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+POWL (Kourani & van der Aalst, 2023) defines four node kinds as first-class
+structural laws: `StrictPartialOrder`, `OperatorNode`, `Transition`, and
+`SilentTransition`. Each is a distinct type — not a free string and not an
+annotation on a generic node. The choice graph edge (`ChoiceGraphEdge`) and
+the partial-order edge (`OrderEdge`) are distinct newtypes; confusing them
+is a compile error.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| `StrictPartialOrder` node kind | `src/powl.rs::PowlNodeKind::StrictPartialOrder` | — |
+| `OperatorNode` (loop/choice/parallel) | `src/powl.rs::PowlNodeKind::OperatorNode` | — |
+| `Transition` | `src/powl.rs::PowlNodeKind::Transition` | — |
+| `SilentTransition` | `src/powl.rs::PowlNodeKind::SilentTransition` | `powl_silent_tree_projection` compile-fail |
+| `ChoiceGraphEdge` | `src/powl.rs::ChoiceGraphEdge` | `powl_order_edge_choice_confusion` compile-fail |
+| `OrderEdge` | `src/powl.rs::OrderEdge` | `powl_order_edge_choice_confusion` compile-fail |
+| Tree-projectable POWL subclass | `src/powl.rs::TreeProjectable` (sealed) | `powl_silent_tree_projection` compile-fail |
+| POWL paper witness | `src/witness.rs::PowlPaper` | — |
+| POWL law surface | `src/nightly_foundry.rs::powl_law` | cites POWL paper |
+
+**Structural laws this crate enforces:**
+
+- `ChoiceGraphEdge` and `OrderEdge` are distinct newtypes — substituting one
+  for the other is a compile error. The `powl_order_edge_choice_confusion`
+  compile-fail fixture seals this.
+- A POWL node that carries an `ExceedsProcessTree` marker (i.e., uses a
+  `ChoiceGraph` sub-model with cycles or non-block structure) cannot project
+  to a process tree. The `powl_silent_tree_projection` compile-fail fixture
+  seals this via the `TreeProjectable` sealed trait.
+- `SilentTransition` is a first-class POWL node kind — it is not an
+  annotation on a `Transition`. The `PowlNodeKind` enum distinguishes them
+  at the type level.
+- `PowlPaper` in `src/witness.rs` is the non-forgeable receipt that a POWL
+  structure derives its node-kind laws from the Kourani & van der Aalst (2023)
+  definition, not from an ad-hoc enum.
+- The `powl_law` surface in `src/nightly_foundry.rs` is the compile-time law
+  kernel that directly cites the POWL paper as authoritative grounding.
+
+**What must NOT live in this crate:**
+
+- POWL discovery algorithm execution (inductive miner over POWL output shape)
+- POWL → WF-net translation execution (structural reduction)
+- POWL conformance checking (replay over partial-order models)
+- POWL serialization/deserialization (PTML wire format I/O)
