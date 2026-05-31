@@ -92,6 +92,53 @@ pub struct ProcessTreeProjectable;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ExceedsProcessTree;
 
+// ── AcyclicWitness sealed trait ──────────────────────────────────────────────
+
+mod acyclic_witness_seal {
+    pub trait Sealed {}
+    impl Sealed for super::AcyclicPartialOrder {}
+    // PartialOrder without the acyclicity claim deliberately NOT sealed here.
+}
+
+/// Sealed marker: only [`AcyclicPartialOrder`] satisfies this bound.
+///
+/// A function requiring `W: AcyclicWitness` can only be called with a marker
+/// that carries the acyclicity assertion. [`PartialOrder`] alone does **not**
+/// satisfy this bound — it is only a structural claim of kind, not a claim
+/// about DAG shape.
+///
+/// Use [`assert_acyclic`] to obtain a witness value at a known assertion site.
+///
+/// ```
+/// use wasm4pm_compat::powl::{assert_acyclic, AcyclicPartialOrder};
+/// assert_acyclic(AcyclicPartialOrder);  // ok
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::powl::{assert_acyclic, PartialOrder};
+/// assert_acyclic(PartialOrder);  // compile error: not AcyclicWitness
+/// ```
+pub trait AcyclicWitness: acyclic_witness_seal::Sealed {}
+impl AcyclicWitness for AcyclicPartialOrder {}
+
+/// Structural gate: only markers that carry the acyclicity assertion pass.
+///
+/// This is **not** a cycle-detection algorithm. It proves the acyclicity law
+/// at the type level — the marker `W` must be [`AcyclicPartialOrder`].
+///
+/// Pass this gate at the site where acyclicity was asserted (e.g., after a
+/// topological sort succeeds). The gate records the assertion; the actual
+/// detection graduates to `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::powl::{assert_acyclic, AcyclicPartialOrder};
+/// let ok = assert_acyclic(AcyclicPartialOrder);
+/// assert!(ok);
+/// ```
+pub fn assert_acyclic<W: AcyclicWitness>(_marker: W) -> bool {
+    true
+}
+
 // ── TreeProjectable sealed trait ─────────────────────────────────────────────
 
 mod tree_projectable_seal {
