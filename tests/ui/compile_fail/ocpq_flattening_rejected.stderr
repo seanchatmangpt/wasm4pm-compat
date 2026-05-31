@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_flattening_rejected.rs:49:38
+   |
+49 |     let _ = admit_relation_predicate(object_pred);
+   |             ------------------------ ^^^^^^^^^^^ expected `Predicate<RelationPredicate>`, found `Predicate<ObjectPredicate>`
+   |             |
+   |             arguments to this function are incorrect
+   |
+   = note: expected struct `Predicate<RelationPredicate>`
+              found struct `Predicate<ObjectPredicate>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_flattening_rejected.rs:33:4
+   |
+33 | fn admit_relation_predicate(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     _p: Predicate<RelationPredicate>,
+   |     --------------------------------
