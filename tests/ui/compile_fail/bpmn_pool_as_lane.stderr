@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/bpmn_pool_as_lane.rs:26:19
+   |
+26 |     register_lane(pool);
+   |     ------------- ^^^^ expected `BpmnLane`, found `BpmnPool`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/bpmn_pool_as_lane.rs:13:4
+   |
+13 | fn register_lane(_lane: BpmnLane) {}
+   |    ^^^^^^^^^^^^^ ---------------
