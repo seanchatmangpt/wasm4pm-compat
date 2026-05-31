@@ -31,6 +31,7 @@
 //! this module only certifies that the *structure* is well-formed and names the
 //! law under which it would be refused.
 
+use crate::law::{IsTrue, Require};
 use core::marker::PhantomData;
 
 // ── Witness markers: which POWL fragment a node is ──────────────────────────
@@ -364,6 +365,55 @@ impl PowlChoiceNode {
         } else {
             Err(PowlRefusal::InvalidChoice)
         }
+    }
+}
+
+/// A typed loop node with its arity enforced as a const generic parameter.
+///
+/// Paper: Kourani et al. (2026) §3 — a POWL loop `L(M₁, M₂)` has exactly
+/// **two** children: the mandatory `do` body (`M₁`) and the `redo` body (`M₂`).
+/// `TypedPowlLoopNode<_, 3>` does **not compile**: `ARITY == 2` is violated.
+///
+/// This mirrors [`crate::process_tree::TypedLoopNode`] but lives in the POWL
+/// domain, where the arity law applies to the POWL loop operator specifically.
+///
+/// Structure-only: the arity constraint is a type-law receipt. It does not
+/// replay, unfold, or execute the loop. Graduate to `wasm4pm` for execution.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::powl::TypedPowlLoopNode;
+/// let _: TypedPowlLoopNode<(), 2> = TypedPowlLoopNode::new(());  // arity 2: lawful
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::powl::TypedPowlLoopNode;
+/// let _: TypedPowlLoopNode<(), 3> = TypedPowlLoopNode::new(());  // arity 3: compile error
+/// ```
+pub struct TypedPowlLoopNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY == 2 }>: IsTrue,
+{
+    /// The loop children (do body + redo body), provided by the caller.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedPowlLoopNode<Children, ARITY>
+where
+    Require<{ ARITY == 2 }>: IsTrue,
+{
+    /// Construct a `TypedPowlLoopNode` — only possible when `ARITY == 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::powl::TypedPowlLoopNode;
+    /// let node: TypedPowlLoopNode<[&str; 2], 2> = TypedPowlLoopNode::new(["do", "redo"]);
+    /// assert_eq!(node.children, ["do", "redo"]);
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedPowlLoopNode { children }
     }
 }
 
