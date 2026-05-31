@@ -47,6 +47,58 @@ pub enum LossPolicy {
     AllowLossWithReport,
 }
 
+impl LossPolicy {
+    /// Returns `true` when this policy requires refusing any loss.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossPolicy;
+    ///
+    /// assert!(LossPolicy::RefuseLoss.is_refusing());
+    /// assert!(!LossPolicy::AllowNamedProjection.is_refusing());
+    /// assert!(!LossPolicy::AllowLossWithReport.is_refusing());
+    /// ```
+    #[inline]
+    pub const fn is_refusing(self) -> bool {
+        matches!(self, LossPolicy::RefuseLoss)
+    }
+
+    /// Returns `true` when this policy permits loss under a named projection
+    /// (items need not be enumerated).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossPolicy;
+    ///
+    /// assert!(!LossPolicy::RefuseLoss.is_named());
+    /// assert!(LossPolicy::AllowNamedProjection.is_named());
+    /// assert!(!LossPolicy::AllowLossWithReport.is_named());
+    /// ```
+    #[inline]
+    pub const fn is_named(self) -> bool {
+        matches!(self, LossPolicy::AllowNamedProjection)
+    }
+
+    /// Returns `true` when this policy permits loss and requires a full
+    /// itemized [`LossReport`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossPolicy;
+    ///
+    /// assert!(!LossPolicy::RefuseLoss.is_reporting());
+    /// assert!(!LossPolicy::AllowNamedProjection.is_reporting());
+    /// assert!(LossPolicy::AllowLossWithReport.is_reporting());
+    /// ```
+    #[inline]
+    pub const fn is_reporting(self) -> bool {
+        matches!(self, LossPolicy::AllowLossWithReport)
+    }
+}
+
 /// The stable name of a projection (e.g. `"ocel-flatten-to-xes:by-order"`).
 ///
 /// A [`ProjectionName`] makes a lossy transformation *recognizable* and
