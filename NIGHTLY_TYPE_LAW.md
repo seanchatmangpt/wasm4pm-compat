@@ -98,11 +98,19 @@ Every row says: **which paper law** → **which type invariant** → **which com
 
 ---
 
+## Compliance-aware prediction (`src/prediction.rs`)
+
+| Paper | Type invariant | Pass fixture | Fail fixture |
+|---|---|---|---|
+| De Santis et al. (2026) — compliance-aware PPM | `PredictionProblem<ComplianceTarget>` ≠ `PredictionProblem<OutcomeLabel>` at the type level | `compliance_prediction_target.rs` | `compliance_not_outcome_label.rs` |
+
+---
+
 ## POWL 2.0 — separable WF-net marker (`src/petri.rs`)
 
 | Paper | Type invariant | Pass fixture | Fail fixture |
 |---|---|---|---|
-| Kourani, Park & van der Aalst (2026) Definition 4.1 | `SeparableWfNet<S>` wraps `WfNetConst<S>` with a private seal; only constructible via `declare_separable()`; expresses separability precondition for POWL 2.0 conversion | `separable_wfnet_marker.rs` | **PARTIAL** — no compile-fail fixture yet; law is expressed structurally by the private seal |
+| Kourani, Park & van der Aalst (2026) Definition 4.1 | `SeparableWfNet<S>` wraps `WfNetConst<S>` with a private seal; only constructible via `declare_separable()`; expresses separability precondition for POWL 2.0 conversion | `separable_wfnet_marker.rs` + `wfnet2powl_witness.rs` | **PARTIAL** — no compile-fail fixture yet; law is expressed structurally by the private seal |
 
 ---
 
