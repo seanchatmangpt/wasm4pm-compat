@@ -1457,3 +1457,23 @@ with the `ChoiceGraph` variant for non-block-structured decisions, but the flat
 - Choice resolution semantics (which branch fires at runtime — graduates to wasm4pm)
 - Stochastic choice probability annotation (graduates to wasm4pm)
 - Inductive miner choice node discovery (graduates to wasm4pm)
+
+### XES multi-perspective law (gap surface)
+
+Van der Aalst (2011) multi-perspective process mining defines four named
+perspectives over XES logs: control-flow (activity sequence), resource
+(`org:resource`, `org:role`, `org:group`), data (attribute values), and time
+(timestamps). Each perspective is a first-class XES extension, not a stringly-typed
+annotation.
+
+This crate covers the time perspective (`time:timestamp` helper on `XesEvent`)
+and the control-flow perspective (`concept:name` helper on `XesEvent` and
+`XesTrace`). The resource perspective and data perspective are NOT yet typed as
+distinct namespace markers — they are accessible only via the generic
+`attribute(key)` accessor. This is a documented structural gap.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-time-perspective` — `XesEvent::timestamp()` is the typed accessor for the time perspective; `time:timestamp` key is a standard extension attribute | `xes::XesEvent::timestamp()` | `compile_pass/xes_trace_attributes.rs` | — (structural law; key is stringly-typed, accessor returns `Option<&str>`) | van der Aalst (2011) multi-perspective; IEEE 1849-2023 §5.3 time extension |
+| `xes-resource-perspective-gap` — `org:resource`, `org:role`, `org:group` are NOT yet typed as a distinct `ResourcePerspective` namespace; they are accessible only via `attribute()` | `xes::XesEvent::resource()` helper exists; typed `ResourcePerspective` namespace is the gap | `compile_pass/xes_trace_attributes.rs` | — (gap; no typed enforcement yet) | van der Aalst (2011) multi-perspective §3 resource dimension |
+| `xes-control-flow-perspective` — `concept:name` on events and traces is the typed control-flow perspective accessor | `xes::XesEvent::concept_name()` / `xes::XesTrace::name()` | `compile_pass/xes_trace_attributes.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | van der Aalst (2011) multi-perspective; IEEE 1849-2023 §5.2 |
