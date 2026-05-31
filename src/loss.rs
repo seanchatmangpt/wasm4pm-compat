@@ -127,6 +127,22 @@ impl ProjectionName {
     }
 }
 
+impl core::fmt::Display for ProjectionName {
+    /// Formats the projection name for diagnostics and log output.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionName;
+    ///
+    /// let name = ProjectionName("ocel-flatten-to-xes:by-order");
+    /// assert_eq!(format!("{}", name), "ocel-flatten-to-xes:by-order");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
 /// The receipt of a lossy projection: what projection ran, under what policy,
 /// and exactly which items were discarded.
 ///
