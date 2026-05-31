@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocel_o2o_missing_link.rs:24:24
+   |
+24 |     requires_o2o_slice(log.event_object_links());
+   |     ------------------ ^^^^^^^^^^^^^^^^^^^^^^^^ expected `&[ObjectObjectLink]`, found `&[EventObjectLink]`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected reference `&[ObjectObjectLink]`
+              found reference `&[EventObjectLink]`
+note: function defined here
+  --> tests/ui/compile_fail/ocel_o2o_missing_link.rs:11:4
+   |
+11 | fn requires_o2o_slice(_links: &[ObjectObjectLink]) {}
+   |    ^^^^^^^^^^^^^^^^^^ ---------------------------
