@@ -687,3 +687,61 @@ topology enforced by `WfNetConst`.
   graduates to wasm4pm via `NeedsConformanceExecution`)
 - Stochastic language derivation from event logs
 - Firing rate estimation algorithms
+
+---
+
+## #64 — Temporal Profile Conformance Checking (Stertz et al., 2020)
+
+**Paper:** Temporal Profile Conformance Checking
+**Canon family:** `CONFORMANCE_ALIGNMENT`
+**Verdict:** `PARTIAL_WITH_REASON`
+**Active obligation:** `TemporalProfile<ActivityPair>`, `TimeDelta`, and `ZScore` structural types in `src/conformance.rs`
+
+**Law-packet notes:**
+
+Stertz et al. (2020) define a temporal profile `TP(A,B) = (AVG, STD)` for
+each pair of activities (A, B) in an event log: the mean and standard
+deviation of the observed time distance between them. Conformance checking
+then measures, for each case, how many standard deviations the actual
+time distance deviates from the profile — the zeta-value. A case is
+conforming if all its activity-pair zeta-values fall within a user-supplied
+tolerance.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Metric substrate (zeta-value bound) | `src/conformance.rs::Metric<KIND, NUM, DEN>` with `Between01<NUM, DEN>` | `metric_out_of_bounds` compile-fail |
+| `TemporalProfile<ActivityPair>` (AVG/STD per pair) | `src/conformance.rs` — not yet typed | **gap** |
+| `TimeDelta` (typed time-distance newtype) | `src/conformance.rs` — not yet typed | **gap** |
+| `ZScore` (typed deviation measure) | `src/conformance.rs` — not yet typed | **gap** |
+| Zeta-value conformance execution | graduates to wasm4pm (`NeedsConformanceExecution`) | — |
+
+**Structural laws this crate partially enforces:**
+
+- `Metric<KIND, NUM, DEN>` with `Between01<NUM, DEN>` in `src/conformance.rs`
+  provides the metric shape substrate that any normalized zeta-value score
+  must obey; a deviation score escaping the unit interval is a compile error
+  (sealed by `metric_out_of_bounds` compile-fail fixture).
+- `TemporalProfile` must be a distinct structural type from `Metric` — it
+  maps an activity-pair key to an `(AVG, STD)` shape, not to a
+  `Between01`-bounded fraction.
+- `TimeDelta` must be a typed duration newtype — not a bare `u64` or
+  `f64`; mixing duration units is a structural defect.
+- `ZScore` is a typed deviation newtype over a rational fraction; it is
+  not identical to `Between01<NUM, DEN>` because the tolerance threshold
+  is user-supplied, not a fixed [0,1] bound.
+
+**Gap requiring future type surface:**
+
+- `TemporalProfile<ActivityPair>` struct in `src/conformance.rs` carrying
+  AVG (mean time-distance) and STD (standard deviation) for a typed
+  activity-pair key
+- `TimeDelta` typed duration newtype (prevents unit confusion)
+- `ZScore` typed deviation newtype (distinct from `Between01` metric)
+
+**What must NOT live in this crate:**
+
+- Temporal profile construction from event logs (AVG/STD computation
+  over activity-pair time distances — graduates to wasm4pm
+  via `NeedsConformanceExecution`)
+- Zeta-value threshold evaluation and case classification
+- Temporal profile conformance checking execution
