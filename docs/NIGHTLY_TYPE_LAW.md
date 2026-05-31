@@ -959,3 +959,24 @@ types, not aliases and not runtime-tagged variants.
 |---|---|---|---|---|
 | `alignment-cost-law` — `SyncMove`, `LogOnlyMove`, `ModelOnlyMove` are distinct move witnesses on `Deviation<M>` | `conformance::SyncMove` / `conformance::LogOnlyMove` / `conformance::ModelOnlyMove` + `conformance::Deviation<M>` | `compile_pass/conformance_deviation_shape.rs` | — (structure-only; no cross-move confusion fixture) | van der Aalst et al., Alignments in Process Mining (2012) |
 | `alignment-move-type-distinction` — `Deviation<SyncMove>` and `Deviation<LogOnlyMove>` are not interchangeable types | `conformance::Deviation<M>` (phantom move witness `M`) | `compile_pass/conformance_deviation_shape.rs` | — (distinct phantom params prevent conflation at compile time) | van der Aalst et al., Alignments in Process Mining (2012) |
+
+### token-replay-boundary
+
+Token replay is a conformance engine concern — not a structure concern. This
+crate defines `ConformanceVerdict` as the carrier of replay results (fitness,
+precision, deviations), but it never executes replay. A `ConformanceVerdict`
+with `fitness = None` means no replay was run, not that fitness is zero. The
+boundary between structure (this crate) and execution (wasm4pm) is encoded in
+the module doc and enforced by the module architecture: `ConformanceVerdict`
+is not a replay engine.
+
+The `ConformanceRefusal` surface names exactly why a verdict cannot be
+admitted: `MissingLog`, `MissingModel`, `MissingDeviationPath`,
+`FitnessUnavailable`, `PrecisionUnavailable`, `F1Unavailable`. Each variant
+names a specific structural law — no variant catches all failures with a bare
+`InvalidInput`.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `token-replay-boundary` — `ConformanceVerdict` carries replay output, never executes token replay | graduation boundary: `conformance::ConformanceVerdict` — module doc, no engine logic present | `compile_pass/conformance_verdict_complete.rs` | — (graduation boundary; enforced by module-level doc and architecture) | van der Aalst, Replay in Process Mining (2016) |
+| `conformance-refusal-named-law` — every `ConformanceRefusal` variant names a specific structural law | `conformance::ConformanceRefusal` (no bare `InvalidInput`) | `compile_pass/conformance_verdict_complete.rs` | — (law enforced by enum shape: each variant is a named law) | Rozinat & van der Aalst, Conformance Checking (2008) |
