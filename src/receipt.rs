@@ -473,6 +473,40 @@ impl ReceiptChain {
         // Safety: construction guarantees non-empty.
         &self.links[self.links.len() - 1]
     }
+
+    /// Append a new well-shaped link to the chain, refusing if the link is
+    /// ill-shaped.
+    ///
+    /// The appended link is placed at index `self.len()` (before the append).
+    /// On success, the chain grows by one link and the appended envelope
+    /// becomes the new tip. On failure, `self` is unchanged.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{
+    ///     ReceiptChain, ReceiptEnvelope, Digest, ReplayHint, ReceiptRefusal,
+    /// };
+    /// let root = ReceiptEnvelope::new("root", "w", Digest::new("d0"), ReplayHint::new("h0"));
+    /// let mut chain = ReceiptChain::try_new("run", vec![root]).unwrap();
+    ///
+    /// let next = ReceiptEnvelope::new("step-1", "w", Digest::new("d1"), ReplayHint::new("h1"));
+    /// assert!(chain.extend_with(next).is_ok());
+    /// assert_eq!(chain.len(), 2);
+    /// assert_eq!(chain.tip().subject, "step-1");
+    ///
+    /// // Ill-shaped link refused at the new index.
+    /// let bad = ReceiptEnvelope::new("", "w", Digest::new("d2"), ReplayHint::new("h2"));
+    /// assert_eq!(chain.extend_with(bad), Err(ReceiptRefusal::BrokenChainLink(2)));
+    /// assert_eq!(chain.len(), 2); // unchanged
+    /// ```
+    pub fn extend_with(&mut self, link: ReceiptEnvelope) -> Result<(), ReceiptRefusal> {
+        if !link.is_well_shaped() {
+            return Err(ReceiptRefusal::BrokenChainLink(self.links.len()));
+        }
+        self.links.push(link);
+        Ok(())
+    }
 }
 
 // ── GraduationReceipt ────────────────────────────────────────────────────────
