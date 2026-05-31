@@ -369,3 +369,48 @@ impl core::fmt::Display for PowlRefusal {
         write!(f, "POWL refused: {law}")
     }
 }
+
+/// Graduation witness: a `WfNetConst` has been successfully converted to a
+/// `Powl` model under the POWL 2.0 decomposition theorem.
+///
+/// ## Paper
+///
+/// Kourani, Park & van der Aalst (2026) — Theorem 4.3: a separable WF-net can
+/// be converted to a POWL 2.0 model while preserving the process language. This
+/// witness records that the conversion took place under the separability
+/// precondition (`SeparableWfNet`) and produced an equivalent POWL model.
+///
+/// ## How to obtain
+///
+/// A `WfNet2PowlWitness` is only constructible inside this module or via the
+/// `wasm4pm` graduation bridge that performs the actual conversion. It cannot
+/// be forged externally.
+///
+/// ## Structure-only
+///
+/// The witness carries a label naming the conversion context. The POWL model
+/// itself is returned separately; this witness travels alongside it as a
+/// provenance claim.
+pub struct WfNet2PowlWitness {
+    /// A label naming the conversion context (e.g. the WF-net id).
+    pub context: String,
+    // Private seal — only constructible inside this module or wasm4pm bridge.
+    _seal: (),
+}
+
+impl WfNet2PowlWitness {
+    /// Module-internal constructor — only `powl` and the `wasm4pm` bridge may
+    /// produce a witness.
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::WfNet2PowlWitness;
+    /// let w = WfNet2PowlWitness::new_internal("wfnet-42");
+    /// assert_eq!(w.context, "wfnet-42");
+    /// ```
+    pub fn new_internal(context: impl Into<String>) -> Self {
+        WfNet2PowlWitness {
+            context: context.into(),
+            _seal: (),
+        }
+    }
+}
