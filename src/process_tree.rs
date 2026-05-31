@@ -241,6 +241,58 @@ where
     }
 }
 
+// ── OR operator node (type-law surface) ──────────────────────────────────────
+
+/// An inclusive-OR operator node with arity encoded as a const generic
+/// parameter.
+///
+/// OR requires **at least 2** children — an inclusive choice between one
+/// thing is trivially degenerate. `TypedOrNode<_, 1>` does **not compile**.
+///
+/// ## What this is NOT
+///
+/// Structure only. Does not execute, replay, or discover. Graduate to `wasm4pm`.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedOrNode;
+/// let _: TypedOrNode<[&str; 2], 2> = TypedOrNode::new(["some", "other"]);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedOrNode;
+/// // OR with arity 1 is degenerate — compile error.
+/// let _: TypedOrNode<[&str; 1], 1> = TypedOrNode::new(["only"]);
+/// ```
+pub struct TypedOrNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// The inclusive-OR branches.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedOrNode<Children, ARITY>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// Constructs a `TypedOrNode` — only possible when `ARITY >= 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::process_tree::TypedOrNode;
+    /// let node: TypedOrNode<[&str; 2], 2> = TypedOrNode::new(["branch_a", "branch_b"]);
+    /// assert_eq!(node.children[0], "branch_a");
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedOrNode { children }
+    }
+}
+
 // ── Identifier and operator types ────────────────────────────────────────────
 
 /// Zero-cost identifier for a [`ProcessTreeNode`].
