@@ -58,6 +58,48 @@ without `.stderr` is not a valid type-law receipt.
 
 ---
 
+## #33 — Petri Nets: Properties, Analysis and Applications (Murata, 1989)
+
+**Paper:** Petri Nets: Properties, Analysis and Applications  
+**Canon family:** `PETRI_NETS`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Murata (1989) §2 defines the foundational Petri net laws: the bipartite arc
+structure (no P→P or T→T arcs), the incidence matrix formulation (W-/W+
+pre/post condition matrices), and the enabling condition (all input places
+marked before firing).
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Place-to-Transition arc | `src/petri.rs::PlaceToTransitionArc` | `petri_place_to_place_arc` compile-fail |
+| Transition-to-Place arc | `src/petri.rs::TransitionToPlaceArc` | `petri_transition_to_transition_arc` compile-fail |
+| Incidence matrix W- (pre) | `src/petri.rs::IncidenceMatrix` W- | structure-only type |
+| Incidence matrix W+ (post) | `src/petri.rs::IncidenceMatrix` W+ | structure-only type |
+| Enabling condition | `src/petri.rs` (const-generic predicate) | — |
+| Petri net law surface | `src/nightly_foundry.rs::petri_law` | cites Murata (1989) §2 |
+| Token law surface | `src/nightly_foundry.rs::token_law` | cites Murata (1989) §2 |
+
+**Structural laws this crate enforces:**
+
+- A P→P arc is not lawful. The `petri_place_to_place_arc` compile-fail
+  fixture seals this from Murata (1989) §2.
+- A T→T arc is not lawful. The `petri_transition_to_transition_arc`
+  compile-fail fixture seals this from Murata (1989) §2.
+- The `petri_law` and `token_law` surfaces in `src/nightly_foundry.rs`
+  directly cite Murata (1989) §2 as the authoritative formal grounding
+  for all Petri net type laws in this crate.
+
+**What must NOT live in this crate:**
+
+- Reachability analysis (state space enumeration)
+- Liveness and boundedness checking algorithms
+- Coverability graph computation
+- Simulation or firing sequence generation
+
+---
+
 ## #21 — No AI Without PI! (van der Aalst, 2025)
 
 **Paper:** No AI Without PI! Object-Centric Process Mining as the Enabler
