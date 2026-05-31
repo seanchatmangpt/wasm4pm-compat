@@ -500,3 +500,65 @@ pub enum ProcessShapeKind {
     /// A receipt-shaped evidence envelope.
     Receipt,
 }
+
+/// A named control-flow workflow pattern from Russell, van der Aalst & ter Hofstede
+/// (2016) — *Workflow Patterns: The Definitive Guide*.
+///
+/// Each variant names a specific control-flow pattern from the canonical 20-pattern
+/// catalogue. A type carrying `WorkflowPattern` as a const param asserts that it
+/// models that specific pattern at the type level — so `WfNetConst` claiming
+/// `Pattern::ParallelSplit` cannot be silently confused with one claiming
+/// `Pattern::ExclusiveChoice`.
+///
+/// ## Structure-only
+///
+/// The pattern name is a structural label. Verifying that a Petri net or BPMN
+/// process actually realises the claimed pattern is a `wasm4pm` concern. This
+/// enum only names the claim.
+///
+/// ## Paper
+///
+/// Russell, van der Aalst & ter Hofstede (2016). *Workflow Patterns: The Definitive
+/// Guide*. MIT Press. Appendix B lists the 20 basic control-flow patterns.
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum WorkflowPattern {
+    // Basic control-flow patterns (WCP-1 … WCP-5)
+    /// WCP-1: Sequence — activities execute in strict order.
+    Sequence,
+    /// WCP-2: Parallel Split (AND-split) — all branches fire simultaneously.
+    ParallelSplit,
+    /// WCP-3: Synchronization (AND-join) — wait for all concurrent branches.
+    Synchronization,
+    /// WCP-4: Exclusive Choice (XOR-split) — exactly one branch is taken.
+    ExclusiveChoice,
+    /// WCP-5: Simple Merge (XOR-join) — one of several branches rejoins.
+    SimpleMerge,
+    // Advanced branching and synchronization (WCP-6 … WCP-9)
+    /// WCP-6: Multi-Choice (OR-split) — one or more branches are taken.
+    MultiChoice,
+    /// WCP-7: Structured Synchronizing Merge — merge with thread-count awareness.
+    StructuredSynchronizingMerge,
+    /// WCP-8: Multi-Merge — merge that fires for each incoming token.
+    MultiMerge,
+    /// WCP-9: Structured Discriminator — fire after the first branch, cancel rest.
+    StructuredDiscriminator,
+    // Structural patterns (WCP-10 … WCP-13)
+    /// WCP-10: Arbitrary Cycles — loops without block-structured nesting.
+    ArbitraryCycles,
+    /// WCP-11: Implicit Termination — case ends when no work remains.
+    ImplicitTermination,
+    /// WCP-12: Multiple Instances without Synchronization.
+    MultipleInstancesWithoutSync,
+    /// WCP-13: Multiple Instances with a Priori Design-Time Knowledge.
+    MultipleInstancesWithDesignTimeKnowledge,
+    // State-based patterns (WCP-16 … WCP-17)
+    /// WCP-16: Deferred Choice — choice resolved by external event, not modeller.
+    DeferredChoice,
+    /// WCP-17: Interleaved Parallel Routing — activities execute in any order but not concurrently.
+    InterleavedParallelRouting,
+    // Cancellation and force completion (WCP-19 … WCP-20)
+    /// WCP-19: Cancel Activity — withdraw a running activity.
+    CancelActivity,
+    /// WCP-20: Cancel Case — terminate the entire case instance.
+    CancelCase,
+}
