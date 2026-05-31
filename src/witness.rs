@@ -259,3 +259,17 @@ witness_marker!(
     "Object-Centric Petri Nets (notation)",
     Some(2020)
 );
+witness_marker!(
+    /// Log Skeleton (Verbeek & Leemans, 2018).
+    ///
+    /// Names the Log Skeleton declarative model: a set of six relations
+    /// (always-before, always-after, never-together, …) mined directly from
+    /// an event log. An `Admission<T, LogSkeleton>` is distinguishable from
+    /// `Admission<T, DeclareConstraints>` — both are declarative but name
+    /// orthogonal authorities and different relation vocabularies.
+    LogSkeleton,
+    "log-skeleton",
+    WitnessFamily::Paper,
+    "Log Skeleton (Verbeek & Leemans)",
+    Some(2018)
+);
