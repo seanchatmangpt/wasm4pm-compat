@@ -269,6 +269,104 @@ impl<W> PowlNode<W> {
     }
 }
 
+// ── Typed choice and loop node structs ──────────────────────────────────────
+
+/// A typed exclusive-choice node: a POWL XOR operator with its branch ids.
+///
+/// A well-formed choice node requires **at least two branches** — a single
+/// branch is a no-op that degrades to a plain sequence and is refused as
+/// [`PowlRefusal::InvalidChoice`]. An empty branch list is also refused.
+///
+/// This struct is distinct from the [`Choice`] witness marker: [`Choice`]
+/// records the *kind* of a [`PowlNode`] at the type level; `PowlChoiceNode`
+/// is the concrete value that carries the branch list.
+///
+/// Structure-only: records which nodes are branches of this choice. No
+/// decision semantics, no replay. Graduate to `wasm4pm` to execute.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId};
+/// let c = PowlChoiceNode::new(vec![PowlNodeId(1), PowlNodeId(2)]);
+/// assert_eq!(c.branch_count(), 2);
+/// assert!(c.is_well_formed());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PowlChoiceNode {
+    /// The branch node ids (must contain ≥ 2 to be well-formed).
+    pub branches: Vec<PowlNodeId>,
+}
+
+impl PowlChoiceNode {
+    /// Construct a choice node from a branch list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId};
+    /// let c = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
+    /// assert_eq!(c.branch_count(), 2);
+    /// ```
+    pub fn new(branches: Vec<PowlNodeId>) -> Self {
+        Self { branches }
+    }
+
+    /// Number of branches in this choice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId};
+    /// let c = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1), PowlNodeId(2)]);
+    /// assert_eq!(c.branch_count(), 3);
+    /// ```
+    #[inline]
+    pub fn branch_count(&self) -> usize {
+        self.branches.len()
+    }
+
+    /// Returns `true` when the choice node has at least two branches.
+    ///
+    /// A choice with fewer than two branches violates the POWL law
+    /// (it degrades to a trivial projection and is refused as
+    /// [`PowlRefusal::InvalidChoice`]).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId};
+    /// let ok  = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
+    /// let bad = PowlChoiceNode::new(vec![PowlNodeId(0)]);
+    /// assert!(ok.is_well_formed());
+    /// assert!(!bad.is_well_formed());
+    /// ```
+    #[inline]
+    pub fn is_well_formed(&self) -> bool {
+        self.branches.len() >= 2
+    }
+
+    /// Attempt to validate the choice node, returning the branches on success
+    /// or [`PowlRefusal::InvalidChoice`] when fewer than two branches are present.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId, PowlRefusal};
+    /// let bad = PowlChoiceNode::new(vec![PowlNodeId(0)]);
+    /// assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoice));
+    /// let ok  = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
+    /// assert!(ok.validate().is_ok());
+    /// ```
+    pub fn validate(&self) -> Result<&[PowlNodeId], PowlRefusal> {
+        if self.is_well_formed() {
+            Ok(&self.branches)
+        } else {
+            Err(PowlRefusal::InvalidChoice)
+        }
+    }
+}
+
 /// A directed precedence edge inside a [`PowlNodeKind::PartialOrder`].
 ///
 /// `from` must complete before `to` may start. This is a *structural* claim of
