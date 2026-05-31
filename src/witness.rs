@@ -168,3 +168,37 @@ witness_marker!(
     /// The internal bridge toward the `wasm4pm` execution engine (graduation).
     Wasm4pmBridge, "wasm4pm-bridge", WitnessFamily::InternalBridge, "wasm4pm graduation bridge", None
 );
+witness_marker!(
+    /// YAWL — Yet Another Workflow Language (van der Aalst & ter Hofstede, 2004).
+    ///
+    /// Covers typed routing constructs (AND/XOR/OR split/join), cancellation
+    /// regions, and multiple-instance tasks. An `Admission<T, YawlPaper>` is
+    /// distinguishable at the type level from `Admission<T, WfNetSoundnessPaper>`.
+    YawlPaper,
+    "yawl-paper",
+    WitnessFamily::Paper,
+    "YAWL: Yet Another Workflow Language",
+    Some(2004)
+);
+witness_marker!(
+    /// Hierarchical Decomposition of Separable WF-nets (Kourani et al., 2026).
+    ///
+    /// Covers the separable WF-net subclass and the WF-net → POWL 2.0
+    /// transformation theorem. Needed to tag admissions against this authority.
+    SeparableWfNetPaper,
+    "separable-wfnet-paper",
+    WitnessFamily::Paper,
+    "Hierarchical Decomposition of Separable Workflow-Nets",
+    Some(2026)
+);
+witness_marker!(
+    /// Workflow Patterns: The Definitive Guide (Russell, van der Aalst & ter Hofstede, 2016).
+    ///
+    /// Covers the canonical set of named workflow patterns (WP-1 through WP-43+).
+    /// Needed to tag pattern-coverage claims against this authority.
+    WorkflowPatternsPaper,
+    "workflow-patterns-paper",
+    WitnessFamily::Paper,
+    "Workflow Patterns: The Definitive Guide",
+    Some(2016)
+);
