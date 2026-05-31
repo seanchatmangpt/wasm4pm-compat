@@ -539,6 +539,7 @@ stringly-typed attribute.
 **Paper:** Object-Centric Process Mining: Dealing with Divergence and Convergence in Event Data
 **Canon family:** `OCEL_OBJECT_CENTRIC`
 **Verdict:** `COVERED_BY_TYPE`
+**Pending witness types:** `DivergenceWitness` and `ConvergenceWitness` in `src/witness.rs` (structural support already present)
 
 **Law-packet notes:**
 
