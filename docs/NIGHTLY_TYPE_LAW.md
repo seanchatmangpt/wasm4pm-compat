@@ -99,3 +99,162 @@ AI forms described in the paper:
 - Recommendation generation
 
 These graduate to wasm4pm via the `wasm4pm` feature bridge.
+
+---
+
+## #25 — OCEL 2.0 Specification (van der Aalst et al., 2023)
+
+**Paper:** OCEL 2.0 Specification  
+**Canon family:** `OCEL_OBJECT_CENTRIC`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+The OCEL 2.0 formal data model defines object-centric event logs with two
+first-class link types: event-to-object (E2O) and object-to-object (O2O).
+Both are structural laws, not optional annotations.
+
+| Spec formal object | Rust surface | Enforcing law |
+|---|---|---|
+| `OcelLog` | `src/ocel.rs::OcelLog` | — |
+| `OcelEvent` | `src/ocel.rs::OcelEvent` | `ocel_e2o_missing_link` compile-fail |
+| `OcelObject` | `src/ocel.rs::OcelObject` | `ocel_o2o_missing_link` compile-fail |
+| `EventObjectLink` | `src/ocel.rs::EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| `ObjectObjectLink` | `src/ocel.rs::ObjectObjectLink` | `ocel_o2o_missing_link` compile-fail |
+| `OcelDims` | `src/ocel.rs::OcelDims` | — |
+| `OcelAttribute` | `src/ocel.rs::OcelAttribute` | — |
+
+**Structural laws this crate enforces:**
+
+- An `OcelEvent` without a declared `EventObjectLink` is a type error, not a
+  runtime warning. The `ocel_e2o_missing_link` compile-fail fixture seals this.
+- An `OcelObject` participating in an O2O relationship must declare the link
+  via `ObjectObjectLink`. The `ocel_o2o_missing_link` compile-fail fixture
+  seals this.
+- OCEL 2.0 does not flatten to XES without a `LossReport`. The
+  `ocel_to_xes_no_loss_report` compile-fail fixture seals this.
+
+**What must NOT live in this crate:**
+
+- OCEL parsing from JSON/XML wire formats (graduates to wasm4pm I/O layer)
+- OCEL discovery algorithm execution (Alpha/Inductive over OCEL)
+- Object-type inference from raw data
+
+---
+
+## #26 — XES IEEE Standard 1849-2023
+
+**Paper:** XES IEEE Standard 1849-2023  
+**Canon family:** `XES_EVENT_LOG`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+XES is an IEEE standard (not a discovery algorithm) defining the formal
+schema for classic flat event logs. The case-centric structure and extension
+declaration requirement are first-class structural laws.
+
+| Standard formal object | Rust surface | Enforcing law |
+|---|---|---|
+| `XesLog` | `src/xes.rs::XesLog` | — |
+| `XesTrace` | `src/xes.rs::XesTrace` | — |
+| `XesEvent` | `src/xes.rs::XesEvent` | — |
+| Case-centric marker | `src/xes.rs::CaseCentricMarker` | `xes_not_object_centric` compile-fail |
+| Extension declaration | `src/xes.rs::XesExtension` | `xes_undeclared_extension_prefix_rejected` compile-fail |
+
+**Structural laws this crate enforces:**
+
+- A `XesCaseCentricLog` cannot substitute an OCED/OCEL structure. The
+  `xes_not_object_centric` compile-fail fixture seals this distinction.
+- An XES attribute using an extension prefix that has not been declared
+  in the log header is refused as `XesRefusal::UndeclaredExtensionPrefix`.
+  The `xes_undeclared_extension_prefix_rejected` compile-fail fixture seals
+  this.
+- XES→OCED conversion requires a `LossReport` — object-to-object links
+  present in OCED are structurally absent in XES. The
+  `xes_to_oced_loss_report_rejected` compile-fail fixture seals this.
+
+**What must NOT live in this crate:**
+
+- XES file parsing (`.xes` / `.xes.gz` I/O graduates to wasm4pm)
+- XES validator execution (checks beyond structure are runtime)
+- XES extension semantic evaluation
+
+---
+
+## #28 — Declare/LTL Constraint Mining (Pesic, van der Aalst, 2006)
+
+**Paper:** Declare: Full Support for Loosely-Structured Processes  
+**Canon family:** `DECLARE_CONSTRAINTS`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+The Declare constraint model defines named templates as first-class
+structural laws. Each template (Existence, Absence, Response, Precedence,
+etc.) is a distinct type — not a free string — and binary constraints
+require at least 2 activity arguments.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Constraint template | `src/declare.rs::DeclareTemplate` (`ConstParamTy`) | `declare_binary_arity_rejected` compile-fail |
+| Constraint instance | `src/declare.rs::DeclareConstraint` | `declare_binary_arity_rejected` compile-fail |
+| Constraint provenance | `src/declare.rs::DeclareWitness` | — |
+
+**Structural laws this crate enforces:**
+
+- A `DeclareConstraint` with arity < 2 is a compile error. The
+  `declare_binary_arity_rejected` compile-fail fixture seals this.
+- A `DeclareTemplate` is a `ConstParamTy` const-generic parameter — a
+  constraint parameterized with one template cannot be silently substituted
+  for one with a different template at the type level.
+- `DeclareWitness` is a `PhantomData` proof that a constraint instance
+  came from a named template, not from a free-form string.
+
+**What must NOT live in this crate:**
+
+- Declare constraint checking execution (LTL automaton evaluation)
+- Constraint mining from event logs (log-driven template discovery)
+- RuleML/Declare XML serialization I/O
+
+---
+
+## #31 — Object-Centric Petri Nets (van der Aalst, 2019)
+
+**Paper:** Object-Centric Behavioral Constraints  
+**Canon family:** `OBJECT_CENTRIC_PETRI`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+OC-Petri nets extend standard Petri nets with object-centric arc
+inscriptions (each arc carries an object type, enabling multi-instance
+token semantics). The typed bipartite arc law is the foundational
+structural compliance surface.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Place-to-Transition arc | `src/petri.rs::PlaceToTransitionArc` | `petri_place_to_place_arc` compile-fail |
+| Transition-to-Place arc | `src/petri.rs::TransitionToPlaceArc` | `petri_transition_to_transition_arc` compile-fail |
+| WF-net soundness | `src/petri.rs::WfNetConst<SOUNDNESS>` | `wfnet_forged_soundness` compile-fail |
+| Soundness state | `src/petri.rs::SoundnessState` | — |
+
+**Structural laws this crate enforces:**
+
+- A P→P arc is not lawful in a Petri net. The `petri_place_to_place_arc`
+  compile-fail fixture seals this.
+- A T→T arc is not lawful in a Petri net. The
+  `petri_transition_to_transition_arc` compile-fail fixture seals this.
+- `WfNetConst<true>` (sound) cannot be forged — the `WfNetSoundnessWitness`
+  constructor is `pub(crate)`. The `wfnet_forged_soundness` compile-fail
+  fixture seals this.
+- OC-Petri net arc inscriptions (object-type markers) are structural —
+  an arc without a declared object type is a structural gap, not a runtime
+  default.
+
+**What must NOT live in this crate:**
+
+- OC-Petri net execution semantics (binding element evaluation)
+- Object-centric token replay
+- OC-Petri net discovery from OCEL logs
+- Variable arc vs. regular arc execution distinction (runtime semantics)
