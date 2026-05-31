@@ -360,6 +360,11 @@ pub enum DfgRefusal {
     /// Discovery is required to produce this DFG; it cannot be synthesized here.
     /// Graduate to `wasm4pm`.
     DiscoveryRequired,
+    /// An [`ObjectCentricDfg`] declares two DFGs for the same object type.
+    ///
+    /// The per-type map must be injective: each object type names exactly one DFG.
+    /// A duplicate registration is refused under this law.
+    InconsistentObjectType,
 }
 
 impl core::fmt::Display for DfgRefusal {
@@ -370,6 +375,7 @@ impl core::fmt::Display for DfgRefusal {
             DfgRefusal::DanglingEdge => "DanglingEdge",
             DfgRefusal::EmptyGraph => "EmptyGraph",
             DfgRefusal::DiscoveryRequired => "DiscoveryRequired",
+            DfgRefusal::InconsistentObjectType => "InconsistentObjectType",
         };
         write!(f, "DFG refused by law: {law}")
     }
@@ -744,5 +750,45 @@ impl ObjectCentricDfg {
     /// ```
     pub fn object_types(&self) -> impl Iterator<Item = &str> {
         self.per_type.iter().map(|(t, _)| t.as_str())
+    }
+
+    /// Structurally validate all per-type DFGs and the OC-DFG map itself.
+    ///
+    /// Checks, in order:
+    /// - no object type is registered more than once
+    ///   ([`DfgRefusal::InconsistentObjectType`]);
+    /// - every individual per-type [`Dfg`] passes [`Dfg::validate`].
+    ///
+    /// An empty `ObjectCentricDfg` (no registered types) passes — "no types
+    /// known" is a valid initial state, distinct from an individual empty
+    /// [`Dfg`] (which is refused as [`DfgRefusal::EmptyGraph`]).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{ObjectCentricDfg, Dfg, DfgNode, DfgEdge, DfgRefusal};
+    ///
+    /// // Valid: two object types, each with a non-empty DFG.
+    /// let oc = ObjectCentricDfg::new()
+    ///     .with_type_dfg("order", Dfg::new([DfgNode::new("place"), DfgNode::new("pay")],
+    ///                                      [DfgEdge::new("place", "pay", 2)]))
+    ///     .with_type_dfg("item",  Dfg::new([DfgNode::new("pick"), DfgNode::new("ship")],
+    ///                                      [DfgEdge::new("pick", "ship", 5)]));
+    /// assert!(oc.validate_all().is_ok());
+    ///
+    /// // Duplicate object type is refused.
+    /// let dup = ObjectCentricDfg::new()
+    ///     .with_type_dfg("order", Dfg::new([DfgNode::new("a")], []))
+    ///     .with_type_dfg("order", Dfg::new([DfgNode::new("b")], []));
+    /// assert_eq!(dup.validate_all(), Err(DfgRefusal::InconsistentObjectType));
+    /// ```
+    pub fn validate_all(&self) -> Result<(), DfgRefusal> {
+        use std::collections::HashSet;
+        let mut seen: HashSet<&str> = HashSet::new();
+        for (object_type, dfg) in &self.per_type {
+            if !seen.insert(object_type.as_str()) {
+                return Err(DfgRefusal::InconsistentObjectType);
+            }
+            dfg.validate()?;
+        }
+        Ok(())
     }
 }
