@@ -1828,3 +1828,32 @@ maps bijectively to one `ProcessTreeOperator` variant.
 - Process tree simplification (redundant tau removal, operator folding)
 - Process tree to Petri net conversion execution
 - Language metrics over process trees (fitness, precision — graduates to wasm4pm)
+
+---
+
+### powl-choice-graph-connectivity-law
+
+**Law concept:** A POWL 2.0 `ChoiceGraph` node `gamma = (N, E)` (Kourani et al.,
+2026 Def. 3.6) must have every node on a connected path from the unique start node
+`▷` to the unique end node `□`. A `ChoiceGraph` that leaves any node unreachable
+from the start or unable to reach the end is structurally disconnected and must be
+refused as `PowlRefusal::ChoiceGraphDisconnected`. The connectivity law is named,
+not a silent runtime no-op.
+
+**Paper:** Kourani, Park & van der Aalst (2026) Definition 3.6: a choice graph
+`gamma = (N, E)` where `N = X ∪ {▷, □}` with a unique start node `▷` and a unique
+end node `□`, and every node in N must lie on a path from `▷` to `□`. Disconnected
+nodes violate the structural well-formedness of the choice graph.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `powl-choice-graph-connectivity-law` — a `ChoiceGraph` with disconnected nodes is refused as `PowlRefusal::ChoiceGraphDisconnected` | `powl::PowlNodeKind::ChoiceGraph` / `powl::PowlRefusal::ChoiceGraphDisconnected` | `compile_pass/powl_choice_graph.rs` | — (runtime refusal; connectivity check graduates to wasm4pm) | Kourani et al. (2026) Def. 3.6 |
+| `choice-graph-start-end-required` — a `ChoiceGraph` must have a declared start node `▷` and end node `□`; the structural convention is start=first, end=last in the `nodes` vec | `powl::PowlNodeKind::ChoiceGraph::nodes` (first and last by convention) | `compile_pass/powl_choice_graph.rs` | — (structural convention; no compile-fail for ordering) | Kourani et al. (2026) Def. 3.6 |
+| `choice-graph-edge-distinctness` — `ChoiceGraphEdge` is structurally distinct from `OrderEdge`; the same field layout does not make them interchangeable | `powl::ChoiceGraphEdge` vs `powl::OrderEdge` (distinct newtypes) | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani et al. (2026) Def. 3.6; Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Choice-graph connectivity checking algorithm (reachability from start / to end)
+- Choice-graph execution semantics (which edge is taken at runtime)
+- Choice-graph serialization / deserialization (PTML wire format)
+- Choice-graph to WF-net translation execution
