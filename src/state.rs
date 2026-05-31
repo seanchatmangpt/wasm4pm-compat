@@ -187,6 +187,26 @@ pub struct ProjectedToReceipted;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ExportableToReceipted;
 
+// ── Projectible ──────────────────────────────────────────────────────────────
+
+/// Sealed marker trait: only lifecycle stages that may legally enter a named,
+/// accounted projection implement this trait.
+///
+/// Under the one-way-door invariant, a value must be [`Admitted`] before it
+/// can be projected (see [`crate::loss::Project`]). This trait makes that
+/// invariant structural: only `Admitted` and — because a second projection pass
+/// is representable in some pipeline shapes — `Projected` implement it.
+///
+/// A downstream crate cannot add its own stage here; the sealing via
+/// `private::Sealed` ensures only the two stages above are valid.
+///
+/// ## What this is NOT
+///
+/// Not a runtime capability, not a method table. This is a pure compile-time
+/// gate that prevents projecting evidence that was never admitted. Graduate
+/// the actual projection logic to `wasm4pm`.
+pub trait Projectible: EvidenceState + private::Sealed {}
+
 // ── EvidenceState impls ───────────────────────────────────────────────────────
 
 impl private::Sealed for Raw {}
@@ -209,3 +229,8 @@ impl EvidenceState for Exportable {}
 
 impl private::Sealed for Receipted {}
 impl EvidenceState for Receipted {}
+
+// ── Projectible impls ─────────────────────────────────────────────────────────
+
+impl Projectible for Admitted {}
+impl Projectible for Projected {}
