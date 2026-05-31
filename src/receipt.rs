@@ -607,6 +607,296 @@ impl GraduationReceipt {
     }
 }
 
+// ── ReceiptVerdict ───────────────────────────────────────────────────────────
+
+/// The outcome of a structural shape-check on any receipt type.
+///
+/// `ReceiptVerdict` is the return type for shape-check operations that need to
+/// carry a reason alongside the outcome, rather than just a `bool`. It is
+/// **not** a cryptographic verification result — it records only whether the
+/// *form* of a receipt is admissible and, if not, names the first structural
+/// law that was violated.
+///
+/// ## What this type **IS**
+///
+/// - A first-class, named outcome for receipt shape-checks.
+/// - A surface for human-readable diagnostics: both variants implement
+///   [`core::fmt::Display`].
+///
+/// ## What this type is **NOT**
+///
+/// - **Not** a cryptographic verification outcome.
+/// - **Not** authoritative. A [`ReceiptVerdict::Admitted`] means the *shape*
+///   is well-formed; it does not confer provenance authority.
+///
+/// ## Graduation
+///
+/// When you need cryptographic verification or replay-based admission,
+/// graduate to the `wasm4pm` engine. This type lives here to name the
+/// structural surface only.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{
+///     ReceiptVerdict, ReceiptEnvelope, Digest, ReplayHint, ReceiptRefusal,
+/// };
+/// let env = ReceiptEnvelope::new(
+///     "case-1", "discovery-run",
+///     Digest::new("blake3:abc"), ReplayHint::new("rerun:plan#1"),
+/// );
+/// assert_eq!(ReceiptVerdict::from_shape_check(env.is_well_shaped(), None), ReceiptVerdict::Admitted);
+///
+/// let bad = ReceiptEnvelope::new("", "w", Digest::new("d"), ReplayHint::new("h"));
+/// let v = ReceiptVerdict::from_shape_check(bad.is_well_shaped(), Some(ReceiptRefusal::MissingSubject));
+/// assert!(!v.is_admitted());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ReceiptVerdict {
+    /// The receipt shape is structurally well-formed and admissible.
+    Admitted,
+    /// The receipt shape is inadmissible; the named [`ReceiptRefusal`] law was
+    /// violated.
+    Refused(ReceiptRefusal),
+}
+
+impl ReceiptVerdict {
+    /// Construct a verdict from a boolean shape-check result and an optional
+    /// refusal reason.
+    ///
+    /// If `ok` is `true`, returns [`ReceiptVerdict::Admitted`] regardless of
+    /// `reason`. If `ok` is `false` and `reason` is `Some`, returns
+    /// [`ReceiptVerdict::Refused`] with that reason. If `ok` is `false` and
+    /// `reason` is `None`, the law that was violated is unknown — this returns
+    /// [`ReceiptVerdict::Refused`] with [`ReceiptRefusal::MissingWitness`] as a
+    /// conservative default.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptVerdict, ReceiptRefusal};
+    /// assert_eq!(ReceiptVerdict::from_shape_check(true, None), ReceiptVerdict::Admitted);
+    /// assert_eq!(
+    ///     ReceiptVerdict::from_shape_check(false, Some(ReceiptRefusal::MissingDigest)),
+    ///     ReceiptVerdict::Refused(ReceiptRefusal::MissingDigest),
+    /// );
+    /// ```
+    #[must_use]
+    pub fn from_shape_check(ok: bool, reason: Option<ReceiptRefusal>) -> Self {
+        if ok {
+            Self::Admitted
+        } else {
+            Self::Refused(reason.unwrap_or(ReceiptRefusal::MissingWitness))
+        }
+    }
+
+    /// Whether this verdict is [`ReceiptVerdict::Admitted`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReceiptVerdict;
+    /// assert!(ReceiptVerdict::Admitted.is_admitted());
+    /// ```
+    #[must_use]
+    pub fn is_admitted(&self) -> bool {
+        matches!(self, Self::Admitted)
+    }
+
+    /// Whether this verdict is [`ReceiptVerdict::Refused`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptVerdict, ReceiptRefusal};
+    /// assert!(ReceiptVerdict::Refused(ReceiptRefusal::EmptyChain).is_refused());
+    /// ```
+    #[must_use]
+    pub fn is_refused(&self) -> bool {
+        matches!(self, Self::Refused(_))
+    }
+
+    /// Extract the [`ReceiptRefusal`] reason if this is a refusal, or `None`
+    /// if this is [`ReceiptVerdict::Admitted`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptVerdict, ReceiptRefusal};
+    /// let v = ReceiptVerdict::Refused(ReceiptRefusal::MissingDigest);
+    /// assert_eq!(v.refusal(), Some(&ReceiptRefusal::MissingDigest));
+    /// assert_eq!(ReceiptVerdict::Admitted.refusal(), None);
+    /// ```
+    #[must_use]
+    pub fn refusal(&self) -> Option<&ReceiptRefusal> {
+        match self {
+            Self::Refused(r) => Some(r),
+            Self::Admitted => None,
+        }
+    }
+}
+
+impl core::fmt::Display for ReceiptVerdict {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ReceiptVerdict::Admitted => write!(f, "receipt verdict: Admitted"),
+            ReceiptVerdict::Refused(r) => write!(f, "receipt verdict: Refused({r})"),
+        }
+    }
+}
+
+// ── ReceiptChainConst ────────────────────────────────────────────────────────
+
+/// A const-generic, fixed-slot multi-receipt provenance chain.
+///
+/// `ReceiptChainConst<N>` holds exactly `N` [`ReceiptEnvelope`] slots in a
+/// stack-allocated array. The arity is encoded in the type — two chains of
+/// different arity (`ReceiptChainConst<3>` vs `ReceiptChainConst<5>`) are
+/// **different types** and cannot be confused by the compiler.
+///
+/// This is the const-generic companion to the heap-based [`ReceiptChain`].
+/// Use `ReceiptChainConst<N>` when the chain depth is known at compile time
+/// and you want zero-cost type-level arity enforcement.
+///
+/// ## What this type **IS**
+///
+/// - A fixed-arity, stack-resident structural provenance chain.
+/// - Arity-enforced at the type level: `ReceiptChainConst<3>` can never hold
+///   2 or 4 links without a compile error.
+///
+/// ## What this type is **NOT**
+///
+/// - **Not** a cryptographic chain. Links are carried, not hashed-together.
+/// - **Not** authoritative. Graduate to `wasm4pm` for real chain verification.
+///
+/// ## Graduation
+///
+/// When you need dynamic arity (unknown at compile time), use [`ReceiptChain`].
+/// When you need cryptographic linking, graduate to `wasm4pm`.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+/// let a = ReceiptEnvelope::new("root", "w", Digest::new("d0"), ReplayHint::new("h0"));
+/// let b = ReceiptEnvelope::new("step", "w", Digest::new("d1"), ReplayHint::new("h1"));
+/// let chain = ReceiptChainConst::try_new("run-001", [a, b]);
+/// assert!(chain.is_ok());
+/// let chain = chain.unwrap();
+/// assert_eq!(chain.arity(), 2);
+/// assert_eq!(chain.root().subject, "root");
+/// assert_eq!(chain.tip().subject, "step");
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReceiptChainConst<const N: usize> {
+    /// A stable identifier for this provenance chain (e.g. a run id).
+    pub chain_id: String,
+    /// The fixed-size array of receipt envelope links.
+    links: [ReceiptEnvelope; N],
+}
+
+impl<const N: usize> ReceiptChainConst<N> {
+    /// Construct a const-generic receipt chain, refusing if any link is
+    /// ill-shaped or if `N == 0`.
+    ///
+    /// Links are validated in order. The first ill-shaped link produces
+    /// [`ReceiptRefusal::BrokenChainLink`] with its zero-based index. A
+    /// zero-arity chain (`N == 0`) produces [`ReceiptRefusal::EmptyChain`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{
+    ///     ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint, ReceiptRefusal,
+    /// };
+    ///
+    /// // Ill-shaped link is refused at its index.
+    /// let broken = ReceiptEnvelope::new("", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert_eq!(
+    ///     ReceiptChainConst::try_new("run-x", [broken]),
+    ///     Err(ReceiptRefusal::BrokenChainLink(0)),
+    /// );
+    ///
+    /// // Valid single-link chain.
+    /// let good = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert!(ReceiptChainConst::try_new("run-x", [good]).is_ok());
+    /// ```
+    pub fn try_new(
+        chain_id: impl Into<String>,
+        links: [ReceiptEnvelope; N],
+    ) -> Result<Self, ReceiptRefusal> {
+        if N == 0 {
+            return Err(ReceiptRefusal::EmptyChain);
+        }
+        for (i, link) in links.iter().enumerate() {
+            if !link.is_well_shaped() {
+                return Err(ReceiptRefusal::BrokenChainLink(i));
+            }
+        }
+        Ok(Self { chain_id: chain_id.into(), links })
+    }
+
+    /// The compile-time arity of this chain.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChainConst::try_new("id", [link]).unwrap();
+    /// assert_eq!(chain.arity(), 1);
+    /// ```
+    #[must_use]
+    pub const fn arity(&self) -> usize {
+        N
+    }
+
+    /// The first (oldest) link in the chain: the root of provenance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("root", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChainConst::try_new("id", [link]).unwrap();
+    /// assert_eq!(chain.root().subject, "root");
+    /// ```
+    #[must_use]
+    pub fn root(&self) -> &ReceiptEnvelope {
+        &self.links[0]
+    }
+
+    /// The last (most recent) link in the chain: the tip of provenance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+    /// let a = ReceiptEnvelope::new("root", "w", Digest::new("d0"), ReplayHint::new("h0"));
+    /// let b = ReceiptEnvelope::new("tip",  "w", Digest::new("d1"), ReplayHint::new("h1"));
+    /// let chain = ReceiptChainConst::try_new("id", [a, b]).unwrap();
+    /// assert_eq!(chain.tip().subject, "tip");
+    /// ```
+    #[must_use]
+    pub fn tip(&self) -> &ReceiptEnvelope {
+        &self.links[N - 1]
+    }
+
+    /// Iterate over the chain links in order.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChainConst::try_new("id", [link]).unwrap();
+    /// assert_eq!(chain.iter().count(), 1);
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = &ReceiptEnvelope> {
+        self.links.iter()
+    }
+}
+
+impl<const N: usize> WellShaped for ReceiptChainConst<N> {
+    /// A const-generic chain is well-shaped when `N > 0` and every link is
+    /// well-shaped.
+    fn well_shaped(&self) -> bool {
+        N > 0 && self.iter().all(|link| link.is_well_shaped())
+    }
+}
+
 // ── WellShaped impls ─────────────────────────────────────────────────────────
 
 impl WellShaped for ReceiptShape {
