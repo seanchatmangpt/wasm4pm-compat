@@ -1429,3 +1429,31 @@ that lets diagnostics explain which authority a value was admitted against.
 |---|---|---|---|---|
 | `xes-witness-marker-law` — `Xes1849` is the named authority label for all XES-admitted structures; distinct from `Ocel20` at the type level | `witness::Xes1849` (empty enum, implements `Witness`) | `compile_pass/witness_xes1849_marker.rs` | — (law enforced by distinct empty-enum identity; mixing requires explicit coercion) | IEEE 1849-2023; IEEE 1849-2016 |
 | `xes-witness-family-standard` — `Xes1849::FAMILY == WitnessFamily::Standard`; XES is a published interchange standard, not a paper or API grammar | `witness::WitnessFamily::Standard` | `compile_pass/witness_xes1849_marker.rs` | — | IEEE 1849-2023 (standard, not paper) |
+
+---
+
+### choice-marker-law
+
+**Law concept:** A `Choice` node (exclusive-choice / XOR operator) in POWL is a
+first-class structural kind requiring at least two branches. The `Choice` witness
+and `PowlNodeKind::Choice` enum variant are distinct types; confusing them with
+`PowlNodeKind::Loop` or `ChoiceGraph` is a compile error. The minimum-branch
+constant is fixed at 2 as a compile-time fact.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §3: the choice operator `×(M₁, M₂)`
+takes two or more sub-models as operands. Fewer than two branches yields an
+ill-formed model. POWL 2.0 (Kourani et al., 2026) replaces the flat `×` operator
+with the `ChoiceGraph` variant for non-block-structured decisions, but the flat
+`Choice` kind remains valid for simple binary or n-ary block-structured choices.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `choice-minimum-branch-law` — a `Choice` node requires at least two branches; `TypedNode<{PowlKind::Xor}>::min_branches()` returns 2 as a compile-time constant | `nightly_foundry::powl_law::TypedNode<{PowlKind::Xor}>` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani & van der Aalst (2023) §3 |
+| `choice-node-kind-distinctness` — `PowlNodeKind::Choice` is not `PowlNodeKind::ChoiceGraph`; the former is a flat list of branches, the latter is a directed graph; they are different enum variants | `powl::PowlNodeKind::Choice` vs `powl::PowlNodeKind::ChoiceGraph` | `compile_pass/powl_choice_graph.rs` | — (structural: enum variants are always distinct) | Kourani & van der Aalst (2023) §3; Kourani et al. (2026) Def. 3.6 |
+| `choice-refusal-invalid-choice` — a `Choice` node with fewer than two branches is refused as `PowlRefusal::InvalidChoice` | `powl::PowlRefusal::InvalidChoice` | `compile_pass/powl_choice_graph.rs` | — (runtime refusal path) | Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Choice resolution semantics (which branch fires at runtime — graduates to wasm4pm)
+- Stochastic choice probability annotation (graduates to wasm4pm)
+- Inductive miner choice node discovery (graduates to wasm4pm)
