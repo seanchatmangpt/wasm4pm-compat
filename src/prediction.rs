@@ -53,11 +53,32 @@ pub struct DriftSignal;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct RiskScore;
 
+/// Witness: the problem's prediction target is a **compliance constraint check**.
+///
+/// De Santis et al. (2026) introduce compliance-aware predictive process
+/// monitoring (PPM) where the prediction target is not an outcome label but a
+/// named compliance rule: "does this prefix comply with constraint C?". A
+/// `PredictionProblem<ComplianceTarget>` encodes the shape of such a problem.
+///
+/// This witness is structurally distinct from [`OutcomeLabel`]: a compliance
+/// target must name its constraint (see [`PredictionTarget::ComplianceConstraint`]).
+/// Without it, a compliance-constrained prediction is indistinguishable from
+/// a plain binary outcome problem.
+///
+/// Structure-only marker: the LTN training and inference routines graduate to
+/// `wasm4pm`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct ComplianceTarget;
+
 // ── Core shapes ─────────────────────────────────────────────────────────────
 
 /// The kind of prediction target a problem asks about.
 ///
 /// **Structure only**: records *what is being asked*, never *the answer*.
+///
+/// [`PredictionTarget::ComplianceConstraint`] is the target kind for
+/// compliance-aware PPM (De Santis et al., 2026): the question is not "what is
+/// the outcome?" but "does this prefix comply with named rule C?".
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PredictionTarget {
     /// Predict the next activity label.
@@ -70,6 +91,14 @@ pub enum PredictionTarget {
     DriftSignal,
     /// Estimate a risk score (threat / hazard probability).
     Risk,
+    /// Check whether the prefix complies with a named process rule.
+    ///
+    /// De Santis et al. (2026) — a compliance-aware prediction target
+    /// that evaluates a prefix against a specific LTL/FOL constraint.
+    /// The constraint must be named (see
+    /// [`PredictionRefusal::ConstraintNotNamed`]). Training and inference
+    /// for this target graduate to `wasm4pm`.
+    ComplianceConstraint,
 }
 
 /// A complete prediction problem: the observed prefix and the target asked of
@@ -170,6 +199,13 @@ pub enum PredictionRefusal {
     /// The prefix is not admissible as a lawful case prefix (e.g. it is not a
     /// genuine *prefix* of any admitted trace).
     NonPrefixTrace,
+    /// A [`PredictionTarget::ComplianceConstraint`] problem was submitted without
+    /// a named constraint reference.
+    ///
+    /// Law: De Santis et al. (2026) — a compliance-aware prediction target must
+    /// identify the named rule C it is evaluated against. Anonymous compliance
+    /// checks are structurally inadmissible.
+    ConstraintNotNamed,
 }
 
 impl core::fmt::Display for PredictionRefusal {
@@ -180,6 +216,7 @@ impl core::fmt::Display for PredictionRefusal {
             PredictionRefusal::EmptyPrefix => "EmptyPrefix",
             PredictionRefusal::TargetUnsupported => "TargetUnsupported",
             PredictionRefusal::NonPrefixTrace => "NonPrefixTrace",
+            PredictionRefusal::ConstraintNotNamed => "ConstraintNotNamed",
         };
         write!(f, "prediction problem refused: {law}")
     }
