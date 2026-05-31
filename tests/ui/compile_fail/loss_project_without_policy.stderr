@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/loss_project_without_policy.rs:63:14
+   |
+63 |     .project(true);
+   |      ------- ^^^^ expected `LossPolicy`, found `bool`
+   |      |
+   |      arguments to this method are incorrect
+   |
+note: method defined here
+  --> src/loss.rs
+   |
+   |     fn project(
+   |        ^^^^^^^
