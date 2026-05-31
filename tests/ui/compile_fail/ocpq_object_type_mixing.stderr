@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_object_type_mixing.rs:52:46
+   |
+52 |     let _ = register_object_scope_constraint(temporal);
+   |             -------------------------------- ^^^^^^^^ expected `Predicate<ObjectPredicate>`, found `Predicate<TemporalPredicate>`
+   |             |
+   |             arguments to this function are incorrect
+   |
+   = note: expected struct `Predicate<ObjectPredicate>`
+              found struct `Predicate<TemporalPredicate>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_object_type_mixing.rs:33:4
+   |
+33 | fn register_object_scope_constraint(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+34 |     _p: Predicate<ObjectPredicate>,
+   |     ------------------------------
