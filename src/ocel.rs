@@ -35,8 +35,13 @@ use std::collections::HashSet;
 /// A typed attribute value on an [`OcelObject`] or [`OcelEvent`].
 ///
 /// OCEL 2.0 attributes are typed: the key is a `&str`-named field and the value
-/// is one of string, integer, float, boolean, or timestamp. `OcelAttributeValue`
-/// models the value side; the key is always a `String`.
+/// is one of string, integer, float, boolean, timestamp, list, or map.
+/// `OcelAttributeValue` models the value side; the key is always a `String`.
+///
+/// The `List` and `Map` variants reflect the OCEL 2.0 spec allowance for nested
+/// attribute structures (e.g. a list of prices, a map of sub-attributes). Both
+/// are structure-only containers — no evaluation or indexing occurs here; that
+/// graduates to `wasm4pm`.
 ///
 /// Structure-only: it stores the value, not a parser.
 #[derive(Clone, Debug, PartialEq)]
@@ -51,6 +56,16 @@ pub enum OcelAttributeValue {
     Boolean(bool),
     /// A timestamp attribute as nanoseconds since the Unix epoch.
     TimestampNs(i64),
+    /// An ordered list of attribute values (OCEL 2.0 nested list).
+    ///
+    /// Structure-only: it is a container, not an indexed collection. Indexing
+    /// and aggregation graduate to `wasm4pm`.
+    List(Vec<OcelAttributeValue>),
+    /// A key/value map of attribute values (OCEL 2.0 nested map).
+    ///
+    /// Structure-only: it is a named container, not a record system. Lookup
+    /// and projection graduate to `wasm4pm`.
+    Map(Vec<(String, OcelAttributeValue)>),
 }
 
 /// A named attribute (key + value) on an [`OcelObject`] or [`OcelEvent`].
