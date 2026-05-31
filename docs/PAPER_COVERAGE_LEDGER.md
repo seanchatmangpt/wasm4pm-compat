@@ -2,7 +2,7 @@
 
 **Repository:** wasm4pm-compat  
 **Corpus:** ~/Documents/Papers/workflow (20 papers) + ~/Documents/Papers/AI_LLM (1 PM paper) + ~/Documents/Papers/RDF (3 scanned, 0 PM)  
-**Generated:** 2026-05-30 | **Updated:** 2026-05-31 (graduation boundary targets named; #33–#38 foundational papers added)  
+**Generated:** 2026-05-30 | **Updated:** 2026-05-31 (graduation boundary targets named; #33–#38 foundational papers added; OCEL 1.0 E2O law anchored)  
 **Agent:** Paper Discovery
 
 ---
