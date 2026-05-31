@@ -745,3 +745,52 @@ tolerance.
   via `NeedsConformanceExecution`)
 - Zeta-value threshold evaluation and case classification
 - Temporal profile conformance checking execution
+
+---
+
+## #67 — Event Logs and Their Metadata in Process Mining (Verbeek et al., 2011)
+
+**Paper:** Event Logs and Their Metadata in Process Mining
+**Canon family:** `XES_EVENT_LOG`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Verbeek et al. (2011) define the operational XES/OpenXES metadata model:
+a lawful XES log must declare its extensions (so that attribute prefixes
+are not dangling references), may define classifiers (named event-class
+definitions that determine event identity for discovery), and may carry
+global attributes (log-wide defaults for trace and event attributes).
+These are structural laws — not runtime validation rules — and they are
+already reified in `src/xes.rs`.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| XES log structure | `src/xes.rs::XesLog` | — |
+| XES trace structure | `src/xes.rs::XesTrace` | — |
+| XES event structure | `src/xes.rs::XesEvent` | — |
+| Extension declaration (metadata law) | `src/xes.rs::XesExtension` | `xes_undeclared_extension_prefix_rejected` compile-fail |
+| Case-centric distinction | `src/xes.rs::CaseCentricMarker` | `xes_not_object_centric` compile-fail |
+| Standard provenance | `src/witness.rs::Xes1849` | subsumes XES/OpenXES metadata model |
+| Base event log | `src/eventlog.rs::EventLog` | — |
+
+**Structural laws this crate enforces:**
+
+- An XES attribute using an extension prefix that has not been declared
+  in the log header is refused as `XesRefusal::UndeclaredExtensionPrefix`.
+  The `xes_undeclared_extension_prefix_rejected` compile-fail fixture
+  seals this from Verbeek et al. (2011) §3 extension declaration law.
+- A `XesCaseCentricLog` cannot substitute an OCED/OCEL structure — the
+  `xes_not_object_centric` compile-fail fixture seals the flat vs.
+  object-centric structural distinction.
+- The `Xes1849` witness in `src/witness.rs` is the named provenance
+  receipt that ties these structural laws to the IEEE XES standard;
+  the OpenXES metadata model (classifiers, global attributes, extension
+  declarations) is the operational counterpart captured by `XesExtension`.
+
+**What must NOT live in this crate:**
+
+- XES file I/O (`.xes` / `.xes.gz` parsing and serialization)
+- XES classifier evaluation (computing event identity at runtime)
+- XES validator execution (checks beyond structural extension declaration)
+- OpenXES library API (Java implementation concerns)
