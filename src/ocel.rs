@@ -1065,3 +1065,88 @@ impl<ET: EventTypeTag> TypedEvent<ET> {
         self.inner
     }
 }
+
+// ── Attribute-type witness ────────────────────────────────────────────────────
+
+/// A phantom type-level attribute-type tag.
+///
+/// `AttributeTypeTag` is a zero-sized marker that threads a *named attribute
+/// domain* (e.g. "status", "price", "quantity") through attribute-typed generic
+/// surfaces. It prevents `TypedAttribute<StatusTag>` from being silently
+/// coerced into `TypedAttribute<PriceTag>` at the type level.
+///
+/// Structure-only: it is a compile-time label. Attribute-domain validation,
+/// aggregation, and normalization graduate to `wasm4pm`.
+pub trait AttributeTypeTag: core::fmt::Debug + Clone + PartialEq {
+    /// The stable, lowercase, machine-facing attribute name (e.g. `"status"`).
+    const ATTR_NAME: &'static str;
+}
+
+/// A typed wrapper around [`OcelAttribute`] that threads an [`AttributeTypeTag`]
+/// into the type system.
+///
+/// `TypedAttribute<AT>` is a newtype around [`OcelAttribute`] whose phantom
+/// type parameter `AT: AttributeTypeTag` makes the attribute's domain visible
+/// at compile time.
+///
+/// Structure-only: it wraps a key/value pair with a compile-time domain tag; it
+/// does not interpret or validate the value. That graduates to `wasm4pm`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TypedAttribute<AT: AttributeTypeTag> {
+    inner: OcelAttribute,
+    _tag: core::marker::PhantomData<AT>,
+}
+
+impl<AT: AttributeTypeTag> TypedAttribute<AT> {
+    /// Wrap an [`OcelAttribute`] with a compile-time attribute-type tag.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, TypedAttribute, AttributeTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct StatusTag;
+    /// impl AttributeTypeTag for StatusTag { const ATTR_NAME: &'static str = "status"; }
+    ///
+    /// let attr = OcelAttribute::string("status", "open");
+    /// let typed = TypedAttribute::<StatusTag>::wrap(attr);
+    /// assert_eq!(typed.inner().key, "status");
+    /// ```
+    pub fn wrap(inner: OcelAttribute) -> Self {
+        TypedAttribute {
+            inner,
+            _tag: core::marker::PhantomData,
+        }
+    }
+
+    /// The inner untyped [`OcelAttribute`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, TypedAttribute, AttributeTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct PriceTag;
+    /// impl AttributeTypeTag for PriceTag { const ATTR_NAME: &'static str = "price"; }
+    ///
+    /// let typed = TypedAttribute::<PriceTag>::wrap(OcelAttribute::float("price", 9.99));
+    /// assert_eq!(typed.inner().key, "price");
+    /// ```
+    pub fn inner(&self) -> &OcelAttribute {
+        &self.inner
+    }
+
+    /// Consume the wrapper and return the inner [`OcelAttribute`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, TypedAttribute, AttributeTypeTag};
+    ///
+    /// #[derive(Clone, Debug, PartialEq)]
+    /// struct PriceTag;
+    /// impl AttributeTypeTag for PriceTag { const ATTR_NAME: &'static str = "price"; }
+    ///
+    /// let attr = TypedAttribute::<PriceTag>::wrap(OcelAttribute::float("price", 1.5)).into_inner();
+    /// assert_eq!(attr.key, "price");
+    /// ```
+    pub fn into_inner(self) -> OcelAttribute {
+        self.inner
+    }
+}
