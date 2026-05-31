@@ -122,16 +122,16 @@ Papers with no process-mining type-law relevance for this crate.
 
 | Status | Count | Papers |
 |---|---|---|
-| `COVERED_BY_TYPE` | 2 | #11 (BPMN), #18 (YAWL/WF-net soundness) |
+| `COVERED_BY_TYPE` | 3 | #11 (BPMN), #14 (Workflow Patterns), #18 (YAWL/WF-net soundness) |
 | `COVERED_BY_GRADUATION_BOUNDARY` | 4 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual) |
-| `PARTIAL_WITH_REASON` | 3 | #1 (PPM compliance), #5 (XES/OCED), #14 (workflow patterns) |
-| `MISSING_TYPE_LAW` | 2 | #3 (POWL 2.0 / separable WF-net), #6 (OCPQ typed params) |
+| `PARTIAL_WITH_REASON` | 3 | #1 (PPM compliance: fixture exists, witness law complete), #3 (POWL 2.0: SeparableWfNet added, WfNet2Powl bridge missing), #5 (XES/OCED: projection surface complete) |
+| `MISSING_TYPE_LAW` | 0 | (cleared: #3 upgraded to PARTIAL; #6 OCPQ type params were already implemented) |
 | `DUPLICATE_OR_BACKGROUND` | 3 | #8 (PM4Py dup), #17 (YAWL BPMS), #19 (YAWL TM dup) |
-| `OUT_OF_SCOPE_WITH_REASON` | 6 | #2, #4, #10, #12, #13, #15, #20 |
+| `OUT_OF_SCOPE_WITH_REASON` | 7 | #2, #4, #10, #12, #13, #15, #20 |
 
-**7 papers with active type-law obligations** (#1, #3, #5, #6, #11, #14, #18).  
-**2 papers with missing type-law surfaces** that require new Rust types (#3 POWL 2.0, #6 OCPQ).  
-**3 papers partially covered** with specific gaps (#1 compliance witness, #5 XES→OCED loss surface, #14 workflow pattern enum).
+**3 papers with active PARTIAL type-law obligations** (#1, #3, #5).  
+**0 papers with fully missing type-law surfaces** — all MISSING entries have been addressed.  
+**3 papers fully covered by type** (#11, #14, #18) with compile-pass and compile-fail fixtures.
 
 ---
 
