@@ -1,0 +1,18 @@
+error[E0053]: method `candidate` has an incompatible type for trait
+  --> tests/ui/compile_fail/graduation_trait_without_candidate.rs:52:28
+   |
+52 |     fn candidate(&self) -> ForgedCandidate {
+   |                            ^^^^^^^^^^^^^^^ expected `GraduationCandidate`, found `ForgedCandidate`
+   |
+note: type in trait
+  --> tests/ui/compile_fail/graduation_trait_without_candidate.rs:34:28
+   |
+34 |     fn candidate(&self) -> GraduationCandidate;
+   |                            ^^^^^^^^^^^^^^^^^^^
+   = note: expected signature `fn(&TypeWithoutCandidate) -> GraduationCandidate`
+              found signature `fn(&TypeWithoutCandidate) -> ForgedCandidate`
+help: change the output type to match the trait
+   |
+52 -     fn candidate(&self) -> ForgedCandidate {
+52 +     fn candidate(&self) -> GraduationCandidate {
+   |
