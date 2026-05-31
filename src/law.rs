@@ -501,6 +501,40 @@ pub enum ProcessShapeKind {
     Receipt,
 }
 
+/// The closed set of block-structured process-tree operator kinds.
+///
+/// Used as a const generic parameter to tag typed operator nodes at the type
+/// level so that `TypedOperatorNode<_, SEQ, ARITY>` and
+/// `TypedOperatorNode<_, XOR, ARITY>` are **different types** — the wrong
+/// operator kind passed to a function requiring a specific operator is a
+/// compile error, not a runtime panic.
+///
+/// ## Structure-only
+///
+/// This enum names operator kinds. It does not unfold, replay, or execute them.
+/// Graduate to `wasm4pm` for discovery, simplification, or replay.
+///
+/// ## Paper
+///
+/// Leemans (2013) *Discovering Block-Structured Process Models from Event Logs*.
+/// The five base operators: sequence, exclusive choice (xor), parallel (and),
+/// loop, and silent (tau).
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum ProcessTreeOperatorKind {
+    /// Strict total order of children (`->`).
+    Sequence,
+    /// Exclusive choice among children (`x`).
+    Xor,
+    /// Concurrent / interleaved children (`+`).
+    Parallel,
+    /// Loop: first child is the `do` body, second the `redo` body (`*`).
+    Loop,
+    /// Silent leaf (tau) — observable-activity-free step.
+    Silent,
+    /// Inclusive OR — one or more branches chosen (non-deterministic).
+    Or,
+}
+
 /// A named control-flow workflow pattern from Russell, van der Aalst & ter Hofstede
 /// (2016) — *Workflow Patterns: The Definitive Guide*.
 ///
