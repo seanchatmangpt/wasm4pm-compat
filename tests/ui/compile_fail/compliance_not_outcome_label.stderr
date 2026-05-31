@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/compliance_not_outcome_label.rs:23:27
+   |
+23 |     accepts_outcome_label(compliance_problem);
+   |     --------------------- ^^^^^^^^^^^^^^^^^^ expected `PredictionProblem<OutcomeLabel>`, found `PredictionProblem<ComplianceTarget>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `wasm4pm_compat::prediction::PredictionProblem<wasm4pm_compat::prediction::OutcomeLabel>`
+              found struct `wasm4pm_compat::prediction::PredictionProblem<ComplianceTarget>`
+note: function defined here
+  --> tests/ui/compile_fail/compliance_not_outcome_label.rs:15:4
+   |
+15 | fn accepts_outcome_label(_p: PredictionProblem<OutcomeLabel>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^ -----------------------------------
