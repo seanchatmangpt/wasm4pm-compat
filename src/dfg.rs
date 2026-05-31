@@ -525,6 +525,107 @@ impl DfgEdgeFull {
     }
 }
 
+/// A directly-follows edge whose **direction** is enforced at the type level via
+/// phantom source and target role markers.
+///
+/// `DfgTypedEdge<S, T>` is the compile-time-safe sibling of [`DfgEdge`]. The
+/// type parameters `S` and `T` must satisfy [`IsDfgSource`] and [`IsDfgTarget`]
+/// respectively; in practice they are always [`DfgSourceMarker`] and
+/// [`DfgTargetMarker`]. The markers are zero-cost `PhantomData` — they carry no
+/// runtime data but prevent accidentally swapping the source and target roles
+/// when constructing edge tables.
+///
+/// Structure-only: a typed directed edge. No discovery, no token semantics.
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker, DfgWeight};
+/// let edge: DfgTypedEdge<DfgSourceMarker, DfgTargetMarker> =
+///     DfgTypedEdge::new("a", "b", 5);
+/// assert_eq!(edge.from(), "a");
+/// assert_eq!(edge.to(), "b");
+/// assert_eq!(edge.weight(), DfgWeight(5));
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DfgTypedEdge<S: IsDfgSource, T: IsDfgTarget> {
+    from: String,
+    to: String,
+    weight: DfgWeight,
+    _src: core::marker::PhantomData<S>,
+    _tgt: core::marker::PhantomData<T>,
+}
+
+impl<S: IsDfgSource, T: IsDfgTarget> DfgTypedEdge<S, T> {
+    /// Construct a typed directed DFG edge with a frequency weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker};
+    /// let e = DfgTypedEdge::<DfgSourceMarker, DfgTargetMarker>::new("place", "pay", 3);
+    /// assert_eq!(e.from(), "place");
+    /// assert_eq!(e.to(), "pay");
+    /// ```
+    pub fn new(from: impl Into<String>, to: impl Into<String>, weight: u64) -> Self {
+        DfgTypedEdge {
+            from: from.into(),
+            to: to.into(),
+            weight: DfgWeight(weight),
+            _src: core::marker::PhantomData,
+            _tgt: core::marker::PhantomData,
+        }
+    }
+
+    /// The source activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker};
+    /// assert_eq!(DfgTypedEdge::<DfgSourceMarker, DfgTargetMarker>::new("a", "b", 1).from(), "a");
+    /// ```
+    pub fn from(&self) -> &str {
+        &self.from
+    }
+
+    /// The target activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker};
+    /// assert_eq!(DfgTypedEdge::<DfgSourceMarker, DfgTargetMarker>::new("a", "b", 1).to(), "b");
+    /// ```
+    pub fn to(&self) -> &str {
+        &self.to
+    }
+
+    /// The directly-follows frequency weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker, DfgWeight};
+    /// assert_eq!(
+    ///     DfgTypedEdge::<DfgSourceMarker, DfgTargetMarker>::new("a", "b", 9).weight(),
+    ///     DfgWeight(9)
+    /// );
+    /// ```
+    pub fn weight(&self) -> DfgWeight {
+        self.weight
+    }
+
+    /// Erase the typed markers and produce a plain [`DfgEdge`].
+    ///
+    /// Useful when a downstream API requires [`DfgEdge`] but the edge was
+    /// constructed via the typed interface.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgTypedEdge, DfgSourceMarker, DfgTargetMarker};
+    /// let typed = DfgTypedEdge::<DfgSourceMarker, DfgTargetMarker>::new("a", "b", 2);
+    /// let plain = typed.into_edge();
+    /// assert_eq!(plain.from(), "a");
+    /// ```
+    pub fn into_edge(self) -> DfgEdge {
+        DfgEdge {
+            from: self.from,
+            to: self.to,
+            weight: self.weight,
+        }
+    }
+}
+
 /// A per-object-type DFG: one [`Dfg`] (with frequency and optional duration
 /// annotations) for each declared object type in an OCEL log.
 ///
