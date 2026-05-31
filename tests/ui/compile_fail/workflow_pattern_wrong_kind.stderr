@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:22:27
+   |
+22 |     exclusive_choice_only(ps);
+   |     --------------------- ^^ expected `ExclusiveChoice`, found `ParallelSplit`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `PatternNet<ExclusiveChoice>`
+              found struct `PatternNet<ParallelSplit>`
+note: function defined here
+  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:17:4
+   |
+17 | fn exclusive_choice_only(_: PatternNet<{ WorkflowPattern::ExclusiveChoice }>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^ ---------------------------------------------------

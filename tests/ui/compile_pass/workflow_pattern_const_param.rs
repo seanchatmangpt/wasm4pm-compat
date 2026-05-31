@@ -1,3 +1,6 @@
+#![feature(adt_const_params)]
+#![allow(incomplete_features)]
+
 // COMPILE-PASS: WorkflowPattern ConstParamTy — named pattern as const generic
 // param is a distinct type-level claim.
 //
