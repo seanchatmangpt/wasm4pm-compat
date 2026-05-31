@@ -13,7 +13,11 @@ use wasm4pm_compat::declare::{
     Activity, DeclareConstraint, DeclareRefusal, DeclareScope, DeclareTemplate,
 };
 use wasm4pm_compat::ocpq::{ObjectScope, OcpqQuery, OcpqRefusal, Predicate, PredicateKind};
-use wasm4pm_compat::powl::{OrderEdge, Powl, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal};
+use wasm4pm_compat::powl::{
+    AcyclicPartialOrder, OrderEdge, Powl, PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind,
+    PowlRefusal, RefusedProjection, assert_acyclic, assert_tree_projectable,
+    ProcessTreeProjectable,
+};
 use wasm4pm_compat::prediction::{PredictionProblem, PredictionRefusal, PredictionTarget};
 use wasm4pm_compat::process_tree::{
     ProcessTree, ProcessTreeNode, ProcessTreeOperator, ProcessTreeRefusal,
@@ -43,6 +47,43 @@ fn smoke_powl() {
     let r = PowlRefusal::CyclicPartialOrder;
     assert_eq!(r, PowlRefusal::CyclicPartialOrder);
     assert!(r.to_string().contains("CyclicPartialOrder"));
+}
+
+#[test]
+fn smoke_powl_acyclic_witness() {
+    // AcyclicPartialOrder satisfies AcyclicWitness; PartialOrder does not.
+    assert!(assert_acyclic(AcyclicPartialOrder));
+}
+
+#[test]
+fn smoke_powl_choice_node_well_formed() {
+    let c = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
+    assert!(c.is_well_formed());
+    assert_eq!(c.branch_count(), 2);
+    assert!(c.validate().is_ok());
+}
+
+#[test]
+fn smoke_powl_choice_node_malformed() {
+    let bad = PowlChoiceNode::new(vec![PowlNodeId(0)]);
+    assert!(!bad.is_well_formed());
+    assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoice));
+}
+
+#[test]
+fn smoke_powl_refused_projection() {
+    let r = RefusedProjection::new(PowlRefusal::IrreducibleProjection);
+    assert_eq!(r.reason(), &PowlRefusal::IrreducibleProjection);
+    assert!(format!("{}", r).contains("IrreducibleProjection"));
+
+    let owned = RefusedProjection::new(PowlRefusal::CyclicPartialOrder).into_reason();
+    assert_eq!(owned, PowlRefusal::CyclicPartialOrder);
+}
+
+#[test]
+fn smoke_powl_tree_projectable_gate() {
+    // ProcessTreeProjectable passes the gate; ExceedsProcessTree does not (compile-fail).
+    assert!(assert_tree_projectable(ProcessTreeProjectable));
 }
 
 #[test]
