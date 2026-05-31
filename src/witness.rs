@@ -273,3 +273,17 @@ witness_marker!(
     "Log Skeleton (Verbeek & Leemans)",
     Some(2018)
 );
+witness_marker!(
+    /// Alpha Algorithm (van der Aalst, Weijters & Maruster, 2004).
+    ///
+    /// Names the Alpha Miner process discovery algorithm — the causal-matrix
+    /// based approach producing a WF-net from an event log. Distinct from
+    /// [`InductiveMiner`] (different algorithm, different guarantees). An
+    /// `Admission<T, AlphaMiner>` is distinguishable at the type level from
+    /// any other discovery-algorithm witness.
+    AlphaMiner,
+    "alpha-miner",
+    WitnessFamily::Paper,
+    "Alpha Algorithm (van der Aalst, Weijters & Maruster)",
+    Some(2004)
+);
