@@ -1769,3 +1769,32 @@ Two structural laws apply:
 - CBS evaluation (child-binding counting against a log)
 - CBS branch-label resolution against query variables
 - CBS predicate optimization (query planning)
+
+---
+
+### silent-node-law
+
+**Law concept:** `SilentTransition` / `PowlNodeKind::Silent` is a first-class
+POWL node kind. It is not an annotation on an activity atom — it is a distinct
+structural kind with zero observable activity. The `TypedNode<{PowlKind::Silent}>`
+in `nightly_foundry::powl_law` formalises this: `is_observable()` returns `false`
+as a compile-time constant. Assigning an atom to a silent-typed binding, or vice
+versa, is a compile error.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §3: `τ` (silent transition / tau step)
+is a first-class element of the POWL grammar — `POWL ::= A | ×(M₁, M₂) | ↺(M₁, M₂)
+| P(M⁺, ≺) | τ`. Silent transitions are used to model administrative steps, routing
+decisions, or empty paths that carry no observable label. They are never collapsed
+to atoms silently.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `silent-node-kind-law` — `PowlNodeKind::Silent` is a distinct variant; it is not a `Transition` with an empty label | `powl::PowlNodeKind::Silent` (distinct enum variant) | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §3 |
+| `silent-node-not-observable` — `TypedNode<{PowlKind::Silent}>::is_observable()` returns `false`; `TypedNode<{PowlKind::Atom}>::is_observable()` returns `true` | `nightly_foundry::powl_law::TypedNode<{PowlKind::Silent}>` | `compile_pass/powl_process_tree_projectable.rs` | — (compile-fail fixture: atom assigned to silent binding — `powl_law` module doctest) | Kourani & van der Aalst (2023) §3 |
+| `silent-atom-type-distinctness` — `TypedNode<{PowlKind::Atom}>` and `TypedNode<{PowlKind::Silent}>` are different types; assignment or substitution is a compile error | `nightly_foundry::powl_law::TypedNode` const-generic type distinction | — (law enforced by const generic: distinct const param values → distinct types) | `compile_fail` doctest in `nightly_foundry::powl_law` | Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Silent transition elimination (tau-loop reduction algorithm — graduates to wasm4pm)
+- Observability checking over POWL models at runtime
+- Silent-step language projection (trace-level vs. event-level projection)
