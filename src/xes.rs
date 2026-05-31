@@ -389,6 +389,94 @@ impl XesLog {
     }
 }
 
+/// The four standard XES extension prefixes defined in IEEE 1849-2016.
+///
+/// XES defines four standard extensions: `concept`, `time`, `lifecycle`, and
+/// `org`. These are the only prefixes that appear in the XES standard itself;
+/// custom extensions may declare additional prefixes. This enum names them at
+/// the type level so code cannot confuse `concept:name` with `org:resource`
+/// by string comparison alone.
+///
+/// Structure-only: this is a name, not a validator. Graduate to `wasm4pm` when
+/// extension semantics must be enforced.
+///
+/// ```
+/// use wasm4pm_compat::xes::XesStandardPrefix;
+/// assert_eq!(XesStandardPrefix::Concept.as_str(), "concept");
+/// assert_eq!(XesStandardPrefix::Time.as_str(), "time");
+/// assert_eq!(XesStandardPrefix::Lifecycle.as_str(), "lifecycle");
+/// assert_eq!(XesStandardPrefix::Org.as_str(), "org");
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum XesStandardPrefix {
+    /// `concept` — activity names, case identifiers (`concept:name`).
+    Concept,
+    /// `time` — timestamps (`time:timestamp`).
+    Time,
+    /// `lifecycle` — transition labels (`lifecycle:transition`,
+    /// `lifecycle:model`).
+    Lifecycle,
+    /// `org` — organisational attributes (`org:resource`, `org:role`,
+    /// `org:group`).
+    Org,
+}
+
+impl XesStandardPrefix {
+    /// The prefix string as it appears in XES attribute keys.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesStandardPrefix;
+    /// assert_eq!(XesStandardPrefix::Org.as_str(), "org");
+    /// ```
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            XesStandardPrefix::Concept => "concept",
+            XesStandardPrefix::Time => "time",
+            XesStandardPrefix::Lifecycle => "lifecycle",
+            XesStandardPrefix::Org => "org",
+        }
+    }
+
+    /// Parse a prefix string into a standard prefix, returning `None` for
+    /// non-standard prefixes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesStandardPrefix;
+    /// assert_eq!(XesStandardPrefix::parse("lifecycle"), Some(XesStandardPrefix::Lifecycle));
+    /// assert_eq!(XesStandardPrefix::parse("custom"), None);
+    /// ```
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "concept" => Some(XesStandardPrefix::Concept),
+            "time" => Some(XesStandardPrefix::Time),
+            "lifecycle" => Some(XesStandardPrefix::Lifecycle),
+            "org" => Some(XesStandardPrefix::Org),
+            _ => None,
+        }
+    }
+
+    /// All four standard prefixes in declaration order.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesStandardPrefix;
+    /// assert_eq!(XesStandardPrefix::all().len(), 4);
+    /// ```
+    pub const fn all() -> [XesStandardPrefix; 4] {
+        [
+            XesStandardPrefix::Concept,
+            XesStandardPrefix::Time,
+            XesStandardPrefix::Lifecycle,
+            XesStandardPrefix::Org,
+        ]
+    }
+}
+
+impl core::fmt::Display for XesStandardPrefix {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// The specific, named laws under which XES interchange structure is refused.
 ///
 /// Each variant is a distinct interchange law — never a bare "invalid input".
