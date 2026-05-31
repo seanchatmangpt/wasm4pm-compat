@@ -230,6 +230,111 @@ impl XesEvent {
     }
 }
 
+/// Trace-level attributes in a XES log (attributes on the `<trace>` element).
+///
+/// In IEEE 1849-2016, a `<trace>` element may carry arbitrary key/value
+/// attributes alongside its events. The `concept:name` is the required
+/// case identifier; additional attributes (e.g. `cost:total`, `org:group`)
+/// may annotate the case as a whole.
+///
+/// `XesTraceAttributes` is a separate type from [`XesEvent`] attributes to
+/// make the trace-vs-event distinction explicit at the type level.
+///
+/// Structure-only: holds attributes verbatim; does not interpret them.
+///
+/// ```
+/// use wasm4pm_compat::xes::XesTraceAttributes;
+/// let ta = XesTraceAttributes::new()
+///     .with("concept:name", "case-001")
+///     .with("cost:total", "42.0");
+/// assert_eq!(ta.get("cost:total"), Some("42.0"));
+/// assert_eq!(ta.len(), 2);
+/// ```
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct XesTraceAttributes {
+    attributes: Vec<(String, String)>,
+}
+
+impl XesTraceAttributes {
+    /// Construct an empty trace-attribute bag.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// assert!(XesTraceAttributes::new().is_empty());
+    /// ```
+    pub fn new() -> Self {
+        XesTraceAttributes::default()
+    }
+
+    /// Add an attribute. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// let ta = XesTraceAttributes::new().with("concept:name", "c1");
+    /// assert_eq!(ta.get("concept:name"), Some("c1"));
+    /// ```
+    pub fn with(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.attributes.push((key.into(), value.into()));
+        self
+    }
+
+    /// Look up a trace attribute by key.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// let ta = XesTraceAttributes::new().with("k", "v");
+    /// assert_eq!(ta.get("k"), Some("v"));
+    /// assert_eq!(ta.get("missing"), None);
+    /// ```
+    pub fn get(&self, key: &str) -> Option<&str> {
+        self.attributes
+            .iter()
+            .find(|(k, _)| k == key)
+            .map(|(_, v)| v.as_str())
+    }
+
+    /// The trace's `concept:name` (case identifier), if present.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// let ta = XesTraceAttributes::new().with("concept:name", "case-7");
+    /// assert_eq!(ta.concept_name(), Some("case-7"));
+    /// ```
+    pub fn concept_name(&self) -> Option<&str> {
+        self.get("concept:name")
+    }
+
+    /// All trace attributes in declaration order.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// assert_eq!(XesTraceAttributes::new().with("k", "v").all().len(), 1);
+    /// ```
+    pub fn all(&self) -> &[(String, String)] {
+        &self.attributes
+    }
+
+    /// The number of trace attributes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// assert_eq!(XesTraceAttributes::new().len(), 0);
+    /// ```
+    pub fn len(&self) -> usize {
+        self.attributes.len()
+    }
+
+    /// Whether the attribute bag is empty.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesTraceAttributes;
+    /// assert!(XesTraceAttributes::new().is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.attributes.is_empty()
+    }
+}
+
 /// A XES trace: a `concept:name`-identified, ordered sequence of [`XesEvent`]s.
 ///
 /// A trace lacking a `concept:name` (the case id) is refused as
