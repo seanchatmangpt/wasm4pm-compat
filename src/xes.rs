@@ -528,6 +528,88 @@ impl XesLog {
     }
 }
 
+/// A type-level witness for a specific XES extension prefix declaration.
+///
+/// When a [`XesExtension`] is declared in a log, its prefix (e.g. `"concept"`,
+/// `"time"`, `"lifecycle"`, `"org"`, or a custom prefix) acts as an
+/// *authority name* in the type system. `XesExtensionPrefixWitness` carries
+/// that prefix as a `&'static str` const generic so that code cannot
+/// accidentally reference an attribute key from the wrong extension namespace
+/// without declaring the authority.
+///
+/// This is a compile-time label; it carries no runtime data beyond the prefix
+/// string. Graduate to `wasm4pm` when prefix-scoped attribute validation must
+/// be enforced.
+///
+/// Structure-only: it names the extension authority, does not parse it.
+///
+/// ```
+/// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
+///
+/// const CONCEPT: XesExtensionPrefixWitness = XesExtensionPrefixWitness::new("concept");
+/// assert_eq!(CONCEPT.prefix(), "concept");
+/// assert!(CONCEPT.is_standard());
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct XesExtensionPrefixWitness {
+    prefix: &'static str,
+}
+
+impl XesExtensionPrefixWitness {
+    /// Construct a prefix witness from a static string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
+    /// let w = XesExtensionPrefixWitness::new("concept");
+    /// assert_eq!(w.prefix(), "concept");
+    /// ```
+    pub const fn new(prefix: &'static str) -> Self {
+        XesExtensionPrefixWitness { prefix }
+    }
+
+    /// The prefix string this witness names.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
+    /// assert_eq!(XesExtensionPrefixWitness::new("org").prefix(), "org");
+    /// ```
+    pub const fn prefix(self) -> &'static str {
+        self.prefix
+    }
+
+    /// Whether this prefix is one of the four IEEE 1849-2016 standard prefixes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
+    /// assert!(XesExtensionPrefixWitness::new("lifecycle").is_standard());
+    /// assert!(!XesExtensionPrefixWitness::new("custom").is_standard());
+    /// ```
+    pub fn is_standard(self) -> bool {
+        XesStandardPrefix::parse(self.prefix).is_some()
+    }
+
+    /// The four standard extension prefix witnesses from IEEE 1849-2016.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
+    /// assert_eq!(XesExtensionPrefixWitness::standard_witnesses().len(), 4);
+    /// ```
+    pub const fn standard_witnesses() -> [XesExtensionPrefixWitness; 4] {
+        [
+            XesExtensionPrefixWitness::new("concept"),
+            XesExtensionPrefixWitness::new("time"),
+            XesExtensionPrefixWitness::new("lifecycle"),
+            XesExtensionPrefixWitness::new("org"),
+        ]
+    }
+}
+
+impl core::fmt::Display for XesExtensionPrefixWitness {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "xes-prefix:{}", self.prefix)
+    }
+}
+
 /// The standard `lifecycle:transition` values defined in IEEE 1849-2016.
 ///
 /// XES defines a fixed alphabet for the `lifecycle:transition` attribute.
