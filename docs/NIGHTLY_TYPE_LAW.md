@@ -1166,3 +1166,20 @@ The structural law is twofold:
 | `compliance-target-law` — `PredictionProblem<ComplianceTarget>` ≠ `PredictionProblem<OutcomeLabel>` | `prediction::ComplianceTarget` / `prediction::OutcomeLabel` (distinct phantom witnesses) | `compile_pass/compliance_prediction_target.rs` | `compile_fail/compliance_not_outcome_label.rs` | De Santis et al. (2026) |
 | `compliance-witness-wrong-target-law` — compliance slot rejects non-compliance witness | `prediction::ComplianceTarget` phantom param enforcement | `compile_pass/compliance_prediction_target.rs` | `compile_fail/compliance_witness_wrong_target.rs` | De Santis et al. (2026) |
 | `compliance-constraint-must-be-named` — `PredictionTarget::ComplianceConstraint` without named rule is `ConstraintNotNamed` | `prediction::PredictionRefusal::ConstraintNotNamed` | `compile_pass/compliance_prediction_target.rs` | — (law enforced by named refusal variant) | De Santis et al. (2026) |
+
+### event-attribute-witness
+
+A `XesEvent` is a bag of namespaced key/value attributes. The structural law
+requires that standard extension keys (`concept:name`, `time:timestamp`,
+`org:resource`) are accessible via typed helper methods, while arbitrary
+namespaced keys are accessible via the generic `attribute(key)` accessor. The
+event is structure-only: it holds attributes verbatim; it does not interpret
+timestamps, parse lifecycle transitions, or validate resource identifiers.
+
+The `xes_trace_attributes.rs` compile-pass fixture demonstrates the full
+positive law surface: standard key helpers, generic accessor, attribute count.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `event-attribute-witness` — `XesEvent` exposes `concept:name`, `time:timestamp`, `org:resource` via typed helpers | `xes::XesEvent::concept_name()`, `timestamp()`, `resource()` | `compile_pass/xes_trace_attributes.rs` | — (structural law; helper returns `Option<&str>`, none required at type level) | IEEE 1849-2023 §5.2 event element; van der Aalst (2011) multi-perspective |
+| `xes_missing_concept_name` — an `XesEvent` lacking `concept:name` is refused as `XesRefusal::MissingConceptName`; structural exchange law | `xes::XesRefusal::MissingConceptName` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; stringly-typed attribute bag cannot enforce presence at compile time) | IEEE 1849-2023 §5.2; Verbeek et al. (2011) §3 |
