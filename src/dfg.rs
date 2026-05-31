@@ -73,6 +73,66 @@ impl core::fmt::Display for DfgActivityId {
     }
 }
 
+// ── Typed endpoint role markers ───────────────────────────────────────────────
+
+/// A zero-sized type-level marker asserting that a type parameter plays the
+/// **source** role in a directed DFG edge.
+///
+/// `DfgSourceMarker` and [`DfgTargetMarker`] are phantom-data tags used with
+/// [`DfgTypedEdge`] to make the directionality of an edge visible to the
+/// compiler. Code that accepts a source activity but not a target activity can
+/// bound on [`IsDfgSource`].
+///
+/// Structure-only: carries no data, no graph semantics.
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgSourceMarker, IsDfgSource};
+/// fn source_slot<S: IsDfgSource>() {}
+/// source_slot::<DfgSourceMarker>();
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct DfgSourceMarker;
+
+/// A zero-sized type-level marker asserting that a type parameter plays the
+/// **target** role in a directed DFG edge.
+///
+/// Paired with [`DfgSourceMarker`]; see its documentation.
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgTargetMarker, IsDfgTarget};
+/// fn target_slot<T: IsDfgTarget>() {}
+/// target_slot::<DfgTargetMarker>();
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct DfgTargetMarker;
+
+mod dfg_endpoint_seal {
+    pub trait SourceSeal {}
+    pub trait TargetSeal {}
+    impl SourceSeal for super::DfgSourceMarker {}
+    impl TargetSeal for super::DfgTargetMarker {}
+}
+
+/// Sealed trait — only [`DfgSourceMarker`] is a DFG source endpoint kind.
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgSourceMarker, IsDfgSource};
+/// fn needs_source<S: IsDfgSource>(_: S) {}
+/// needs_source(DfgSourceMarker);
+/// ```
+pub trait IsDfgSource: dfg_endpoint_seal::SourceSeal {}
+impl IsDfgSource for DfgSourceMarker {}
+
+/// Sealed trait — only [`DfgTargetMarker`] is a DFG target endpoint kind.
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgTargetMarker, IsDfgTarget};
+/// fn needs_target<T: IsDfgTarget>(_: T) {}
+/// needs_target(DfgTargetMarker);
+/// ```
+pub trait IsDfgTarget: dfg_endpoint_seal::TargetSeal {}
+impl IsDfgTarget for DfgTargetMarker {}
+
 /// A directly-follows frequency weight on a [`DfgEdge`].
 ///
 /// A zero-cost `#[repr(transparent)]` wrapper over a `u64` count. Negative
