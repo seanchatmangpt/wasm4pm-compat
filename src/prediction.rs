@@ -26,6 +26,125 @@
 
 use core::marker::PhantomData;
 
+// ── Prediction horizon ───────────────────────────────────────────────────────
+
+/// The look-ahead distance for a predictive-process-monitoring problem.
+///
+/// `PredictionHorizon` classifies *how far ahead* a prediction spans:
+///
+/// - `FullCase` — the prediction covers the entire remaining case (no fixed
+///   bound). This is the default for outcome and remaining-time prediction.
+/// - `Events(n)` — the prediction spans exactly `n` future events. Used for
+///   next-activity or short-range sequence prediction.
+/// - `TimeUnits(secs)` — the prediction spans a real-time window of `secs`
+///   seconds ahead. Used for deadline and SLA compliance prediction.
+///
+/// ## What this is
+///
+/// A **shape** for the horizon concept: it names what is being asked, it does
+/// not compute or enforce the horizon against a log. Graduate to `wasm4pm` for
+/// horizon enforcement during prediction.
+///
+/// ## Usage
+///
+/// `PredictionProblem` stores the horizon as `Option<usize>` (event count) for
+/// backward compatibility. `PredictionHorizon` is the richer named type for new
+/// surfaces that need to distinguish time-based from event-based horizons.
+///
+/// ```
+/// use wasm4pm_compat::prediction::PredictionHorizon;
+/// assert!(matches!(PredictionHorizon::FullCase, PredictionHorizon::FullCase));
+/// assert!(matches!(PredictionHorizon::Events(3), PredictionHorizon::Events(3)));
+/// assert!(matches!(PredictionHorizon::TimeUnits(86400), PredictionHorizon::TimeUnits(_)));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum PredictionHorizon {
+    /// The prediction covers the full remaining case (no bound).
+    FullCase,
+    /// The prediction spans exactly `n` future events.
+    Events(usize),
+    /// The prediction spans `secs` seconds ahead (real-time window).
+    TimeUnits(u64),
+}
+
+impl Default for PredictionHorizon {
+    /// The default horizon is `FullCase` — unbounded remaining case.
+    ///
+    /// ```
+    /// use wasm4pm_compat::prediction::PredictionHorizon;
+    /// assert_eq!(PredictionHorizon::default(), PredictionHorizon::FullCase);
+    /// ```
+    fn default() -> Self {
+        PredictionHorizon::FullCase
+    }
+}
+
+impl core::fmt::Display for PredictionHorizon {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            PredictionHorizon::FullCase => write!(f, "full-case"),
+            PredictionHorizon::Events(n) => write!(f, "events({n})"),
+            PredictionHorizon::TimeUnits(s) => write!(f, "time({s}s)"),
+        }
+    }
+}
+
+// ── Compliance kind ───────────────────────────────────────────────────────────
+
+/// The sub-kind of a compliance-aware prediction target.
+///
+/// `ComplianceTarget` is a unit-struct phantom witness that identifies the
+/// *target family* at the type level. `ComplianceKind` refines that by naming
+/// the **operational context** in which compliance is evaluated: is it a live
+/// monitoring check, a post-hoc audit, or a regulatory certification sweep?
+///
+/// ## What this is
+///
+/// A closed enum for runtime dispatch on compliance context. It travels
+/// alongside `PredictionTarget::ComplianceConstraint` as a metadata tag, not
+/// as a phantom type parameter.
+///
+/// ## What this is NOT
+///
+/// - Not a phantom type witness — use [`ComplianceTarget`] for that.
+/// - Not a constraint definition — named rules are a `wasm4pm` concern.
+/// - Not an enforcement mechanism — structure only.
+///
+/// ## Variants
+///
+/// | Variant | Meaning |
+/// |---------|---------|
+/// | `Monitoring` | Online / streaming compliance check during case execution. |
+/// | `Audit` | Post-hoc audit of a completed or historical case. |
+/// | `Certification` | Regulatory or standard-compliance sweep across a log. |
+///
+/// ```
+/// use wasm4pm_compat::prediction::ComplianceKind;
+/// let k = ComplianceKind::Audit;
+/// assert_eq!(format!("{k}"), "audit");
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum ComplianceKind {
+    /// Online compliance monitoring during active case execution.
+    #[default]
+    Monitoring,
+    /// Post-hoc audit of a completed or historical process instance.
+    Audit,
+    /// Regulatory or standard-compliance certification sweep.
+    Certification,
+}
+
+impl core::fmt::Display for ComplianceKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            ComplianceKind::Monitoring => "monitoring",
+            ComplianceKind::Audit => "audit",
+            ComplianceKind::Certification => "certification",
+        };
+        write!(f, "{name}")
+    }
+}
+
 // ── Target witness markers ──────────────────────────────────────────────────
 
 /// Witness: the problem's input is a **prefix trace** (a case observed so far).
