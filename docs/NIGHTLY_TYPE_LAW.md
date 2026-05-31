@@ -19,6 +19,7 @@ without `.stderr` is not a valid type-law receipt.
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Stderr |
 |---|---|---|---|---|
 | `place_marker_law` — `Place` is a distinct named token-holding location; not interchangeable with `Transition` | `petri::Place` (newtype over id) | `compile_pass/petri_place_to_transition_arc.rs` | — | — |
+| `transition_marker_law` — `Transition` is a distinct firing element; `is_silent()` distinguishes silent (tau) from labeled transitions at the API level | `petri::Transition` (newtype with label) | `compile_pass/petri_transition_to_place_arc.rs` | — | — |
 | `bpmn_pool_as_lane` — BPMN Pool cannot substitute a Lane | `bpmn::Pool` / `bpmn::Lane` (distinct newtypes) | `compile_pass/bpmn_pool_lane.rs` | `compile_fail/bpmn_pool_as_lane.rs` | `bpmn_pool_as_lane.stderr` |
 | `compliance_not_outcome_label` — conformance metric is not a label | `conformance::Metric<KIND, NUM, DEN>` | `compile_pass/conformance_verdict_complete.rs` | `compile_fail/compliance_not_outcome_label.rs` | `compliance_not_outcome_label.stderr` |
 | `declare_binary_arity_rejected` — Declare constraint arity ≥ 2 | `declare::DeclareConstraint` | `compile_pass/declare_constraint_shape.rs` | `compile_fail/declare_binary_arity_rejected.rs` | `declare_binary_arity_rejected.stderr` |
