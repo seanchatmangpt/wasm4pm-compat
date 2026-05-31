@@ -73,6 +73,174 @@ where
     }
 }
 
+// ── XOR operator node (type-law surface) ─────────────────────────────────────
+
+/// An exclusive-choice (XOR) operator node with arity encoded as a const
+/// generic parameter.
+///
+/// XOR requires **at least 2** children (an exclusive choice between one
+/// thing is trivially degenerate). `TypedXorNode<_, 1>` does **not compile**.
+///
+/// ## Paper
+///
+/// Leemans (2013) inductive miner — the `×` (exclusive-choice) operator.
+///
+/// ## What this is NOT
+///
+/// Structure only. Does not execute, replay, or discover. Graduate to `wasm4pm`.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedXorNode;
+/// let _: TypedXorNode<[&str; 2], 2> = TypedXorNode::new(["branch_a", "branch_b"]);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedXorNode;
+/// // XOR with arity 1 is degenerate — compile error.
+/// let _: TypedXorNode<[&str; 1], 1> = TypedXorNode::new(["only"]);
+/// ```
+pub struct TypedXorNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// The exclusive-choice branches.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedXorNode<Children, ARITY>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// Constructs a `TypedXorNode` — only possible when `ARITY >= 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::process_tree::TypedXorNode;
+    /// let node: TypedXorNode<[&str; 3], 3> = TypedXorNode::new(["a", "b", "c"]);
+    /// assert_eq!(node.children.len(), 3);
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedXorNode { children }
+    }
+}
+
+// ── AND (Parallel) operator node (type-law surface) ──────────────────────────
+
+/// A parallel (AND) operator node with arity encoded as a const generic
+/// parameter.
+///
+/// AND requires **at least 2** children — a parallel composition of one thing
+/// is trivially degenerate. `TypedAndNode<_, 1>` does **not compile**.
+///
+/// ## Paper
+///
+/// Leemans (2013) inductive miner — the `∧` (parallel / and) operator.
+///
+/// ## What this is NOT
+///
+/// Structure only. Does not execute, replay, or discover. Graduate to `wasm4pm`.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedAndNode;
+/// let _: TypedAndNode<[&str; 2], 2> = TypedAndNode::new(["left", "right"]);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedAndNode;
+/// // AND with arity 1 is degenerate — compile error.
+/// let _: TypedAndNode<[&str; 1], 1> = TypedAndNode::new(["only"]);
+/// ```
+pub struct TypedAndNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// The concurrent branches.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedAndNode<Children, ARITY>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// Constructs a `TypedAndNode` — only possible when `ARITY >= 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::process_tree::TypedAndNode;
+    /// let node: TypedAndNode<[&str; 2], 2> = TypedAndNode::new(["step_a", "step_b"]);
+    /// assert_eq!(node.children[0], "step_a");
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedAndNode { children }
+    }
+}
+
+// ── SEQ (Sequence) operator node (type-law surface) ──────────────────────────
+
+/// A sequence (SEQ) operator node with arity encoded as a const generic
+/// parameter.
+///
+/// SEQ requires **at least 2** children — a sequence of one element has no
+/// ordering content. `TypedSeqNode<_, 1>` does **not compile**.
+///
+/// ## Paper
+///
+/// Leemans (2013) inductive miner — the `→` (sequence) operator.
+///
+/// ## What this is NOT
+///
+/// Structure only. Does not execute, replay, or discover. Graduate to `wasm4pm`.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedSeqNode;
+/// let _: TypedSeqNode<[&str; 2], 2> = TypedSeqNode::new(["first", "second"]);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedSeqNode;
+/// // SEQ with arity 1 is degenerate — compile error.
+/// let _: TypedSeqNode<[&str; 1], 1> = TypedSeqNode::new(["only"]);
+/// ```
+pub struct TypedSeqNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// The ordered children in declared execution order.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedSeqNode<Children, ARITY>
+where
+    Require<{ ARITY >= 2 }>: IsTrue,
+{
+    /// Constructs a `TypedSeqNode` — only possible when `ARITY >= 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::process_tree::TypedSeqNode;
+    /// let node: TypedSeqNode<[&str; 3], 3> = TypedSeqNode::new(["a", "b", "c"]);
+    /// assert_eq!(node.children[2], "c");
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedSeqNode { children }
+    }
+}
+
 // ── Identifier and operator types ────────────────────────────────────────────
 
 /// Zero-cost identifier for a [`ProcessTreeNode`].
