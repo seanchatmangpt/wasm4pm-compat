@@ -313,6 +313,76 @@ where
     }
 }
 
+// ── Quality dimension enum ───────────────────────────────────────────────────
+
+/// The four canonical quality dimensions for process model evaluation, plus the
+/// F1 harmonic mean, as defined by van der Aalst (2016).
+///
+/// This is a **runtime** companion to [`QualityMetricKind`] in `law.rs`.
+/// `QualityMetricKind` is a `ConstParamTy` enum used as a const generic
+/// parameter; `QualityDimension` is an ordinary enum for runtime dispatch,
+/// pattern matching, and storing dimension metadata alongside a score.
+///
+/// ## What this is
+///
+/// - A closed enum naming each quality dimension.
+/// - Usable in `match` to dispatch on dimension at runtime.
+/// - Derivable, cloneable, and hashable — suitable for maps and error messages.
+///
+/// ## What this is NOT
+///
+/// - Not a metric value or score carrier — use [`Fitness`], [`Precision`], etc.
+/// - Not a const-generic param — use [`QualityMetricKind`] for that.
+/// - Not an engine concern — no computation happens here.
+///
+/// ## Paper
+///
+/// van der Aalst (2016). *Process Mining: Data Science in Action*. §9.
+/// The four orthogonal dimensions are fitness, precision, generalization, and
+/// simplicity. F1 is the harmonic mean of fitness and precision.
+///
+/// ```
+/// use wasm4pm_compat::conformance::QualityDimension;
+/// let all = [
+///     QualityDimension::Fitness,
+///     QualityDimension::Precision,
+///     QualityDimension::F1,
+///     QualityDimension::Generalization,
+///     QualityDimension::Simplicity,
+/// ];
+/// assert_eq!(all.len(), 5);
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum QualityDimension {
+    /// Token-replay or alignment-based fitness: how much of the observed
+    /// log behaviour the model can replay.
+    Fitness,
+    /// Precision: how much of the model's behaviour appears in the log
+    /// (inverse of over-generalisation).
+    Precision,
+    /// F1: harmonic mean of fitness and precision — a balanced quality score.
+    F1,
+    /// Generalization: how well the model covers traces *not* in the
+    /// discovery log (resistance to over-fitting).
+    Generalization,
+    /// Simplicity: structural parsimony of the process model — fewer
+    /// redundant nodes and arcs score higher.
+    Simplicity,
+}
+
+impl core::fmt::Display for QualityDimension {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            QualityDimension::Fitness => "fitness",
+            QualityDimension::Precision => "precision",
+            QualityDimension::F1 => "f1",
+            QualityDimension::Generalization => "generalization",
+            QualityDimension::Simplicity => "simplicity",
+        };
+        write!(f, "{name}")
+    }
+}
+
 // ── Alignment move markers ──────────────────────────────────────────────────
 
 /// Witness: a **synchronous move** — log and model agree on a step.
