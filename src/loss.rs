@@ -346,6 +346,101 @@ impl<From, To, Items> LossReport<From, To, Items> {
     pub fn into_lost(self) -> Items {
         self.lost
     }
+
+    /// Returns a [`NamedLoss`] summarizing this report as a named loss occurrence.
+    ///
+    /// The [`NamedLoss`] pairs the projection name with a caller-supplied category
+    /// label, making the specific category of loss auditable independently of the
+    /// full item list.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossPolicy, LossReport, NamedLoss, ProjectionName};
+    ///
+    /// enum OcelShape {}
+    /// enum XesShape {}
+    ///
+    /// let report = LossReport::<OcelShape, XesShape, Vec<&str>>::new(
+    ///     ProjectionName("ocel-flatten-to-xes:by-order"),
+    ///     LossPolicy::AllowLossWithReport,
+    ///     vec!["item", "invoice"],
+    /// );
+    /// let summary = report.summary("DroppedObjectTypeLinks");
+    /// assert_eq!(summary.projection().as_str(), "ocel-flatten-to-xes:by-order");
+    /// assert_eq!(summary.category(), "DroppedObjectTypeLinks");
+    /// ```
+    #[inline]
+    pub fn summary(&self, category: &'static str) -> NamedLoss {
+        NamedLoss::new(self.projection, category)
+    }
+}
+
+impl<From, To, Items: IsEmpty> LossReport<From, To, Items> {
+    /// Returns `true` when the report contains no discarded items.
+    ///
+    /// Only available when `Items` implements [`IsEmpty`] (blanket-impl on
+    /// `Vec<T>`, `&[T]`, and `&str`). A lossless report is valid even under
+    /// [`LossPolicy::RefuseLoss`] because no evidence was actually dropped.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+    ///
+    /// enum A {}
+    /// enum B {}
+    ///
+    /// let empty = LossReport::<A, B, Vec<u8>>::new(
+    ///     ProjectionName("p"),
+    ///     LossPolicy::AllowLossWithReport,
+    ///     vec![],
+    /// );
+    /// assert!(empty.is_lossless());
+    ///
+    /// let non_empty = LossReport::<A, B, Vec<u8>>::new(
+    ///     ProjectionName("p"),
+    ///     LossPolicy::AllowLossWithReport,
+    ///     vec![1_u8],
+    /// );
+    /// assert!(!non_empty.is_lossless());
+    /// ```
+    #[inline]
+    pub fn is_lossless(&self) -> bool {
+        self.lost.is_empty()
+    }
+}
+
+/// Helper bound: types that can report whether they hold zero items.
+///
+/// Blanket-implemented for `Vec<T>`, `&[T]`, and `&str`. Not intended for
+/// downstream implementation; use it as a bound on [`LossReport::is_lossless`].
+///
+/// Structure-only helper trait. It carries no engine logic.
+pub trait IsEmpty {
+    /// Returns `true` when `self` holds no items.
+    fn is_empty(&self) -> bool;
+}
+
+impl<T> IsEmpty for Vec<T> {
+    #[inline]
+    fn is_empty(&self) -> bool {
+        Vec::is_empty(self)
+    }
+}
+
+impl<T> IsEmpty for &[T] {
+    #[inline]
+    fn is_empty(&self) -> bool {
+        <[T]>::is_empty(self)
+    }
+}
+
+impl IsEmpty for &str {
+    #[inline]
+    fn is_empty(&self) -> bool {
+        str::is_empty(self)
+    }
 }
 
 /// The named lossy-projection law — the only sanctioned way to drop evidence.
