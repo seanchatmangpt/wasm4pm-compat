@@ -100,6 +100,90 @@ marked before firing).
 
 ---
 
+## #34 — The Application of Petri Nets to Workflow Management (van der Aalst, 1998)
+
+**Paper:** The Application of Petri Nets to Workflow Management  
+**Canon family:** `WF_NET_SOUNDNESS`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Van der Aalst (1998) defines the WF-net soundness criterion: a WF-net is
+sound if and only if (1) option completeness — every reachable marking can
+reach the final marking, (2) proper completion — the final marking is the
+unique terminal state, and (3) no dead transitions — every transition is
+reachable from the initial marking.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| WF-net (source/sink place) | `src/petri.rs::WfNetConst<SOUNDNESS>` | `wfnet_forged_soundness` compile-fail |
+| Soundness witness (non-forgeable) | `src/petri.rs::WfNetSoundnessWitness` | constructor is `pub(crate)` |
+| Soundness paper witness marker | `src/witness.rs::WfNetSoundnessPaper` | — |
+| Soundness state | `src/petri.rs::SoundnessState` | — |
+
+**Structural laws this crate enforces:**
+
+- `WfNetConst<true>` (sound) cannot be forged — the `WfNetSoundnessWitness`
+  constructor is `pub(crate)`. The `wfnet_forged_soundness` compile-fail
+  fixture seals this: it is impossible to construct a sound WF-net
+  without going through the lawful admission path.
+- `WfNetSoundnessPaper` in `src/witness.rs` is the named receipt that
+  a given `WfNetConst<SOUNDNESS>` derives its soundness claim from the
+  van der Aalst (1998) criterion, not from an ad-hoc boolean flag.
+- `WfNetConst<false>` (unsound) is a distinct type — passing an unsound
+  net where a sound net is required is a compile error, not a runtime panic.
+
+**What must NOT live in this crate:**
+
+- WF-net soundness verification algorithm execution (WOFLAN reduction)
+- WF-net to free-choice net transformation (structural reduction algorithm)
+- Coverability graph construction for soundness analysis
+- Dead-transition detection execution
+
+---
+
+## #35 — OCEL: A Standard for Object-Centric Event Logs (van der Aalst, Berti, 2020)
+
+**Paper:** OCEL: A Standard for Object-Centric Event Logs  
+**Canon family:** `OCEL_OBJECT_CENTRIC`  
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+OCEL 1.0 (van der Aalst, Berti, 2020) defines the original object-centric
+event log standard. The event-to-object link (E2O) is the foundational
+structural novelty — unlike flat XES logs, OCEL events belong to multiple
+objects simultaneously. OCEL 1.0 is the structural ancestor of OCEL 2.0
+(which adds object-to-object links and a richer attribute model; see #25).
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Object-centric event log | `src/ocel.rs::OcelLog` | — |
+| Event (belongs to multiple objects) | `src/ocel.rs::OcelEvent` | `ocel_e2o_missing_link` compile-fail |
+| Object | `src/ocel.rs::OcelObject` | — |
+| Event-to-object link | `src/ocel.rs::EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| Object type, event type | `src/ocel.rs` (typed fields) | — |
+| Witness covering both versions | `src/witness.rs::Ocel20` | subsumes OCEL 1.0 and 2.0 |
+
+**Structural laws this crate enforces:**
+
+- An `OcelEvent` without a declared `EventObjectLink` is a type error.
+  The `ocel_e2o_missing_link` compile-fail fixture seals this for both
+  OCEL 1.0 and OCEL 2.0.
+- `Ocel20` in `src/witness.rs` is the named witness for both OCEL versions;
+  OCEL 1.0 structures are a strict subset of OCEL 2.0.
+- OCEL 1.0 does not flatten to XES without a `LossReport` — object
+  multiplicity is lost in the flattening. The `ocel_to_xes_no_loss_report`
+  compile-fail fixture seals this.
+
+**What must NOT live in this crate:**
+
+- OCEL JSON/XML/SQLite wire format parsing
+- Object-type inference from raw data
+- OCEL discovery algorithm execution
+
+---
+
 ## #21 — No AI Without PI! (van der Aalst, 2025)
 
 **Paper:** No AI Without PI! Object-Centric Process Mining as the Enabler
