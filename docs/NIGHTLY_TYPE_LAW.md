@@ -1342,3 +1342,24 @@ Two compile-fail fixtures seal this boundary:
 |---|---|---|---|---|
 | `xes-to-oced-projection-boundary` — XES→OCED lifting requires `LossyFormatExport` (mandatory report), not `FormatExport` (optional) | `formats::LossyFormatExport` / `formats::accept_lossy_xes_to_oced` | `compile_pass/xes_to_oced_named_projection.rs` | `compile_fail/xes_to_oced_loss_report_rejected.rs` | van der Aalst & Berti (2020) OCED §3; IEEE 1849-2023 |
 | `xes-to-oced-without-loss-policy` — `FormatExport::lossy` (optional wrapper) rejected where mandatory `LossyFormatExport` required | `formats::LossyFormatExport` mandatory type gate | `compile_pass/xes_to_oced_named_projection.rs` | `compile_fail/xes_to_oced_without_loss_policy.rs` | `xes_to_oced_without_loss_policy.stderr` |
+
+### XES-to-OCEL direction law
+
+XES→OCEL is structurally distinct from XES→OCED. OCEL 2.0 adds two first-class
+link types absent from flat XES: event-to-object (E2O) links and object-to-object
+(O2O) links. Lifting a XES log to OCEL requires not only inferring object types
+(as in XES→OCED) but also manufacturing E2O links from the flat case notion.
+This is a higher-loss, higher-assumption projection.
+
+The structural distinction:
+- XES→OCED: case notion → object type, single-case assumption inferred
+- XES→OCEL: case notion → object type, E2O links manufactured, O2O links absent (gap)
+
+Both directions require `LossyFormatExport`. The `xes_not_object_centric.rs`
+compile-fail fixture seals the fundamental structural direction: a `XesCaseCentricLog`
+cannot substitute an `OcelLog` at the type level, regardless of direction.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-to-ocel-direction-law` — XES→OCEL lifting requires E2O link manufacturing and a `LossReport`; distinct from XES→OCED | `xes::XesLog` → `ocel::OcelLog` via `formats::LossyFormatExport` | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | OCEL 2.0 §3 E2O / O2O link model; van der Aalst & Berti (2020) |
+| `xes-ocel-structural-gap` — a flat XES log has no O2O links; lifting to OCEL leaves O2O structurally absent | graduation boundary: `ocel::ObjectObjectLink` absent in XES; gap named in `LossReport` | `compile_pass/xes_case_centric_log.rs` | — (gap documented in LossReport, not a compile error) | OCEL 2.0 §3 O2O link model |
