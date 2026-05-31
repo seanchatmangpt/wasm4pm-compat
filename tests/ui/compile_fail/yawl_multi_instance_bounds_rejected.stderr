@@ -1,0 +1,67 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_multi_instance_bounds_rejected.rs:13:12
+   |
+13 |     let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `MultipleInstanceSpecConst`
+  --> src/petri.rs
+   |
+   | pub struct MultipleInstanceSpecConst<const MIN: u32, const MAX: u32>
+   |            ------------------------- required by a bound in this struct
+...
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `MultipleInstanceSpecConst`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_multi_instance_bounds_rejected.rs:13:46
+   |
+13 |     let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `MultipleInstanceSpecConst`
+  --> src/petri.rs
+   |
+   | pub struct MultipleInstanceSpecConst<const MIN: u32, const MAX: u32>
+   |            ------------------------- required by a bound in this struct
+...
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `MultipleInstanceSpecConst`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_multi_instance_bounds_rejected.rs:13:46
+   |
+13 |     let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `MultipleInstanceSpecConst::<MIN, MAX>::new`
+  --> src/petri.rs
+   |
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `MultipleInstanceSpecConst::<MIN, MAX>::new`
+...
+   |     pub const fn new() -> Self {
+   |                  --- required by a bound in this associated function
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/yawl_multi_instance_bounds_rejected.rs:13:46
+   |
+13 |     let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
+   |                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `MultipleInstanceSpecConst`
+  --> src/petri.rs
+   |
+   | pub struct MultipleInstanceSpecConst<const MIN: u32, const MAX: u32>
+   |            ------------------------- required by a bound in this struct
+...
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `MultipleInstanceSpecConst`

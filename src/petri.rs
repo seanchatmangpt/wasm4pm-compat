@@ -1073,6 +1073,107 @@ impl MultipleInstanceSpec {
     }
 }
 
+// ── YAWL multiple-instance bounds — compile-time law surface ────────────────
+
+/// A YAWL multiple-instance spec with bounds enforced **at compile time**.
+///
+/// `MultipleInstanceSpecConst<MIN, MAX>` encodes the YAWL Definition 1 `nofi`
+/// invariant `1 ≤ MIN ≤ MAX` as const-generic where-bounds so that a violation
+/// is a **compile error**, not a runtime refusal.
+///
+/// Law: YAWL Definition 1 nofi — `min: N`, `max: N^∞`, `1 ≤ min ≤ max`.
+///
+/// ## Compile-time negative receipt
+///
+/// `MultipleInstanceSpecConst<5, 2>` does **not compile** because `5 <= 2` is
+/// false — the `Require<{ MIN <= MAX }>: IsTrue` bound fails at the type level.
+/// `MultipleInstanceSpecConst<0, 4>` does **not compile** because `0 >= 1` is
+/// false — `Require<{ MIN >= 1 }>: IsTrue` fails.
+///
+/// Use [`MultipleInstanceSpec`] for runtime-validated, dynamically constructed
+/// specs. Use this type when the bounds are known at compile time and you want
+/// the compiler to verify them.
+///
+/// Structure-only: zero-cost (`_private: ()`) marker that carries the min/max
+/// law in its type. No engine logic.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
+/// // 1 <= 4: lawful at compile time.
+/// let _: MultipleInstanceSpecConst<1, 4> = MultipleInstanceSpecConst::new();
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
+/// // 5 > 2: compile error — Require<{ 5 <= 2 }>: IsTrue not satisfied.
+/// let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
+/// ```
+pub struct MultipleInstanceSpecConst<const MIN: u32, const MAX: u32>
+where
+    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    _private: (),
+}
+
+impl<const MIN: u32, const MAX: u32> MultipleInstanceSpecConst<MIN, MAX>
+where
+    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    /// Construct a `MultipleInstanceSpecConst<MIN, MAX>` — only possible when
+    /// `MIN >= 1` and `MIN <= MAX`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
+    /// let _: MultipleInstanceSpecConst<1, 1> = MultipleInstanceSpecConst::new();
+    /// let _: MultipleInstanceSpecConst<2, 10> = MultipleInstanceSpecConst::new();
+    /// ```
+    pub const fn new() -> Self {
+        MultipleInstanceSpecConst { _private: () }
+    }
+
+    /// The minimum instance count encoded in the type.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
+    /// assert_eq!(MultipleInstanceSpecConst::<2, 5>::new().min(), 2);
+    /// ```
+    pub const fn min(&self) -> u32 {
+        MIN
+    }
+
+    /// The maximum instance count encoded in the type.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
+    /// assert_eq!(MultipleInstanceSpecConst::<2, 5>::new().max(), 5);
+    /// ```
+    pub const fn max(&self) -> u32 {
+        MAX
+    }
+}
+
+impl<const MIN: u32, const MAX: u32> Default for MultipleInstanceSpecConst<MIN, MAX>
+where
+    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
+    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 /// The specific, named laws under which Petri-net / WF-net / OC-Petri-net
 /// structure is refused.
 ///
