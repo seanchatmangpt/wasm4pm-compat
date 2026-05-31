@@ -451,6 +451,67 @@ impl IsEmpty for &str {
     }
 }
 
+/// A **compile-time** named-loss marker: the loss category is baked in as a
+/// const generic `&'static str` so two distinct categories produce distinct
+/// types at zero runtime cost.
+///
+/// Use [`NamedLossConst`] when the loss category is known at compile time and
+/// you want the type system to enforce that a `DroppedObjectTypeLinks` report
+/// cannot be confused with a `FlattenedMultiObjectRelation` report.  For
+/// runtime-determined categories use [`NamedLoss`] instead.
+///
+/// Structure-only zero-sized marker.  It carries no engine logic; graduate to
+/// `wasm4pm` to act on it.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::NamedLossConst;
+///
+/// type DroppedLinks = NamedLossConst<"DroppedObjectTypeLinks">;
+/// type FlattenedRel = NamedLossConst<"FlattenedMultiObjectRelation">;
+///
+/// // The category name is recoverable at run time.
+/// assert_eq!(DroppedLinks::NAME, "DroppedObjectTypeLinks");
+/// assert_eq!(FlattenedRel::NAME, "FlattenedMultiObjectRelation");
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NamedLossConst<const NAME: &'static str>;
+
+impl<const NAME: &'static str> NamedLossConst<NAME> {
+    /// The loss-category label as a `&'static str`, recoverable at run time.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::NamedLossConst;
+    ///
+    /// assert_eq!(
+    ///     NamedLossConst::<"DroppedObjectTypeLinks">::NAME,
+    ///     "DroppedObjectTypeLinks",
+    /// );
+    /// ```
+    pub const NAME: &'static str = NAME;
+}
+
+impl<const NAME: &'static str> core::fmt::Display for NamedLossConst<NAME> {
+    /// Formats as the loss category name.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::NamedLossConst;
+    ///
+    /// assert_eq!(
+    ///     format!("{}", NamedLossConst::<"DroppedObjectTypeLinks">),
+    ///     "DroppedObjectTypeLinks",
+    /// );
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(NAME)
+    }
+}
+
 /// The named lossy-projection law — the only sanctioned way to drop evidence.
 ///
 /// An implementor names a single projection (`Self::From → Self::To`) that may
