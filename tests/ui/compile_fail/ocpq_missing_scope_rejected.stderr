@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_missing_scope_rejected.rs:32:30
+   |
+32 |     admit_to_evaluation_gate(refused);
+   |     ------------------------ ^^^^^^^ expected `OcpqQuery`, found `OcpqRefusal`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_missing_scope_rejected.rs:24:4
+   |
+24 | fn admit_to_evaluation_gate(_q: OcpqQuery) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^ -------------
