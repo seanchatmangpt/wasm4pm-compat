@@ -106,8 +106,18 @@ impl ObjectScope {
 
 /// The structural kind of an OCPQ predicate.
 ///
-/// **Structure only**: records *what the predicate asserts*, carried as an
-/// opaque expression string. It does NOT parse or evaluate the expression.
+/// **Structure only**: records *what the predicate asserts*. It does NOT parse
+/// or evaluate the predicate.
+///
+/// OCPQ Section 4 (BASIC_L) defines three typed relation predicate kinds:
+/// [`PredicateKind::E2ORelation`], [`PredicateKind::O2ORelation`], and
+/// [`PredicateKind::TimeBetweenEvents`]. These replace the opaque
+/// `Relation(String)` / `Temporal(String)` placeholders and name the three
+/// structurally distinct link types so they cannot be confused at the call site.
+///
+/// Section 4 also introduces CHILD SET predicates:
+/// [`PredicateKind::ChildSetBound`] carries a named branch label with a count
+/// bound, distinguishing it from the anonymous [`PredicateKind::Cardinality`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PredicateKind {
     /// An event predicate (opaque condition on an event).
@@ -115,10 +125,20 @@ pub enum PredicateKind {
     /// An object predicate (opaque condition on an object).
     Object(String),
     /// A relation predicate (opaque condition on an E2O / O2O link).
+    ///
+    /// Prefer [`PredicateKind::E2ORelation`] or [`PredicateKind::O2ORelation`]
+    /// when the link type is known; this variant is retained for backwards
+    /// compatibility with opaque link expressions.
     Relation(String),
     /// A temporal predicate (opaque ordering / duration condition).
+    ///
+    /// Prefer [`PredicateKind::TimeBetweenEvents`] when the predicate is a TBE
+    /// constraint with explicit variable names and duration bounds.
     Temporal(String),
     /// A cardinality predicate with an inclusive `[min, max]` count bound.
+    ///
+    /// This is an anonymous count bound. Use [`PredicateKind::ChildSetBound`]
+    /// when the bound is over a named child branch (OCPQ CBS predicate).
     Cardinality {
         /// Inclusive lower bound.
         min: usize,
@@ -127,6 +147,110 @@ pub enum PredicateKind {
     },
     /// A nested sub-query, by reference into [`OcpqQuery::sub_queries`].
     Nested(usize),
+    // ── OCPQ Section 4 typed predicate variants ──────────────────────────────
+    /// An event-to-object relation predicate (E2O).
+    ///
+    /// OCPQ Section 4 BASIC_L — `E2O(event_var, object_var, qualifier?)`:
+    /// asserts that the named event is related to the named object via an
+    /// optional qualifier (object-type or relation name). Structure-only: the
+    /// variable names are strings; resolution against the log graduates to
+    /// `wasm4pm`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{Predicate, PredicateKind, RelationPredicate};
+    /// let p = Predicate::<RelationPredicate>::new(PredicateKind::E2ORelation {
+    ///     event_var: "e1".into(),
+    ///     object_var: "o1".into(),
+    ///     qualifier: Some("order".into()),
+    /// });
+    /// assert!(matches!(p.kind, PredicateKind::E2ORelation { .. }));
+    /// ```
+    E2ORelation {
+        /// The event variable name.
+        event_var: String,
+        /// The object variable name.
+        object_var: String,
+        /// An optional qualifier (object type or relation label).
+        qualifier: Option<String>,
+    },
+    /// An object-to-object relation predicate (O2O).
+    ///
+    /// OCPQ Section 4 BASIC_L — `O2O(object_var1, object_var2, qualifier?)`:
+    /// asserts that two named objects are related via an optional qualifier.
+    /// Structure-only; resolution graduates to `wasm4pm`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{Predicate, PredicateKind, RelationPredicate};
+    /// let p = Predicate::<RelationPredicate>::new(PredicateKind::O2ORelation {
+    ///     object_var1: "o1".into(),
+    ///     object_var2: "o2".into(),
+    ///     qualifier: None,
+    /// });
+    /// assert!(matches!(p.kind, PredicateKind::O2ORelation { .. }));
+    /// ```
+    O2ORelation {
+        /// The first object variable name.
+        object_var1: String,
+        /// The second object variable name.
+        object_var2: String,
+        /// An optional qualifier (relation label).
+        qualifier: Option<String>,
+    },
+    /// A time-between-events predicate (TBE).
+    ///
+    /// OCPQ Section 4 BASIC_L — `TBE(event_var1, event_var2, t_min, t_max)`:
+    /// asserts that the duration between the timestamps of two named events
+    /// lies in `[t_min, t_max]` (in milliseconds or the log's time unit).
+    /// Structure-only; temporal evaluation graduates to `wasm4pm`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{Predicate, PredicateKind, TemporalPredicate};
+    /// let p = Predicate::<TemporalPredicate>::new(PredicateKind::TimeBetweenEvents {
+    ///     event_var1: "e1".into(),
+    ///     event_var2: "e2".into(),
+    ///     t_min: 0,
+    ///     t_max: 3_600_000,
+    /// });
+    /// assert!(matches!(p.kind, PredicateKind::TimeBetweenEvents { .. }));
+    /// ```
+    TimeBetweenEvents {
+        /// The first event variable name.
+        event_var1: String,
+        /// The second event variable name.
+        event_var2: String,
+        /// Minimum duration bound (inclusive), in the log's time unit.
+        t_min: u64,
+        /// Maximum duration bound (inclusive), in the log's time unit.
+        t_max: u64,
+    },
+    /// A CHILD SET BOUND predicate (CBS).
+    ///
+    /// OCPQ Section 4 — `CBS(branch_label, n_min, n_max)`: asserts that a
+    /// parent node has between `n_min` and `n_max` child bindings satisfying
+    /// the branch named `branch_label`. Unlike [`PredicateKind::Cardinality`]
+    /// (which is an anonymous count bound), this variant is labelled: the
+    /// branch name is structurally required.
+    ///
+    /// [`OcpqRefusal::InvalidChildSetBound`] is raised if `min > max` or if
+    /// `branch_label` is empty.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{Predicate, PredicateKind, CardinalityPredicate};
+    /// let p = Predicate::<CardinalityPredicate>::new(PredicateKind::ChildSetBound {
+    ///     branch_label: "items".into(),
+    ///     min: 1,
+    ///     max: 5,
+    /// });
+    /// assert!(matches!(p.kind, PredicateKind::ChildSetBound { .. }));
+    /// ```
+    ChildSetBound {
+        /// The name of the child branch this bound applies to.
+        branch_label: String,
+        /// Inclusive lower bound on child-binding count.
+        min: usize,
+        /// Inclusive upper bound on child-binding count.
+        max: usize,
+    },
 }
 
 /// A single OCPQ predicate, tagged with a witness `W`.
@@ -216,6 +340,12 @@ pub enum OcpqRefusal {
     /// Evaluating the query as posed would require flattening the OCEL log —
     /// refused, because flattening loses object identity.
     FlatteningRequired,
+    /// A [`PredicateKind::ChildSetBound`] had `min > max` or an empty
+    /// `branch_label`.
+    ///
+    /// Law: OCPQ Section 4 CBS(A, n_min, n_max) requires a non-empty branch
+    /// name and `n_min ≤ n_max`.
+    InvalidChildSetBound,
 }
 
 impl core::fmt::Display for OcpqRefusal {
@@ -227,6 +357,7 @@ impl core::fmt::Display for OcpqRefusal {
             OcpqRefusal::InvalidCardinality => "InvalidCardinality",
             OcpqRefusal::UnsafeProjection => "UnsafeProjection",
             OcpqRefusal::FlatteningRequired => "FlatteningRequired",
+            OcpqRefusal::InvalidChildSetBound => "InvalidChildSetBound",
         };
         write!(f, "OCPQ refused: {law}")
     }
