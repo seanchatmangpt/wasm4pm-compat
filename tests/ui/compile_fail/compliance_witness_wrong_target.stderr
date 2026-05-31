@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/compliance_witness_wrong_target.rs:30:29
+   |
+30 |     accepts_compliance_only(outcome_problem);
+   |     ----------------------- ^^^^^^^^^^^^^^^ expected `PredictionProblem<ComplianceTarget>`, found `PredictionProblem<OutcomeLabel>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `wasm4pm_compat::prediction::PredictionProblem<ComplianceTarget>`
+              found struct `wasm4pm_compat::prediction::PredictionProblem<wasm4pm_compat::prediction::OutcomeLabel>`
+note: function defined here
+  --> tests/ui/compile_fail/compliance_witness_wrong_target.rs:21:4
+   |
+21 | fn accepts_compliance_only(_p: PredictionProblem<ComplianceTarget>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^ ---------------------------------------
