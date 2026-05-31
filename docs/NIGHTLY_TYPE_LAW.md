@@ -1857,3 +1857,30 @@ nodes violate the structural well-formedness of the choice graph.
 - Choice-graph execution semantics (which edge is taken at runtime)
 - Choice-graph serialization / deserialization (PTML wire format)
 - Choice-graph to WF-net translation execution
+
+---
+
+### process-tree-loop-arity-law
+
+**Law concept:** `TypedLoopNode<Children, ARITY>` in `src/process_tree.rs` enforces
+loop arity at compile time via `Require<{ ARITY == 2 }>: IsTrue`. A loop node with
+arity 1 or 3 is a compile error, not a runtime panic. This is the strongest form of
+the loop law: the constraint is a where-bound evaluated by the compiler, producing
+an error at the definition site rather than the call site.
+
+**Paper:** Leemans (2013) inductive miner — the loop operator `*(do, redo)` requires
+exactly two children. van der Aalst (2011) process tree definition likewise specifies
+the loop operator as binary. This arity constraint is immutable across all
+process-tree definitions in the literature.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `typed-loop-node-arity-2` — `TypedLoopNode<_, 2>` compiles; `TypedLoopNode<_, 3>` does not | `process_tree::TypedLoopNode<Children, ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013); van der Aalst (2011) |
+| `loop-arity-const-gate` — the arity constraint is `Require<{ ARITY == 2 }>: IsTrue`, not a runtime assertion; violation is caught at the definition site | `law::Require<{ ARITY == 2 }>` / `law::IsTrue` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | `generic_const_exprs` nightly feature |
+| `process-tree-loop-refusal` — a loop node with wrong arity (e.g. via the `ProcessTreeOperator::Loop` enum variant) is refused as `ProcessTreeRefusal::InvalidArity` | `process_tree::ProcessTreeRefusal::InvalidArity` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013) |
+
+**What must NOT live in this crate:**
+
+- Loop unrolling for conformance checking (loop replay — graduates to wasm4pm)
+- Arity inference from event logs (discovering how many loop children fit — graduates to wasm4pm)
+- Loop operator semantics (how many times the redo fires at runtime)
