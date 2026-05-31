@@ -1,0 +1,29 @@
+[package]
+name = "wasm4pm-compat"
+version = "0.1.0"
+edition = "2021"
+description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/wasm4pm/wasm4pm-compat"
+keywords = ["process-mining", "ocel", "event-log", "evidence", "conformance"]
+categories = ["science", "data-structures"]
+
+[features]
+# Public feature surface is EXACTLY three. No per-format flags.
+# Nightly is NOT a feature — it lives behind #[cfg(wasm4pm_compat_nightly)].
+default = ["formats"]
+# import/export contracts, round-trip claims, loss policy surfaces.
+formats = []
+# opt-in boundary judgment: strict admission/refusal declaration surfaces.
+strict = []
+# graduation bridge traits toward the wasm4pm execution engine.
+wasm4pm = []
+
+[lints.rust]
+# wasm4pm_compat_nightly is a custom cfg, not a Cargo feature; teach the
+# compiler it is expected so unexpected_cfgs does not warn on it.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(wasm4pm_compat_nightly)'] }
+
+[dependencies]
+
+[dev-dependencies]

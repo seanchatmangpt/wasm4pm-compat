@@ -1,0 +1,4 @@
+# Minimal cargo configuration for wasm4pm-compat.
+# Intentionally empty: stable Rust must build with no special flags.
+# The nightly foundry is enabled out-of-band, e.g.
+#   RUSTFLAGS="--cfg wasm4pm_compat_nightly" cargo build

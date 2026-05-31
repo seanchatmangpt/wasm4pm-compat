@@ -1,0 +1,2 @@
+# Minimum supported Rust version for clippy MSRV-aware lints.
+msrv = "1.74.0"
