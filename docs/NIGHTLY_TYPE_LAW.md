@@ -631,3 +631,59 @@ are the OCPQ-extended surface.
   evaluation — graduates to wasm4pm via `NeedsObjectCentricQueryExecution`)
 - Query language parsing (string → typed query construction)
 - Query result aggregation or scoring
+
+---
+
+## #57 — Stochastic Conformance Checking with Stochastic Petri Nets (Leemans, Syring, van der Aalst, 2019)
+
+**Paper:** Stochastic Conformance Checking with Stochastic Petri Nets
+**Canon family:** `PETRI_NETS`
+**Verdict:** `PARTIAL_WITH_REASON`
+**Active obligation:** `StochasticArcWeight<NUM, DEN>`, `ImmediateTransition`, and `TimedTransition` structural annotations in `src/petri.rs`
+
+**Law-packet notes:**
+
+A stochastic Petri net (SPN) extends a standard WF-net by annotating each
+transition with a firing rate: immediate transitions fire at rate ∞ (zero
+delay), timed transitions fire at a given positive rate. These are
+structurally distinct node kinds — not a boolean flag on a generic transition
+type. `StochasticArcWeight` is a probability annotation on an arc (the
+proportion of time the arc is chosen), distinct from the plain bipartite arc
+topology enforced by `WfNetConst`.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| WF-net base structure | `src/petri.rs::WfNetConst<SOUNDNESS>` | `wfnet_forged_soundness` compile-fail |
+| `ImmediateTransition` (zero-delay) | `src/petri.rs` — not yet typed | **gap** |
+| `TimedTransition` (rate-annotated) | `src/petri.rs` — not yet typed | **gap** |
+| `StochasticArcWeight<NUM, DEN>` | `src/petri.rs` — not yet typed | **gap** |
+| Earth mover distance metric | `src/conformance.rs` — would extend `Metric<KIND, NUM, DEN>` | graduates to wasm4pm |
+
+**Structural laws this crate partially enforces:**
+
+- `WfNetConst<SOUNDNESS>` in `src/petri.rs` provides the underlying net shape;
+  the bipartite arc law (`petri_place_to_place_arc`, `petri_transition_to_transition_arc`
+  compile-fail fixtures) and the non-forgeable soundness witness are the
+  foundational structural receipts that stochastic conformance builds upon.
+- `ImmediateTransition` and `TimedTransition` must be distinct unit-struct
+  markers on `WfNetConst` — passing a `TimedTransition` where an
+  `ImmediateTransition` is required is a type error, not a runtime check.
+- `StochasticArcWeight<NUM, DEN>` must be a `Between01`-bounded fraction
+  (from `src/law.rs::Between01<NUM, DEN>`) — a stochastic weight that
+  exceeds the unit interval is a type error.
+
+**Gap requiring future type surface:**
+
+- `ImmediateTransition` and `TimedTransition` as distinct unit-struct
+  marker types in `src/petri.rs`; a function accepting only immediate
+  transitions cannot silently accept a timed one
+- `StochasticArcWeight<NUM, DEN>` as a newtype bounded by `Between01<NUM, DEN>`
+  in `src/petri.rs`; a weight that exceeds the unit interval is a compile
+  error, not a runtime assertion
+
+**What must NOT live in this crate:**
+
+- Earth mover distance computation (stochastic language distance metric,
+  graduates to wasm4pm via `NeedsConformanceExecution`)
+- Stochastic language derivation from event logs
+- Firing rate estimation algorithms
