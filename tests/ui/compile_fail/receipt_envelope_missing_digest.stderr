@@ -1,0 +1,5 @@
+error[E0063]: missing field `digest` in initializer of `ReceiptEnvelope`
+  --> tests/ui/compile_fail/receipt_envelope_missing_digest.rs:15:14
+   |
+15 |     let _e = ReceiptEnvelope {
+   |              ^^^^^^^^^^^^^^^ missing `digest`
