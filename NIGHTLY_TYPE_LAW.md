@@ -90,6 +90,22 @@ Every row says: **which paper law** → **which type invariant** → **which com
 
 ---
 
+## Workflow Patterns — named pattern as const-generic (`src/law.rs`)
+
+| Paper | Type invariant | Pass fixture | Fail fixture |
+|---|---|---|---|
+| Russell, van der Aalst & ter Hofstede (2016) WCP catalogue | `WorkflowPattern` as `ConstParamTy` enum: `PatternNet<{ParallelSplit}>` ≠ `PatternNet<{ExclusiveChoice}>` at the type level | `workflow_pattern_const_param.rs` | `workflow_pattern_wrong_kind.rs` |
+
+---
+
+## POWL 2.0 — separable WF-net marker (`src/petri.rs`)
+
+| Paper | Type invariant | Pass fixture | Fail fixture |
+|---|---|---|---|
+| Kourani, Park & van der Aalst (2026) Definition 4.1 | `SeparableWfNet<S>` wraps `WfNetConst<S>` with a private seal; only constructible via `declare_separable()`; expresses separability precondition for POWL 2.0 conversion | `separable_wfnet_marker.rs` | **PARTIAL** — no compile-fail fixture yet; law is expressed structurally by the private seal |
+
+---
+
 ## How to add a new type-law receipt
 
 1. Identify the paper law (which paper, which section, which invariant).
