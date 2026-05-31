@@ -1884,3 +1884,31 @@ process-tree definitions in the literature.
 - Loop unrolling for conformance checking (loop replay — graduates to wasm4pm)
 - Arity inference from event logs (discovering how many loop children fit — graduates to wasm4pm)
 - Loop operator semantics (how many times the redo fires at runtime)
+
+---
+
+### powl-law family — type-law crosswalk summary
+
+This section consolidates all law-packet entries for the POWL/process-tree
+family in a single crosswalk reference. Each row names the enforcing type,
+the pass fixture, the fail fixture, and the paper source.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `partial-order-dag-law` | `powl::OrderEdge` / `powl::PowlNodeKind::PartialOrder` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `order-edge-typed-distinctness` | `powl::OrderEdge` vs `powl::ChoiceGraphEdge` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani & van der Aalst (2023) §3 |
+| `partial-order-concurrency-law` | `nightly_foundry::powl_law::TypedNode<{PowlKind::Partial}>` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `cyclic-partial-order-refused` | `powl::PowlRefusal::CyclicPartialOrder` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `choice-minimum-branch-law` | `nightly_foundry::powl_law::TypedNode<{PowlKind::Xor}>` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani & van der Aalst (2023) §3 |
+| `choice-refusal-invalid-choice` | `powl::PowlRefusal::InvalidChoice` | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `loop-marker-law` | `powl::PowlNodeKind::Loop` / `powl::PowlRefusal::InvalidLoop` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Kourani & van der Aalst (2023) §3 |
+| `process-tree-loop-arity-2` | `process_tree::TypedLoopNode<Children, ARITY>` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | Leemans (2013) |
+| `irreducible-state-law` | `powl::Irreducible` / `powl::ExceedsProcessTree` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §3-4 |
+| `exceeds-process-tree-sealed` | `powl::TreeProjectable` (sealed) | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+| `projection-refusal-law` | `powl::PowlRefusal::IrreducibleProjection` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+| `wfnet2powl-separability-required` | `petri::SeparableWfNet` precondition | `compile_pass/wfnet2powl_witness.rs` | `compile_fail/wfnet2powl_precondition_rejected.rs` | Kourani et al. (2026) Thm 4.3 |
+| `wfnet2powl-witness-non-forgeable` | `powl::WfNet2PowlWitness` private seal | `compile_pass/wfnet2powl_witness.rs` | — | Kourani et al. (2026) Thm 4.3 |
+| `silent-node-kind-law` | `powl::PowlNodeKind::Silent` / `TypedNode<{PowlKind::Silent}>` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §3 |
+| `process-tree-operator-law` | `process_tree::ProcessTreeOperator` (closed enum) | `compile_pass/process_tree_operator_node_shape.rs` | — | Leemans (2013) |
+| `powl-choice-graph-connectivity-law` | `powl::PowlNodeKind::ChoiceGraph` / `PowlRefusal::ChoiceGraphDisconnected` | `compile_pass/powl_choice_graph.rs` | — | Kourani et al. (2026) Def. 3.6 |
+| `choice-graph-edge-distinctness` | `powl::ChoiceGraphEdge` vs `powl::OrderEdge` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani et al. (2026) Def. 3.6 |
