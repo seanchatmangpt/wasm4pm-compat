@@ -512,6 +512,188 @@ impl<const NAME: &'static str> core::fmt::Display for NamedLossConst<NAME> {
     }
 }
 
+/// A sequential chain of [`NamedLoss`] descriptors documenting a multi-step
+/// lossy pipeline.
+///
+/// When evidence passes through more than one lossy projection in sequence —
+/// e.g. OCEL → flattened XES → aggregated DFG — each step produces a
+/// [`NamedLoss`].  A [`LossChain`] collects every step in order so the full
+/// provenance trail is auditable as a single value.
+///
+/// Structure-only container.  It records the chain; it does not replay or
+/// reverse it.  Graduate to `wasm4pm` to reason over the accumulated loss.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};
+///
+/// let mut chain = LossChain::new();
+/// chain.push(NamedLoss::new(
+///     ProjectionName("ocel-flatten-to-xes:by-order"),
+///     "DroppedObjectTypeLinks",
+/// ));
+/// chain.push(NamedLoss::new(
+///     ProjectionName("xes-to-dfg:aggregate"),
+///     "FlattenedTimestamps",
+/// ));
+/// assert_eq!(chain.len(), 2);
+/// assert!(!chain.is_lossless());
+/// ```
+pub struct LossChain {
+    steps: Vec<NamedLoss>,
+}
+
+impl LossChain {
+    /// Creates an empty loss chain (no steps recorded yet).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossChain;
+    ///
+    /// let chain = LossChain::new();
+    /// assert!(chain.is_lossless());
+    /// ```
+    #[inline]
+    pub fn new() -> Self {
+        LossChain { steps: Vec::new() }
+    }
+
+    /// Records a single [`NamedLoss`] step at the end of the chain.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};
+    ///
+    /// let mut chain = LossChain::new();
+    /// chain.push(NamedLoss::new(ProjectionName("p"), "SomeLoss"));
+    /// assert_eq!(chain.len(), 1);
+    /// ```
+    #[inline]
+    pub fn push(&mut self, step: NamedLoss) {
+        self.steps.push(step);
+    }
+
+    /// Returns the number of loss steps recorded in this chain.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};
+    ///
+    /// let mut chain = LossChain::new();
+    /// assert_eq!(chain.len(), 0);
+    /// chain.push(NamedLoss::new(ProjectionName("p"), "L"));
+    /// assert_eq!(chain.len(), 1);
+    /// ```
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.steps.len()
+    }
+
+    /// Returns `true` when no loss steps have been recorded.
+    ///
+    /// A chain with zero steps represents a vacuously lossless pipeline.
+    /// Alias for [`LossChain::is_lossless`]; satisfies the `len`/`is_empty`
+    /// convention required by Clippy.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossChain;
+    ///
+    /// assert!(LossChain::new().is_empty());
+    /// ```
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.steps.is_empty()
+    }
+
+    /// Returns `true` when no loss steps have been recorded.
+    ///
+    /// Semantic alias for [`LossChain::is_empty`] — use this name when the
+    /// intent is to communicate *no evidence was lost*, not just that the
+    /// container holds no elements.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossChain;
+    ///
+    /// assert!(LossChain::new().is_lossless());
+    /// ```
+    #[inline]
+    pub fn is_lossless(&self) -> bool {
+        self.steps.is_empty()
+    }
+
+    /// Returns a slice over the recorded loss steps in order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};
+    ///
+    /// let mut chain = LossChain::new();
+    /// chain.push(NamedLoss::new(ProjectionName("p"), "A"));
+    /// chain.push(NamedLoss::new(ProjectionName("q"), "B"));
+    /// assert_eq!(chain.steps()[0].category(), "A");
+    /// assert_eq!(chain.steps()[1].category(), "B");
+    /// ```
+    #[inline]
+    pub fn steps(&self) -> &[NamedLoss] {
+        &self.steps
+    }
+
+    /// Appends every step from `other` onto `self`, consuming `other`.
+    ///
+    /// Useful for merging two sub-pipeline loss chains into the top-level chain.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};
+    ///
+    /// let mut a = LossChain::new();
+    /// a.push(NamedLoss::new(ProjectionName("p"), "A"));
+    ///
+    /// let mut b = LossChain::new();
+    /// b.push(NamedLoss::new(ProjectionName("q"), "B"));
+    ///
+    /// a.extend(b);
+    /// assert_eq!(a.len(), 2);
+    /// ```
+    #[inline]
+    pub fn extend(&mut self, other: LossChain) {
+        self.steps.extend(other.steps);
+    }
+}
+
+impl Default for LossChain {
+    /// Returns an empty [`LossChain`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossChain;
+    ///
+    /// let chain: LossChain = Default::default();
+    /// assert!(chain.is_lossless());
+    /// ```
+    #[inline]
+    fn default() -> Self {
+        LossChain::new()
+    }
+}
+
+impl core::fmt::Debug for LossChain {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("LossChain").field("steps", &self.steps).finish()
+    }
+}
+
 /// The named lossy-projection law — the only sanctioned way to drop evidence.
 ///
 /// An implementor names a single projection (`Self::From → Self::To`) that may
