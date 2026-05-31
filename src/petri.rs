@@ -907,6 +907,172 @@ impl ObjectCentricPetriNet {
     }
 }
 
+// ── YAWL cancellation-region shape ──────────────────────────────────────────
+
+/// A YAWL cancellation region: the named set of place/condition/task ids whose
+/// tokens are vacuumed when the owning task fires.
+///
+/// YAWL Definition 1 (van der Aalst & ter Hofstede, 2004) specifies
+/// `rem: T ⇸ P(T ∪ C \ {i, o})` — each task optionally names a cancellation
+/// region. This struct carries the *shape* of that region: a named set of node
+/// ids. Token-removal execution (the actual vacuuming) graduates to `wasm4pm`.
+///
+/// The `#[repr(transparent)]` newtype prevents a bare `Vec<String>` from being
+/// accidentally passed where a `CancellationRegion` is required. It is zero-cost
+/// to hold and clone.
+///
+/// Structure-only: carries ids, never fires.
+///
+/// ```
+/// use wasm4pm_compat::petri::CancellationRegion;
+/// let cr = CancellationRegion::new(["p1", "t2"]);
+/// assert_eq!(cr.members(), &["p1".to_string(), "t2".to_string()]);
+/// ```
+#[repr(transparent)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct CancellationRegion {
+    /// The ids of nodes (places, conditions, tasks) in this cancellation region,
+    /// excluding the initial and final place of the net (i, o).
+    pub members: Vec<String>,
+}
+
+impl CancellationRegion {
+    /// Construct a cancellation region from an iterator of node ids.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::CancellationRegion;
+    /// let cr = CancellationRegion::new(["p1", "t2"]);
+    /// assert_eq!(cr.members().len(), 2);
+    /// ```
+    pub fn new<I, S>(members: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        CancellationRegion {
+            members: members.into_iter().map(Into::into).collect(),
+        }
+    }
+
+    /// The node ids in this cancellation region.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::CancellationRegion;
+    /// assert!(CancellationRegion::default().members().is_empty());
+    /// ```
+    pub fn members(&self) -> &[String] {
+        &self.members
+    }
+}
+
+// ── YAWL multiple-instance task spec ────────────────────────────────────────
+
+/// The creation kind for a YAWL multiple-instance task.
+///
+/// YAWL Definition 1 defines `nofi: T ⇸ N × N^∞ × N^∞ × {dynamic, static}`.
+/// The `{Static, Dynamic}` variant names whether child instances are created
+/// once at firing time (`Static`) or may be created incrementally during
+/// execution (`Dynamic`). This is the structural tag; execution semantics of
+/// dynamic spawning graduate to `wasm4pm`.
+///
+/// Structure-only marker; carries no instantiation behavior.
+///
+/// ```
+/// use wasm4pm_compat::petri::InstanceCreationKind;
+/// let k = InstanceCreationKind::Static;
+/// assert_eq!(k, InstanceCreationKind::Static);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum InstanceCreationKind {
+    /// All child instances are created at the moment the task fires.
+    Static,
+    /// Child instances may be created incrementally during the task's lifetime.
+    Dynamic,
+}
+
+/// A YAWL multiple-instance task specification: the four-tuple
+/// `(min_instances, max_instances, threshold, creation_kind)`.
+///
+/// YAWL Definition 1 (`nofi`) mandates that every multi-instance task carries:
+/// - `min`: the minimum number of child instances that must complete (`N`).
+/// - `max`: the maximum number of child instances (`N^∞`), `None` = unbounded.
+/// - `threshold`: the minimum count for collective completion (`N^∞`),
+///   `None` = all instances must complete.
+/// - `creation`: whether spawning is [`InstanceCreationKind::Static`] or
+///   [`InstanceCreationKind::Dynamic`].
+///
+/// The structural law `min <= max` (when `max` is bounded) is checked by
+/// [`MultipleInstanceSpec::validate`]; a violation is refused as
+/// [`PetriRefusal::InvalidInstanceBounds`].
+///
+/// Structure-only: instance creation and threshold enforcement graduate to
+/// `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind};
+/// let spec = MultipleInstanceSpec::new(1, Some(4), Some(2), InstanceCreationKind::Static);
+/// assert!(spec.validate().is_ok());
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MultipleInstanceSpec {
+    /// Minimum number of instances that must complete.
+    pub min: u32,
+    /// Maximum number of instances (`None` = unbounded / ∞).
+    pub max: Option<u32>,
+    /// Threshold for collective completion (`None` = all instances).
+    pub threshold: Option<u32>,
+    /// Whether child instances are created statically or dynamically.
+    pub creation: InstanceCreationKind,
+}
+
+impl MultipleInstanceSpec {
+    /// Construct a multiple-instance spec.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind};
+    /// let spec = MultipleInstanceSpec::new(1, Some(3), None, InstanceCreationKind::Dynamic);
+    /// assert_eq!(spec.min, 1);
+    /// assert_eq!(spec.creation, InstanceCreationKind::Dynamic);
+    /// ```
+    pub fn new(
+        min: u32,
+        max: Option<u32>,
+        threshold: Option<u32>,
+        creation: InstanceCreationKind,
+    ) -> Self {
+        MultipleInstanceSpec {
+            min,
+            max,
+            threshold,
+            creation,
+        }
+    }
+
+    /// Structurally validate the instance bounds.
+    ///
+    /// Returns [`PetriRefusal::InvalidInstanceBounds`] if `max` is bounded and
+    /// `min > max`, or if `min == 0` (at least one instance is required by YAWL).
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind, PetriRefusal};
+    /// let bad = MultipleInstanceSpec::new(5, Some(2), None, InstanceCreationKind::Static);
+    /// assert_eq!(bad.validate(), Err(PetriRefusal::InvalidInstanceBounds));
+    /// let zero = MultipleInstanceSpec::new(0, Some(1), None, InstanceCreationKind::Static);
+    /// assert_eq!(zero.validate(), Err(PetriRefusal::InvalidInstanceBounds));
+    /// ```
+    pub fn validate(&self) -> Result<(), PetriRefusal> {
+        if self.min == 0 {
+            return Err(PetriRefusal::InvalidInstanceBounds);
+        }
+        if let Some(max) = self.max {
+            if self.min > max {
+                return Err(PetriRefusal::InvalidInstanceBounds);
+            }
+        }
+        Ok(())
+    }
+}
+
 /// The specific, named laws under which Petri-net / WF-net / OC-Petri-net
 /// structure is refused.
 ///
@@ -936,6 +1102,14 @@ pub enum PetriRefusal {
     /// Soundness was relied upon but not witnessed — graduate to `wasm4pm` to
     /// obtain the witness.
     SoundnessNotWitnessed,
+    /// A [`CancellationRegion`] references a node id not declared in the net.
+    ///
+    /// Law: YAWL Definition 1 rem(t) ⊆ T ∪ C \ {i, o}.
+    InvalidCancellationRegion,
+    /// A [`MultipleInstanceSpec`] has `min == 0` or `min > max`.
+    ///
+    /// Law: YAWL Definition 1 nofi invariant: `1 ≤ min ≤ max`.
+    InvalidInstanceBounds,
 }
 
 impl core::fmt::Display for PetriRefusal {
@@ -949,6 +1123,8 @@ impl core::fmt::Display for PetriRefusal {
             PetriRefusal::ObjectTypeNotPreserved => "ObjectTypeNotPreserved",
             PetriRefusal::InvalidVariableArc => "InvalidVariableArc",
             PetriRefusal::SoundnessNotWitnessed => "SoundnessNotWitnessed",
+            PetriRefusal::InvalidCancellationRegion => "InvalidCancellationRegion",
+            PetriRefusal::InvalidInstanceBounds => "InvalidInstanceBounds",
         };
         write!(f, "Petri-net refused by law: {law}")
     }
