@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/xes_undeclared_extension_prefix_rejected.rs:27:39
+   |
+27 |     enforce_xes_undeclared_prefix_law(ocel_result);
+   |     --------------------------------- ^^^^^^^^^^^ expected `Result<(), XesRefusal>`, found `Result<(), OcelRefusal>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected enum `Result<(), XesRefusal>`
+              found enum `Result<(), OcelRefusal>`
+note: function defined here
+  --> tests/ui/compile_fail/xes_undeclared_extension_prefix_rejected.rs:20:4
+   |
+20 | fn enforce_xes_undeclared_prefix_law(_r: Result<(), XesRefusal>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ --------------------------
