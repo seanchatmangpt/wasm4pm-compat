@@ -323,6 +323,73 @@ impl<T, W> Evidence<T, Projected, W> {
     }
 }
 
+impl<T, W> Evidence<T, crate::state::Refused, W> {
+    /// Crate-internal: builds a `Refused` evidence carrier from a raw value.
+    ///
+    /// The value `T` is typically the same shape that arrived at the boundary; it
+    /// is carried for diagnostics.  The *reason* for refusal travels in the
+    /// [`crate::admission::Refusal`] value, not here.
+    ///
+    /// This constructor is `pub(crate)` — it is only ever called when an
+    /// [`crate::admission::Admit`] impl (or a pre-admission structural check via
+    /// [`Evidence::into_refused`] on `Parsed`) has already produced a named
+    /// refusal reason.
+    #[allow(dead_code)] // building block for crate-internal admission paths
+    #[inline]
+    pub(crate) fn refused(value: T) -> Evidence<T, crate::state::Refused, W> {
+        Evidence {
+            value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
+    }
+
+    /// Returns a reference to the (refused) value for diagnostic purposes.
+    ///
+    /// Refused evidence cannot be re-admitted or exported; this read-only
+    /// accessor exists so a caller can log or inspect *what* was refused without
+    /// coercing the stage to anything else.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::state::{Parsed};
+    /// use wasm4pm_compat::witness::Xes1849;
+    ///
+    /// let refused = Evidence::<_, _, Xes1849>::raw(b"bad-bytes".as_ref())
+    ///     .into_parsed()
+    ///     .into_refused();
+    /// assert_eq!(*refused.as_refused_value(), b"bad-bytes".as_ref());
+    /// ```
+    #[inline]
+    pub fn as_refused_value(&self) -> &T {
+        &self.value
+    }
+
+    /// Consumes the refused evidence and returns the underlying value.
+    ///
+    /// Use this only to recover the value for *diagnostics or logging* —
+    /// it does not resurrect the evidence as anything other than a plain `T`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::state::Parsed;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let refused = Evidence::<_, _, Ocel20>::raw("malformed")
+    ///     .into_parsed()
+    ///     .into_refused();
+    /// assert_eq!(refused.into_refused_value(), "malformed");
+    /// ```
+    #[inline]
+    pub fn into_refused_value(self) -> T {
+        self.value
+    }
+}
+
 impl<T, W> Evidence<T, Exportable, W> {
     /// Seals export-cleared evidence into a `Receipted` stage.
     ///
