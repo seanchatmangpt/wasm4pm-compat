@@ -53,8 +53,43 @@ impl Activity {
 ///
 /// **Structure only**: records *which template* a constraint uses, never *how
 /// it is evaluated*.
+///
+/// Templates are grouped by arity:
+/// - **Unary** (`arity() == 1`): [`Existence`], [`Absence`], [`Init`],
+///   [`Existence2`], [`Existence3`], [`Absence2`], [`Absence3`]
+/// - **Binary** (`arity() == 2`): all others
+///
+/// [`Existence`]: DeclareTemplate::Existence
+/// [`Absence`]: DeclareTemplate::Absence
+/// [`Init`]: DeclareTemplate::Init
+/// [`Existence2`]: DeclareTemplate::Existence2
+/// [`Existence3`]: DeclareTemplate::Existence3
+/// [`Absence2`]: DeclareTemplate::Absence2
+/// [`Absence3`]: DeclareTemplate::Absence3
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DeclareTemplate {
+    // ── Unary existence constraints ──────────────────────────────────────
+    /// `Existence(a)`: `a` occurs at least once.
+    Existence,
+    /// `Absence(a)`: `a` does not occur.
+    Absence,
+    /// `Init(a)`: if any activity occurs, `a` is the first activity.
+    Init,
+    /// `Existence2(a)`: `a` occurs at least twice.
+    Existence2,
+    /// `Existence3(a)`: `a` occurs at least three times.
+    Existence3,
+    /// `Absence2(a)`: `a` occurs at most once (zero or one time).
+    Absence2,
+    /// `Absence3(a)`: `a` occurs at most twice.
+    Absence3,
+
+    // ── Binary relation constraints ───────────────────────────────────────
+    /// `RespondedExistence(a, b)`: if `a` occurs, `b` must also occur
+    /// (before or after).
+    RespondedExistence,
+    /// `CoExistence(a, b)`: `a` and `b` either both occur or neither occurs.
+    CoExistence,
     /// `Response(a, b)`: every `a` is eventually followed by a `b`.
     Response,
     /// `Precedence(a, b)`: every `b` is preceded by an `a`.
@@ -64,38 +99,133 @@ pub enum DeclareTemplate {
     /// [`Response`]: DeclareTemplate::Response
     /// [`Precedence`]: DeclareTemplate::Precedence
     Succession,
+    /// `AlternateResponse(a, b)`: between any two consecutive `a`s there must
+    /// be a `b`.
+    AlternateResponse,
+    /// `AlternatePrecedence(a, b)`: between any two consecutive `b`s there
+    /// must be an `a`.
+    AlternatePrecedence,
+    /// `AlternateSuccession(a, b)`: both [`AlternateResponse`] and
+    /// [`AlternatePrecedence`] hold.
+    ///
+    /// [`AlternateResponse`]: DeclareTemplate::AlternateResponse
+    /// [`AlternatePrecedence`]: DeclareTemplate::AlternatePrecedence
+    AlternateSuccession,
+    /// `ChainResponse(a, b)`: `b` must immediately follow `a`.
+    ChainResponse,
+    /// `ChainPrecedence(a, b)`: `a` must immediately precede `b`.
+    ChainPrecedence,
+    /// `ChainSuccession(a, b)`: both [`ChainResponse`] and [`ChainPrecedence`]
+    /// hold.
+    ///
+    /// [`ChainResponse`]: DeclareTemplate::ChainResponse
+    /// [`ChainPrecedence`]: DeclareTemplate::ChainPrecedence
+    ChainSuccession,
+
+    // ── Negative / exclusion constraints ─────────────────────────────────
     /// `NotCoExistence(a, b)`: `a` and `b` never both occur in a case.
     NotCoExistence,
-    /// `Absence(a)`: `a` does not occur.
-    Absence,
-    /// `Existence(a)`: `a` occurs at least once.
-    Existence,
+    /// `NotSuccession(a, b)`: `a` cannot be eventually followed by `b`.
+    NotSuccession,
+    /// `NotChainSuccession(a, b)`: `b` cannot immediately follow `a`.
+    NotChainSuccession,
+    /// `ExclusiveChoice(a, b)`: exactly one of `a` or `b` occurs — not both,
+    /// not neither.
+    ExclusiveChoice,
 }
 
 impl DeclareTemplate {
     /// The number of activity slots the template requires (its arity).
     ///
-    /// Unary templates ([`Absence`], [`Existence`]) require one; binary
-    /// templates require two.
-    ///
-    /// [`Absence`]: DeclareTemplate::Absence
-    /// [`Existence`]: DeclareTemplate::Existence
+    /// Unary templates require one slot; binary templates require two.
     ///
     /// # Examples
     ///
     /// ```
     /// use wasm4pm_compat::declare::DeclareTemplate;
     /// assert_eq!(DeclareTemplate::Absence.arity(), 1);
+    /// assert_eq!(DeclareTemplate::Init.arity(), 1);
     /// assert_eq!(DeclareTemplate::Response.arity(), 2);
+    /// assert_eq!(DeclareTemplate::ChainSuccession.arity(), 2);
     /// ```
     pub fn arity(self) -> usize {
         match self {
-            DeclareTemplate::Absence | DeclareTemplate::Existence => 1,
-            DeclareTemplate::Response
+            DeclareTemplate::Existence
+            | DeclareTemplate::Absence
+            | DeclareTemplate::Init
+            | DeclareTemplate::Existence2
+            | DeclareTemplate::Existence3
+            | DeclareTemplate::Absence2
+            | DeclareTemplate::Absence3 => 1,
+            DeclareTemplate::RespondedExistence
+            | DeclareTemplate::CoExistence
+            | DeclareTemplate::Response
             | DeclareTemplate::Precedence
             | DeclareTemplate::Succession
-            | DeclareTemplate::NotCoExistence => 2,
+            | DeclareTemplate::AlternateResponse
+            | DeclareTemplate::AlternatePrecedence
+            | DeclareTemplate::AlternateSuccession
+            | DeclareTemplate::ChainResponse
+            | DeclareTemplate::ChainPrecedence
+            | DeclareTemplate::ChainSuccession
+            | DeclareTemplate::NotCoExistence
+            | DeclareTemplate::NotSuccession
+            | DeclareTemplate::NotChainSuccession
+            | DeclareTemplate::ExclusiveChoice => 2,
         }
+    }
+
+    /// Returns `true` if this template is a *negative* (forbidding) constraint.
+    ///
+    /// Negative templates assert that certain activity combinations must
+    /// **not** occur, as opposed to positive templates that assert they
+    /// **must** occur or must co-occur.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::DeclareTemplate;
+    /// assert!(DeclareTemplate::NotCoExistence.is_negative());
+    /// assert!(DeclareTemplate::NotSuccession.is_negative());
+    /// assert!(!DeclareTemplate::Response.is_negative());
+    /// assert!(!DeclareTemplate::Existence.is_negative());
+    /// ```
+    pub fn is_negative(self) -> bool {
+        matches!(
+            self,
+            DeclareTemplate::Absence
+                | DeclareTemplate::Absence2
+                | DeclareTemplate::Absence3
+                | DeclareTemplate::NotCoExistence
+                | DeclareTemplate::NotSuccession
+                | DeclareTemplate::NotChainSuccession
+        )
+    }
+
+    /// Returns `true` if this template is a *chain* (immediate-neighbour)
+    /// constraint.
+    ///
+    /// Chain templates constrain the *immediately following* activity, not any
+    /// future occurrence.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::DeclareTemplate;
+    /// assert!(DeclareTemplate::ChainResponse.is_chain());
+    /// assert!(DeclareTemplate::ChainPrecedence.is_chain());
+    /// assert!(DeclareTemplate::ChainSuccession.is_chain());
+    /// assert!(DeclareTemplate::NotChainSuccession.is_chain());
+    /// assert!(!DeclareTemplate::Response.is_chain());
+    /// ```
+    pub fn is_chain(self) -> bool {
+        matches!(
+            self,
+            DeclareTemplate::ChainResponse
+                | DeclareTemplate::ChainPrecedence
+                | DeclareTemplate::ChainSuccession
+                | DeclareTemplate::NotChainSuccession
+        )
     }
 }
 
@@ -179,6 +309,197 @@ impl DeclareConstraint {
             target: Some(target),
             scope,
         }
+    }
+}
+
+/// An OC-Declare constraint: a [`DeclareConstraint`] explicitly bound to one
+/// or more named object types.
+///
+/// OC-Declare extends classical Declare by attaching *object type annotations*
+/// directly to the constraint. This struct is the canonical structural form.
+/// It does **not** evaluate, mine, or replay the constraint against an
+/// object-centric event log. Graduate to `wasm4pm` for evaluation.
+///
+/// ## What this struct **IS**
+///
+/// - A named association: which [`DeclareConstraint`] applies, and which
+///   object types it is scoped to.
+/// - The structural basis for OC-Declare conformance shapes passed to
+///   `wasm4pm`.
+///
+/// ## What this struct is **NOT**
+///
+/// - Not a runtime engine. Synchronization and evaluation are out-of-scope.
+/// - Not a classical Declare model. The `object_types` field must be
+///   non-empty; an empty list is refused as
+///   [`OcDeclareRefusal::EmptyObjectTypeList`].
+///
+/// ## Graduation
+///
+/// Evaluation against an OCEL log belongs in `wasm4pm` (via the `wasm4pm`
+/// feature), not here.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::declare::{
+///     Activity, DeclareConstraint, DeclareScope, DeclareTemplate, OcDeclareConstraint,
+/// };
+/// let inner = DeclareConstraint::binary(
+///     DeclareTemplate::Response,
+///     Activity::new("submit"),
+///     Activity::new("approve"),
+///     DeclareScope::SingleObjectScope("order".into()),
+/// );
+/// let oc = OcDeclareConstraint::new(inner, vec!["order".into(), "item".into()]);
+/// assert_eq!(oc.object_types.len(), 2);
+/// assert!(!oc.is_synchronized());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OcDeclareConstraint {
+    /// The inner Declare constraint whose template and activities are scoped.
+    pub constraint: DeclareConstraint,
+    /// The object types this constraint applies to. Must be non-empty.
+    pub object_types: Vec<String>,
+    /// Whether the constraint requires a *synchronized* joint lifecycle across
+    /// all named object types (`true`) or applies independently to each type
+    /// (`false`).
+    pub synchronized: bool,
+}
+
+impl OcDeclareConstraint {
+    /// Construct a non-synchronized OC-Declare constraint over one or more
+    /// object types.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::{
+    ///     Activity, DeclareConstraint, DeclareScope, DeclareTemplate, OcDeclareConstraint,
+    /// };
+    /// let inner = DeclareConstraint::unary(
+    ///     DeclareTemplate::Existence,
+    ///     Activity::new("pay"),
+    ///     DeclareScope::SingleObjectScope("invoice".into()),
+    /// );
+    /// let oc = OcDeclareConstraint::new(inner, vec!["invoice".into()]);
+    /// assert_eq!(oc.object_types.len(), 1);
+    /// assert!(!oc.synchronized);
+    /// ```
+    pub fn new(constraint: DeclareConstraint, object_types: Vec<String>) -> Self {
+        Self {
+            constraint,
+            object_types,
+            synchronized: false,
+        }
+    }
+
+    /// Construct a *synchronized* OC-Declare constraint: all named object
+    /// types must share a joint lifecycle.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::{
+    ///     Activity, DeclareConstraint, DeclareScope, DeclareTemplate, OcDeclareConstraint,
+    /// };
+    /// let inner = DeclareConstraint::binary(
+    ///     DeclareTemplate::Succession,
+    ///     Activity::new("ship"),
+    ///     Activity::new("deliver"),
+    ///     DeclareScope::SynchronizedObjectScope(vec!["order".into(), "delivery".into()]),
+    /// );
+    /// let oc = OcDeclareConstraint::synchronized(inner, vec!["order".into(), "delivery".into()]);
+    /// assert!(oc.is_synchronized());
+    /// ```
+    pub fn synchronized(constraint: DeclareConstraint, object_types: Vec<String>) -> Self {
+        Self {
+            constraint,
+            object_types,
+            synchronized: true,
+        }
+    }
+
+    /// Returns `true` if this constraint requires a synchronized joint
+    /// lifecycle across all named object types.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::{
+    ///     Activity, DeclareConstraint, DeclareScope, DeclareTemplate, OcDeclareConstraint,
+    /// };
+    /// let c = DeclareConstraint::unary(
+    ///     DeclareTemplate::Absence,
+    ///     Activity::new("cancel"),
+    ///     DeclareScope::SingleObjectScope("order".into()),
+    /// );
+    /// let oc = OcDeclareConstraint::new(c, vec!["order".into()]);
+    /// assert!(!oc.is_synchronized());
+    /// ```
+    pub fn is_synchronized(&self) -> bool {
+        self.synchronized
+    }
+
+    /// Validate the structural shape of this OC-Declare constraint.
+    ///
+    /// Returns `Err(OcDeclareRefusal::EmptyObjectTypeList)` if `object_types`
+    /// is empty.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::{
+    ///     Activity, DeclareConstraint, DeclareScope, DeclareTemplate, OcDeclareConstraint,
+    ///     OcDeclareRefusal,
+    /// };
+    /// let inner = DeclareConstraint::unary(
+    ///     DeclareTemplate::Existence,
+    ///     Activity::new("pay"),
+    ///     DeclareScope::SingleObjectScope("invoice".into()),
+    /// );
+    /// let valid = OcDeclareConstraint::new(inner.clone(), vec!["invoice".into()]);
+    /// assert!(valid.validate().is_ok());
+    ///
+    /// let invalid = OcDeclareConstraint::new(inner, vec![]);
+    /// assert_eq!(invalid.validate(), Err(OcDeclareRefusal::EmptyObjectTypeList));
+    /// ```
+    pub fn validate(&self) -> Result<(), OcDeclareRefusal> {
+        if self.object_types.is_empty() {
+            return Err(OcDeclareRefusal::EmptyObjectTypeList);
+        }
+        Ok(())
+    }
+}
+
+/// First-class refusal law for `OcDeclareConstraint` shapes.
+///
+/// Every variant names a **specific** structural law — never a bare
+/// "InvalidInput".
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum OcDeclareRefusal {
+    /// The `object_types` list was empty; at least one object type is required
+    /// for an OC-Declare constraint.
+    EmptyObjectTypeList,
+    /// A synchronized OC-Declare constraint named fewer than two object types;
+    /// synchronization is meaningless over a single type.
+    SynchronizationRequiresMultipleTypes,
+    /// The object type named in the constraint's [`DeclareScope`] was not
+    /// present in `object_types`.
+    ScopeMismatch,
+}
+
+impl core::fmt::Display for OcDeclareRefusal {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let law = match self {
+            OcDeclareRefusal::EmptyObjectTypeList => "EmptyObjectTypeList",
+            OcDeclareRefusal::SynchronizationRequiresMultipleTypes => {
+                "SynchronizationRequiresMultipleTypes"
+            }
+            OcDeclareRefusal::ScopeMismatch => "ScopeMismatch",
+        };
+        write!(f, "OcDeclare refused: {law}")
     }
 }
 
