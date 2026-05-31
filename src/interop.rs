@@ -575,3 +575,59 @@ impl XesToOcedProjection {
         Self::PROJECTION_NAME
     }
 }
+
+// ── Graduation candidate sealed marker ──────────────────────────────────────
+//
+// Always-on (base profile): the graduation boundary is part of the core
+// interop grammar, not an optional feature. Structure-only in wasm4pm-compat;
+// execution graduates to wasm4pm.
+
+/// Sealed marker: a type that is a **graduation candidate** — it requires the
+/// `wasm4pm` execution engine to resolve its structural claim and therefore
+/// must not grow engine logic inside `wasm4pm-compat`.
+///
+/// This trait is *sealed* (`graduation_seal::Sealed`): only types that
+/// explicitly opt in via `impl graduation_seal::Sealed for MyType {}` can
+/// implement it. The seal prevents third-party crates from accidentally
+/// marking arbitrary types as graduation candidates without declaring the
+/// boundary seam.
+///
+/// ## What this trait is **NOT**
+///
+/// - **Not** the act of graduation. Implementing `GraduationCandidate` does
+///   not graduate anything; it makes the boundary explicit at the type level.
+/// - **Not** an engine. No execution, no discovery, no replay, no conformance
+///   checking. Structure only.
+///
+/// ## Graduation
+///
+/// When a host needs a graduation candidate value (reason + subject +
+/// evidence ref), use `wasm4pm_compat::graduation::GraduateToWasm4pm`
+/// (behind the `wasm4pm` feature). This sealed marker is the always-on
+/// compile-time surface that `GraduateToWasm4pm` implementors should also
+/// implement at the seam.
+///
+/// ## Usage pattern
+///
+/// ```
+/// use wasm4pm_compat::interop::{GraduationCandidate, graduation_seal};
+///
+/// struct PendingOcelDiscovery;
+///
+/// impl graduation_seal::Sealed for PendingOcelDiscovery {}
+/// impl GraduationCandidate for PendingOcelDiscovery {}
+///
+/// fn only_graduation_candidates<T: GraduationCandidate>(_: &T) {}
+/// only_graduation_candidates(&PendingOcelDiscovery);
+/// ```
+pub trait GraduationCandidate: graduation_seal::Sealed {}
+
+/// Sealing module for [`GraduationCandidate`].
+///
+/// To implement [`GraduationCandidate`], a type must first implement
+/// `graduation_seal::Sealed`. This is the sealed-trait pattern in stable Rust.
+pub mod graduation_seal {
+    /// The seal. Implement this for your type before implementing
+    /// [`super::GraduationCandidate`].
+    pub trait Sealed {}
+}
