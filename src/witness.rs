@@ -287,3 +287,53 @@ witness_marker!(
     "Alpha Algorithm (van der Aalst, Weijters & Maruster)",
     Some(2004)
 );
+witness_marker!(
+    /// OCEL 2.0 object-type namespace witness.
+    ///
+    /// Names the authority under which a specific *object type* (e.g. `"order"`,
+    /// `"item"`) within an OCEL 2.0 log is admitted or refused. Distinct from
+    /// [`Ocel20`], which names the overall standard: `OcelObjectType` names the
+    /// sub-authority that governs individual object-type declarations.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when type-level object classification must be *enforced*, not merely named.
+    OcelObjectType,
+    "ocel-object-type",
+    WitnessFamily::Standard,
+    "OCEL 2.0 object-type namespace",
+    Some(2023)
+);
+witness_marker!(
+    /// OCEL 2.0 event-type (activity) namespace witness.
+    ///
+    /// Names the authority under which a specific *event type* (activity name,
+    /// e.g. `"place_order"`, `"ship"`) within an OCEL 2.0 log is admitted or
+    /// refused. Distinct from [`Ocel20`], which names the overall standard:
+    /// `OcelEventType` names the sub-authority that governs individual activity
+    /// declarations.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when activity-type enforcement is needed.
+    OcelEventType,
+    "ocel-event-type",
+    WitnessFamily::Standard,
+    "OCEL 2.0 event-type (activity) namespace",
+    Some(2023)
+);
+witness_marker!(
+    /// OCEL 2.0 attribute-type namespace witness.
+    ///
+    /// Names the authority under which a specific *attribute domain* (e.g.
+    /// `"price"`, `"status"`, `"quantity"`) within an OCEL 2.0 object or event
+    /// is admitted or refused. Distinct from [`Ocel20`] (the overall standard)
+    /// and [`OcelObjectType`] (the object-type namespace): `OcelAttributeType`
+    /// governs individual attribute-domain declarations.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when attribute-domain validation is needed.
+    OcelAttributeType,
+    "ocel-attribute-type",
+    WitnessFamily::Standard,
+    "OCEL 2.0 attribute-type namespace",
+    Some(2023)
+);
