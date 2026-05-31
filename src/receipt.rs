@@ -450,3 +450,101 @@ impl ReceiptChain {
         &self.links[self.links.len() - 1]
     }
 }
+
+// ── GraduationReceipt ────────────────────────────────────────────────────────
+
+/// A graduation event receipt marker: records *that* a value crossed the
+/// compat → `wasm4pm` boundary.
+///
+/// `GraduationReceipt` is the structural proof that a named subject was
+/// declared as a graduation candidate. It pairs the compat-layer
+/// [`ReceiptEnvelope`] that describes the candidate with the reason key
+/// (as a stable `&'static str`) that justified crossing the boundary.
+///
+/// ## What this type **IS**
+///
+/// - A **boundary marker**: it witnesses that a value left the compat layer.
+/// - A **structural receipt**: it carries the envelope and the reason tag as
+///   plain, inspectable fields; it does nothing with them.
+///
+/// ## What this type is **NOT**
+///
+/// - **Not** a graduation action. Holding a `GraduationReceipt` does not
+///   perform graduation; it is the record *that* graduation was declared.
+/// - **Not** a cryptographic proof. Digest and replay-hint fields are
+///   carried, not computed. Graduate to `wasm4pm` for real receipt minting.
+///
+/// ## Graduation
+///
+/// When a host needs to *execute* graduation (routing a candidate into the
+/// `wasm4pm` engine), it should produce a `GraduationCandidate` via
+/// `graduation::GraduateToWasm4pm` (available under the `wasm4pm` feature)
+/// and pass it to the engine intake. `GraduationReceipt` is the audit trail
+/// of that declaration; it lives in this structure-only module.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{
+///     GraduationReceipt, ReceiptEnvelope, Digest, ReplayHint,
+/// };
+/// let envelope = ReceiptEnvelope::new(
+///     "p2p-ocel-log",
+///     "wasm4pm-bridge",
+///     Digest::new("blake3:graduate"),
+///     ReplayHint::new("wasm4pm://intake/p2p-ocel-log"),
+/// );
+/// let gr = GraduationReceipt::new(envelope, "needs_discovery");
+/// assert_eq!(gr.reason_tag, "needs_discovery");
+/// assert!(gr.envelope.is_well_shaped());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GraduationReceipt {
+    /// The receipt envelope documenting what graduated and how it is
+    /// re-groundable.
+    pub envelope: ReceiptEnvelope,
+    /// The stable reason tag (from `GraduationReason::tag()`) that justified
+    /// the graduation declaration.
+    pub reason_tag: &'static str,
+}
+
+impl GraduationReceipt {
+    /// Build a graduation receipt from an envelope and a reason tag.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{
+    ///     GraduationReceipt, ReceiptEnvelope, Digest, ReplayHint,
+    /// };
+    /// let env = ReceiptEnvelope::new(
+    ///     "log-42", "wasm4pm-bridge",
+    ///     Digest::new("blake3:xyz"), ReplayHint::new("wasm4pm://intake/log-42"),
+    /// );
+    /// let gr = GraduationReceipt::new(env, "needs_replay");
+    /// assert_eq!(gr.reason_tag, "needs_replay");
+    /// ```
+    #[must_use]
+    pub fn new(envelope: ReceiptEnvelope, reason_tag: &'static str) -> Self {
+        Self { envelope, reason_tag }
+    }
+
+    /// Whether both the receipt envelope is well-shaped and the reason tag is
+    /// non-empty.
+    ///
+    /// This is a *shape* check only.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{
+    ///     GraduationReceipt, ReceiptEnvelope, Digest, ReplayHint,
+    /// };
+    /// let env = ReceiptEnvelope::new(
+    ///     "s", "w", Digest::new("d"), ReplayHint::new("h"),
+    /// );
+    /// assert!(GraduationReceipt::new(env, "needs_discovery").is_well_shaped());
+    /// ```
+    #[must_use]
+    pub fn is_well_shaped(&self) -> bool {
+        self.envelope.is_well_shaped() && !self.reason_tag.is_empty()
+    }
+}
