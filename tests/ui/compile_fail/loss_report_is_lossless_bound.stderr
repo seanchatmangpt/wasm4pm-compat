@@ -1,0 +1,8 @@
+error[E0599]: the method `is_lossless` exists for struct `LossReport<A, B, u32>`, but its trait bounds were not satisfied
+  --> tests/ui/compile_fail/loss_report_is_lossless_bound.rs:25:20
+   |
+25 |     let _ = report.is_lossless();
+   |                    ^^^^^^^^^^^ method cannot be called on `LossReport<A, B, u32>` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+           `u32: IsEmpty`
