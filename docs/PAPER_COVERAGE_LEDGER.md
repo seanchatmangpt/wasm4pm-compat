@@ -108,6 +108,10 @@ Papers whose primary formal objects are event logs, event data formats, or objec
 | 5 | Object-Centric Analysis of XES Event Logs (OCED/SPARQL) | XES→OCED interop loss surface |
 | 6 | OCPQ: Object-Centric Process Querying & Constraints | `ObjectTypeSet`/`EventTypeSet` const params; typed constraint violation |
 | 7/8 | PM4Py (both editions) | PM4Py format canon reference; no gap — covered by graduation boundary |
+| 45 | Heuristics Miner (Weijters & Ribeiro, 2011) | `CausalNet` dedicated shape in `src/petri.rs` or new `src/causal_net.rs`; dependency measure as `Between01` const-generic |
+| 48 | Multi-Perspective Process Mining (van der Aalst, 2011) | `ResourcePerspective` and `DataPerspective` as typed extension namespaces on `XesEvent` |
+| 49 | OC-PM: Divergence and Convergence (van der Aalst & Berti, 2020) | `DivergenceWitness` and `ConvergenceWitness` named witness types in `src/witness.rs` |
+| 50 | Directly-Follows Graphs: Mining and Filtering (van der Aalst, 2019) | No gap — DFG structural relation fully covered; filtering execution graduates |
 
 ### LANE_C: Process Model / WF-net / POWL / Conformance / Prediction
 
@@ -120,6 +124,8 @@ Papers whose primary formal objects are process models, structural laws, conform
 | 11 | Real-Life BPMN 4th edition | BPMN gateway type witnesses; pool/lane structural typing |
 | 14 | Workflow Patterns: The Definitive Guide | Named `WorkflowPattern` type as `ConstParamTy`; pattern coverage claim on WF-net |
 | 18 | YAWL: Yet Another Workflow Language | WF-net soundness fully covered; cancellation region and multi-instance types missing |
+| 46 | Business Process Management (Weske, 2012) | `GatewaySemantics<KIND>` const-generic binding gateway structural kind to semantic law |
+| 47 | BPMN 2.0 OMG Specification | No gap — structural metamodel covered by `BpmnElement`/`GatewayKind`/`EventKind` in `src/bpmn.rs` |
 
 ### BACKGROUND
 
