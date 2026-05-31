@@ -528,6 +528,121 @@ impl XesLog {
     }
 }
 
+/// The named projection shape for lifting a XES case-centric log into an
+/// OCEL-shaped (object-centric event data) representation.
+///
+/// XES is case-centric: one case notion, one trace per case. OCEL/OCED is
+/// object-centric: many object types, many-to-many event-to-object links.
+/// Lifting XES into OCED is *lossy in the reverse direction* — OCED can
+/// express structure XES cannot, but mapping XES → OCED is always injective.
+///
+/// `XesToOcedProjectionShape` names and describes this projection:
+/// - `projection_name`: the stable [`crate::loss::ProjectionName`] string
+///   (e.g. `"xes-to-oced:case-as-object"`).
+/// - `case_object_type`: the OCED object type that the XES case (trace)
+///   becomes (e.g. `"case"`).
+/// - `activity_attribute_key`: which XES attribute becomes the OCED activity
+///   name (always `concept:name` in the standard shape).
+/// - `timestamp_attribute_key`: which XES attribute becomes the OCED timestamp
+///   (always `time:timestamp` in the standard shape).
+///
+/// Structure-only: this is a projection *description*, not an implementation.
+/// The actual projection is performed by the `formats` import/export surface
+/// and graduates to `wasm4pm`. Here it is the *named shape* of that projection.
+///
+/// ```
+/// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+/// let shape = XesToOcedProjectionShape::standard();
+/// assert_eq!(shape.projection_name(), "xes-to-oced:case-as-object");
+/// assert_eq!(shape.case_object_type(), "case");
+/// assert_eq!(shape.activity_attribute_key(), "concept:name");
+/// assert_eq!(shape.timestamp_attribute_key(), "time:timestamp");
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct XesToOcedProjectionShape {
+    projection_name: &'static str,
+    case_object_type: String,
+    activity_attribute_key: &'static str,
+    timestamp_attribute_key: &'static str,
+}
+
+impl XesToOcedProjectionShape {
+    /// The standard XES→OCED projection: case becomes an object of type
+    /// `"case"`, `concept:name` maps to activity, `time:timestamp` maps to
+    /// timestamp.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// let s = XesToOcedProjectionShape::standard();
+    /// assert_eq!(s.case_object_type(), "case");
+    /// ```
+    pub fn standard() -> Self {
+        XesToOcedProjectionShape {
+            projection_name: "xes-to-oced:case-as-object",
+            case_object_type: "case".to_owned(),
+            activity_attribute_key: "concept:name",
+            timestamp_attribute_key: "time:timestamp",
+        }
+    }
+
+    /// Construct a custom projection shape with a different case object type.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// let s = XesToOcedProjectionShape::with_case_type("order");
+    /// assert_eq!(s.case_object_type(), "order");
+    /// assert_eq!(s.projection_name(), "xes-to-oced:case-as-object");
+    /// ```
+    pub fn with_case_type(case_object_type: impl Into<String>) -> Self {
+        XesToOcedProjectionShape {
+            projection_name: "xes-to-oced:case-as-object",
+            case_object_type: case_object_type.into(),
+            activity_attribute_key: "concept:name",
+            timestamp_attribute_key: "time:timestamp",
+        }
+    }
+
+    /// The stable projection name (for use as a [`crate::loss::ProjectionName`]).
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// assert_eq!(XesToOcedProjectionShape::standard().projection_name(), "xes-to-oced:case-as-object");
+    /// ```
+    pub fn projection_name(&self) -> &'static str {
+        self.projection_name
+    }
+
+    /// The OCED object type name that XES cases (traces) become.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// assert_eq!(XesToOcedProjectionShape::standard().case_object_type(), "case");
+    /// ```
+    pub fn case_object_type(&self) -> &str {
+        &self.case_object_type
+    }
+
+    /// The XES attribute key mapped to the OCED activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// assert_eq!(XesToOcedProjectionShape::standard().activity_attribute_key(), "concept:name");
+    /// ```
+    pub fn activity_attribute_key(&self) -> &'static str {
+        self.activity_attribute_key
+    }
+
+    /// The XES attribute key mapped to the OCED timestamp.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesToOcedProjectionShape;
+    /// assert_eq!(XesToOcedProjectionShape::standard().timestamp_attribute_key(), "time:timestamp");
+    /// ```
+    pub fn timestamp_attribute_key(&self) -> &'static str {
+        self.timestamp_attribute_key
+    }
+}
+
 /// A type-level witness for a specific XES extension prefix declaration.
 ///
 /// When a [`XesExtension`] is declared in a log, its prefix (e.g. `"concept"`,
