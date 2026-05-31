@@ -155,6 +155,18 @@ impl DfgWeight {
     pub fn count(self) -> u64 {
         self.0
     }
+
+    /// Convert this `DfgWeight` into a [`DfgFrequency`] (a semantically named
+    /// alias for the same count).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgWeight, DfgFrequency};
+    /// assert_eq!(DfgWeight(3).into_frequency(), DfgFrequency(3));
+    /// ```
+    #[must_use]
+    pub fn into_frequency(self) -> DfgFrequency {
+        DfgFrequency(self.0)
+    }
 }
 
 /// A DFG node: a single activity in the directly-follows graph.
@@ -414,6 +426,18 @@ impl DfgFrequency {
     pub fn from_weight(w: DfgWeight) -> Self {
         DfgFrequency(w.0)
     }
+
+    /// Convert this `DfgFrequency` into a [`DfgWeight`] (the inverse of
+    /// [`DfgFrequency::from_weight`]).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgFrequency, DfgWeight};
+    /// assert_eq!(DfgFrequency(8).into_weight(), DfgWeight(8));
+    /// ```
+    #[must_use]
+    pub fn into_weight(self) -> DfgWeight {
+        DfgWeight(self.0)
+    }
 }
 
 /// A mean-duration annotation on a DFG edge, in nanoseconds.
@@ -440,6 +464,36 @@ impl DfgDuration {
     #[must_use]
     pub fn ns(self) -> i64 {
         self.0
+    }
+
+    /// Returns `true` if this duration is strictly negative.
+    ///
+    /// A negative duration is representable (for admission of external signed
+    /// data) but should be refused by [`DfgRefusal::NegativeWeight`] at the
+    /// boundary.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgDuration;
+    /// assert!(DfgDuration(-1).is_negative());
+    /// assert!(!DfgDuration(0).is_negative());
+    /// assert!(!DfgDuration(42).is_negative());
+    /// ```
+    #[must_use]
+    pub fn is_negative(self) -> bool {
+        self.0 < 0
+    }
+
+    /// Convert a non-negative nanosecond count into a `DfgDuration`, or return
+    /// `None` if the value is negative (boundary admission helper).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgDuration;
+    /// assert_eq!(DfgDuration::from_ns(500), Some(DfgDuration(500)));
+    /// assert_eq!(DfgDuration::from_ns(-1),  None);
+    /// ```
+    #[must_use]
+    pub fn from_ns(ns: i64) -> Option<Self> {
+        if ns < 0 { None } else { Some(DfgDuration(ns)) }
     }
 }
 
