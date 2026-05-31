@@ -129,15 +129,20 @@ pub struct PowlNodeId(pub usize);
 ///
 /// This is **structure only**: it records *what the node is*, never *how it
 /// runs*. It does NOT execute, replay, or unfold the operator.
+///
+/// The [`PowlNodeKind::ChoiceGraph`] variant represents the POWL 2.0
+/// choice-graph operator (Kourani et al., 2026), which replaces the flat
+/// `Choice` and `Loop` operators with a directed-graph structure capable of
+/// expressing non-block-structured decisions and cycles.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PowlNodeKind {
     /// A single activity leaf. Carries the activity label.
     Atom(String),
     /// A silent (tau) step.
     Silent,
-    /// An exclusive choice among child node ids.
+    /// An exclusive choice among child node ids (POWL 1.0 flat XOR).
     Choice(Vec<PowlNodeId>),
-    /// A loop: a `do` body and an optional `redo` body.
+    /// A loop: a `do` body and an optional `redo` body (POWL 1.0 loop).
     Loop {
         /// The mandatory loop body.
         body: PowlNodeId,
@@ -146,6 +151,22 @@ pub enum PowlNodeKind {
     },
     /// A partial order over child node ids; precedence lives in [`OrderEdge`]s.
     PartialOrder(Vec<PowlNodeId>),
+    /// A POWL 2.0 choice graph `γ = (N, E)` (Kourani et al., 2026 Def. 3.6).
+    ///
+    /// The choice graph replaces the flat `×` (XOR) and `↺` (loop) operators
+    /// with a directed graph over decision nodes `X`, a unique start node `▷`
+    /// (represented by the first element of `nodes` by convention), and a
+    /// unique end node `□` (last element). Every node must lie on a connected
+    /// path from start to end; structural disconnection is refused as
+    /// [`PowlRefusal::ChoiceGraphDisconnected`].
+    ///
+    /// Connectivity checking and replay graduate to `wasm4pm`.
+    ChoiceGraph {
+        /// The node ids forming the choice-graph node set `N = X ∪ {▷, □}`.
+        nodes: Vec<PowlNodeId>,
+        /// The directed edges `E` of the choice graph.
+        edges: Vec<ChoiceGraphEdge>,
+    },
 }
 
 /// A single node of a POWL model, tagged with a witness `W`.
@@ -187,6 +208,11 @@ impl<W> PowlNode<W> {
 ///
 /// `from` must complete before `to` may start. This is a *structural* claim of
 /// precedence; it is never *enforced* by execution here.
+///
+/// This type is **distinct** from [`ChoiceGraphEdge`]: an `OrderEdge` expresses
+/// sequential precedence inside a partial order; a [`ChoiceGraphEdge`] expresses
+/// a directed transition inside a POWL 2.0 choice graph. They are not
+/// interchangeable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct OrderEdge {
     /// The predecessor node id.
@@ -205,6 +231,48 @@ impl OrderEdge {
     /// let e = OrderEdge::new(PowlNodeId(0), PowlNodeId(1));
     /// assert_eq!(e.from, PowlNodeId(0));
     /// assert_eq!(e.to, PowlNodeId(1));
+    /// ```
+    pub fn new(from: PowlNodeId, to: PowlNodeId) -> Self {
+        Self { from, to }
+    }
+}
+
+/// A directed edge inside a [`PowlNodeKind::ChoiceGraph`].
+///
+/// Kourani et al. (2026) Definition 3.6 introduces the choice graph
+/// `γ = (N, E)` where `N = X ∪ {▷, □}` and `E` is a set of directed arcs.
+/// Each `ChoiceGraphEdge` is one such arc: a directed step from one choice-graph
+/// node to another.
+///
+/// This type is **structurally distinct** from [`OrderEdge`]: a
+/// `ChoiceGraphEdge` is a transition inside a choice graph (decision/cyclic
+/// logic), while an `OrderEdge` is a precedence constraint inside a partial
+/// order (scheduling logic). The types are not interchangeable at the call site;
+/// a function accepting `ChoiceGraphEdge` will not compile with `OrderEdge`.
+///
+/// Structure-only: a typed directed arc. No decision semantics.
+///
+/// ```
+/// use wasm4pm_compat::powl::{ChoiceGraphEdge, PowlNodeId};
+/// let e = ChoiceGraphEdge::new(PowlNodeId(0), PowlNodeId(1));
+/// assert_eq!(e.from, PowlNodeId(0));
+/// assert_eq!(e.to, PowlNodeId(1));
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ChoiceGraphEdge {
+    /// The source node id in the choice graph.
+    pub from: PowlNodeId,
+    /// The target node id in the choice graph.
+    pub to: PowlNodeId,
+}
+
+impl ChoiceGraphEdge {
+    /// Construct a choice-graph edge `from -> to`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{ChoiceGraphEdge, PowlNodeId};
+    /// let e = ChoiceGraphEdge::new(PowlNodeId(2), PowlNodeId(3));
+    /// assert_eq!(e.from, PowlNodeId(2));
     /// ```
     pub fn new(from: PowlNodeId, to: PowlNodeId) -> Self {
         Self { from, to }
@@ -277,6 +345,15 @@ pub enum PowlRefusal {
     /// The claimed language of the POWL model does not match the admitted
     /// reference language.
     LanguageMismatch,
+    /// A [`PowlNodeKind::ChoiceGraph`] is disconnected — at least one node is
+    /// not on any connected path from the start node `▷` to the end node `□`.
+    ///
+    /// Law: Kourani et al. (2026) Definition 3.6 — every node in a choice graph
+    /// must lie on a path from the unique start node to the unique end node.
+    /// Connectivity verification graduates to `wasm4pm`; this refusal is raised
+    /// when structural analysis finds a node unreachable from the declared start
+    /// or unable to reach the declared end.
+    ChoiceGraphDisconnected,
 }
 
 impl core::fmt::Display for PowlRefusal {
@@ -287,6 +364,7 @@ impl core::fmt::Display for PowlRefusal {
             PowlRefusal::InvalidLoop => "InvalidLoop",
             PowlRefusal::IrreducibleProjection => "IrreducibleProjection",
             PowlRefusal::LanguageMismatch => "LanguageMismatch",
+            PowlRefusal::ChoiceGraphDisconnected => "ChoiceGraphDisconnected",
         };
         write!(f, "POWL refused: {law}")
     }
