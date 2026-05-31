@@ -792,3 +792,83 @@ impl ObjectCentricDfg {
         Ok(())
     }
 }
+
+/// A typed (from, to) activity pair used as a deduplication key for DFG edges.
+///
+/// When building a [`Dfg`] from multiple traces, the same `(from, to)` pair may
+/// appear many times. `DfgEdgeKey` is the canonical key type for accumulating
+/// frequencies: use it as the key in a `HashMap<DfgEdgeKey, DfgFrequency>`
+/// before constructing the final [`DfgEdge`] list.
+///
+/// `DfgEdgeKey` is a value type: `(from, to)` — equal keys are the same
+/// directly-follows pair regardless of frequency.
+///
+/// Structure-only: an equality-comparable pair of activity names.
+///
+/// ```
+/// use wasm4pm_compat::dfg::DfgEdgeKey;
+/// let k1 = DfgEdgeKey::new("a", "b");
+/// let k2 = DfgEdgeKey::new("a", "b");
+/// let k3 = DfgEdgeKey::new("b", "a");
+/// assert_eq!(k1, k2);
+/// assert_ne!(k1, k3);
+/// assert_eq!(k1.from(), "a");
+/// assert_eq!(k1.to(), "b");
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DfgEdgeKey {
+    from: String,
+    to: String,
+}
+
+impl DfgEdgeKey {
+    /// Construct a DFG edge key from a (from, to) activity pair.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeKey;
+    /// let k = DfgEdgeKey::new("place", "pay");
+    /// assert_eq!(k.from(), "place");
+    /// assert_eq!(k.to(), "pay");
+    /// ```
+    pub fn new(from: impl Into<String>, to: impl Into<String>) -> Self {
+        DfgEdgeKey {
+            from: from.into(),
+            to: to.into(),
+        }
+    }
+
+    /// The source activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeKey;
+    /// assert_eq!(DfgEdgeKey::new("a", "b").from(), "a");
+    /// ```
+    pub fn from(&self) -> &str {
+        &self.from
+    }
+
+    /// The target activity name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeKey;
+    /// assert_eq!(DfgEdgeKey::new("a", "b").to(), "b");
+    /// ```
+    pub fn to(&self) -> &str {
+        &self.to
+    }
+
+    /// Produce a [`DfgEdge`] by pairing this key with a frequency count.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeKey;
+    /// let edge = DfgEdgeKey::new("a", "b").into_edge(5);
+    /// assert_eq!(edge.weight().count(), 5);
+    /// ```
+    pub fn into_edge(self, weight: u64) -> DfgEdge {
+        DfgEdge {
+            from: self.from,
+            to: self.to,
+            weight: DfgWeight(weight),
+        }
+    }
+}
