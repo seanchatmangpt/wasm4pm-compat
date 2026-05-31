@@ -903,3 +903,19 @@ The `Between01<NUM, DEN>` metric bound from `src/law.rs` applies to cardinality 
 |---|---|---|---|---|
 | `ocel_cardinality_projection_law` — OCPQ cardinality bound must be grounded by OCEL object type | `ocpq::CardinalityBound` + `ocel::OcelDims` (vocabulary grounding) | `compile_pass/ocpq_cardinality_valid_bounds.rs` | `compile_fail/ocpq_cardinality_overflow.rs` | OCEL 2.0 §2 + OCPQ Def 6 |
 | `ocel_dims_scope_law` — OCPQ object scope must intersect OCEL dimension vocabulary | `ocpq::OcpqRefusal::MissingObjectScope` + `ocel::OcelDims` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_missing_scope_rejected.rs` | OCEL 2.0 §2 + OCPQ Def 6 |
+
+### ocel-to-xes-boundary-law
+
+Flattening OCEL to XES is the most consequential structural transition in process mining: it converts a multi-object-notion log into a single-case-notion log, losing all object-to-object relationships and the event-to-multiple-objects multiplicity. This is modeled in three complementary surfaces:
+
+1. `OcelToXesProjection` — the named projection descriptor that makes the choice of case notion (`case_type`) explicit. The `PROJECTION_NAME` constant (`"ocel-flatten-to-xes:by-case-type"`) is the stable receipt that the adopter can cite in a `LossReport`.
+2. `OcelShape` / `XesShape` — uninhabited zero-sized types used as `From` and `To` in `LossReport<OcelShape, XesShape, Vec<String>>`. These prevent the loss report from being assembled with wrong-direction markers.
+3. `LossyFormatExport` — the mandatory-loss export that requires a `LossReport`, preventing silent structural loss.
+
+The `ocel_to_xes_no_loss_report` compile-fail fixture already seals the law that `LossyFormatExport` (not `FormatExport`) must be used for this boundary. The law packet below cross-references that fixture with its projection surface.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_to_xes_boundary_law` — OCEL-to-XES flattening requires named projection + loss report | `interop::OcelToXesProjection` + `formats::LossyFormatExport` | `compile_pass/ocel_to_xes_with_named_projection.rs` | `compile_fail/ocel_to_xes_no_loss_report.rs` | OCEL 1.0 §3 (convergence/divergence) |
+| `ocel_shape_direction_law` — OCEL→XES `LossReport` must use `OcelShape` as `From` and `XesShape` as `To` | `interop::OcelShape` / `interop::XesShape` (distinct uninhabited markers) | `compile_pass/ocel_to_xes_with_named_projection.rs` | n/a (law enforced by type parameter direction) | OCEL 2.0 §5.1 format boundary |
+| `ocel_flattening_loss_law` — `OcelRefusal::FlatteningLoss` names the convergence/divergence loss explicitly | `ocel::OcelRefusal::FlatteningLoss` | `compile_pass/ocel_to_xes_with_named_projection.rs` | `compile_fail/ocel_to_xes_no_loss_report.rs` | OCEL 1.0 (van der Aalst & Berti, 2020) convergence/divergence |
