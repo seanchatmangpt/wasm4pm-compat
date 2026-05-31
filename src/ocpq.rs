@@ -125,6 +125,165 @@ impl<const KIND: OcpqScopeKind> ObjectScopeConst<KIND> {
     }
 }
 
+// ── Predicate family const-param kinds ──────────────────────────────────────
+
+/// The structural sub-kind of an event predicate.
+///
+/// OCPQ Section 3 defines three distinct event-predicate shapes:
+/// - [`EventPredicateKind::ActivityEquals`] — the event activity label matches
+///   a literal string.
+/// - [`EventPredicateKind::AttributeEquals`] — a named event attribute matches
+///   a literal value.
+/// - [`EventPredicateKind::TimestampInRange`] — the event's timestamp lies in
+///   a declared interval.
+///
+/// Used as a const generic parameter on [`TypedEventPredicate`] so that an
+/// activity-equals slot cannot silently receive an attribute-equals predicate.
+///
+/// Structure-only: names the sub-kind. Expression evaluation graduates to
+/// `wasm4pm`.
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum EventPredicateKind {
+    /// Predicate: event's activity label equals a declared string.
+    ActivityEquals,
+    /// Predicate: a named event attribute equals a declared value.
+    AttributeEquals,
+    /// Predicate: event timestamp lies in a declared `[t_min, t_max]` interval.
+    TimestampInRange,
+}
+
+/// The structural sub-kind of an object predicate.
+///
+/// OCPQ Section 3 defines two distinct object-predicate shapes:
+/// - [`ObjectPredicateKind::AttributeEquals`] — a named object attribute
+///   matches a literal value.
+/// - [`ObjectPredicateKind::TypeEquals`] — the object's declared type matches
+///   a string.
+///
+/// Used as a const generic parameter on [`TypedObjectPredicate`].
+///
+/// Structure-only: names the sub-kind. Resolution graduates to `wasm4pm`.
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum ObjectPredicateKind {
+    /// Predicate: a named object attribute equals a declared value.
+    AttributeEquals,
+    /// Predicate: the object's declared type matches a string literal.
+    TypeEquals,
+}
+
+/// A typed event predicate with its sub-kind encoded as a const generic parameter.
+///
+/// `TypedEventPredicate<{EventPredicateKind::ActivityEquals}>` and
+/// `TypedEventPredicate<{EventPredicateKind::AttributeEquals}>` are **different
+/// types** — the wrong sub-kind passed to a function requiring a specific kind
+/// is a compile error, not a runtime failure.
+///
+/// Structure-only: carries the predicate expression as a string; evaluation
+/// graduates to `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{TypedEventPredicate, EventPredicateKind};
+/// let p = TypedEventPredicate::<{ EventPredicateKind::ActivityEquals }>::new("approve");
+/// assert_eq!(p.expression(), "approve");
+/// assert_eq!(p.kind(), EventPredicateKind::ActivityEquals);
+/// ```
+pub struct TypedEventPredicate<const KIND: EventPredicateKind> {
+    expression: alloc::string::String,
+}
+
+impl<const KIND: EventPredicateKind> TypedEventPredicate<KIND> {
+    /// Construct a typed event predicate from an expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedEventPredicate, EventPredicateKind};
+    /// let p = TypedEventPredicate::<{ EventPredicateKind::TimestampInRange }>::new("[0, 3600000]");
+    /// assert_eq!(p.expression(), "[0, 3600000]");
+    /// ```
+    pub fn new(expression: impl Into<alloc::string::String>) -> Self {
+        TypedEventPredicate {
+            expression: expression.into(),
+        }
+    }
+
+    /// The predicate expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedEventPredicate, EventPredicateKind};
+    /// let p = TypedEventPredicate::<{ EventPredicateKind::AttributeEquals }>::new("cost = 10");
+    /// assert_eq!(p.expression(), "cost = 10");
+    /// ```
+    pub fn expression(&self) -> &str {
+        &self.expression
+    }
+
+    /// The event predicate sub-kind encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedEventPredicate, EventPredicateKind};
+    /// let p = TypedEventPredicate::<{ EventPredicateKind::ActivityEquals }>::new("pay");
+    /// assert_eq!(p.kind(), EventPredicateKind::ActivityEquals);
+    /// ```
+    pub const fn kind(&self) -> EventPredicateKind {
+        KIND
+    }
+}
+
+/// A typed object predicate with its sub-kind encoded as a const generic parameter.
+///
+/// `TypedObjectPredicate<{ObjectPredicateKind::AttributeEquals}>` and
+/// `TypedObjectPredicate<{ObjectPredicateKind::TypeEquals}>` are **different
+/// types** — the wrong sub-kind is a compile error, not a runtime failure.
+///
+/// Structure-only: carries the predicate expression as a string; evaluation
+/// graduates to `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{TypedObjectPredicate, ObjectPredicateKind};
+/// let p = TypedObjectPredicate::<{ ObjectPredicateKind::TypeEquals }>::new("order");
+/// assert_eq!(p.expression(), "order");
+/// assert_eq!(p.kind(), ObjectPredicateKind::TypeEquals);
+/// ```
+pub struct TypedObjectPredicate<const KIND: ObjectPredicateKind> {
+    expression: alloc::string::String,
+}
+
+impl<const KIND: ObjectPredicateKind> TypedObjectPredicate<KIND> {
+    /// Construct a typed object predicate from an expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedObjectPredicate, ObjectPredicateKind};
+    /// let p = TypedObjectPredicate::<{ ObjectPredicateKind::AttributeEquals }>::new("amount > 0");
+    /// assert_eq!(p.expression(), "amount > 0");
+    /// ```
+    pub fn new(expression: impl Into<alloc::string::String>) -> Self {
+        TypedObjectPredicate {
+            expression: expression.into(),
+        }
+    }
+
+    /// The predicate expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedObjectPredicate, ObjectPredicateKind};
+    /// let p = TypedObjectPredicate::<{ ObjectPredicateKind::TypeEquals }>::new("item");
+    /// assert_eq!(p.expression(), "item");
+    /// ```
+    pub fn expression(&self) -> &str {
+        &self.expression
+    }
+
+    /// The object predicate sub-kind encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedObjectPredicate, ObjectPredicateKind};
+    /// let p = TypedObjectPredicate::<{ ObjectPredicateKind::AttributeEquals }>::new("qty = 3");
+    /// assert_eq!(p.kind(), ObjectPredicateKind::AttributeEquals);
+    /// ```
+    pub const fn kind(&self) -> ObjectPredicateKind {
+        KIND
+    }
+}
+
 // ── Predicate witness markers ───────────────────────────────────────────────
 
 /// Witness: a predicate over a single **event**.
