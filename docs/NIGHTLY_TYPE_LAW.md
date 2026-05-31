@@ -108,6 +108,23 @@ without `.stderr` is not a valid type-law receipt.
 
 ---
 
+## Petri-Law Family Law Packet
+
+The petri-law family covers all structural laws derived from Petri net, WF-net, and OC-Petri-net theory. The following table groups the petri-law concepts with their enforcing types, fixtures, and paper sources.
+
+| Law Concept | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| bipartite-arc-law | `petri::PlaceToTransitionArc` / `petri::TransitionToPlaceArc` | `petri_place_to_transition_arc.rs` | `petri_place_to_place_arc.rs` | Murata (1989) §2 |
+| place-marker-law | `petri::Place` | `petri_place_to_transition_arc.rs` | — | Murata (1989) §2 |
+| transition-marker-law | `petri::Transition` | `petri_transition_to_place_arc.rs` | — | Murata (1989) §2 |
+| marking-shape-law | `petri::Marking` / `PetriRefusal::MissingInitialMarking` / `MissingFinalMarking` | `refusal_missing_final_marking.rs` | — | van der Aalst (1998) §2 |
+| soundness-witness-state | `petri::SoundnessUnknown` / `SoundnessClaimed` / `SoundnessWitnessed` | `wfnet_with_soundness_witness.rs` | `wfnet_forged_soundness.rs` | van der Aalst (1998) §3 |
+| separable-wfnet-law | `petri::SeparableWfNet` | `separable_wfnet_marker.rs` | `separable_wfnet_rejected.rs` | Kourani et al. (2026) Def 4.1 |
+| WfNet-to-POWL-witness | `petri::SeparableWfNet` precondition | `wfnet2powl_witness.rs` | `wfnet2powl_precondition_rejected.rs` / `wfnet2powl_wrong_source.rs` | Kourani et al. (2026) Thm 4.3 |
+| absence-of-dead-transitions-law | `petri::PetriRefusal::DeadTransition` | `wfnet_with_soundness_witness.rs` | — | van der Aalst (1998) §3 |
+
+---
+
 ## #33 — Petri Nets: Properties, Analysis and Applications (Murata, 1989)
 
 **Paper:** Petri Nets: Properties, Analysis and Applications  
@@ -1256,3 +1273,29 @@ the positive path.
 | `extension-prefix-law` — every namespaced attribute key must reference a declared extension prefix | `xes::XesRefusal::UndeclaredExtensionPrefix` | `compile_pass/xes_declared_extension_prefix.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | IEEE 1849-2023 §4 extension declaration; Verbeek et al. (2011) §3 |
 | `xes_invalid_extension` — an `XesExtension` with an empty prefix is refused as `XesRefusal::InvalidExtension` | `xes::XesRefusal::InvalidExtension` | `compile_pass/xes_declared_extension_prefix.rs` | — (runtime refusal; empty-prefix check is in `XesLog::validate()`) | IEEE 1849-2023 §4; Verbeek et al. (2011) §3 extension declaration law |
 | `xes_no_traces` — a `XesLog` with no traces is refused as `XesRefusal::NoTraces` | `xes::XesRefusal::NoTraces` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; shape check in `XesLog::validate()`) | IEEE 1849-2023 §5 log element |
+
+---
+
+### acyclicity-marker-law
+
+**Law concept:** A POWL partial-order node (`PowlNodeKind::PartialOrder`) must
+contain no directed cycle in its precedence edges. When a cycle is detected,
+the shape is refused as `PowlRefusal::CyclicPartialOrder`. Acyclicity is a
+named structural law, not a silent runtime assertion.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §3: the precedence relation `≺`
+is a *strict partial order* — irreflexive, asymmetric, and transitive. These
+three properties jointly exclude all cycles. A structure that violates any of
+them is not a lawful POWL partial-order node.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `cyclic-partial-order-refused` — a cycle in precedence edges is refused as `PowlRefusal::CyclicPartialOrder`, not a silent no-op | `powl::PowlRefusal::CyclicPartialOrder` | `compile_pass/powl_choice_graph.rs` | — (runtime refusal; cycle detection graduates to wasm4pm) | Kourani & van der Aalst (2023) §3 |
+| `partial-order-irreflexivity` — a node cannot precede itself; self-loops are excluded by the strict partial order definition | `powl::PowlRefusal::CyclicPartialOrder` (subsumes self-loop case) | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+| `partial-order-asymmetry` — if `a ≺ b` then `b ⊀ a`; the presence of both edges is a cycle and must be refused | `powl::PowlRefusal::CyclicPartialOrder` (subsumes anti-symmetry case) | `compile_pass/powl_choice_graph.rs` | — | Kourani & van der Aalst (2023) §3 |
+
+**What must NOT live in this crate:**
+
+- Cycle detection algorithm execution (DFS / Kahn's algorithm — graduates to wasm4pm)
+- Transitive reduction of the precedence relation
+- Partial-order canonicalization or normalization
