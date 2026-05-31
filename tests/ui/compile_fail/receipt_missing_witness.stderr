@@ -1,0 +1,18 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/receipt_missing_witness.rs:14:9
+   |
+11 |     let _e = ReceiptEnvelope::new(
+   |              -------------------- arguments to this function are incorrect
+...
+14 |         "blake3:deadbeef".to_string(), // wrong type: String instead of Digest
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Digest`, found `String`
+   |
+note: associated function defined here
+  --> src/receipt.rs
+   |
+   |     pub fn new(
+   |            ^^^
+help: try wrapping the expression in `wasm4pm_compat::receipt::Digest`
+   |
+14 |         wasm4pm_compat::receipt::Digest("blake3:deadbeef".to_string()), // wrong type: String instead of Digest
+   |         ++++++++++++++++++++++++++++++++                             +
