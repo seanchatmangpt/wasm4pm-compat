@@ -2,7 +2,7 @@
 
 **Repository:** wasm4pm-compat  
 **Corpus:** ~/Documents/Papers/workflow (20 papers) + ~/Documents/Papers/AI_LLM (1 PM paper) + ~/Documents/Papers/RDF (3 scanned, 0 PM)  
-**Generated:** 2026-05-30 | **Updated:** 2026-05-31 (graduation boundary targets named; #33–#38 foundational papers added; all six graduation boundaries and type-law surfaces anchored; #45–#50 added: Heuristics Miner, Weske BPM, BPMN 2.0 OMG, Multi-Perspective PM, OC-PM Divergence/Convergence, DFG Mining & Filtering)  
+**Generated:** 2026-05-30 | **Updated:** 2026-05-31 (graduation boundary targets named; #33–#38 foundational papers added; all six graduation boundaries and type-law surfaces anchored; #45–#50 added: Heuristics Miner, Weske BPM, BPMN 2.0 OMG, Multi-Perspective PM, OC-PM Divergence/Convergence, DFG Mining & Filtering; #51–#56 added: Process Querying Methods, Event Abstraction, Concept Drift Detection, Predictive Process Monitoring survey, MagTempMiner, Causal Nets)  
 **Agent:** Paper Discovery
 
 ---
@@ -169,14 +169,14 @@ Papers with no process-mining type-law relevance for this crate.
 | Status | Count | Papers |
 |---|---|---|
 | `COVERED_BY_TYPE` | 8 | #11 (BPMN), #14 (Workflow Patterns), #18 (YAWL/WF-net soundness), #33 (Murata Petri Nets), #34 (WF-net Soundness 1998), #35 (OCEL 1.0), #47 (BPMN 2.0 OMG Spec), #49 (OC-PM Divergence/Convergence) |
-| `COVERED_BY_GRADUATION_BOUNDARY` | 12 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual), #21 (No AI Without PI!), #36 (OC-Petri Net Discovery), #37 (PM Book 2011), #38 (Conformance Checking Book), #45 (Heuristics Miner), #46 (Weske BPM Textbook), #50 (DFG Mining & Filtering) — each entry names specific `GraduationReason` variants |
-| `PARTIAL_WITH_REASON` | 4 | #1 (PPM compliance: fixture exists, witness law complete), #3 (POWL 2.0: SeparableWfNet added, WfNet2Powl bridge missing), #5 (XES/OCED: projection surface complete), #48 (Multi-Perspective PM: time perspective covered; resource/data perspectives need typed namespaces) |
+| `COVERED_BY_GRADUATION_BOUNDARY` | 17 | #7, #8 (PM4Py), #9 (PMAx), #16 (YAWL Technical Manual), #21 (No AI Without PI!), #36 (OC-Petri Net Discovery), #37 (PM Book 2011), #38 (Conformance Checking Book), #45 (Heuristics Miner), #46 (Weske BPM Textbook), #50 (DFG Mining & Filtering), #52 (Event Abstraction), #53 (Concept Drift Detection), #54 (Predictive PM survey), #55 (MagTempMiner), #56 (Causal Nets) — each entry names specific `GraduationReason` variants |
+| `PARTIAL_WITH_REASON` | 5 | #1 (PPM compliance: fixture exists, witness law complete), #3 (POWL 2.0: SeparableWfNet added, WfNet2Powl bridge missing), #5 (XES/OCED: projection surface complete), #48 (Multi-Perspective PM: time perspective covered; resource/data perspectives need typed namespaces), #51 (Process Querying Methods: predicate witnesses present; ProcessQueryWitness binding missing) |
 | `MISSING_TYPE_LAW` | 0 | (cleared: #3 upgraded to PARTIAL; #6 upgraded to PARTIAL — OCPQ query structure implemented in src/ocpq.rs) |
 | `DUPLICATE_OR_BACKGROUND` | 3 | #8 (PM4Py dup), #17 (YAWL BPMS), #19 (YAWL TM dup) |
 | `OUT_OF_SCOPE_WITH_REASON` | 10 | #2, #4, #10, #12, #13, #15, #20, #22, #23, #24 |
 
-**Total corpus scanned:** 36 papers (20 workflow/ + 4 other directories + 6 foundational additions + 6 new additions #45–#50)  
-**4 papers with active PARTIAL type-law obligations** (#1, #3, #5, #48).  
+**Total corpus scanned:** 42 papers (20 workflow/ + 4 other directories + 6 foundational additions + 6 new additions #45–#50 + 6 new additions #51–#56)  
+**5 papers with active PARTIAL type-law obligations** (#1, #3, #5, #48, #51).  
 **0 papers with fully missing type-law surfaces** — all MISSING entries have been addressed.  
 **8 papers fully covered by type** (#11, #14, #18, #33, #34, #35, #47, #49) with compile-pass and compile-fail fixtures.
 
@@ -189,7 +189,12 @@ Papers with no process-mining type-law relevance for this crate.
 3. **#1 PPM Compliance** — `ComplianceConstraintWitness<W>` binding prediction target to a named law; compliance score as `Between01<NUM, DEN>` metric
 4. **#5 XES→OCED** — `XesToOcedProjection` with explicit `LossPolicy` and `LossReport` in `src/interop.rs`
 5. **#14 Workflow Patterns** — Named `WorkflowPattern` enum as `ConstParamTy`; attach pattern coverage claim to `WfNetConst<SOUNDNESS>`
-6. **#45 Heuristics Miner** — `CausalNet` dedicated shape (heuristics net) in `src/petri.rs` or new `src/causal_net.rs`; dependency measure as `Between01<NUM, DEN>` const-generic fraction
+6. **#45 / #56 Heuristics Miner / Causal Nets** — `CausalNet`, `CausalBinding`, `InputBinding`, `OutputBinding` dedicated types in `src/causal_net.rs`; `DependencyMeasure` as `Between01<NUM, DEN>` const-generic fraction
 7. **#46 Weske BPM** — `GatewaySemantics<KIND>` const-generic type in `src/bpmn.rs` binding `GatewayKind` variant to its semantic law (XOR routes one token, AND duplicates, OR activates subset)
 8. **#48 Multi-Perspective PM** — `ResourcePerspective` and `DataPerspective` as `PhantomData` extension markers on `XesEvent` in `src/xes.rs`; perspective-scoped attribute typed surface
 9. **#49 OC-PM Divergence/Convergence** — `DivergenceWitness` and `ConvergenceWitness` as unit-struct witness types in `src/witness.rs`; each certifies a structure has been assessed for the respective defect
+10. **#51 Process Querying Methods** — `ProcessQueryWitness` named witness in `src/ocpq.rs` linking `OcpqQuery` to Polyvyanyy et al. 2017 framework; `TemporalPredicate` full temporal ordering axiom coverage
+11. **#52 Event Abstraction** — `AbstractionLevel` marker type in `src/eventlog.rs` distinguishing low-level from high-level activity logs
+12. **#53 Concept Drift Detection** — `DriftWitness` marker and `DriftKind` (`ConstParamTy` enum: Sudden/Gradual/Recurring/Incremental) in `src/prediction.rs`
+13. **#54 Predictive PM survey** — `PredictionHorizon` and `PrefixLength` const-generic params in `src/prediction.rs`
+14. **#55 MagTempMiner** — `TimedResponse`, `TimedPrecedence`, `TimedChainResponse` variants added to `DeclareTemplate` `ConstParamTy` enum in `src/declare.rs`
