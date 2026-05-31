@@ -29,6 +29,18 @@ use core::marker::PhantomData;
 
 use crate::state::{Admitted, EvidenceState, Exportable, Parsed, Projected, Raw, Receipted};
 
+/// Const-generic lifecycle mode — mirrors the typestate tokens as an
+/// `adt_const_params`-compatible enum for use in const-generic positions.
+///
+/// Re-exported here for convenience; the canonical definition lives in
+/// [`crate::law::EvidenceMode`].
+///
+/// Use the typestate tokens ([`Raw`], [`Admitted`], …) for ordinary type-level
+/// tagging. Use `EvidenceMode` only when you need a *const generic value* that
+/// names a lifecycle stage — for example, to parameterise a static assertion or
+/// a const-computed struct.
+pub use crate::law::EvidenceMode;
+
 /// A value carried with its lifecycle `State` and answering to witness `W`.
 ///
 /// The `state` and `witness` fields are zero-sized `PhantomData` tags; only
