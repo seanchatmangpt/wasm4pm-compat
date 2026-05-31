@@ -1299,3 +1299,24 @@ them is not a lawful POWL partial-order node.
 - Cycle detection algorithm execution (DFS / Kahn's algorithm — graduates to wasm4pm)
 - Transitive reduction of the precedence relation
 - Partial-order canonicalization or normalization
+
+### lifecycle-transition-witness
+
+XES defines a standard `lifecycle` extension with a `lifecycle:transition` attribute.
+The transition value must come from a declared alphabet: `start`, `complete`,
+`assign`, `ate_abort`, `withdraw`, `suspend`, `resume`, `pi_abort`, `schedule`,
+`unknown`, `autoskip`, `manualskip`. A value outside this alphabet is refused as
+`XesRefusal::InvalidLifecycleTransition`. This is a structural interchange law:
+lifecycle semantics (what transitions mean for conformance) are an engine concern
+that graduates to `wasm4pm`.
+
+The `lifecycle:transition` extension must itself be declared in the log header via
+`XesExtension::new("Lifecycle", "lifecycle", ...)` — an undeclared `lifecycle:`
+prefix is refused first as `XesRefusal::UndeclaredExtensionPrefix` (the more
+fundamental law). `InvalidLifecycleTransition` applies only when the extension is
+declared but the value is outside the alphabet.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `lifecycle-transition-witness` — `XesRefusal::InvalidLifecycleTransition` is the named refusal for `lifecycle:transition` values outside the declared alphabet | `xes::XesRefusal::InvalidLifecycleTransition` (named variant, not bare `InvalidInput`) | `compile_pass/xes_declared_extension_prefix.rs` | — (compile-fail fixture for invalid lifecycle transition value TBD) | IEEE 1849-2023 §5.3 lifecycle extension; Verbeek et al. (2011) §3 |
+| `lifecycle-extension-must-be-declared` — `lifecycle:transition` key requires a declared `lifecycle` extension prefix | `xes::XesRefusal::UndeclaredExtensionPrefix` (fired first if extension not declared) | `compile_pass/xes_declared_extension_prefix.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | IEEE 1849-2023 §4 + §5.3 |
