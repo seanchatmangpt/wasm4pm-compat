@@ -185,6 +185,35 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
         self.value
     }
 
+    /// Stamps admitted evidence as *export-cleared*, advancing it to `Exportable`.
+    ///
+    /// `Exportable` is the boundary's "exit visa": it records that admitted (and
+    /// possibly projected) evidence is now permitted to cross back out through an
+    /// export contract.  This method is intentionally only available on `Admitted`
+    /// evidence: you cannot exit-visa something that was never admitted.
+    ///
+    /// See [`crate::state::Exportable`] and
+    /// [`crate::diagnostic::CompatDiagnostic::RawEvidenceExportedAsAdmitted`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Admission;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let admitted = Admission::<_, Ocel20>::new("payload").into_evidence();
+    /// let exportable = admitted.into_exportable();
+    /// assert_eq!(exportable.value, "payload");
+    /// ```
+    #[inline]
+    pub fn into_exportable(self) -> Evidence<T, crate::state::Exportable, W> {
+        Evidence {
+            value: self.value,
+            state: core::marker::PhantomData,
+            witness: core::marker::PhantomData,
+        }
+    }
+
     /// Records that admitted evidence has been through a *named, accounted*
     /// projection (see [`crate::loss`]), advancing it to `Projected`.
     ///
