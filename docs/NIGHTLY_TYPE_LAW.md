@@ -1601,3 +1601,32 @@ The scope check is the first gate in OCPQ admission: before any predicate is eva
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
 |---|---|---|---|---|
 | `ocpq_event_predicate_law` — `Predicate<EventPredicate>` is a first-class typed predicate; `EventPredicate` cannot substitute `ObjectPredicate` | `ocpq::Predicate<EventPredicate>` / `ocpq::EventPredicate` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_object_type_mixing.rs` | OCPQ §4 BASIC_L |
+
+---
+
+### irreducible-state-law
+
+**Law concept:** A POWL partial-order node is `Irreducible` when its structure
+cannot be represented by any block-structured process tree without language loss.
+The `Irreducible` marker and `ExceedsProcessTree` marker are first-class witness
+types. A node tagged `ExceedsProcessTree` cannot pass through a `TreeProjectable`-
+gated function — this is a sealed-trait law enforced at compile time.
+
+**Paper:** Kourani & van der Aalst (2023) POWL §3 and §4: POWL can express
+partial orders that no block-structured tree can represent. The paper defines the
+`ProcessTreeProjectable` sub-class of POWL models as those whose language is
+expressible as a block-structured process tree. Models outside this sub-class
+carry the `ExceedsProcessTree` marker — projection would silently lose language.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `irreducible-state-law` — `Irreducible` and `ExceedsProcessTree` are first-class witness markers on `PowlNode<W>` | `powl::Irreducible` / `powl::ExceedsProcessTree` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §3–4 |
+| `exceeds-process-tree-sealed` — `ExceedsProcessTree` does NOT implement `TreeProjectable`; passing it to a `TreeProjectable`-gated function is a compile error | `powl::TreeProjectable` (sealed trait; only `ProcessTreeProjectable` implements it) | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+| `process-tree-projectable-sealed` — `ProcessTreeProjectable` is the only implementor of `TreeProjectable`; the sealed trait prevents external forgery | `powl::TreeProjectable` sealed via `tree_projectable_seal::Sealed` | `compile_pass/powl_process_tree_projectable.rs` | `compile_fail/powl_silent_tree_projection.rs` | Kourani & van der Aalst (2023) §4 |
+
+**What must NOT live in this crate:**
+
+- Irreducibility detection algorithm (determining whether a POWL model exceeds
+  any process tree — graduates to wasm4pm)
+- Process-tree induction from an irreducible partial order
+- Language equivalence checking between POWL and process tree shapes
