@@ -626,6 +626,55 @@ impl<S: IsDfgSource, T: IsDfgTarget> DfgTypedEdge<S, T> {
     }
 }
 
+/// A typed object-type label for use in [`ObjectCentricDfg`] construction.
+///
+/// `DfgObjectType` is a zero-cost `&'static str` newtype that names a specific
+/// object type in an object-centric DFG at compile time (e.g. a test fixture or
+/// a hard-coded OC-process template). It is the OC-DFG counterpart of
+/// [`DfgActivityId`]: both exist to make fixture code self-documenting and to
+/// prevent bare-string confusion between object types and activity names.
+///
+/// Structure-only: a labeled name, not a mined entity.
+///
+/// ```
+/// use wasm4pm_compat::dfg::DfgObjectType;
+/// const ORDER: DfgObjectType = DfgObjectType::new("order");
+/// assert_eq!(ORDER.as_str(), "order");
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DfgObjectType(pub &'static str);
+
+impl DfgObjectType {
+    /// Construct a typed object-type label from a static string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgObjectType;
+    /// let t = DfgObjectType::new("item");
+    /// assert_eq!(t.as_str(), "item");
+    /// ```
+    #[must_use]
+    pub const fn new(name: &'static str) -> Self {
+        DfgObjectType(name)
+    }
+
+    /// The object type name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgObjectType;
+    /// assert_eq!(DfgObjectType::new("delivery").as_str(), "delivery");
+    /// ```
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        self.0
+    }
+}
+
+impl core::fmt::Display for DfgObjectType {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
 /// A per-object-type DFG: one [`Dfg`] (with frequency and optional duration
 /// annotations) for each declared object type in an OCEL log.
 ///
