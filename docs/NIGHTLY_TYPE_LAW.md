@@ -576,3 +576,58 @@ event-to-object links first-class structural elements.
 - Flattening from OCEL to XES (this has loss; requires LossReport — handled
   by `ocel_to_xes_no_loss_report` compile-fail fixture)
 - Object-centric process discovery execution
+
+---
+
+## #51 — Process Querying Methods (Polyvyanyy, Ouyang, Barros, van der Aalst, 2017)
+
+**Paper:** Process Querying Methods
+**Canon family:** `OCPQ_QUERYING`
+**Verdict:** `PARTIAL_WITH_REASON`
+**Active obligation:** `ProcessQueryWitness` marker in `src/ocpq.rs` linking the OCPQ surface to the Polyvyanyy et al. 2017 process querying framework; `TemporalPredicate` coverage of temporal ordering axioms
+
+**Law-packet notes:**
+
+Polyvyanyy et al. (2017) define a typed process querying framework: a query
+is issued against a named process model class (Petri net, process tree,
+POWL), predicates are structural or behavioral, and results carry typed
+evidence of what was matched. OCPQ (#6 in ledger) extends this framework to
+the object-centric domain — `OcpqQuery` and `OcpqResult` in `src/ocpq.rs`
+are the OCPQ-extended surface.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Process query (typed over model class) | `src/ocpq.rs::OcpqQuery` | — |
+| Query result (typed evidence of match) | `src/ocpq.rs::OcpqResult` | — |
+| Event predicate witness | `src/ocpq.rs::EventPredicate` | — |
+| Object predicate witness | `src/ocpq.rs::ObjectPredicate` | — |
+| Temporal predicate witness | `src/ocpq.rs::TemporalPredicate` | — |
+| Framework provenance witness | `src/ocpq.rs` — `ProcessQueryWitness` not yet typed | **gap** |
+
+**Structural laws this crate partially enforces:**
+
+- `OcpqQuery` with typed predicate witnesses (`EventPredicate`, `ObjectPredicate`,
+  `TemporalPredicate`) implements the query framework surface from Polyvyanyy
+  et al. (2017) extended to the object-centric domain.
+- `OcpqResult` carries typed evidence — a query result is not a free string,
+  it is typed over the query's predicate witnesses.
+- `TemporalPredicate` covers temporal ordering axioms from the framework
+  (before, after, during, concurrent); the full temporal predicate coverage
+  from the Polyvyanyy et al. framework needs verification.
+- `ProcessQueryWitness` is NOT yet typed — without it there is no
+  non-forgeable receipt linking the `OcpqQuery` surface to the Polyvyanyy
+  et al. (2017) process querying framework definition.
+
+**Gap requiring future type surface:**
+
+- `ProcessQueryWitness` as a named witness type in `src/ocpq.rs` (or `src/witness.rs`)
+  that non-forgeably links `OcpqQuery` to the Polyvyanyy et al. 2017 framework
+- Verification that `TemporalPredicate` covers the full temporal ordering
+  axiom set (before, after, during, concurrent, overlap) from the framework
+
+**What must NOT live in this crate:**
+
+- Query execution over process model shapes (graph traversal, automaton
+  evaluation — graduates to wasm4pm via `NeedsObjectCentricQueryExecution`)
+- Query language parsing (string → typed query construction)
+- Query result aggregation or scoring
