@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/dfg_wrong_edge_type.rs:20:19
+   |
+20 |     annotate_edge(freq);
+   |     ------------- ^^^^ expected `DfgWeight`, found `DfgFrequency`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/dfg_wrong_edge_type.rs:13:4
+   |
+13 | fn annotate_edge(_weight: DfgWeight) {}
+   |    ^^^^^^^^^^^^^ ------------------
