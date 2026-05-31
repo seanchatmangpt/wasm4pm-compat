@@ -38,6 +38,66 @@ use core::marker::PhantomData;
 
 use crate::law::SoundnessState;
 
+// ── Place / Transition node-kind markers ─────────────────────────────────────
+
+/// A zero-sized type-level marker asserting that a type parameter represents a
+/// **place** node in a Petri net.
+///
+/// `PlaceNodeMarker` and [`TransitionNodeMarker`] are the runtime-facing
+/// counterparts of the [`crate::law::EndpointKind`] const-param enum. Use them
+/// as type parameters when you want the compiler to enforce that a slot is
+/// filled by a place kind rather than a transition kind.
+///
+/// Structure-only: carries no data, no token semantics.
+///
+/// ```
+/// use wasm4pm_compat::petri::PlaceNodeMarker;
+/// fn place_slot<P: wasm4pm_compat::petri::IsPlaceNode>() {}
+/// place_slot::<PlaceNodeMarker>();
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct PlaceNodeMarker;
+
+/// A zero-sized type-level marker asserting that a type parameter represents a
+/// **transition** node in a Petri net.
+///
+/// Paired with [`PlaceNodeMarker`]; see its documentation.
+///
+/// ```
+/// use wasm4pm_compat::petri::TransitionNodeMarker;
+/// fn transition_slot<T: wasm4pm_compat::petri::IsTransitionNode>() {}
+/// transition_slot::<TransitionNodeMarker>();
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct TransitionNodeMarker;
+
+mod node_marker_seal {
+    pub trait PlaceSeal {}
+    pub trait TransitionSeal {}
+    impl PlaceSeal for super::PlaceNodeMarker {}
+    impl TransitionSeal for super::TransitionNodeMarker {}
+}
+
+/// Sealed trait — only [`PlaceNodeMarker`] is a place node kind.
+///
+/// ```
+/// use wasm4pm_compat::petri::{PlaceNodeMarker, IsPlaceNode};
+/// fn needs_place<P: IsPlaceNode>(_: P) {}
+/// needs_place(PlaceNodeMarker);
+/// ```
+pub trait IsPlaceNode: node_marker_seal::PlaceSeal {}
+impl IsPlaceNode for PlaceNodeMarker {}
+
+/// Sealed trait — only [`TransitionNodeMarker`] is a transition node kind.
+///
+/// ```
+/// use wasm4pm_compat::petri::{TransitionNodeMarker, IsTransitionNode};
+/// fn needs_transition<T: IsTransitionNode>(_: T) {}
+/// needs_transition(TransitionNodeMarker);
+/// ```
+pub trait IsTransitionNode: node_marker_seal::TransitionSeal {}
+impl IsTransitionNode for TransitionNodeMarker {}
+
 // ── Bipartite arc type law ───────────────────────────────────────────────────
 
 /// A typed arc from a **place** to a **transition** — the only valid
