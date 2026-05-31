@@ -1,19 +1,31 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
 
-// COMPILE-PASS: Metric<{QualityMetricKind::Generalization}, NUM, DEN> satisfies Between01
-// bounds for valid fractions — proves the Generalization kind is lawfully constructible.
+// COMPILE-PASS: GeneralizationConst<NUM, DEN> (and the underlying
+// Metric<{QualityMetricKind::Generalization}, NUM, DEN>) satisfies Between01 bounds
+// for valid fractions — proves the Generalization kind is lawfully constructible
+// via both the type alias and the generic form.
 //
-// Law: Between01 bounds — NUM/DEN must be in [0, 1]. There is no GeneralizationConst
-// type alias (only FitnessConst/PrecisionConst/F1Const exist); this fixture proves
-// that the Generalization variant of QualityMetricKind is supported by the generic
-// Metric<KIND, NUM, DEN> type and that Between01 enforcement applies uniformly.
+// Law: Between01 bounds — NUM/DEN must be in [0, 1].
 
-use wasm4pm_compat::conformance::Metric;
+use wasm4pm_compat::conformance::{GeneralizationConst, Metric};
 use wasm4pm_compat::law::QualityMetricKind;
 
 fn check_generalization_metric() {
-    // Boundary: 0/1 = 0.0 — lawful lower bound.
+    // Via the type alias — the preferred public surface.
+    let alias_lower: GeneralizationConst<0, 1> = GeneralizationConst::new();
+    assert_eq!(alias_lower.num(), 0);
+    assert_eq!(alias_lower.den(), 1);
+
+    let alias_interior: GeneralizationConst<7, 8> = GeneralizationConst::new();
+    assert_eq!(alias_interior.num(), 7);
+    assert_eq!(alias_interior.den(), 8);
+
+    let alias_upper: GeneralizationConst<1, 1> = GeneralizationConst::new();
+    assert_eq!(alias_upper.num(), 1);
+    assert_eq!(alias_upper.den(), 1);
+
+    // Via the generic form — proves the alias is transparent.
     let zero: Metric<{ QualityMetricKind::Generalization }, 0, 1> = Metric::new();
     assert_eq!(zero.num(), 0);
     assert_eq!(zero.den(), 1);
