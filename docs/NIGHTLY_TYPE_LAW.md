@@ -49,6 +49,7 @@ without `.stderr` is not a valid type-law receipt.
 | `separable_wfnet_rejected` — plain `WfNetConst` not accepted where `SeparableWfNet` required | `petri::SeparableWfNet` | `compile_pass/separable_wfnet_marker.rs` | `compile_fail/separable_wfnet_rejected.rs` | `separable_wfnet_rejected.stderr` |
 | `strict_claim_no_fixture` — strict export boundary claim requires witness | `strict::ExportBoundaryConst<HAS_WITNESS, HAS_ROUND_TRIP>` | `compile_pass/strict_export_boundary_with_fixture.rs` | `compile_fail/strict_claim_no_fixture.rs` | `strict_claim_no_fixture.stderr` |
 | `soundness_witness_state_law` — the three soundness states (`SoundnessUnknown`, `SoundnessClaimed`, `SoundnessWitnessed`) are uninhabited empty enums used as `PhantomData` tokens; advancing from `Claimed` to `Witnessed` requires a `SoundnessProof` that is only constructible inside the `petri` module | `petri::SoundnessUnknown` / `petri::SoundnessClaimed` / `petri::SoundnessWitnessed` | `compile_pass/wfnet_with_soundness_witness.rs` | `compile_fail/wfnet_forged_soundness.rs` | `wfnet_forged_soundness.stderr` |
+| `wfnet_const_generic_state_law` — `WfNetConst<SOUNDNESS>` encodes soundness as a const generic `SoundnessState` parameter; `WfNetConst<{SoundnessState::Witnessed}>` and `WfNetConst<{SoundnessState::Unknown}>` are distinct types that cannot be substituted for each other | `petri::WfNetConst<SOUNDNESS>` (const-generic struct) | `compile_pass/wfnet_with_soundness_witness.rs` | `compile_fail/wfnet_forged_soundness.rs` | `wfnet_forged_soundness.stderr` |
 | `wfnet_forged_soundness` — soundness witness cannot be forged | `petri::WfNetConst<SOUNDNESS>` non-forgeable witness path | `compile_pass/wfnet_with_soundness_witness.rs` | `compile_fail/wfnet_forged_soundness.rs` | `wfnet_forged_soundness.stderr` |
 | `wfnet2powl_precondition_rejected` — WF-net→POWL requires separability marker | `petri::SeparableWfNet` precondition | `compile_pass/wfnet2powl_witness.rs` | `compile_fail/wfnet2powl_precondition_rejected.rs` | `wfnet2powl_precondition_rejected.stderr` |
 | `wfnet2powl_wrong_source` — plain `PetriNet` cannot enter WF-net→POWL gate | `petri::WfNetConst` required | `compile_pass/wfnet2powl_witness.rs` | `compile_fail/wfnet2powl_wrong_source.rs` | `wfnet2powl_wrong_source.stderr` |
@@ -1031,3 +1032,27 @@ a runtime `is_object_centric()` check.
 |---|---|---|---|---|
 | `case-centric-marker` — `XesCaseCentricLog` is not OCED; substituting one for the other is a compile error | `xes::CaseCentricMarker` (zero-sized `PhantomData` tag) | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | IEEE 1849-2023 §4 (case notion); van der Aalst & Berti (2020) divergence/convergence |
 | `xes_not_object_centric` — sealed compile-fail: `XesCaseCentricLog` rejected where `OcelLog` required | `xes::CaseCentricMarker` | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | `xes_not_object_centric.stderr` |
+
+### generalization-simplicity-law
+
+Process quality is four-dimensional: fitness, precision, generalization,
+simplicity (Buijs, van Dongen & van der Aalst, 2014). Generalization measures
+whether the model covers unseen traces (not just those in the log).
+Simplicity measures structural parsimony — a model should not be more complex
+than needed. Both are reified as distinct `Metric<KIND, N, D>` variants:
+`QualityMetricKind::Generalization` and `QualityMetricKind::Simplicity`.
+
+Unlike fitness/precision/F1, no type aliases (`GeneralizationConst`,
+`SimplicityConst`) exist yet — callers use the generic `Metric<{KIND}, N, D>`
+form directly. The `Between01` bound applies uniformly: a generalization score
+outside `[0,1]` is a compile error just as for fitness.
+
+`Metric<{Generalization}, 1, 2>` and `Metric<{Simplicity}, 1, 2>` are distinct
+types — passing a simplicity metric where a generalization metric is required
+is a compile error.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `generalization-metric-law` — `Metric<{Generalization}, N, D>` enforces `N/D ∈ [0,1]` at type level | `conformance::Metric<{QualityMetricKind::Generalization}, N, D>` | `compile_pass/conformance_generalization_metric.rs` | `compile_fail/metric_out_of_bounds.rs` | Buijs, van Dongen & van der Aalst (2014) |
+| `simplicity-metric-law` — `Metric<{Simplicity}, N, D>` enforces `N/D ∈ [0,1]` at type level | `conformance::Metric<{QualityMetricKind::Simplicity}, N, D>` | `compile_pass/conformance_simplicity_metric.rs` | `compile_fail/metric_out_of_bounds.rs` | Buijs, van Dongen & van der Aalst (2014) |
+| `generalization-simplicity-kind-distinctness` — `Metric<{Generalization}, 1, 2>` ≠ `Metric<{Simplicity}, 1, 2>` even when NUM/DEN match | `conformance::Metric<KIND, N, D>` — KIND const param distinguishes generalization from simplicity | `compile_pass/conformance_simplicity_metric.rs` | — (type-level: KIND param enforces distinction) | Buijs, van Dongen & van der Aalst (2014) |
