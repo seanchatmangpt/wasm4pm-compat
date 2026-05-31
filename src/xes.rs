@@ -389,6 +389,138 @@ impl XesLog {
     }
 }
 
+/// The standard `lifecycle:transition` values defined in IEEE 1849-2016.
+///
+/// XES defines a fixed alphabet for the `lifecycle:transition` attribute.
+/// Events in a trace may carry a transition label indicating where in the
+/// activity lifecycle the event was recorded. An event with a `lifecycle:transition`
+/// value outside this alphabet is refused as
+/// [`XesRefusal::InvalidLifecycleTransition`] at validation time.
+///
+/// Structure-only: the enum names the alphabet; it does not enforce lifecycle
+/// ordering. Lifecycle conformance (e.g. `start` must precede `complete`)
+/// belongs to `wasm4pm`. Graduate when that enforcement is required.
+///
+/// ```
+/// use wasm4pm_compat::xes::XesLifecycleTransition;
+/// assert_eq!(XesLifecycleTransition::Complete.as_str(), "complete");
+/// assert_eq!(XesLifecycleTransition::parse("start"), Some(XesLifecycleTransition::Start));
+/// assert_eq!(XesLifecycleTransition::parse("unknown"), None);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum XesLifecycleTransition {
+    /// The activity was scheduled.
+    Schedule,
+    /// The activity was assigned to a resource.
+    Assign,
+    /// Work on the activity was started.
+    Start,
+    /// Work on the activity was suspended mid-execution.
+    Suspend,
+    /// Work on the activity was resumed after suspension.
+    Resume,
+    /// The activity is in progress (a progress update).
+    InProgress,
+    /// Execution of the activity was aborted.
+    Abort,
+    /// The activity reached a withdrawal state.
+    Withdraw,
+    /// The activity was completed normally.
+    Complete,
+    /// An extra (unexpected) occurrence of the activity was recorded.
+    Unknown,
+    /// The activity was autoskipped by the workflow engine.
+    AutoSkip,
+    /// The activity was manually skipped.
+    ManualSkip,
+    /// Reassignment event — the responsible resource changed.
+    Reassign,
+    /// The activity was explicitly planned.
+    Plan,
+}
+
+impl XesLifecycleTransition {
+    /// The transition as its `lifecycle:transition` attribute string value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesLifecycleTransition;
+    /// assert_eq!(XesLifecycleTransition::Schedule.as_str(), "schedule");
+    /// ```
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            XesLifecycleTransition::Schedule => "schedule",
+            XesLifecycleTransition::Assign => "assign",
+            XesLifecycleTransition::Start => "start",
+            XesLifecycleTransition::Suspend => "suspend",
+            XesLifecycleTransition::Resume => "resume",
+            XesLifecycleTransition::InProgress => "inprogress",
+            XesLifecycleTransition::Abort => "abort",
+            XesLifecycleTransition::Withdraw => "withdraw",
+            XesLifecycleTransition::Complete => "complete",
+            XesLifecycleTransition::Unknown => "unknown",
+            XesLifecycleTransition::AutoSkip => "autoskip",
+            XesLifecycleTransition::ManualSkip => "manualskip",
+            XesLifecycleTransition::Reassign => "reassign",
+            XesLifecycleTransition::Plan => "plan",
+        }
+    }
+
+    /// Parse a `lifecycle:transition` value into its typed variant.
+    ///
+    /// Returns `None` for values outside the standard alphabet.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesLifecycleTransition;
+    /// assert_eq!(XesLifecycleTransition::parse("complete"), Some(XesLifecycleTransition::Complete));
+    /// assert_eq!(XesLifecycleTransition::parse("custom"), None);
+    /// ```
+    pub fn parse(s: &str) -> Option<Self> {
+        match s {
+            "schedule" => Some(XesLifecycleTransition::Schedule),
+            "assign" => Some(XesLifecycleTransition::Assign),
+            "start" => Some(XesLifecycleTransition::Start),
+            "suspend" => Some(XesLifecycleTransition::Suspend),
+            "resume" => Some(XesLifecycleTransition::Resume),
+            "inprogress" => Some(XesLifecycleTransition::InProgress),
+            "abort" => Some(XesLifecycleTransition::Abort),
+            "withdraw" => Some(XesLifecycleTransition::Withdraw),
+            "complete" => Some(XesLifecycleTransition::Complete),
+            "unknown" => Some(XesLifecycleTransition::Unknown),
+            "autoskip" => Some(XesLifecycleTransition::AutoSkip),
+            "manualskip" => Some(XesLifecycleTransition::ManualSkip),
+            "reassign" => Some(XesLifecycleTransition::Reassign),
+            "plan" => Some(XesLifecycleTransition::Plan),
+            _ => None,
+        }
+    }
+
+    /// Whether this transition represents a *terminal* lifecycle event (one
+    /// after which no further transitions are expected in the standard model).
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesLifecycleTransition;
+    /// assert!(XesLifecycleTransition::Complete.is_terminal());
+    /// assert!(XesLifecycleTransition::Abort.is_terminal());
+    /// assert!(!XesLifecycleTransition::Start.is_terminal());
+    /// ```
+    pub const fn is_terminal(self) -> bool {
+        matches!(
+            self,
+            XesLifecycleTransition::Complete
+                | XesLifecycleTransition::Abort
+                | XesLifecycleTransition::Withdraw
+                | XesLifecycleTransition::ManualSkip
+                | XesLifecycleTransition::AutoSkip
+        )
+    }
+}
+
+impl core::fmt::Display for XesLifecycleTransition {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
 /// The four standard XES extension prefixes defined in IEEE 1849-2016.
 ///
 /// XES defines four standard extensions: `concept`, `time`, `lifecycle`, and
