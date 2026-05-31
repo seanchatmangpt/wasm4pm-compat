@@ -292,3 +292,161 @@ impl core::fmt::Display for ReceiptRefusal {
         }
     }
 }
+
+// ── ReceiptChain ─────────────────────────────────────────────────────────────
+
+/// A multi-step provenance chain: an ordered sequence of [`ReceiptEnvelope`]s.
+///
+/// `ReceiptChain` represents the *shape* of a provenance trail across multiple
+/// manufacturing stages. Each link in the chain is a well-shaped
+/// [`ReceiptEnvelope`], and the chain itself has a name (`chain_id`) that
+/// identifies the whole provenance run.
+///
+/// ## What this type **IS**
+///
+/// - The structural form of a multi-step provenance trail.
+/// - A validated shape: constructable only through [`ReceiptChain::try_new`],
+///   which refuses with a named [`ReceiptRefusal`] law if any link is broken or
+///   the chain is empty.
+///
+/// ## What this type is **NOT**
+///
+/// - **Not** a hash chain, a Merkle tree, or a cryptographic commitment. It
+///   carries links produced elsewhere; it never links them cryptographically.
+/// - **Not** authoritative. A chain asserts *form* only — provenance authority
+///   lives in `wasm4pm`. Graduate there when you need to mint, verify, or
+///   extend a chain with real cryptographic receipts.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+/// let link = ReceiptEnvelope::new(
+///     "case-1", "discovery-run",
+///     Digest::new("blake3:aaa"), ReplayHint::new("rerun:plan#1"),
+/// );
+/// let chain = ReceiptChain::try_new("run-001", vec![link]);
+/// assert!(chain.is_ok());
+/// let chain = chain.unwrap();
+/// assert_eq!(chain.len(), 1);
+/// assert!(!chain.is_empty());
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReceiptChain {
+    /// A stable identifier for this provenance chain (e.g. a run id).
+    pub chain_id: String,
+    /// The ordered links of the chain, each a well-shaped receipt envelope.
+    links: Vec<ReceiptEnvelope>,
+}
+
+impl ReceiptChain {
+    /// Construct a receipt chain, refusing if the chain is empty or any link is
+    /// ill-shaped.
+    ///
+    /// Links are validated in order. The first ill-shaped link produces
+    /// [`ReceiptRefusal::BrokenChainLink`] with its zero-based index. An empty
+    /// `links` vec produces [`ReceiptRefusal::EmptyChain`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint, ReceiptRefusal};
+    ///
+    /// // Empty chain is refused.
+    /// assert_eq!(ReceiptChain::try_new("run-x", vec![]), Err(ReceiptRefusal::EmptyChain));
+    ///
+    /// // A broken link is refused with its index.
+    /// let broken = ReceiptEnvelope::new("", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert_eq!(
+    ///     ReceiptChain::try_new("run-x", vec![broken]),
+    ///     Err(ReceiptRefusal::BrokenChainLink(0)),
+    /// );
+    ///
+    /// // A valid single-link chain.
+    /// let good = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert!(ReceiptChain::try_new("run-x", vec![good]).is_ok());
+    /// ```
+    pub fn try_new(
+        chain_id: impl Into<String>,
+        links: Vec<ReceiptEnvelope>,
+    ) -> Result<Self, ReceiptRefusal> {
+        if links.is_empty() {
+            return Err(ReceiptRefusal::EmptyChain);
+        }
+        for (i, link) in links.iter().enumerate() {
+            if !link.is_well_shaped() {
+                return Err(ReceiptRefusal::BrokenChainLink(i));
+            }
+        }
+        Ok(Self { chain_id: chain_id.into(), links })
+    }
+
+    /// The number of provenance links in this chain.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChain::try_new("id", vec![link]).unwrap();
+    /// assert_eq!(chain.len(), 1);
+    /// ```
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.links.len()
+    }
+
+    /// Whether the chain has no links. A well-constructed chain is never empty
+    /// (construction refuses empty chains), but this accessor is provided for
+    /// completeness.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChain::try_new("id", vec![link]).unwrap();
+    /// assert!(!chain.is_empty());
+    /// ```
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.links.is_empty()
+    }
+
+    /// Iterate over the chain links in order.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChain::try_new("id", vec![link]).unwrap();
+    /// assert_eq!(chain.iter().count(), 1);
+    /// ```
+    pub fn iter(&self) -> impl Iterator<Item = &ReceiptEnvelope> {
+        self.links.iter()
+    }
+
+    /// The first (oldest) link in the chain: the root of provenance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("root-subj", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChain::try_new("id", vec![link]).unwrap();
+    /// assert_eq!(chain.root().subject, "root-subj");
+    /// ```
+    #[must_use]
+    pub fn root(&self) -> &ReceiptEnvelope {
+        // Safety: construction guarantees non-empty.
+        &self.links[0]
+    }
+
+    /// The last (most recent) link in the chain: the tip of provenance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let a = ReceiptEnvelope::new("root", "w", Digest::new("d1"), ReplayHint::new("h1"));
+    /// let b = ReceiptEnvelope::new("tip", "w", Digest::new("d2"), ReplayHint::new("h2"));
+    /// let chain = ReceiptChain::try_new("id", vec![a, b]).unwrap();
+    /// assert_eq!(chain.tip().subject, "tip");
+    /// ```
+    #[must_use]
+    pub fn tip(&self) -> &ReceiptEnvelope {
+        // Safety: construction guarantees non-empty.
+        &self.links[self.links.len() - 1]
+    }
+}
