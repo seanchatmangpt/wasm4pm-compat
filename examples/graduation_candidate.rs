@@ -11,9 +11,7 @@
 
 #[cfg(feature = "wasm4pm")]
 fn main() {
-    use wasm4pm_compat::graduation::{
-        GraduateToWasm4pm, GraduationCandidate, GraduationReason,
-    };
+    use wasm4pm_compat::graduation::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
 
     println!("Graduation candidate (case for leaving compat, no engine run)\n");
 
@@ -51,10 +49,12 @@ fn main() {
     assert!(candidate.reason.is_hard_signal());
 
     // An ungrounded candidate is NOT reviewable — the engine intake rejects it.
-    let ungrounded =
-        GraduationCandidate::new(GraduationReason::NeedsReplay, "mystery", "");
+    let ungrounded = GraduationCandidate::new(GraduationReason::NeedsReplay, "mystery", "");
     assert!(!ungrounded.is_grounded());
-    println!("\nUngrounded candidate is not reviewable: {}", !ungrounded.is_grounded());
+    println!(
+        "\nUngrounded candidate is not reviewable: {}",
+        !ungrounded.is_grounded()
+    );
 
     println!("\nCompat produced the case; wasm4pm would adjudicate it.");
 }

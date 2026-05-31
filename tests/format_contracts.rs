@@ -31,7 +31,10 @@ fn envelope_carries_raw_bytes_and_tag() {
 #[test]
 fn empty_envelope_is_detectable_for_refusal() {
     let env = FormatEnvelope::<()>::new(FormatKind::XesXml, Vec::new());
-    assert!(env.is_empty(), "an empty envelope must be refusable at import");
+    assert!(
+        env.is_empty(),
+        "an empty envelope must be refusable at import"
+    );
     assert!(!env.kind.is_object_centric());
 }
 
@@ -113,10 +116,7 @@ impl ExportFormat for DemoExporter {
     type Source = AdmittedOcel;
     type Reason = XesExportRefusal;
 
-    fn export(
-        src: &Self::Source,
-        policy: LossPolicy,
-    ) -> Result<FormatExport, Self::Reason> {
+    fn export(src: &Self::Source, policy: LossPolicy) -> Result<FormatExport, Self::Reason> {
         let dropped: Vec<String> = src
             .object_types
             .iter()

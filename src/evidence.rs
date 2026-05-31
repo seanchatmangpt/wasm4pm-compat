@@ -64,7 +64,11 @@ impl<T, W> Evidence<T, Raw, W> {
     /// ```
     #[inline]
     pub const fn raw(value: T) -> Evidence<T, Raw, W> {
-        Evidence { value, state: PhantomData, witness: PhantomData }
+        Evidence {
+            value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
     }
 
     /// Advances `Raw → Parsed` once a format decoder has accepted the shape.
@@ -84,7 +88,11 @@ impl<T, W> Evidence<T, Raw, W> {
     /// ```
     #[inline]
     pub fn into_parsed(self) -> Evidence<T, Parsed, W> {
-        Evidence { value: self.value, state: PhantomData, witness: PhantomData }
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
     }
 }
 
@@ -97,7 +105,11 @@ impl<T, W> Evidence<T, Admitted, W> {
     /// one-way. Downstream code reaches `Admitted` solely via that trait.
     #[inline]
     pub(crate) fn sealed(value: T) -> Evidence<T, Admitted, W> {
-        Evidence { value, state: PhantomData, witness: PhantomData }
+        Evidence {
+            value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
     }
 
     /// Reads the admitted value back out (e.g. to hand to a projection).
@@ -153,6 +165,10 @@ impl<T, W> Evidence<T, Admitted, W> {
     /// ```
     #[inline]
     pub fn into_projected(self) -> Evidence<T, Projected, W> {
-        Evidence { value: self.value, state: PhantomData, witness: PhantomData }
+        Evidence {
+            value: self.value,
+            state: PhantomData,
+            witness: PhantomData,
+        }
     }
 }

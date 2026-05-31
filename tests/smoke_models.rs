@@ -5,23 +5,17 @@
 //! prediction, or replay. They merely prove the shapes build and that their
 //! bounded newtypes refuse out-of-range input.
 
-use wasm4pm_compat::powl::{
-    OrderEdge, Powl, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal,
-};
-use wasm4pm_compat::process_tree::{
-    ProcessTree, ProcessTreeNode, ProcessTreeOperator, ProcessTreeRefusal,
+use wasm4pm_compat::conformance::{
+    ConformanceRefusal, ConformanceVerdict, Deviation, Fitness, Precision, F1,
 };
 use wasm4pm_compat::declare::{
     Activity, DeclareConstraint, DeclareRefusal, DeclareScope, DeclareTemplate,
 };
-use wasm4pm_compat::ocpq::{
-    ObjectScope, OcpqQuery, OcpqRefusal, Predicate, PredicateKind,
-};
-use wasm4pm_compat::conformance::{
-    ConformanceRefusal, ConformanceVerdict, Deviation, Fitness, Precision, F1,
-};
-use wasm4pm_compat::prediction::{
-    PredictionProblem, PredictionRefusal, PredictionTarget,
+use wasm4pm_compat::ocpq::{ObjectScope, OcpqQuery, OcpqRefusal, Predicate, PredicateKind};
+use wasm4pm_compat::powl::{OrderEdge, Powl, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal};
+use wasm4pm_compat::prediction::{PredictionProblem, PredictionRefusal, PredictionTarget};
+use wasm4pm_compat::process_tree::{
+    ProcessTree, ProcessTreeNode, ProcessTreeOperator, ProcessTreeRefusal,
 };
 use wasm4pm_compat::receipt::{Digest, ReceiptRefusal, ReceiptShape, ReplayHint};
 
@@ -29,8 +23,10 @@ use wasm4pm_compat::receipt::{Digest, ReceiptRefusal, ReceiptShape, ReplayHint};
 fn smoke_powl() {
     // Build a tiny partial order: a -> b.
     let mut p = Powl::new();
-    p.nodes.push(PowlNode::new(PowlNodeId(0), PowlNodeKind::Atom("a".into())));
-    p.nodes.push(PowlNode::new(PowlNodeId(1), PowlNodeKind::Atom("b".into())));
+    p.nodes
+        .push(PowlNode::new(PowlNodeId(0), PowlNodeKind::Atom("a".into())));
+    p.nodes
+        .push(PowlNode::new(PowlNodeId(1), PowlNodeKind::Atom("b".into())));
     p.nodes.push(PowlNode::new(
         PowlNodeId(2),
         PowlNodeKind::PartialOrder(vec![PowlNodeId(0), PowlNodeId(1)]),
@@ -63,7 +59,10 @@ fn smoke_tree() {
     t.root = Some(wasm4pm_compat::process_tree::ProcessTreeNodeId(2));
 
     assert_eq!(t.node_count(), 3);
-    assert_eq!(t.root, Some(wasm4pm_compat::process_tree::ProcessTreeNodeId(2)));
+    assert_eq!(
+        t.root,
+        Some(wasm4pm_compat::process_tree::ProcessTreeNodeId(2))
+    );
 
     let r = ProcessTreeRefusal::InvalidArity;
     assert!(r.to_string().contains("InvalidArity"));
@@ -96,8 +95,14 @@ fn smoke_declare() {
 #[test]
 fn smoke_ocpq() {
     let mut q = OcpqQuery::new(ObjectScope::new(["order", "item"]));
-    q.predicates.push(Predicate::new(PredicateKind::Event("activity = pay".into())));
-    q.predicates.push(Predicate::new(PredicateKind::Cardinality { min: 1, max: 3 }));
+    q.predicates.push(Predicate::new(PredicateKind::Event(
+        "activity = pay".into(),
+    )));
+    q.predicates
+        .push(Predicate::new(PredicateKind::Cardinality {
+            min: 1,
+            max: 3,
+        }));
 
     assert!(!q.scope.is_empty());
     assert_eq!(q.scope.object_types.len(), 2);

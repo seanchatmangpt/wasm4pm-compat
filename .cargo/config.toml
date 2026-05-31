@@ -1,4 +1,3 @@
-# Minimal cargo configuration for wasm4pm-compat.
-# Intentionally empty: stable Rust must build with no special flags.
-# The nightly foundry is enabled out-of-band, e.g.
-#   RUSTFLAGS="--cfg wasm4pm_compat_nightly" cargo build
+# wasm4pm-compat — nightly-only crate.
+# The rust-toolchain.toml pins to nightly; no RUSTFLAGS are needed.
+# The nightly feature attributes (#![feature(...)]) live in src/lib.rs.

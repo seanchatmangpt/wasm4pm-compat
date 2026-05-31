@@ -265,3 +265,225 @@ impl core::fmt::Display for DfgRefusal {
         write!(f, "DFG refused by law: {law}")
     }
 }
+
+/// A named frequency count on a DFG edge — a semantically distinct alias for
+/// [`DfgWeight`] that makes the carrier's meaning explicit at call sites.
+///
+/// `DfgFrequency` is the number of times one activity directly follows another
+/// across the traces (or objects) in the log. It is zero-cost over a `u64`.
+///
+/// Structure-only: it is a labeled count, not a mined statistic.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct DfgFrequency(pub u64);
+
+impl DfgFrequency {
+    /// The underlying frequency count.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgFrequency;
+    /// assert_eq!(DfgFrequency(12).count(), 12);
+    /// ```
+    #[must_use]
+    pub fn count(self) -> u64 {
+        self.0
+    }
+
+    /// Convert from a [`DfgWeight`] (the two are structurally identical).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgFrequency, DfgWeight};
+    /// assert_eq!(DfgFrequency::from_weight(DfgWeight(5)).count(), 5);
+    /// ```
+    #[must_use]
+    pub fn from_weight(w: DfgWeight) -> Self {
+        DfgFrequency(w.0)
+    }
+}
+
+/// A mean-duration annotation on a DFG edge, in nanoseconds.
+///
+/// `DfgDuration` records the mean time between one activity's completion and the
+/// next activity's start, across the directly-follows pairs in the log. It is
+/// zero-cost over an `i64` (negative durations are representable for admission
+/// of externally-sourced data; the boundary law is
+/// [`DfgRefusal::NegativeWeight`]).
+///
+/// Structure-only: it is a labeled duration, not a mined performance metric.
+/// Performance mining (median, percentile, histogram) graduates to `wasm4pm`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(transparent)]
+pub struct DfgDuration(pub i64);
+
+impl DfgDuration {
+    /// The duration in nanoseconds.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgDuration;
+    /// assert_eq!(DfgDuration(1_000_000).ns(), 1_000_000);
+    /// ```
+    #[must_use]
+    pub fn ns(self) -> i64 {
+        self.0
+    }
+}
+
+/// A DFG edge annotated with both a [`DfgFrequency`] and an optional mean
+/// [`DfgDuration`].
+///
+/// `DfgEdgeFull` is the performance-aware sibling of [`DfgEdge`]. It carries
+/// the frequency count and, where available, the mean inter-activity duration.
+/// A missing duration simply means the log did not record timestamps.
+///
+/// Structure-only: it is a weighted, performance-annotated directed edge, not
+/// a mined result.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DfgEdgeFull {
+    from: String,
+    to: String,
+    frequency: DfgFrequency,
+    duration_ns: Option<DfgDuration>,
+}
+
+impl DfgEdgeFull {
+    /// Construct a frequency-only (no duration) edge.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgEdgeFull, DfgFrequency};
+    /// let e = DfgEdgeFull::new("a", "b", 7);
+    /// assert_eq!(e.frequency().count(), 7);
+    /// assert!(e.duration_ns().is_none());
+    /// ```
+    pub fn new(from: impl Into<String>, to: impl Into<String>, freq: u64) -> Self {
+        DfgEdgeFull {
+            from: from.into(),
+            to: to.into(),
+            frequency: DfgFrequency(freq),
+            duration_ns: None,
+        }
+    }
+
+    /// Attach a mean duration. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgEdgeFull, DfgDuration};
+    /// let e = DfgEdgeFull::new("a", "b", 3).with_duration_ns(500_000);
+    /// assert_eq!(e.duration_ns(), Some(DfgDuration(500_000)));
+    /// ```
+    pub fn with_duration_ns(mut self, ns: i64) -> Self {
+        self.duration_ns = Some(DfgDuration(ns));
+        self
+    }
+
+    /// The source activity.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeFull;
+    /// assert_eq!(DfgEdgeFull::new("a", "b", 1).from(), "a");
+    /// ```
+    pub fn from(&self) -> &str {
+        &self.from
+    }
+
+    /// The target activity.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeFull;
+    /// assert_eq!(DfgEdgeFull::new("a", "b", 1).to(), "b");
+    /// ```
+    pub fn to(&self) -> &str {
+        &self.to
+    }
+
+    /// The directly-follows frequency.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{DfgEdgeFull, DfgFrequency};
+    /// assert_eq!(DfgEdgeFull::new("a", "b", 4).frequency(), DfgFrequency(4));
+    /// ```
+    pub fn frequency(&self) -> DfgFrequency {
+        self.frequency
+    }
+
+    /// The optional mean inter-activity duration.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgEdgeFull;
+    /// assert!(DfgEdgeFull::new("a", "b", 1).duration_ns().is_none());
+    /// ```
+    pub fn duration_ns(&self) -> Option<DfgDuration> {
+        self.duration_ns
+    }
+}
+
+/// A per-object-type DFG: one [`Dfg`] (with frequency and optional duration
+/// annotations) for each declared object type in an OCEL log.
+///
+/// Object-centric process mining uses one DFG per object type, not a single
+/// flat graph. `ObjectCentricDfg` is the structure-only carrier for that set of
+/// graphs. It does **not** discover the DFGs — discovery graduates to `wasm4pm`.
+///
+/// Structure-only: it holds a labelled map of DFGs, nothing more.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct ObjectCentricDfg {
+    /// Per-object-type DFGs: `(object_type, dfg)` pairs.
+    ///
+    /// Using a `Vec` (not a `HashMap`) to keep the type `Eq + Clone` without
+    /// a dependency on `std::collections`. Order is by insertion.
+    pub per_type: Vec<(String, Dfg)>,
+}
+
+impl ObjectCentricDfg {
+    /// Construct an empty object-centric DFG set.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::ObjectCentricDfg;
+    /// assert!(ObjectCentricDfg::new().per_type.is_empty());
+    /// ```
+    pub fn new() -> Self {
+        ObjectCentricDfg::default()
+    }
+
+    /// Add or replace the DFG for the given object type. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{ObjectCentricDfg, Dfg, DfgNode, DfgEdge};
+    /// let oc = ObjectCentricDfg::new().with_type_dfg(
+    ///     "order",
+    ///     Dfg::new([DfgNode::new("place"), DfgNode::new("pay")], [DfgEdge::new("place", "pay", 3)]),
+    /// );
+    /// assert_eq!(oc.per_type.len(), 1);
+    /// ```
+    pub fn with_type_dfg(mut self, object_type: impl Into<String>, dfg: Dfg) -> Self {
+        self.per_type.push((object_type.into(), dfg));
+        self
+    }
+
+    /// Look up the DFG for a given object type, if present.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{ObjectCentricDfg, Dfg, DfgNode};
+    /// let oc = ObjectCentricDfg::new()
+    ///     .with_type_dfg("order", Dfg::new([DfgNode::new("a")], []));
+    /// assert!(oc.get("order").is_some());
+    /// assert!(oc.get("item").is_none());
+    /// ```
+    pub fn get(&self, object_type: &str) -> Option<&Dfg> {
+        self.per_type
+            .iter()
+            .find(|(t, _)| t == object_type)
+            .map(|(_, d)| d)
+    }
+
+    /// The object types for which a DFG has been registered.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::{ObjectCentricDfg, Dfg, DfgNode};
+    /// let oc = ObjectCentricDfg::new()
+    ///     .with_type_dfg("order", Dfg::new([DfgNode::new("a")], []));
+    /// assert_eq!(oc.object_types().collect::<Vec<_>>(), vec!["order"]);
+    /// ```
+    pub fn object_types(&self) -> impl Iterator<Item = &str> {
+        self.per_type.iter().map(|(t, _)| t.as_str())
+    }
+}

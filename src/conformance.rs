@@ -28,6 +28,101 @@
 
 use core::marker::PhantomData;
 
+use crate::law::{IsTrue, QualityMetricKind, Require};
+
+// ── Compile-time bounded metric ──────────────────────────────────────────────
+
+/// A quality metric with its value expressed as a rational `NUM / DEN` in
+/// `[0, 1]` at the **type level**.
+///
+/// `Metric<KIND, 2, 1>` does **not compile**: `2 / 1 > 1` violates
+/// `Between01`. This turns out-of-range scores into a compile error instead
+/// of a runtime panic.
+///
+/// Structure-only — it carries the claim, never computes it.
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::conformance::{Metric, FitnessConst, PrecisionConst, F1Const};
+/// use wasm4pm_compat::law::QualityMetricKind;
+/// let _: FitnessConst<3, 4> = Metric::new();   // 0.75 fitness
+/// let _: PrecisionConst<1, 2> = Metric::new(); // 0.5 precision
+/// let _: F1Const<0, 1> = Metric::new();        // 0.0 F1
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::conformance::FitnessConst;
+/// let _: FitnessConst<2, 1> = FitnessConst::new(); // 2/1 > 1: compile error
+/// ```
+pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    _private: (),
+}
+
+impl<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64> Default
+    for Metric<KIND, NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64> Metric<KIND, NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    /// Constructs a `Metric` — only possible when `NUM / DEN ∈ [0, 1]`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs, adt_const_params)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::conformance::FitnessConst;
+    /// let _: FitnessConst<3, 4> = FitnessConst::new();
+    /// ```
+    pub const fn new() -> Self {
+        Metric { _private: () }
+    }
+
+    /// The numerator of the metric value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::FitnessConst;
+    /// assert_eq!(FitnessConst::<3, 4>::new().num(), 3);
+    /// ```
+    pub const fn num(&self) -> u64 {
+        NUM
+    }
+
+    /// The denominator of the metric value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::FitnessConst;
+    /// assert_eq!(FitnessConst::<3, 4>::new().den(), 4);
+    /// ```
+    pub const fn den(&self) -> u64 {
+        DEN
+    }
+}
+
+/// Compile-time bounded fitness score: `NUM / DEN ∈ [0, 1]`.
+pub type FitnessConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Fitness }, NUM, DEN>;
+
+/// Compile-time bounded precision score: `NUM / DEN ∈ [0, 1]`.
+pub type PrecisionConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Precision }, NUM, DEN>;
+
+/// Compile-time bounded F1 score: `NUM / DEN ∈ [0, 1]`.
+pub type F1Const<const NUM: u64, const DEN: u64> = Metric<{ QualityMetricKind::F1 }, NUM, DEN>;
+
 // ── Alignment move markers ──────────────────────────────────────────────────
 
 /// Witness: a **synchronous move** — log and model agree on a step.
@@ -194,7 +289,11 @@ impl<M> Deviation<M> {
     /// assert_eq!(d.position, 3);
     /// ```
     pub fn new(position: usize, label: impl Into<String>) -> Self {
-        Self { position, label: label.into(), witness: PhantomData }
+        Self {
+            position,
+            label: label.into(),
+            witness: PhantomData,
+        }
     }
 }
 
@@ -245,8 +344,7 @@ impl ConformanceVerdict {
     /// assert!(v.is_perfect());
     /// ```
     pub fn is_perfect(&self) -> bool {
-        self.deviations.is_empty()
-            && matches!(self.fitness, Some(f) if f.get() == 1.0)
+        self.deviations.is_empty() && matches!(self.fitness, Some(f) if f.get() == 1.0)
     }
 }
 

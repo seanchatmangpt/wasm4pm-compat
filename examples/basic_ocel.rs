@@ -13,10 +13,7 @@ use wasm4pm_compat::ocel::{
 
 fn main() {
     // Two object types: an order and an item it contains.
-    let objects = [
-        Object::new("ord-1", "order"),
-        Object::new("item-9", "item"),
-    ];
+    let objects = [Object::new("ord-1", "order"), Object::new("item-9", "item")];
 
     // One event that touches both objects.
     let events = [OcelEvent::new("e1", "place_order").at_ns(1_000)];

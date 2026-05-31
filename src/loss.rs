@@ -143,7 +143,13 @@ impl<From, To, Items> LossReport<From, To, Items> {
     /// ```
     #[inline]
     pub const fn new(projection: ProjectionName, policy: LossPolicy, lost: Items) -> Self {
-        LossReport { projection, policy, lost, from: PhantomData, to: PhantomData }
+        LossReport {
+            projection,
+            policy,
+            lost,
+            from: PhantomData,
+            to: PhantomData,
+        }
     }
 
     /// Consumes the report, yielding the discarded items.

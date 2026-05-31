@@ -38,9 +38,9 @@ gates are derived from the master specification.
 - [ ] Exactly three public Cargo features exist: `formats`, `strict`, `wasm4pm`.
 - [ ] `default = ["formats"]`.
 - [ ] No per-format flags.
-- [ ] Nightly is **not** a feature; nightly foundry is behind
-      `#[cfg(wasm4pm_compat_nightly)]` only.
-- [ ] `#![forbid(unsafe_code)]` holds; stable Rust builds by default.
+- [ ] Nightly is **not** a feature; the crate requires nightly unconditionally
+      (rust-toolchain.toml pins nightly; `nightly_foundry.rs` has no cfg gate).
+- [ ] `#![forbid(unsafe_code)]` holds.
 
 ## Docs gates
 
@@ -59,4 +59,4 @@ gates are derived from the master specification.
 - [ ] Full verification matrix passes (see README "Verification commands").
 - [ ] `cargo clippy --all-features -- -D warnings` is clean.
 - [ ] `cargo fmt --check` is clean.
-- [ ] MSRV is documented and honored.
+- [ ] Nightly toolchain documented (rust-toolchain.toml); no MSRV (nightly-only).

@@ -106,7 +106,11 @@ impl ReceiptShape {
     /// assert!(r.is_well_shaped());
     /// ```
     pub fn new(witness: impl Into<String>, digest: Digest, replay_hint: ReplayHint) -> Self {
-        Self { witness: witness.into(), digest, replay_hint }
+        Self {
+            witness: witness.into(),
+            digest,
+            replay_hint,
+        }
     }
 
     /// Whether the receipt carries all three required parts non-empty.
@@ -125,6 +129,78 @@ impl ReceiptShape {
     }
 }
 
+/// A receipt envelope: a four-field provenance bearer.
+///
+/// Extends [`ReceiptShape`] with a `subject` field that names the *thing being
+/// receipted* (e.g. a case id, a run id, an artifact path). The other three
+/// fields carry the witness name, the content digest, and the replay hint.
+///
+/// This is **structure only**: it carries values produced elsewhere; it never
+/// computes a digest, signs a claim, or verifies authenticity. Graduate to
+/// `wasm4pm` for real computation and verification.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReceiptEnvelope {
+    /// The named subject being receipted (e.g. a case id, a run id).
+    pub subject: String,
+    /// The witness name — what law or paper this receipt is judged against.
+    pub witness: String,
+    /// The carried content digest.
+    pub digest: Digest,
+    /// The carried replay hint.
+    pub replay_hint: ReplayHint,
+}
+
+impl ReceiptEnvelope {
+    /// Construct a receipt envelope from its four parts.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptEnvelope, Digest, ReplayHint};
+    /// let e = ReceiptEnvelope::new(
+    ///     "case-42",
+    ///     "discovery-run",
+    ///     Digest::new("blake3:abc123"),
+    ///     ReplayHint::new("rerun:plan#1"),
+    /// );
+    /// assert_eq!(e.subject, "case-42");
+    /// assert!(e.is_well_shaped());
+    /// ```
+    pub fn new(
+        subject: impl Into<String>,
+        witness: impl Into<String>,
+        digest: Digest,
+        replay_hint: ReplayHint,
+    ) -> Self {
+        Self {
+            subject: subject.into(),
+            witness: witness.into(),
+            digest,
+            replay_hint,
+        }
+    }
+
+    /// Whether all four envelope parts are non-empty.
+    ///
+    /// This is a *shape* check (presence), not an authenticity verification.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptEnvelope, Digest, ReplayHint};
+    /// let e = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert!(e.is_well_shaped());
+    /// let bad = ReceiptEnvelope::new("", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// assert!(!bad.is_well_shaped());
+    /// ```
+    pub fn is_well_shaped(&self) -> bool {
+        !self.subject.is_empty()
+            && !self.witness.is_empty()
+            && !self.digest.0.is_empty()
+            && !self.replay_hint.0.is_empty()
+    }
+}
+
 /// First-class refusal law for receipt shapes.
 ///
 /// Every variant names a **specific** structural law — never a bare
@@ -132,6 +208,9 @@ impl ReceiptShape {
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum ReceiptRefusal {
+    /// The envelope or shape named no subject — what is being receipted is
+    /// unknown. Applies to [`ReceiptEnvelope`] only.
+    MissingSubject,
     /// The receipt named no witness — it claims to witness nothing.
     MissingWitness,
     /// The receipt carried no content digest.
@@ -145,6 +224,7 @@ pub enum ReceiptRefusal {
 impl core::fmt::Display for ReceiptRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let law = match self {
+            ReceiptRefusal::MissingSubject => "MissingSubject",
             ReceiptRefusal::MissingWitness => "MissingWitness",
             ReceiptRefusal::MissingDigest => "MissingDigest",
             ReceiptRefusal::MissingReplayHint => "MissingReplayHint",

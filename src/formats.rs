@@ -309,6 +309,87 @@ impl FormatExport {
     }
 }
 
+/// A **required-loss** export: the loss report is mandatory, not optional.
+///
+/// Unlike [`FormatExport`] (which has `loss: Option<LossReport<…>>`), a
+/// `LossyFormatExport` requires the report. A function accepting only
+/// `LossyFormatExport` cannot be called with a lossless [`FormatExport`].
+///
+/// This type is the type-law gate for the `ocel_to_xes_no_loss_report`
+/// compile-fail fixture.
+///
+/// ```
+/// use wasm4pm_compat::formats::{LossyFormatExport, FormatKind};
+/// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+/// let report = LossReport::<(), (), Vec<String>>::new(
+///     ProjectionName("flatten-to-xes"),
+///     LossPolicy::AllowLossWithReport,
+///     vec!["dropped: item-type".to_string()],
+/// );
+/// let export = LossyFormatExport::new(FormatKind::XesXml, b"<log/>".to_vec(), report);
+/// assert!(export.is_lossy());
+/// ```
+#[derive(Debug, Clone)]
+pub struct LossyFormatExport {
+    /// Which external format these bytes are.
+    pub kind: FormatKind,
+    /// The exported bytes.
+    pub bytes: Vec<u8>,
+    /// The mandatory loss report — cannot be `None`.
+    pub loss: LossReport<(), (), Vec<String>>,
+}
+
+impl LossyFormatExport {
+    /// Construct a `LossyFormatExport` — the report is required.
+    ///
+    /// ```
+    /// use wasm4pm_compat::formats::{LossyFormatExport, FormatKind};
+    /// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+    /// let report = LossReport::<(), (), Vec<String>>::new(
+    ///     ProjectionName("flatten"),
+    ///     LossPolicy::AllowLossWithReport,
+    ///     vec![],
+    /// );
+    /// let e = LossyFormatExport::new(FormatKind::XesXml, vec![], report);
+    /// assert!(e.is_lossy());
+    /// ```
+    #[must_use]
+    pub fn new(kind: FormatKind, bytes: Vec<u8>, loss: LossReport<(), (), Vec<String>>) -> Self {
+        Self { kind, bytes, loss }
+    }
+
+    /// Always `true` — every `LossyFormatExport` has a report.
+    ///
+    /// ```
+    /// use wasm4pm_compat::formats::{LossyFormatExport, FormatKind};
+    /// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+    /// let e = LossyFormatExport::new(
+    ///     FormatKind::XesXml, vec![],
+    ///     LossReport::<(), (), Vec<String>>::new(
+    ///         ProjectionName("p"), LossPolicy::AllowLossWithReport, vec![]));
+    /// assert!(e.is_lossy());
+    /// ```
+    #[must_use]
+    pub const fn is_lossy(&self) -> bool {
+        true
+    }
+}
+
+/// Type-law gate: only accepts a [`LossyFormatExport`], not a bare
+/// [`FormatExport`]. Used in the `ocel_to_xes_no_loss_report` compile-fail
+/// fixture.
+///
+/// ```ignore
+/// use wasm4pm_compat::formats::{accept_lossy_ocel_to_xes, LossyFormatExport, FormatKind};
+/// use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+/// let export = LossyFormatExport::new(
+///     FormatKind::XesXml, vec![],
+///     LossReport::<(), (), Vec<String>>::new(
+///         ProjectionName("p"), LossPolicy::AllowLossWithReport, vec![]));
+/// accept_lossy_ocel_to_xes(export);  // ok
+/// ```
+pub fn accept_lossy_ocel_to_xes(_export: LossyFormatExport) {}
+
 /// A *named claim* that a given fixture round-trips: `import(export(x)) ~ x`.
 ///
 /// `RoundTripClaim` is the crate's way of making round-trip fidelity *auditable*.

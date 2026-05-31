@@ -15,9 +15,7 @@
 
 pub use crate::witness::{Witness, WitnessFamily};
 
-pub use crate::state::{
-    Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused,
-};
+pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
 
 pub use crate::evidence::Evidence;
 

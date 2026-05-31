@@ -57,7 +57,10 @@ impl Project for OcelFlatten {
 fn loss_policy_values_construct() {
     // All three rules of engagement exist and are distinct.
     assert_ne!(LossPolicy::RefuseLoss, LossPolicy::AllowNamedProjection);
-    assert_ne!(LossPolicy::AllowNamedProjection, LossPolicy::AllowLossWithReport);
+    assert_ne!(
+        LossPolicy::AllowNamedProjection,
+        LossPolicy::AllowLossWithReport
+    );
 }
 
 #[test]
@@ -108,7 +111,12 @@ fn refuse_loss_path_uses_a_named_law() {
 #[test]
 fn lossless_projection_reports_no_loss() {
     // If the case type is the *only* object type, nothing is dropped.
-    let flatten = OcelFlatten { object_types: vec!["order"], case_type: "order" };
-    let report = flatten.project(LossPolicy::RefuseLoss).expect("no loss → no refusal");
+    let flatten = OcelFlatten {
+        object_types: vec!["order"],
+        case_type: "order",
+    };
+    let report = flatten
+        .project(LossPolicy::RefuseLoss)
+        .expect("no loss → no refusal");
     assert!(report.lost.is_empty());
 }

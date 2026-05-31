@@ -246,8 +246,7 @@ impl StrictCheck for ProcessBoundary {
         }
 
         // Import/export owe a round-trip fixture.
-        if matches!(self.kind, K::ImportsFormat | K::ExportsFormat)
-            && !self.has_round_trip_fixture
+        if matches!(self.kind, K::ImportsFormat | K::ExportsFormat) && !self.has_round_trip_fixture
         {
             v.push(StrictViolation::MissingRoundTripFixture);
         }

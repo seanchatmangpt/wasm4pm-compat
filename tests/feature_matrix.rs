@@ -30,7 +30,10 @@ fn always_on_interop_is_present_in_every_build() {
 
     // Ungrounded artifacts refuse with their own named law.
     let ungrounded = ArtifactGrounding::<()>::new(Pm4pyShape::PetriNet, "");
-    assert_eq!(ungrounded.admit_flat(), Err(InteropRefusal::UngroundedArtifact));
+    assert_eq!(
+        ungrounded.admit_flat(),
+        Err(InteropRefusal::UngroundedArtifact)
+    );
 }
 
 #[test]
@@ -57,9 +60,7 @@ fn filter_shape_dimension_mismatch_is_named() {
     // Activity filtering is always structurally admissible.
     assert!(check_filter_shape(Pm4pyShape::EventLog, FilterShape::Activity).is_ok());
     // Object-type filtering over an OCEL is fine.
-    assert!(
-        check_filter_shape(Pm4pyShape::ObjectCentricLog, FilterShape::ObjectType).is_ok()
-    );
+    assert!(check_filter_shape(Pm4pyShape::ObjectCentricLog, FilterShape::ObjectType).is_ok());
 }
 
 #[test]

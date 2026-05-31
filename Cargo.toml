@@ -8,9 +8,16 @@ repository = "https://github.com/wasm4pm/wasm4pm-compat"
 keywords = ["process-mining", "ocel", "event-log", "evidence", "conformance"]
 categories = ["science", "data-structures"]
 
+[lib]
+# Doctests require per-doctest nightly feature flags (generic_const_exprs,
+# adt_const_params) that don't propagate from the crate root. Running them
+# as the default incurs 200+ separate rustc invocations on a nightly compiler.
+# Use `cargo test --doc --all-features` as an explicit opt-in gate.
+doctest = false
+
 [features]
 # Public feature surface is EXACTLY three. No per-format flags.
-# Nightly is NOT a feature — it lives behind #[cfg(wasm4pm_compat_nightly)].
+# Nightly toolchain required — see rust-toolchain.toml.
 default = ["formats"]
 # import/export contracts, round-trip claims, loss policy surfaces.
 formats = []
@@ -19,11 +26,7 @@ strict = []
 # graduation bridge traits toward the wasm4pm execution engine.
 wasm4pm = []
 
-[lints.rust]
-# wasm4pm_compat_nightly is a custom cfg, not a Cargo feature; teach the
-# compiler it is expected so unexpected_cfgs does not warn on it.
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(wasm4pm_compat_nightly)'] }
-
 [dependencies]
 
 [dev-dependencies]
+trybuild = "1"

@@ -9,9 +9,7 @@
 
 #![cfg(feature = "wasm4pm")]
 
-use wasm4pm_compat::graduation::{
-    GraduateToWasm4pm, GraduationCandidate, GraduationReason,
-};
+use wasm4pm_compat::graduation::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
 
 /// A host compat value that needs a model discovered — an engine job.
 struct AwaitingDiscovery {

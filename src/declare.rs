@@ -145,7 +145,12 @@ impl DeclareConstraint {
     /// assert!(c.target.is_none());
     /// ```
     pub fn unary(template: DeclareTemplate, activation: Activity, scope: DeclareScope) -> Self {
-        Self { template, activation, target: None, scope }
+        Self {
+            template,
+            activation,
+            target: None,
+            scope,
+        }
     }
 
     /// Construct a binary constraint (e.g. [`DeclareTemplate::Response`]).
@@ -168,7 +173,12 @@ impl DeclareConstraint {
         target: Activity,
         scope: DeclareScope,
     ) -> Self {
-        Self { template, activation, target: Some(target), scope }
+        Self {
+            template,
+            activation,
+            target: Some(target),
+            scope,
+        }
     }
 }
 

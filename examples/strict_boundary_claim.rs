@@ -16,8 +16,7 @@ fn main() {
     println!("Strict boundary claims (declaration + check, no data touched)\n");
 
     // 1. A fully-attested export boundary passes the covenant.
-    let healthy =
-        ProcessBoundary::fully_attested(ProcessBoundaryKind::ExportsFormat, "xes-out");
+    let healthy = ProcessBoundary::fully_attested(ProcessBoundaryKind::ExportsFormat, "xes-out");
     match healthy.check() {
         Ok(()) => println!("[1] '{}' — clean: all obligations met.", healthy.name),
         Err(v) => unreachable!("a fully-attested boundary must pass: {v:?}"),
@@ -42,8 +41,7 @@ fn main() {
     }
 
     // 3. A boundary that secretly grew engine capability cannot stay in compat.
-    let grown =
-        ProcessBoundary::fully_attested(ProcessBoundaryKind::ClaimsReplay, "replay-here");
+    let grown = ProcessBoundary::fully_attested(ProcessBoundaryKind::ClaimsReplay, "replay-here");
     match grown.check() {
         Ok(()) => unreachable!("a replay claim is engine capability; it must refuse"),
         Err(violations) => {

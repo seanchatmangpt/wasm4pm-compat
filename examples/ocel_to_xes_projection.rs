@@ -81,10 +81,9 @@ mod demo {
                 .cloned()
                 .collect();
 
-            let bytes = format!(
-                "<log projection=\"{PROJECTION_NAME}\" case-type=\"{case_type}\"/>"
-            )
-            .into_bytes();
+            let bytes =
+                format!("<log projection=\"{PROJECTION_NAME}\" case-type=\"{case_type}\"/>")
+                    .into_bytes();
 
             if dropped.is_empty() {
                 // Single object type: flattening loses nothing.
@@ -97,8 +96,7 @@ mod demo {
                     Policy::AllowWithReport => {
                         // We name the loss facts as `Vec<String>`. In the real
                         // crate these populate a `LossReport<(), (), Vec<String>>`.
-                        let mut loss_facts =
-                            vec![format!("projection={PROJECTION_NAME}")];
+                        let mut loss_facts = vec![format!("projection={PROJECTION_NAME}")];
                         for t in &dropped {
                             loss_facts.push(format!("dropped_object_type={t}"));
                         }
@@ -137,7 +135,11 @@ fn main() {
     println!("[1] AllowWithReport — projection flattens on 'order':");
     let lossy = OcelToXesExporter::export_with_policy(&ocel, Policy::AllowWithReport)
         .expect("permissive projection must succeed");
-    println!("  exported {} bytes as {:?}\n", lossy.bytes.len(), lossy.kind);
+    println!(
+        "  exported {} bytes as {:?}\n",
+        lossy.bytes.len(),
+        lossy.kind
+    );
 
     // 2. Strict policy: the same flattening is a *named refusal*.
     println!("[2] ForbidLoss — same projection over multiple object types:");

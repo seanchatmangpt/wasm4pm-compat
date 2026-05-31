@@ -48,6 +48,11 @@ pub struct NextActivity;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct DriftSignal;
 
+/// Witness: the problem's target is a **risk score** (a threat / hazard
+/// probability estimate).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct RiskScore;
+
 // ── Core shapes ─────────────────────────────────────────────────────────────
 
 /// The kind of prediction target a problem asks about.
@@ -63,6 +68,8 @@ pub enum PredictionTarget {
     RemainingTime,
     /// Detect / characterize concept drift.
     DriftSignal,
+    /// Estimate a risk score (threat / hazard probability).
+    Risk,
 }
 
 /// A complete prediction problem: the observed prefix and the target asked of
@@ -72,18 +79,27 @@ pub enum PredictionTarget {
 /// type level. The top-level **shape** of a predictive monitoring problem; it
 /// does **NOT** encode features, train a model, or emit a prediction. Graduate
 /// to `wasm4pm` to actually predict.
+///
+/// `horizon` is the look-ahead distance (in events or time units) the
+/// prediction spans. `None` means the prediction covers the full remaining
+/// case.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PredictionProblem<T = ()> {
     /// The observed prefix as an ordered list of activity labels.
     pub prefix: Vec<String>,
     /// The prediction target asked of the prefix.
     pub target: PredictionTarget,
+    /// The look-ahead horizon (event count). `None` = full remaining case.
+    pub horizon: Option<usize>,
     /// Type-level witness of the target family.
     pub witness: PhantomData<T>,
 }
 
 impl<T> PredictionProblem<T> {
     /// Construct a witnessed prediction problem from a prefix and target.
+    ///
+    /// The `horizon` field defaults to `None` (full remaining case). To set a
+    /// finite horizon use the `with_horizon` builder.
     ///
     /// # Examples
     ///
@@ -95,9 +111,30 @@ impl<T> PredictionProblem<T> {
     /// );
     /// assert_eq!(p.prefix.len(), 2);
     /// assert_eq!(p.target, PredictionTarget::NextActivity);
+    /// assert_eq!(p.horizon, None);
     /// ```
     pub fn new(prefix: Vec<String>, target: PredictionTarget) -> Self {
-        Self { prefix, target, witness: PhantomData }
+        Self {
+            prefix,
+            target,
+            horizon: None,
+            witness: PhantomData,
+        }
+    }
+
+    /// Set a finite look-ahead `horizon` (event count). Builder-style.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::prediction::{PredictionProblem, PredictionTarget};
+    /// let p = PredictionProblem::<()>::new(vec!["a".into()], PredictionTarget::Risk)
+    ///     .with_horizon(3);
+    /// assert_eq!(p.horizon, Some(3));
+    /// ```
+    pub fn with_horizon(mut self, steps: usize) -> Self {
+        self.horizon = Some(steps);
+        self
     }
 
     /// The length of the observed prefix.

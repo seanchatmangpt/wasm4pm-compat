@@ -32,41 +32,121 @@
 
 use std::collections::HashSet;
 
-/// An object: a typed, identified entity that events relate to.
+/// A typed attribute value on an [`OcelObject`] or [`OcelEvent`].
 ///
-/// In OCEL an object (e.g. an order, an item, a delivery) has a stable id and a
-/// type. Multiple events may touch the same object, and objects relate to one
-/// another via [`ObjectObjectLink`]s.
+/// OCEL 2.0 attributes are typed: the key is a `&str`-named field and the value
+/// is one of string, integer, float, boolean, or timestamp. `OcelAttributeValue`
+/// models the value side; the key is always a `String`.
 ///
-/// Structure-only: an `Object` records identity and type, nothing more. Object
-/// behavior across a process graduates to `wasm4pm`.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Object {
-    id: String,
-    object_type: String,
+/// Structure-only: it stores the value, not a parser.
+#[derive(Clone, Debug, PartialEq)]
+pub enum OcelAttributeValue {
+    /// A string-valued attribute.
+    String(String),
+    /// An integer-valued attribute.
+    Integer(i64),
+    /// A floating-point attribute.
+    Float(f64),
+    /// A boolean attribute.
+    Boolean(bool),
+    /// A timestamp attribute as nanoseconds since the Unix epoch.
+    TimestampNs(i64),
 }
 
-impl Object {
-    /// Construct an object with an id and a type.
+/// A named attribute (key + value) on an [`OcelObject`] or [`OcelEvent`].
+///
+/// Structure-only: it is a key/value pair, not a mined feature.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OcelAttribute {
+    /// The attribute key.
+    pub key: String,
+    /// The typed attribute value.
+    pub value: OcelAttributeValue,
+}
+
+impl OcelAttribute {
+    /// Construct a string attribute.
     ///
     /// ```
-    /// use wasm4pm_compat::ocel::Object;
-    /// let o = Object::new("ord-1", "order");
+    /// use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
+    /// let a = OcelAttribute::string("status", "open");
+    /// assert_eq!(a.key, "status");
+    /// assert_eq!(a.value, OcelAttributeValue::String("open".into()));
+    /// ```
+    pub fn string(key: impl Into<String>, value: impl Into<String>) -> Self {
+        OcelAttribute {
+            key: key.into(),
+            value: OcelAttributeValue::String(value.into()),
+        }
+    }
+
+    /// Construct an integer attribute.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
+    /// let a = OcelAttribute::integer("quantity", 3);
+    /// assert_eq!(a.value, OcelAttributeValue::Integer(3));
+    /// ```
+    pub fn integer(key: impl Into<String>, value: i64) -> Self {
+        OcelAttribute {
+            key: key.into(),
+            value: OcelAttributeValue::Integer(value),
+        }
+    }
+}
+
+/// An object: a typed, identified entity that events relate to, with OCEL 2.0
+/// attributes.
+///
+/// In OCEL an object (e.g. an order, an item, a delivery) has a stable id, a
+/// type, and a bag of typed attributes at creation time. Attribute evolution over
+/// time is captured in [`ObjectChange`]. Multiple events may touch the same
+/// object, and objects relate to one another via [`ObjectObjectLink`]s.
+///
+/// Structure-only: an `OcelObject` records identity, type, and initial
+/// attributes; it does not compute object behavior. That graduates to `wasm4pm`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct OcelObject {
+    id: String,
+    object_type: String,
+    attributes: Vec<OcelAttribute>,
+}
+
+impl OcelObject {
+    /// Construct an object with an id and a type, with no attributes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelObject;
+    /// let o = OcelObject::new("ord-1", "order");
     /// assert_eq!(o.id(), "ord-1");
     /// assert_eq!(o.object_type(), "order");
+    /// assert!(o.attributes().is_empty());
     /// ```
     pub fn new(id: impl Into<String>, object_type: impl Into<String>) -> Self {
-        Object {
+        OcelObject {
             id: id.into(),
             object_type: object_type.into(),
+            attributes: Vec::new(),
         }
+    }
+
+    /// Attach an attribute. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelObject, OcelAttribute};
+    /// let o = OcelObject::new("ord-1", "order").with_attribute(OcelAttribute::string("status", "open"));
+    /// assert_eq!(o.attributes().len(), 1);
+    /// ```
+    pub fn with_attribute(mut self, attr: OcelAttribute) -> Self {
+        self.attributes.push(attr);
+        self
     }
 
     /// The stable object identifier.
     ///
     /// ```
-    /// use wasm4pm_compat::ocel::Object;
-    /// assert_eq!(Object::new("x", "t").id(), "x");
+    /// use wasm4pm_compat::ocel::OcelObject;
+    /// assert_eq!(OcelObject::new("x", "t").id(), "x");
     /// ```
     pub fn id(&self) -> &str {
         &self.id
@@ -75,29 +155,46 @@ impl Object {
     /// The object type (empty types are refused at validation time).
     ///
     /// ```
-    /// use wasm4pm_compat::ocel::Object;
-    /// assert_eq!(Object::new("x", "t").object_type(), "t");
+    /// use wasm4pm_compat::ocel::OcelObject;
+    /// assert_eq!(OcelObject::new("x", "t").object_type(), "t");
     /// ```
     pub fn object_type(&self) -> &str {
         &self.object_type
     }
+
+    /// The initial attributes of this object.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelObject;
+    /// assert!(OcelObject::new("x", "t").attributes().is_empty());
+    /// ```
+    pub fn attributes(&self) -> &[OcelAttribute] {
+        &self.attributes
+    }
 }
 
+/// A backwards-compatible alias for [`OcelObject`].
+///
+/// Existing code using `Object` continues to compile. New code should prefer
+/// [`OcelObject`].
+pub type Object = OcelObject;
+
 /// An object-centric event: an identified, named activity occurrence that may
-/// relate to many objects.
+/// relate to many objects, with OCEL 2.0 typed attributes.
 ///
 /// Named `OcelEvent` (not `Event`) to stand clearly apart from the case-centric
 /// [`crate::eventlog::Event`]: an `OcelEvent` carries no single case id, because
 /// in OCEL there is no single case notion. Its object relationships live in the
 /// [`OcelLog`]'s [`EventObjectLink`] table.
 ///
-/// Structure-only: it records id, activity, and optional time; it does not
-/// replay or mine.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// Structure-only: it records id, activity, optional time, and attributes; it
+/// does not replay or mine.
+#[derive(Clone, Debug, PartialEq)]
 pub struct OcelEvent {
     id: String,
     activity: String,
     timestamp_ns: Option<i64>,
+    attributes: Vec<OcelAttribute>,
 }
 
 impl OcelEvent {
@@ -108,13 +205,37 @@ impl OcelEvent {
     /// let e = OcelEvent::new("e1", "place_order");
     /// assert_eq!(e.id(), "e1");
     /// assert_eq!(e.activity(), "place_order");
+    /// assert!(e.attributes().is_empty());
     /// ```
     pub fn new(id: impl Into<String>, activity: impl Into<String>) -> Self {
         OcelEvent {
             id: id.into(),
             activity: activity.into(),
             timestamp_ns: None,
+            attributes: Vec::new(),
         }
+    }
+
+    /// Attach an attribute. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelEvent, OcelAttribute};
+    /// let e = OcelEvent::new("e1", "ship").with_attribute(OcelAttribute::string("channel", "web"));
+    /// assert_eq!(e.attributes().len(), 1);
+    /// ```
+    pub fn with_attribute(mut self, attr: OcelAttribute) -> Self {
+        self.attributes.push(attr);
+        self
+    }
+
+    /// The event attributes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelEvent;
+    /// assert!(OcelEvent::new("e1", "a").attributes().is_empty());
+    /// ```
+    pub fn attributes(&self) -> &[OcelAttribute] {
+        &self.attributes
     }
 
     /// Attach a nanosecond timestamp. Builder-style.
@@ -412,9 +533,9 @@ impl ObjectChange {
 ///
 /// Structure-only: an admitted `OcelLog` is a substrate for object-centric
 /// discovery and conformance, which graduate to `wasm4pm`.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct OcelLog {
-    objects: Vec<Object>,
+    objects: Vec<OcelObject>,
     events: Vec<OcelEvent>,
     e2o: Vec<EventObjectLink>,
     o2o: Vec<ObjectObjectLink>,
@@ -425,9 +546,9 @@ impl OcelLog {
     /// Construct an OCEL log from its five constituent tables.
     ///
     /// ```
-    /// use wasm4pm_compat::ocel::{Object, OcelEvent, EventObjectLink, OcelLog};
+    /// use wasm4pm_compat::ocel::{OcelObject, OcelEvent, EventObjectLink, OcelLog};
     /// let log = OcelLog::new(
-    ///     [Object::new("ord-1", "order")],
+    ///     [OcelObject::new("ord-1", "order")],
     ///     [OcelEvent::new("e1", "place_order")],
     ///     [EventObjectLink::new("e1", "ord-1")],
     ///     [],
@@ -436,7 +557,7 @@ impl OcelLog {
     /// assert!(log.validate().is_ok());
     /// ```
     pub fn new(
-        objects: impl IntoIterator<Item = Object>,
+        objects: impl IntoIterator<Item = OcelObject>,
         events: impl IntoIterator<Item = OcelEvent>,
         e2o: impl IntoIterator<Item = EventObjectLink>,
         o2o: impl IntoIterator<Item = ObjectObjectLink>,
@@ -452,7 +573,7 @@ impl OcelLog {
     }
 
     /// The declared objects.
-    pub fn objects(&self) -> &[Object] {
+    pub fn objects(&self) -> &[OcelObject] {
         &self.objects
     }
 
@@ -493,10 +614,10 @@ impl OcelLog {
     ///   ([`OcelRefusal::InvalidObjectChange`]).
     ///
     /// ```
-    /// use wasm4pm_compat::ocel::{Object, OcelEvent, EventObjectLink, OcelLog, OcelRefusal};
+    /// use wasm4pm_compat::ocel::{OcelObject, OcelEvent, EventObjectLink, OcelLog, OcelRefusal};
     /// // Dangling E2O link: references object "ghost" that was never declared.
     /// let log = OcelLog::new(
-    ///     [Object::new("ord-1", "order")],
+    ///     [OcelObject::new("ord-1", "order")],
     ///     [OcelEvent::new("e1", "a")],
     ///     [EventObjectLink::new("e1", "ghost")],
     ///     [],
@@ -601,5 +722,70 @@ impl core::fmt::Display for OcelRefusal {
             OcelRefusal::InvalidObjectChange => "InvalidObjectChange",
         };
         write!(f, "OCEL refused by law: {law}")
+    }
+}
+
+/// Dimension summary for an OCEL log: the observed object types and activity
+/// names.
+///
+/// `OcelDims` captures the *vocabulary* of an [`OcelLog`] — all object types and
+/// activity names that appear — without materialising the log's relational
+/// tables. It is useful as a fast header check before full admission.
+///
+/// Structure-only: it names dimensions; it does not count, mine, or index them.
+/// Counting activities per object type, building object-type × activity
+/// incidence tables, and computing object-type DFGs graduate to `wasm4pm`.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct OcelDims {
+    /// Distinct object types observed in this log.
+    pub object_types: Vec<String>,
+    /// Distinct activity names observed in this log.
+    pub activities: Vec<String>,
+}
+
+impl OcelDims {
+    /// Derive the dimension vocabulary from an [`OcelLog`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelDims, OcelLog, OcelObject, OcelEvent, EventObjectLink};
+    /// let log = OcelLog::new(
+    ///     [OcelObject::new("o1", "order"), OcelObject::new("i1", "item")],
+    ///     [OcelEvent::new("e1", "place")],
+    ///     [EventObjectLink::new("e1", "o1")],
+    ///     [],
+    ///     [],
+    /// );
+    /// let dims = OcelDims::from_log(&log);
+    /// assert!(dims.object_types.contains(&"order".to_string()));
+    /// assert!(dims.activities.contains(&"place".to_string()));
+    /// ```
+    #[must_use]
+    pub fn from_log(log: &OcelLog) -> Self {
+        use std::collections::BTreeSet;
+        let object_types: BTreeSet<String> = log
+            .objects()
+            .iter()
+            .map(|o| o.object_type().to_owned())
+            .collect();
+        let activities: BTreeSet<String> = log
+            .events()
+            .iter()
+            .map(|e| e.activity().to_owned())
+            .collect();
+        OcelDims {
+            object_types: object_types.into_iter().collect(),
+            activities: activities.into_iter().collect(),
+        }
+    }
+
+    /// Whether this log has any declared object types.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelDims;
+    /// assert!(OcelDims::default().is_empty());
+    /// ```
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.object_types.is_empty() && self.activities.is_empty()
     }
 }

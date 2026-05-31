@@ -8,7 +8,7 @@
 //! ocpq/etc.), so there is no function-name clash with this file.
 
 use wasm4pm_compat::dfg::{Dfg, DfgEdge, DfgNode, DfgRefusal};
-use wasm4pm_compat::eventlog::{Event, EventLog, EventStream, EventLogRefusal, Trace};
+use wasm4pm_compat::eventlog::{Event, EventLog, EventLogRefusal, EventStream, Trace};
 use wasm4pm_compat::ocel::{
     EventObjectLink, Object, ObjectChange, ObjectObjectLink, OcelEvent, OcelLog, OcelRefusal,
 };
@@ -44,7 +44,10 @@ fn smoke_eventlog() {
 
     // Refusal: non-monotonic timestamps are refused.
     let non_monotonic = Trace::new("c", [Event::new("a").at_ns(9), Event::new("b").at_ns(1)]);
-    assert_eq!(non_monotonic.validate(), Err(EventLogRefusal::NonMonotonicTrace));
+    assert_eq!(
+        non_monotonic.validate(),
+        Err(EventLogRefusal::NonMonotonicTrace)
+    );
 
     // EventStream is the online sibling.
     let mut stream = EventStream::new();
@@ -79,7 +82,10 @@ fn smoke_ocel() {
         [],
         [],
     );
-    assert_eq!(dangling.validate(), Err(OcelRefusal::DanglingEventObjectLink));
+    assert_eq!(
+        dangling.validate(),
+        Err(OcelRefusal::DanglingEventObjectLink)
+    );
 
     // Refusal: an OCEL with no E2O links is empty.
     let no_links = OcelLog::new(

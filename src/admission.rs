@@ -57,7 +57,10 @@ impl<T, W> Admission<T, W> {
     /// ```
     #[inline]
     pub const fn new(value: T) -> Self {
-        Admission { value, witness: PhantomData }
+        Admission {
+            value,
+            witness: PhantomData,
+        }
     }
 
     /// Seals the admission into [`crate::state::Admitted`] evidence.
@@ -84,7 +87,9 @@ impl<T, W> Admission<T, W> {
 // zero-sized `PhantomData` tag). Enables `Result::expect_err` in tests/callers.
 impl<T: core::fmt::Debug, W> core::fmt::Debug for Admission<T, W> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("Admission").field("value", &self.value).finish()
+        f.debug_struct("Admission")
+            .field("value", &self.value)
+            .finish()
     }
 }
 
@@ -117,7 +122,10 @@ impl<R, W> Refusal<R, W> {
     /// ```
     #[inline]
     pub const fn new(reason: R) -> Self {
-        Refusal { reason, witness: PhantomData }
+        Refusal {
+            reason,
+            witness: PhantomData,
+        }
     }
 
     /// Consumes the refusal, yielding its named reason.
@@ -141,7 +149,9 @@ impl<R, W> Refusal<R, W> {
 // zero-sized `PhantomData` tag). Enables `Result::expect` in tests/callers.
 impl<R: core::fmt::Debug, W> core::fmt::Debug for Refusal<R, W> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("Refusal").field("reason", &self.reason).finish()
+        f.debug_struct("Refusal")
+            .field("reason", &self.reason)
+            .finish()
     }
 }
 

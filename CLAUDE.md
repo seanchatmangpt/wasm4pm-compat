@@ -1,0 +1,160 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Nightly Rust is required
+
+This crate is **nightly-only**. The `rust-toolchain.toml` pins the toolchain to `nightly`. There is no stable build target, no MSRV, and no stable fallback. Applications must conform upward to this crate's type law, not the other way around.
+
+The crate root declares these nightly features unconditionally:
+
+```rust
+#![feature(generic_const_exprs)]
+#![feature(adt_const_params)]
+#![feature(const_trait_impl)]
+#![feature(min_specialization)]
+#![feature(portable_simd)]
+#![allow(incomplete_features)]
+```
+
+## Testing surfaces
+
+Three distinct surfaces; each has a different purpose and cadence.
+
+| Surface | Purpose | Run how |
+|---|---|---|
+| Unit + integration tests | Fast behavior checks | `cargo test --all-features --tests` — sub-second |
+| Trybuild fixtures (`tests/ui/`) | Type-law receipts (ALIVE gate) | Explicit: `cargo test --test ui_tests -- --ignored` |
+| Doctests | Documentation audit | Explicit: `cargo test --doc --all-features` |
+
+**Rule:** Doctests teach usage. Trybuild proves law.
+
+Doctests are **disabled in the default test run** (`doctest = false` in `Cargo.toml`). The reason: this is a nightly-first crate where every doctest that touches `generic_const_exprs` or `adt_const_params` types becomes a separate nightly `rustc` invocation. 200+ such invocations make `cargo test` take 4+ minutes — unacceptable for a dev loop. Doctests are still rendered by `cargo doc` and can be run explicitly.
+
+## Build and verification commands
+
+All verification uses bare `cargo` (rust-toolchain.toml makes it nightly):
+
+```bash
+# Default profile (formats feature on).
+cargo build
+cargo test --tests
+cargo doc --no-deps
+
+# Minimal canon: base profile only, no Cargo features.
+cargo build --no-default-features
+cargo test  --no-default-features --tests
+
+# Each optional capability stage individually.
+cargo build --no-default-features --features formats
+cargo build --no-default-features --features strict
+cargo build --no-default-features --features wasm4pm
+
+# All features together.
+cargo build --all-features
+cargo test  --all-features --tests
+cargo doc   --all-features --no-deps
+
+# Lint and format.
+cargo clippy --all-features -- -D warnings
+cargo fmt --check
+
+# Type-law receipt gates (ALIVE gate — explicit opt-in, not part of daily dev loop).
+cargo test --test ui_tests -- --ignored
+
+# Documentation audit (explicit opt-in — not part of daily dev loop).
+cargo test --doc --all-features
+```
+
+Run a single test by name:
+
+```bash
+cargo test <test_name>
+cargo test --all-features <test_name>
+```
+
+The crate has **no runtime dependencies**.
+
+## Architecture
+
+### The one-way door
+
+The central invariant is a typed, one-way lifecycle enforced by the type system:
+
+```
+Raw ──parse──▶ Parsed ──admit──▶ Admitted ──▶ {Projected | Exportable | Receipted}
+  │                                  ▲
+  └────────────── refuse ────────────┴──▶ Refused  (terminal; carries a named law)
+```
+
+`Evidence<T, State, W>` (in `src/evidence.rs`) is the universal carrier. `State` and `W` are zero-sized `PhantomData` tags, so `Evidence<T, Raw, W>` and `Evidence<T, Admitted, W>` are different types. The `Admitted` constructor is `pub(crate)` — the **only** public path to admitted evidence is `Admit::admit()`.
+
+### The type law center of gravity
+
+Type law lives in **public modules**, not in a single foundry appendix:
+
+- **`src/law.rs`** — `ConstParamTy` enum set, `Assert`/`IsTrue`/`Require` bounds machinery, `ConditionCell<BITS>`, `Between01<NUM, DEN>`. This is the compile-time law kernel.
+- **`src/petri.rs`** — typed bipartite arc types, `WfNetConst<SOUNDNESS>` with non-forgeable witness path.
+- **`src/conformance.rs`** — `Metric<KIND, NUM, DEN>` with `Between01` bounds.
+- **`src/process_tree.rs`** — `TypedLoopNode<ARITY>` with `Require<{ ARITY == 2 }>: IsTrue`.
+- **`src/powl.rs`** — `TreeProjectable` sealed trait, `assert_tree_projectable`.
+- **`src/formats.rs`** — `LossyFormatExport` requiring a non-optional loss report.
+- **`src/strict.rs`** — `ExportBoundaryConst<HAS_WITNESS, HAS_ROUND_TRIP>` const-generic type.
+
+`src/nightly_foundry.rs` is a staging/experimental module (no cfg gate). It hosts the four paper-derived law surfaces (petri_law, powl_law, evidence_law, token_law) as an always-on companion. The product type law lives in the modules above.
+
+### The three-layer type system
+
+1. **State tokens** (`src/state.rs`) — empty enums (`Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, `Exportable`, `Receipted`) used as lifecycle markers.
+2. **Witness markers** (`src/witness.rs`) — empty enums implementing the `Witness` trait, each naming a specific paper, standard, or law (e.g. `Ocel20`, `Xes1849`, `WfNetSoundnessPaper`). They prevent `Admission<T, Ocel20>` from being confused with `Admission<T, Xes1849>` at the type level.
+3. **Evidence** (`src/evidence.rs`) — the carrier that bundles a value `T` with a `State` tag and a `Witness` `W`.
+
+### Admission and refusal (`src/admission.rs`)
+
+`Admit` is the **only** sanctioned `Raw → Admitted` path. Implementations return `Result<Admission<…>, Refusal<R, W>>`. The reason type `R` must name a specific structural law (e.g. `DanglingEventObjectLink`, `MissingFinalMarking`) — bare `InvalidInput` is forbidden.
+
+### Loss accounting (`src/loss.rs`)
+
+`Project` is the **only** sanctioned lossy transformation. It requires:
+- A `ProjectionName` (a `&'static str` newtype)
+- A `LossPolicy` decided before loss occurs (`RefuseLoss` | `AllowNamedProjection` | `AllowLossWithReport`)
+- A `LossReport<From, To, Items>` on every non-refusing path
+
+There is no path from one external format directly to another. The only route is: `external → admitted compat → external | wasm4pm`.
+
+### Feature model
+
+Exactly three public Cargo features — no per-format flags:
+
+| Feature | Default | What it adds |
+|---|:---:|---|
+| `formats` | yes | import/export contracts, round-trip claims, loss surfaces |
+| `strict` | no | opt-in boundary judgment: strict admission/refusal surfaces |
+| `wasm4pm` | no | graduation bridge traits toward the wasm4pm execution engine |
+
+Disabling all features does **not** remove canon knowledge — the base profile still defines every process-evidence shape.
+
+### Canon modules (always-on)
+
+All modules in the base profile know the full process-evidence canon:
+`law`, `eventlog`, `ocel`, `xes`, `bpmn`, `petri`, `powl`, `process_tree`, `declare`, `ocpq`, `dfg`, `conformance`, `prediction`, `receipt`, `ids`, `evidence`, `admission`, `loss`, `diagnostic`, `witness`, `state`, `interop`, `nightly_foundry`.
+
+## Type-law receipts (ALIVE gate)
+
+The ALIVE certification gate is `cargo test --test ui_tests`. This runs trybuild fixtures:
+
+- **compile-fail fixtures** in `tests/ui/compile_fail/` — each must fail for the **intended named law**, not accidentally. Every fixture has a corresponding `.stderr` file with the expected compiler diagnostic.
+- **compile-pass fixtures** in `tests/ui/compile_pass/` — each must compile successfully, proving the lawful path is open.
+
+A compile-fail fixture that fails for the wrong reason (missing import, typo, unstable feature drift) is **not** a valid type-law receipt.
+
+## Invariants that must never be violated
+
+- `#![forbid(unsafe_code)]` — no exceptions.
+- Exactly three public Cargo features. Adding per-format flags breaks the contract.
+- Every refusal must carry a **specific named law** as the reason type. `InvalidInput` or string-typed catch-alls are defects.
+- Lossy projections must go through `Project` with a `LossPolicy` and emit a `LossReport`. Silent structure loss is a defect.
+- No engine logic (discovery, conformance checking, replay, alignment) belongs in this crate. Those graduate to `wasm4pm`.
+- Every public type, module, and function requires rustdoc stating what it **is**, what it is **not**, that it is structure-only, and when to graduate.
+- Every public `fn` requires a doctest (or an explicit `ignore` with a documented reason).
+- Type law must live in public modules — never hidden behind a cfg gate or a single foundry appendix.

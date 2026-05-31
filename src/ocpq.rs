@@ -86,7 +86,9 @@ impl ObjectScope {
         I: IntoIterator<Item = S>,
         S: Into<String>,
     {
-        Self { object_types: types.into_iter().map(Into::into).collect() }
+        Self {
+            object_types: types.into_iter().map(Into::into).collect(),
+        }
     }
 
     /// Whether the scope is empty (binds no object types).
@@ -150,7 +152,10 @@ impl<W> Predicate<W> {
     /// assert!(matches!(p.kind, PredicateKind::Event(_)));
     /// ```
     pub fn new(kind: PredicateKind) -> Self {
-        Self { kind, witness: PhantomData }
+        Self {
+            kind,
+            witness: PhantomData,
+        }
     }
 }
 
@@ -181,7 +186,11 @@ impl OcpqQuery {
     /// assert!(q.predicates.is_empty());
     /// ```
     pub fn new(scope: ObjectScope) -> Self {
-        Self { scope, predicates: Vec::new(), sub_queries: Vec::new() }
+        Self {
+            scope,
+            predicates: Vec::new(),
+            sub_queries: Vec::new(),
+        }
     }
 }
 

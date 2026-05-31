@@ -8,7 +8,7 @@
 
 use core::marker::PhantomData;
 
-use wasm4pm_compat::admission::{Admit, Admission, Refusal};
+use wasm4pm_compat::admission::{Admission, Admit, Refusal};
 use wasm4pm_compat::evidence::Evidence;
 use wasm4pm_compat::ids::{EventId, ObjectId};
 use wasm4pm_compat::state::Raw;

@@ -71,9 +71,7 @@ impl GraduationReason {
             GraduationReason::NeedsObjectCentricQueryExecution => {
                 "needs_object_centric_query_execution"
             }
-            GraduationReason::RebuildingProcessMiningLocally => {
-                "rebuilding_process_mining_locally"
-            }
+            GraduationReason::RebuildingProcessMiningLocally => "rebuilding_process_mining_locally",
         }
     }
 

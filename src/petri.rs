@@ -36,6 +36,246 @@
 
 use core::marker::PhantomData;
 
+use crate::law::SoundnessState;
+
+// ── Bipartite arc type law ───────────────────────────────────────────────────
+
+/// A typed arc from a **place** to a **transition** — the only valid
+/// pre-incidence direction in a Petri net.
+///
+/// Paper: Murata (1989) §2 — F ⊆ (P×T) ∪ (T×P); arcs must be bipartite.
+/// There is **no** `PlaceToPlaceArc` or `TransitionToTransitionArc` type in
+/// this crate; they are unconstructible.
+///
+/// The generic kinds `P` and `T` are independent namespace markers; a place
+/// kind and a transition kind can be the same Rust type without breaking the
+/// law (the arc direction is carried by the struct type, not by the type params).
+///
+/// Structure-only: a typed directed edge. No token flow.
+///
+/// ```
+/// use wasm4pm_compat::petri::PlaceToTransitionArc;
+/// struct P1; struct T1;
+/// let arc = PlaceToTransitionArc::<P1, T1, u8>::new(0u8);
+/// assert_eq!(arc.weight(), 0);
+/// ```
+pub struct PlaceToTransitionArc<P, T, Weight> {
+    pub(crate) _from: PhantomData<P>,
+    pub(crate) _to: PhantomData<T>,
+    /// Arc weight (pre-incidence W⁻).
+    pub weight: Weight,
+}
+
+impl<P, T, Weight: Copy> PlaceToTransitionArc<P, T, Weight> {
+    /// Constructs a place→transition arc with the given weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::PlaceToTransitionArc;
+    /// struct P1; struct T1;
+    /// let arc = PlaceToTransitionArc::<P1, T1, u32>::new(1u32);
+    /// assert_eq!(arc.weight(), 1u32);
+    /// ```
+    pub fn new(weight: Weight) -> Self {
+        PlaceToTransitionArc {
+            _from: PhantomData,
+            _to: PhantomData,
+            weight,
+        }
+    }
+
+    /// The arc weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::PlaceToTransitionArc;
+    /// struct P1; struct T1;
+    /// assert_eq!(PlaceToTransitionArc::<P1, T1, u8>::new(3u8).weight(), 3);
+    /// ```
+    pub fn weight(&self) -> Weight {
+        self.weight
+    }
+}
+
+/// A typed arc from a **transition** to a **place** — the only valid
+/// post-incidence direction in a Petri net.
+///
+/// Paper: Murata (1989) §2 — bipartite arc law. Structure-only.
+///
+/// ```
+/// use wasm4pm_compat::petri::TransitionToPlaceArc;
+/// struct T1; struct P1;
+/// let arc = TransitionToPlaceArc::<T1, P1, u8>::new(1u8);
+/// assert_eq!(arc.weight(), 1);
+/// ```
+pub struct TransitionToPlaceArc<T, P, Weight> {
+    pub(crate) _from: PhantomData<T>,
+    pub(crate) _to: PhantomData<P>,
+    /// Arc weight (post-incidence W⁺).
+    pub weight: Weight,
+}
+
+impl<T, P, Weight: Copy> TransitionToPlaceArc<T, P, Weight> {
+    /// Constructs a transition→place arc with the given weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::TransitionToPlaceArc;
+    /// struct T1; struct P1;
+    /// let arc = TransitionToPlaceArc::<T1, P1, u32>::new(1u32);
+    /// assert_eq!(arc.weight(), 1u32);
+    /// ```
+    pub fn new(weight: Weight) -> Self {
+        TransitionToPlaceArc {
+            _from: PhantomData,
+            _to: PhantomData,
+            weight,
+        }
+    }
+
+    /// The arc weight.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::TransitionToPlaceArc;
+    /// struct T1; struct P1;
+    /// assert_eq!(TransitionToPlaceArc::<T1, P1, u8>::new(2u8).weight(), 2);
+    /// ```
+    pub fn weight(&self) -> Weight {
+        self.weight
+    }
+}
+
+// ── IsValidArc sealed trait ──────────────────────────────────────────────────
+
+mod arc_seal {
+    pub trait Sealed {}
+    impl<P, T, W> Sealed for super::PlaceToTransitionArc<P, T, W> {}
+    impl<T, P, W> Sealed for super::TransitionToPlaceArc<T, P, W> {}
+}
+
+/// Sealed marker: only [`PlaceToTransitionArc`] and [`TransitionToPlaceArc`]
+/// are valid arcs in a Petri net. No user type can implement this trait.
+///
+/// ```
+/// use wasm4pm_compat::petri::{PlaceToTransitionArc, IsValidArc};
+/// struct P1; struct T1;
+/// fn accept<A: IsValidArc>(_arc: A) {}
+/// accept(PlaceToTransitionArc::<P1, T1, u8>::new(1u8));
+/// ```
+pub trait IsValidArc: arc_seal::Sealed {}
+impl<P, T, W> IsValidArc for PlaceToTransitionArc<P, T, W> {}
+impl<T, P, W> IsValidArc for TransitionToPlaceArc<T, P, W> {}
+
+// ── Non-forgeable WF-net soundness (const-generic + private seal) ────────────
+
+mod wfnet_seal {
+    /// Private seal — only constructible inside `petri`. Prevents external
+    /// users from building `WfNetConst<{SoundnessState::Witnessed}>` directly.
+    pub(super) struct WfNetSeal;
+}
+
+/// A WF-net with soundness state encoded as a const generic parameter.
+///
+/// The `SOUNDNESS` parameter tracks whether soundness is unknown, claimed, or
+/// witnessed. Crucially, `WfNetConst<{SoundnessState::Witnessed}>` is **only**
+/// constructible via [`WfNetConst::witness_soundness`], which requires a
+/// [`SoundnessProof`] — a type that is itself only constructible inside this
+/// module or via the `wasm4pm` graduation bridge.
+///
+/// Direct struct-literal construction fails because `_seal` is a private field.
+///
+/// ```
+/// use wasm4pm_compat::petri::{WfNetConst, SoundnessProof};
+/// use wasm4pm_compat::law::SoundnessState;
+///
+/// // Build an unknown-soundness net, then claim it:
+/// let unknown = WfNetConst::<{ SoundnessState::Unknown }>::new();
+/// let claimed = unknown.claim_sound();
+/// // To reach Witnessed, you would call claimed.witness_soundness(proof)
+/// // where proof is only producible by the wasm4pm engine or this module.
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::petri::WfNetConst;
+/// use wasm4pm_compat::law::SoundnessState;
+/// // ERROR: _seal is a private field; direct forged construction is impossible.
+/// let forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
+///     _seal: todo!(),
+/// };
+/// ```
+pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
+    // Private seal prevents direct struct-literal construction of any
+    // WfNetConst variant from outside this module.
+    _seal: wfnet_seal::WfNetSeal,
+}
+
+/// A proof token for `SoundnessState::Witnessed` — only constructible inside
+/// `petri` (or via the `wasm4pm` graduation bridge).
+///
+/// Callers outside this module cannot construct `SoundnessProof` because the
+/// inner [`wfnet_seal::WfNetSeal`] type is private.
+pub struct SoundnessProof(wfnet_seal::WfNetSeal);
+
+impl SoundnessProof {
+    /// Module-private constructor — only `petri` and the `wasm4pm` bridge can
+    /// produce a proof.
+    #[allow(dead_code)]
+    pub(crate) fn new() -> Self {
+        SoundnessProof(wfnet_seal::WfNetSeal)
+    }
+}
+
+impl Default for WfNetConst<{ SoundnessState::Unknown }> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Unknown }> {
+    /// Construct a `WfNetConst` in the initial `Unknown` soundness state.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::WfNetConst;
+    /// use wasm4pm_compat::law::SoundnessState;
+    /// let _wf = WfNetConst::<{ SoundnessState::Unknown }>::new();
+    /// ```
+    pub fn new() -> Self {
+        WfNetConst {
+            _seal: wfnet_seal::WfNetSeal,
+        }
+    }
+
+    /// Advance to `Claimed` soundness — a type-level re-tagging only.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::WfNetConst;
+    /// use wasm4pm_compat::law::SoundnessState;
+    /// let claimed: WfNetConst<{ SoundnessState::Claimed }> =
+    ///     WfNetConst::<{ SoundnessState::Unknown }>::new().claim_sound();
+    /// ```
+    pub fn claim_sound(self) -> WfNetConst<{ SoundnessState::Claimed }> {
+        WfNetConst { _seal: self._seal }
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Claimed }> {
+    /// Advance a *claimed* WF-net to `Witnessed` — requires a [`SoundnessProof`].
+    ///
+    /// The `SoundnessProof` is only constructible inside this module or by the
+    /// `wasm4pm` graduation bridge. This is the sanctioned, non-forgeable path
+    /// to `SoundnessState::Witnessed`.
+    ///
+    /// ```ignore
+    /// // Conceptual: the wasm4pm bridge supplies the proof after verifying soundness.
+    /// let witnessed = claimed.witness_soundness(proof_from_wasm4pm);
+    /// ```
+    pub fn witness_soundness(
+        self,
+        _proof: SoundnessProof,
+    ) -> WfNetConst<{ SoundnessState::Witnessed }> {
+        WfNetConst {
+            _seal: wfnet_seal::WfNetSeal,
+        }
+    }
+}
+
 /// A place: a named token-holding location in a Petri net.
 ///
 /// Structure-only: identity and name; no token dynamics.
@@ -172,7 +412,10 @@ impl Arc {
     /// assert_eq!(a.direction(), ArcDirection::PlaceToTransition);
     /// assert_eq!(a.weight(), 1);
     /// ```
-    pub fn place_to_transition(place_id: impl Into<String>, transition_id: impl Into<String>) -> Self {
+    pub fn place_to_transition(
+        place_id: impl Into<String>,
+        transition_id: impl Into<String>,
+    ) -> Self {
         Arc {
             place_id: place_id.into(),
             transition_id: transition_id.into(),
@@ -190,7 +433,10 @@ impl Arc {
     /// let a = Arc::transition_to_place("t", "p");
     /// assert_eq!(a.direction(), ArcDirection::TransitionToPlace);
     /// ```
-    pub fn transition_to_place(transition_id: impl Into<String>, place_id: impl Into<String>) -> Self {
+    pub fn transition_to_place(
+        transition_id: impl Into<String>,
+        place_id: impl Into<String>,
+    ) -> Self {
         Arc {
             place_id: place_id.into(),
             transition_id: transition_id.into(),

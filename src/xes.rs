@@ -26,6 +26,22 @@
 //! abstract [`crate::eventlog::EventLog`] via a named, loss-aware projection),
 //! discovery and conformance graduate to `wasm4pm`.
 
+/// A zero-sized marker that tags a type or value as *case-centric* (single case
+/// notion, not object-centric).
+///
+/// Use this as a `PhantomData<CaseCentricMarker>` field or type parameter to
+/// make it impossible at the type level to confuse a case-centric log with an
+/// object-centric one ([`crate::ocel::OcelLog`]). It carries no data.
+///
+/// Structure-only: it is a marker, not a validator.
+///
+/// ```
+/// use wasm4pm_compat::xes::CaseCentricMarker;
+/// let _: CaseCentricMarker = CaseCentricMarker;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
+pub struct CaseCentricMarker;
+
 /// A declared XES extension (e.g. `concept`, `time`, `lifecycle`, `org`).
 ///
 /// XES attributes are namespaced by extensions. An `XesExtension` records the
@@ -48,11 +64,7 @@ impl XesExtension {
     /// let x = XesExtension::new("Concept", "concept", "http://www.xes-standard.org/concept.xesext");
     /// assert_eq!(x.prefix(), "concept");
     /// ```
-    pub fn new(
-        name: impl Into<String>,
-        prefix: impl Into<String>,
-        uri: impl Into<String>,
-    ) -> Self {
+    pub fn new(name: impl Into<String>, prefix: impl Into<String>, uri: impl Into<String>) -> Self {
         XesExtension {
             name: name.into(),
             prefix: prefix.into(),

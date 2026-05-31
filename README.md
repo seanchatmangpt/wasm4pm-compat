@@ -1,10 +1,18 @@
 # wasm4pm-compat
 
-> **Start with compatibility. Graduate to execution.**
+> **Nightly Rust required. Applications conform upward to future type law.**
 
-A **minimal, paper-complete, feature-capped** Rust crate that defines the
+> *Start with compatibility. Graduate to execution.*
+
+A **nightly-only, paper-complete, feature-capped** Rust crate that defines the
 *structure* of process-mining evidence — and the *laws* of how that evidence
 crosses boundaries. It is the on-ramp to the [`wasm4pm`] execution engine.
+
+**This crate requires nightly Rust.** The `rust-toolchain.toml` pins to nightly.
+The crate root declares `#![feature(generic_const_exprs, adt_const_params,
+const_trait_impl, min_specialization, portable_simd)]`. There is no stable
+build target and no MSRV. Applications must conform upward to the type law,
+not the other way around.
 
 ---
 
@@ -52,9 +60,8 @@ stages*, not *canon knowledge* — the base profile already knows every shape.
 | `wasm4pm`  |   no    | graduation bridge traits toward the `wasm4pm` execution engine      |
 
 There are **no per-format flags** (no `ocel`/`xes`/`bpmn`/`petri`/`powl`/…).
-**Nightly is not a feature**: experimental type-level structure lives only
-behind the custom cfg `#[cfg(wasm4pm_compat_nightly)]`, never a Cargo feature.
-Stable Rust builds by default, and the crate is `#![forbid(unsafe_code)]`.
+**Nightly is not a Cargo feature**: nightly toolchain is the requirement. The
+crate is `#![forbid(unsafe_code)]` and has zero runtime dependencies.
 
 ---
 
@@ -110,35 +117,23 @@ See `examples/` for runnable adoption walkthroughs.
 
 ## Verification commands
 
-The crate must pass the full matrix on **stable** Rust:
+**Nightly toolchain required** (`rust-toolchain.toml` pins it; bare `cargo` is nightly).
 
 ```bash
-# Default profile (formats only).
-cargo build
-cargo test
-cargo doc --no-deps
-
-# Minimal canon: no features at all.
-cargo build  --no-default-features
-cargo test   --no-default-features
-
-# Each optional capability stage.
-cargo build  --no-default-features --features formats
-cargo build  --no-default-features --features strict
-cargo build  --no-default-features --features wasm4pm
-
-# Everything on.
-cargo build  --all-features
-cargo test   --all-features
-cargo doc    --all-features --no-deps
-
-# Lints.
+# Dev loop — sub-second after initial build.
+cargo build --all-features
+cargo test  --all-features --tests
 cargo clippy --all-features -- -D warnings
-cargo fmt    --check
+cargo fmt --check
 
-# Nightly foundry (cfg, NOT a feature) — only when iterating on experiments.
-RUSTFLAGS="--cfg wasm4pm_compat_nightly" cargo build
+# ALIVE gate — type-law receipts (explicit opt-in, ~4 min cold).
+cargo test --test ui_tests -- --ignored
+
+# Documentation audit (explicit opt-in).
+cargo test --doc --all-features
 ```
+
+Doctests are disabled in the default test run (`doctest = false`). This crate is nightly-first: every doctest touching `generic_const_exprs` or `adt_const_params` types becomes a separate nightly `rustc` invocation — 200+ such invocations would make `cargo test` take minutes. The doc examples are still rendered by `cargo doc`.
 
 ---
 

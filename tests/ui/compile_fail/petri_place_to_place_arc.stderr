@@ -1,0 +1,10 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/petri_place_to_place_arc.rs:16:49
+   |
+16 |     let arc: PlaceToTransitionArc<P1, P2, u8> = wasm4pm_compat::petri::TransitionToPlaceArc::<P1, P2, u8>::new(1u8);
+   |              --------------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `PlaceToTransitionArc<P1, P2, u8>`, found `TransitionToPlaceArc<P1, P2, u8>`
+   |              |
+   |              expected due to this
+   |
+   = note: expected struct `PlaceToTransitionArc<P1, P2, u8>`
+              found struct `TransitionToPlaceArc<P1, P2, u8>`

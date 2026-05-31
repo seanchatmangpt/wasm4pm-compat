@@ -74,6 +74,46 @@ pub struct ProcessTreeProjectable;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ExceedsProcessTree;
 
+// ── TreeProjectable sealed trait ─────────────────────────────────────────────
+
+mod tree_projectable_seal {
+    pub trait Sealed {}
+    impl Sealed for super::ProcessTreeProjectable {}
+    // ExceedsProcessTree deliberately NOT sealed here → cannot impl TreeProjectable.
+}
+
+/// Sealed marker: only [`ProcessTreeProjectable`] satisfies this bound.
+///
+/// A function requiring `P: TreeProjectable` cannot be called with
+/// [`ExceedsProcessTree`] — that marker represents a POWL fragment whose
+/// partial order has no process-tree equivalent.
+///
+/// ```
+/// use wasm4pm_compat::powl::{assert_tree_projectable, ProcessTreeProjectable};
+/// assert_tree_projectable(ProcessTreeProjectable);  // ok
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::powl::{assert_tree_projectable, ExceedsProcessTree};
+/// assert_tree_projectable(ExceedsProcessTree);  // compile error: not TreeProjectable
+/// ```
+pub trait TreeProjectable: tree_projectable_seal::Sealed {}
+impl TreeProjectable for ProcessTreeProjectable {}
+
+/// Structural gate: only POWL markers that are tree-projectable pass.
+///
+/// This is **not** a discovery function. It proves the projection law at the
+/// type level — the marker `P` must be [`ProcessTreeProjectable`].
+///
+/// ```
+/// use wasm4pm_compat::powl::{assert_tree_projectable, ProcessTreeProjectable};
+/// let result = assert_tree_projectable(ProcessTreeProjectable);
+/// assert!(result);
+/// ```
+pub fn assert_tree_projectable<P: TreeProjectable>(_marker: P) -> bool {
+    true
+}
+
 // ── Identifier wrapper ──────────────────────────────────────────────────────
 
 /// Zero-cost identifier for a [`PowlNode`] within a [`Powl`] model.
@@ -135,7 +175,11 @@ impl<W> PowlNode<W> {
     /// assert_eq!(n.id, PowlNodeId(0));
     /// ```
     pub fn new(id: PowlNodeId, kind: PowlNodeKind) -> Self {
-        Self { id, kind, witness: PhantomData }
+        Self {
+            id,
+            kind,
+            witness: PhantomData,
+        }
     }
 }
 

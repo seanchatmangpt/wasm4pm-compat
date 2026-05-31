@@ -356,12 +356,109 @@ impl core::fmt::Display for InteropRefusal {
 ///     Err(InteropRefusal::DimensionShapeMismatch)
 /// );
 /// ```
-pub fn check_filter_shape(
-    artifact: Pm4pyShape,
-    filter: FilterShape,
-) -> Result<(), InteropRefusal> {
+pub fn check_filter_shape(artifact: Pm4pyShape, filter: FilterShape) -> Result<(), InteropRefusal> {
     if matches!(filter, FilterShape::ObjectType) && !artifact.is_object_centric() {
         return Err(InteropRefusal::DimensionShapeMismatch);
     }
     Ok(())
 }
+
+// ── OCEL → XES format grammar surfaces ──────────────────────────────────────
+//
+// The following types model the *named projection descriptor* for OCEL→XES
+// flattening. They are the format grammar surfaces of the boundary — they name
+// and parameterise the projection but do NOT implement it. The projection
+// itself (instantiating crate::loss::Project) belongs in the adopter's code or
+// in `wasm4pm`.
+
+/// A descriptor for an OCEL→XES flattening projection.
+///
+/// Flattening OCEL to a single XES case notion is lossy: you choose one object
+/// type to act as the case, and all E2O links to the other types are dropped.
+/// This descriptor names the projection (via [`crate::loss::ProjectionName`])
+/// and records which object type was chosen as the case notion.
+///
+/// It is the *grammar surface* for the OCEL→XES boundary: it names and
+/// parameterises the projection so the [`crate::loss::Project`] impl an adopter
+/// writes is unambiguous and auditable. It does **not** perform the flattening.
+///
+/// Structure-only: use this as the `Self` type of a
+/// [`crate::loss::Project`] impl, with `From = OcelShape`, `To = XesShape`,
+/// `Lost = Vec<String>` (dropped object type names), and
+/// `Reason = crate::ocel::OcelRefusal`.
+///
+/// ```
+/// use wasm4pm_compat::interop::OcelToXesProjection;
+/// use wasm4pm_compat::loss::ProjectionName;
+/// let proj = OcelToXesProjection::new("order");
+/// assert_eq!(proj.case_type(), "order");
+/// assert_eq!(proj.projection_name().as_str(), "ocel-flatten-to-xes:by-case-type");
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OcelToXesProjection {
+    case_type: String,
+}
+
+impl OcelToXesProjection {
+    /// The stable [`crate::loss::ProjectionName`] for this family of projections.
+    pub const PROJECTION_NAME: crate::loss::ProjectionName =
+        crate::loss::ProjectionName("ocel-flatten-to-xes:by-case-type");
+
+    /// Construct a projection descriptor for flattening OCEL by `case_type`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::OcelToXesProjection;
+    /// let p = OcelToXesProjection::new("order");
+    /// assert_eq!(p.case_type(), "order");
+    /// ```
+    pub fn new(case_type: impl Into<String>) -> Self {
+        OcelToXesProjection {
+            case_type: case_type.into(),
+        }
+    }
+
+    /// The object type chosen as the XES case notion.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::OcelToXesProjection;
+    /// assert_eq!(OcelToXesProjection::new("item").case_type(), "item");
+    /// ```
+    pub fn case_type(&self) -> &str {
+        &self.case_type
+    }
+
+    /// The stable [`crate::loss::ProjectionName`] for this projection family.
+    ///
+    /// ```
+    /// use wasm4pm_compat::interop::OcelToXesProjection;
+    /// let p = OcelToXesProjection::new("order");
+    /// assert_eq!(p.projection_name().as_str(), "ocel-flatten-to-xes:by-case-type");
+    /// ```
+    pub fn projection_name(&self) -> crate::loss::ProjectionName {
+        Self::PROJECTION_NAME
+    }
+}
+
+/// Shape marker for the OCEL side of an OCEL→XES projection.
+///
+/// Use as `From` in `LossReport<OcelShape, XesShape, …>` and in
+/// [`crate::loss::Project`] impls. Zero-sized.
+///
+/// ```
+/// use wasm4pm_compat::interop::OcelShape;
+/// let _: OcelShape;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OcelShape {}
+
+/// Shape marker for the XES side of an OCEL→XES projection.
+///
+/// Use as `To` in `LossReport<OcelShape, XesShape, …>` and in
+/// [`crate::loss::Project`] impls. Zero-sized.
+///
+/// ```
+/// use wasm4pm_compat::interop::XesShape;
+/// let _: XesShape;
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum XesShape {}

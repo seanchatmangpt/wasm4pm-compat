@@ -1,2 +1,2 @@
-# Minimum supported Rust version for clippy MSRV-aware lints.
-msrv = "1.74.0"
+# wasm4pm-compat requires nightly Rust — no stable MSRV.
+# Clippy MSRV-aware lints are not configured because the crate is nightly-first.

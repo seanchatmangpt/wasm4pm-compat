@@ -26,6 +26,55 @@
 //! graduate this shape to the `wasm4pm` engine (via the `wasm4pm` feature). This
 //! module only certifies that the *structure* is well-formed.
 
+use crate::law::{IsTrue, Require};
+
+// ── Arity-typed loop node (type-law surface) ─────────────────────────────────
+
+/// A loop node with its arity encoded as a const generic parameter.
+///
+/// Paper: Leemans (2013) inductive miner — a loop operator has exactly 2
+/// children: the `do` body and the `redo` branch.
+/// `TypedLoopNode<_, 3>` does **not compile**: `ARITY == 2` is violated.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::process_tree::TypedLoopNode;
+/// let _: TypedLoopNode<(), 2> = TypedLoopNode::new(());  // arity 2: lawful
+/// ```
+///
+/// ```compile_fail
+/// use wasm4pm_compat::process_tree::TypedLoopNode;
+/// let _: TypedLoopNode<(), 3> = TypedLoopNode::new(());  // arity 3: compile error
+/// ```
+pub struct TypedLoopNode<Children, const ARITY: usize>
+where
+    Require<{ ARITY == 2 }>: IsTrue,
+{
+    /// The loop children (do body + redo branch), provided by the caller.
+    pub children: Children,
+}
+
+impl<Children, const ARITY: usize> TypedLoopNode<Children, ARITY>
+where
+    Require<{ ARITY == 2 }>: IsTrue,
+{
+    /// Constructs a `TypedLoopNode` — only possible when `ARITY == 2`.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::process_tree::TypedLoopNode;
+    /// let node: TypedLoopNode<[&str; 2], 2> = TypedLoopNode::new(["do", "redo"]);
+    /// assert_eq!(node.children, ["do", "redo"]);
+    /// ```
+    pub fn new(children: Children) -> Self {
+        TypedLoopNode { children }
+    }
+}
+
+// ── Identifier and operator types ────────────────────────────────────────────
+
 /// Zero-cost identifier for a [`ProcessTreeNode`].
 ///
 /// `#[repr(transparent)]` over `usize`: structural and free.
