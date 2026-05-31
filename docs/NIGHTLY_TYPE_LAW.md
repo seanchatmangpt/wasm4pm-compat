@@ -873,3 +873,12 @@ Every `OcelEvent` carries an activity name (the event type in OCEL terminology).
 | Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
 |---|---|---|---|---|
 | `ocel_event_type_witness_law` — every event must carry a non-empty activity name | `ocel::OcelEvent` (activity field, non-empty) | `compile_pass/ocel_event_object_relation.rs` | n/a (gap: validation pending in `OcelLog::validate`) | OCEL 2.0 §3.3 activity (event type) |
+
+### relation-qualifier-law
+
+Both `EventObjectLink` (E2O) and `ObjectObjectLink` (O2O) carry an optional `qualifier` that names the role of the object in the event or the role of the relationship between two objects (e.g., `"places"`, `"contains"`, `"belongs_to"`). A qualifier is not a free annotation — in OCEL 2.0, qualifiers are part of the formal data model and distinguish multiple links between the same pair. A missing qualifier is lawful (the link is unqualified); a qualifier that is present must be a non-empty string. Assigning a qualified link with an empty qualifier string is a structural defect because it produces an indistinguishable qualifier from the absence of a qualifier.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_e2o_qualifier_law` — E2O qualifier, when present, names a role | `ocel::EventObjectLink::qualified()` (builder) | `compile_pass/ocel_event_object_relation.rs` | n/a (gap: empty-qualifier validation pending) | OCEL 2.0 §3.4 relation qualifier |
+| `ocel_o2o_qualifier_law` — O2O qualifier, when present, names a relationship type | `ocel::ObjectObjectLink::qualified()` (builder) | `compile_pass/ocel_object_object_relation.rs` | n/a (gap: empty-qualifier validation pending) | OCEL 2.0 §3.4 relation qualifier |
