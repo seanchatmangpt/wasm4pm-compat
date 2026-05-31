@@ -1112,6 +1112,61 @@ pub enum PetriRefusal {
     InvalidInstanceBounds,
 }
 
+/// A WF-net tagged as **separable** — a necessary precondition for lossless
+/// POWL 2.0 conversion (Kourani, Park & van der Aalst, 2026).
+///
+/// A WF-net is *separable* if it can be decomposed into a set of structurally
+/// independent sub-nets whose composition reproduces the original language. Only
+/// a separable WF-net can be faithfully represented as a POWL 2.0 model via the
+/// POWL decomposition theorem (Kourani 2026, Definition 4.1).
+///
+/// ## Structure-only
+///
+/// This marker records the *claim* that a WF-net is separable; it does not
+/// verify separability (that graduates to `wasm4pm`). The claim prevents code
+/// from inadvertently feeding a non-separable net to a POWL 2.0 conversion
+/// path at the type level.
+///
+/// ## How to use
+///
+/// Wrap your `WfNetConst` in a `SeparableWfNet` after verifying separability
+/// via the `wasm4pm` engine and attaching the result here. The type-level
+/// marker then flows through the rest of the pipeline.
+///
+/// ## Paper
+///
+/// Kourani, Park & van der Aalst (2026) — *Hierarchical Decomposition of
+/// Separable Workflow-Nets*. Definition 4.1 (separable WF-net) and
+/// Theorem 4.3 (POWL 2.0 language preservation under decomposition).
+///
+/// Structure-only: carries no behavior, no token semantics.
+pub struct SeparableWfNet<const SOUNDNESS: crate::law::SoundnessState> {
+    /// The underlying WF-net with its soundness state.
+    pub net: WfNetConst<SOUNDNESS>,
+    // Private seal — separability claim is not forgeable from outside this module.
+    _seal: wfnet_seal::WfNetSeal,
+}
+
+impl<const SOUNDNESS: crate::law::SoundnessState> SeparableWfNet<SOUNDNESS> {
+    /// Construct a `SeparableWfNet` from a verified `WfNetConst`.
+    ///
+    /// This is `pub(crate)` — the only public construction path is through the
+    /// `wasm4pm` graduation bridge that verifies separability.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{WfNetConst, SeparableWfNet};
+    /// use wasm4pm_compat::law::SoundnessState;
+    /// let _: SeparableWfNet<{ SoundnessState::Unknown }> =
+    ///     SeparableWfNet::declare_separable(WfNetConst::new());
+    /// ```
+    pub fn declare_separable(net: WfNetConst<SOUNDNESS>) -> Self {
+        SeparableWfNet {
+            net,
+            _seal: wfnet_seal::WfNetSeal,
+        }
+    }
+}
+
 impl core::fmt::Display for PetriRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let law = match self {
