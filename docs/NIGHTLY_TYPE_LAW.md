@@ -1687,3 +1687,28 @@ outside this sub-class must be an explicit, named refusal — not a silent failu
 - POWL-to-process-tree language-preserving reduction algorithm
 - Tau-loop insertion for block-structuredness recovery
 - Language loss measurement during projection
+
+---
+
+## Declare/OCPQ Law Packet — Cardinality Bound Law
+
+**Paper family:** `OCPQ_QUERYING`
+**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+
+### cardinality-bound-law
+
+`Predicate<CardinalityPredicate>` with `PredicateKind::Cardinality { min, max }` asserts a count bound: between `min` and `max` bindings (inclusive) must satisfy the surrounding query node. The structural law requires `min <= max`. A cardinality predicate with `min > max` is refused as `OcpqRefusal::InvalidCardinality`.
+
+The anonymous `Cardinality` variant is for general count bounds. When the bound is over a named child branch, use `PredicateKind::ChildSetBound` instead (see typed-child-set-law below).
+
+The `Between01<NUM, DEN>` law from `src/law.rs` governs cardinality bounds when expressed as a fraction of total object count. `ocpq_cardinality_overflow` and `ocpq_cardinality_rejected` compile-fail fixtures seal the arithmetic overflow and inversion laws.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocpq_cardinality_bound_law` — `Predicate<CardinalityPredicate>` with `Cardinality { min, max }` requires `min <= max`; violated bound is refused as `OcpqRefusal::InvalidCardinality` | `ocpq::Predicate<CardinalityPredicate>` / `ocpq::OcpqRefusal::InvalidCardinality` | `compile_pass/ocpq_cardinality_valid_bounds.rs` | `compile_fail/ocpq_cardinality_rejected.rs` | OCPQ §4 cardinality constraints |
+| `ocpq_cardinality_overflow` — OCPQ `CardinalityBound` const-generic overflow at type level | `ocpq::CardinalityBound` / `law::Between01<NUM, DEN>` | `compile_pass/ocpq_cardinality_valid_bounds.rs` | `compile_fail/ocpq_cardinality_overflow.rs` | OCPQ §4 + `law::Between01` |
+
+**What must NOT live in this crate:**
+
+- Cardinality predicate evaluation (counting bindings at runtime)
+- Adaptive bound derivation from log frequency statistics
