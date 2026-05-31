@@ -84,6 +84,24 @@ macro_rules! typed_id {
                 f.debug_tuple(stringify!($name)).field(&self.raw).finish()
             }
         }
+        /// Displays the raw numeric value prefixed by the type name, e.g. `EventId(7)`.
+        impl<K> core::fmt::Display for $name<K> {
+            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                write!(f, "{}({})", stringify!($name), self.raw)
+            }
+        }
+        impl<K> PartialOrd for $name<K> {
+            #[inline]
+            fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+                Some(self.cmp(other))
+            }
+        }
+        impl<K> Ord for $name<K> {
+            #[inline]
+            fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+                self.raw.cmp(&other.raw)
+            }
+        }
     };
 }
 
