@@ -61,4 +61,20 @@ Crown is a strict superset of ALIVE_003.
 
 ## Entry State
 
-*(Sealed at crown sprint entry — see checkpoint commit)*
+Sealed at crown sprint entry.
+
+**HEAD commit:** `09a21f6 docs-law: create NEGATIVE_RECEIPTS surface index`
+
+**Fixture counts at entry:**
+```
+compile-pass fixtures: 83
+compile-fail fixtures: 45
+```
+
+**Gap to crown:**
+```
+compile-pass gap: 200 - 83 = 117 fixtures needed
+compile-fail gap: 160 - 45 = 115 fixtures needed
+```
+
+**Date sealed:** 2026-05-31
