@@ -16,8 +16,25 @@
 //! These wrappers are **structure only**: they identify, they do not resolve.
 //! Resolving an id to the value it names (and validating that the link exists)
 //! is an engine concern — graduate to `wasm4pm` for that.
+//!
+//! ## String-backed name types
+//!
+//! [`ObjectTypeName`] and [`EventTypeName`] carry the actual string label
+//! (e.g. `"order"`, `"place_order"`) rather than an interned integer handle.
+//! They are structurally distinct from the integer-backed types above — mixing
+//! them is a compile error. Use the integer-backed [`ObjectTypeId`] /
+//! [`EventTypeId`] when you hold an interned handle; use the string-backed
+//! types when you hold the human-readable label itself.
+//!
+//! ## `id_of` — phantom-typed marker constructor
+//!
+//! [`id_of`] is a zero-cost free function that constructs any [`TypedId`]
+//! implementor from a raw value while anchoring it to an explicit kind marker.
+//! It is the *canonical* way to build a typed id when the kind is known at the
+//! call site: `id_of::<EventId<MyLog>>(7)` rather than `EventId::<MyLog>::new(7)`.
 
 use core::marker::PhantomData;
+use std::borrow::Cow;
 
 /// Sealed marker trait shared by every kind-typed identifier in this module.
 ///
@@ -227,3 +244,337 @@ impl_typed_id!(TraceId,      u64, 0u64);
 impl_typed_id!(ObjectTypeId, u32, 0u32);
 impl_typed_id!(EventTypeId,  u32, 0u32);
 impl_typed_id!(CaseId,       u64, 0u64);
+
+// ── String-backed name types ──────────────────────────────────────────────────
+
+/// Carries the human-readable label of an object-type class in an OCEL log.
+///
+/// # What this is
+///
+/// `ObjectTypeName<K>` holds the actual string label (e.g. `"order"`, `"item"`,
+/// `"payment"`) of an OCEL object-type class. It is the string-backed counterpart
+/// to [`ObjectTypeId`] (which holds an interned `u32` handle). Use this type
+/// when the label itself — not an integer handle — is the identity token.
+///
+/// The inner value is `Cow<'static, str>` so that both compile-time string
+/// literals (`&'static str`) and heap-allocated `String`s (as `Owned`) can be
+/// held without copying when the source is already static.
+///
+/// # What this is NOT
+///
+/// This is not a resolution mechanism. Knowing the label does not prove the
+/// type exists in a log or that any object belongs to it. Graduate to
+/// `wasm4pm` for type-membership validation.
+///
+/// # When to graduate
+///
+/// When you need to resolve an `ObjectTypeName` to its object members, or
+/// validate type membership, graduate to the `wasm4pm` execution engine.
+///
+/// # Examples
+///
+/// ```ignore
+/// use wasm4pm_compat::ids::ObjectTypeName;
+/// enum MyLog {}
+/// let order_type = ObjectTypeName::<MyLog>::from_static("order");
+/// assert_eq!(order_type.as_str(), "order");
+/// ```
+pub struct ObjectTypeName<K> {
+    label: Cow<'static, str>,
+    _kind: PhantomData<K>,
+}
+
+impl<K> ObjectTypeName<K> {
+    /// Wraps a `&'static str` label without allocation.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::ObjectTypeName;
+    /// enum MyLog {}
+    /// let t = ObjectTypeName::<MyLog>::from_static("order");
+    /// assert_eq!(t.as_str(), "order");
+    /// ```
+    #[inline]
+    pub fn from_static(label: &'static str) -> Self {
+        Self { label: Cow::Borrowed(label), _kind: PhantomData }
+    }
+
+    /// Wraps an owned `String` label, allocating on the heap.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::ObjectTypeName;
+    /// enum MyLog {}
+    /// let t = ObjectTypeName::<MyLog>::from_owned(String::from("item"));
+    /// assert_eq!(t.as_str(), "item");
+    /// ```
+    #[inline]
+    pub fn from_owned(label: String) -> Self {
+        Self { label: Cow::Owned(label), _kind: PhantomData }
+    }
+
+    /// Returns the string label.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::ObjectTypeName;
+    /// enum MyLog {}
+    /// assert_eq!(ObjectTypeName::<MyLog>::from_static("payment").as_str(), "payment");
+    /// ```
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        &self.label
+    }
+}
+
+impl<K> Clone for ObjectTypeName<K> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self { label: self.label.clone(), _kind: PhantomData }
+    }
+}
+impl<K> PartialEq for ObjectTypeName<K> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool { self.label == other.label }
+}
+impl<K> Eq for ObjectTypeName<K> {}
+impl<K> core::hash::Hash for ObjectTypeName<K> {
+    #[inline]
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) { self.label.hash(state); }
+}
+impl<K> core::fmt::Debug for ObjectTypeName<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("ObjectTypeName").field(&self.label).finish()
+    }
+}
+/// Displays the string label prefixed by the type name, e.g. `ObjectTypeName("order")`.
+impl<K> core::fmt::Display for ObjectTypeName<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "ObjectTypeName(\"{}\")", self.label)
+    }
+}
+impl<K> PartialOrd for ObjectTypeName<K> {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl<K> Ord for ObjectTypeName<K> {
+    #[inline]
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.label.cmp(&other.label)
+    }
+}
+
+/// Carries the human-readable label of an event-type (activity) in a typed log.
+///
+/// # What this is
+///
+/// `EventTypeName<K>` holds the actual string label (e.g. `"place_order"`,
+/// `"ship_item"`) of an activity class. It is the string-backed counterpart to
+/// [`EventTypeId`] (which holds an interned `u32` handle). Use this type when
+/// the label itself — not an integer handle — is the identity token.
+///
+/// The inner value is `Cow<'static, str>` so that both compile-time string
+/// literals and heap-allocated `String`s can be held without copying when the
+/// source is already static.
+///
+/// # What this is NOT
+///
+/// This is not a resolution mechanism. Knowing the label does not prove the
+/// activity type exists in a specific log. Graduate to `wasm4pm` for that.
+///
+/// # When to graduate
+///
+/// When you need to resolve an `EventTypeName` to event occurrences, or
+/// validate activity membership, graduate to the `wasm4pm` execution engine.
+///
+/// # Examples
+///
+/// ```ignore
+/// use wasm4pm_compat::ids::EventTypeName;
+/// enum MyLog {}
+/// let place = EventTypeName::<MyLog>::from_static("place_order");
+/// assert_eq!(place.as_str(), "place_order");
+/// ```
+pub struct EventTypeName<K> {
+    label: Cow<'static, str>,
+    _kind: PhantomData<K>,
+}
+
+impl<K> EventTypeName<K> {
+    /// Wraps a `&'static str` label without allocation.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::EventTypeName;
+    /// enum MyLog {}
+    /// let t = EventTypeName::<MyLog>::from_static("place_order");
+    /// assert_eq!(t.as_str(), "place_order");
+    /// ```
+    #[inline]
+    pub fn from_static(label: &'static str) -> Self {
+        Self { label: Cow::Borrowed(label), _kind: PhantomData }
+    }
+
+    /// Wraps an owned `String` label, allocating on the heap.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::EventTypeName;
+    /// enum MyLog {}
+    /// let t = EventTypeName::<MyLog>::from_owned(String::from("ship_item"));
+    /// assert_eq!(t.as_str(), "ship_item");
+    /// ```
+    #[inline]
+    pub fn from_owned(label: String) -> Self {
+        Self { label: Cow::Owned(label), _kind: PhantomData }
+    }
+
+    /// Returns the string label.
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// use wasm4pm_compat::ids::EventTypeName;
+    /// enum MyLog {}
+    /// assert_eq!(EventTypeName::<MyLog>::from_static("ship_item").as_str(), "ship_item");
+    /// ```
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        &self.label
+    }
+}
+
+impl<K> Clone for EventTypeName<K> {
+    #[inline]
+    fn clone(&self) -> Self {
+        Self { label: self.label.clone(), _kind: PhantomData }
+    }
+}
+impl<K> PartialEq for EventTypeName<K> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool { self.label == other.label }
+}
+impl<K> Eq for EventTypeName<K> {}
+impl<K> core::hash::Hash for EventTypeName<K> {
+    #[inline]
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) { self.label.hash(state); }
+}
+impl<K> core::fmt::Debug for EventTypeName<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_tuple("EventTypeName").field(&self.label).finish()
+    }
+}
+/// Displays the string label prefixed by the type name, e.g. `EventTypeName("place_order")`.
+impl<K> core::fmt::Display for EventTypeName<K> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "EventTypeName(\"{}\")", self.label)
+    }
+}
+impl<K> PartialOrd for EventTypeName<K> {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl<K> Ord for EventTypeName<K> {
+    #[inline]
+    fn cmp(&self, other: &Self) -> core::cmp::Ordering {
+        self.label.cmp(&other.label)
+    }
+}
+
+// ── id_of — phantom-typed marker constructor ──────────────────────────────────
+
+/// Constructs a [`TypedId`] value from its raw primitive, anchored to the
+/// id type's kind marker via turbofish.
+///
+/// # What this is
+///
+/// `id_of` is a zero-cost free function that is the *canonical* call-site form
+/// for building a typed id when the kind is known at the call site:
+///
+/// ```ignore
+/// use wasm4pm_compat::ids::{EventId, id_of};
+/// enum MyLog {}
+/// let ev = id_of::<EventId<MyLog>>(42u64);
+/// assert_eq!(ev.raw(), 42u64);
+/// ```
+///
+/// It is identical in behaviour to `T::new(raw)` but makes the intent explicit
+/// in code: *"I am constructing an id of this exact kind"*.
+///
+/// # What this is NOT
+///
+/// This is not a resolver. The constructed id names an entity; it does not
+/// validate that the entity exists in any log. Graduate to `wasm4pm` for that.
+///
+/// # When to graduate
+///
+/// When you need to resolve the id to the value it names, or validate link
+/// existence, move that logic to the `wasm4pm` execution engine.
+///
+/// # Examples
+///
+/// ```ignore
+/// use wasm4pm_compat::ids::{EventId, ObjectId, TraceId, id_of};
+/// enum MyLog {}
+/// let ev   = id_of::<EventId<MyLog>>(1u64);
+/// let obj  = id_of::<ObjectId<MyLog>>(2u64);
+/// let tr   = id_of::<TraceId<MyLog>>(3u64);
+/// assert_eq!(ev.raw(), 1u64);
+/// assert_eq!(obj.raw(), 2u64);
+/// assert_eq!(tr.raw(), 3u64);
+/// ```
+pub fn id_of<T: NewFromRaw>(raw: T::Raw) -> T {
+    T::new_from_raw(raw)
+}
+
+/// Supporting trait for [`id_of`]: lets the free function call the correct
+/// `new` constructor regardless of which typed-id newtype `T` is.
+///
+/// # What this is
+///
+/// `NewFromRaw` is a *sealed* companion trait implemented only by the numeric
+/// typed-id newtypes in this module. External code cannot implement it; it
+/// exists solely to make [`id_of`] generic over all typed-id kinds.
+///
+/// # What this is NOT
+///
+/// This trait is not part of the public extension surface. Do not implement it
+/// outside this module. Do not use it directly — use [`id_of`] instead.
+///
+/// # When to graduate
+///
+/// Never — this is a crate-internal plumbing trait with no engine concern.
+pub trait NewFromRaw: sealed::SealedId {
+    /// The underlying raw primitive (same as [`TypedId::Raw`]).
+    type Raw;
+    /// Constructs `Self` from a raw primitive. Identical to the concrete `new` fn.
+    fn new_from_raw(raw: Self::Raw) -> Self;
+}
+
+macro_rules! impl_new_from_raw {
+    ($name:ident, $raw:ty) => {
+        impl<K> NewFromRaw for $name<K> {
+            type Raw = $raw;
+            #[inline]
+            fn new_from_raw(raw: $raw) -> Self { Self::new(raw) }
+        }
+    };
+}
+
+impl_new_from_raw!(EventId,      u64);
+impl_new_from_raw!(ObjectId,     u64);
+impl_new_from_raw!(ActivityId,   u32);
+impl_new_from_raw!(RelationId,   u32);
+impl_new_from_raw!(TraceId,      u64);
+impl_new_from_raw!(ObjectTypeId, u32);
+impl_new_from_raw!(EventTypeId,  u32);
+impl_new_from_raw!(CaseId,       u64);
