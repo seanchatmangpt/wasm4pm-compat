@@ -1,4 +1,4 @@
-//! Loss policy, loss report, and the named-projection law.
+//! Loss policy, loss report, named-projection law, and named-loss descriptor.
 //!
 //! Some translations between process-evidence shapes **cannot** be lossless.
 //! The canonical case is flattening an object-centric log (OCEL) down to a
@@ -12,9 +12,17 @@
 //!   it is gated by a [`LossPolicy`].
 //! - [`LossPolicy`] forces a caller to *decide in advance* how loss is handled:
 //!   refuse it, allow it under a named projection, or allow it but emit a
-//!   [`LossReport`].
+//!   [`LossReport`]. Use [`LossPolicy::is_refusing`], [`LossPolicy::is_named`],
+//!   and [`LossPolicy::is_reporting`] to guard on intent without pattern-matching.
 //! - [`LossReport`] is the receipt of what was lost — it records the
-//!   [`ProjectionName`], the policy, and the discarded items.
+//!   [`ProjectionName`], the policy, and the discarded items. Use
+//!   [`LossReport::summary`] to derive a [`NamedLoss`] and
+//!   [`LossReport::is_lossless`] (where `Items: `[`IsEmpty`]) to detect
+//!   vacuously lossless projections.
+//! - [`ProjectionName`] is a `&'static str` newtype implementing [`Display`][core::fmt::Display],
+//!   making projection identifiers embeddable in diagnostic output.
+//! - [`NamedLoss`] pairs a [`ProjectionName`] with a loss-category label so a
+//!   specific loss occurrence is auditable by both projection identity and kind.
 //!
 //! No raw format-to-format laundering is permitted: lossy projection requires a
 //! named projection + a [`LossPolicy`] + a [`LossReport`] + a refusal path. See
