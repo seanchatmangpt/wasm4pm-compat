@@ -1320,3 +1320,25 @@ declared but the value is outside the alphabet.
 |---|---|---|---|---|
 | `lifecycle-transition-witness` — `XesRefusal::InvalidLifecycleTransition` is the named refusal for `lifecycle:transition` values outside the declared alphabet | `xes::XesRefusal::InvalidLifecycleTransition` (named variant, not bare `InvalidInput`) | `compile_pass/xes_declared_extension_prefix.rs` | — (compile-fail fixture for invalid lifecycle transition value TBD) | IEEE 1849-2023 §5.3 lifecycle extension; Verbeek et al. (2011) §3 |
 | `lifecycle-extension-must-be-declared` — `lifecycle:transition` key requires a declared `lifecycle` extension prefix | `xes::XesRefusal::UndeclaredExtensionPrefix` (fired first if extension not declared) | `compile_pass/xes_declared_extension_prefix.rs` | `compile_fail/xes_undeclared_extension_prefix_rejected.rs` | IEEE 1849-2023 §4 + §5.3 |
+
+### XES-to-OCED projection boundary
+
+The XES→OCED direction is a *lifting* projection: a flat, case-centric log is
+elevated into an object-centric event data (OCED) structure. This is lossy in
+the upward direction — not because data is discarded, but because structural
+assumptions must be inferred (e.g. which case notion maps to which object type).
+The result must carry a `LossReport` naming exactly what structural assumptions
+were made. A bare `FormatExport` with an optional `LossReport` does not enforce
+this — only `LossyFormatExport` with a mandatory report does.
+
+Two compile-fail fixtures seal this boundary:
+- `xes_to_oced_loss_report_rejected.rs` — the direct case: a caller passes `FormatExport`
+  to `accept_lossy_xes_to_oced`, which requires `LossyFormatExport`. Rejected.
+- `xes_to_oced_without_loss_policy.rs` — the indirect case: even a `FormatExport::lossy`
+  carrying a `LossReport` is rejected because the Optional wrapper means the
+  LossPolicy is not named at the type level.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `xes-to-oced-projection-boundary` — XES→OCED lifting requires `LossyFormatExport` (mandatory report), not `FormatExport` (optional) | `formats::LossyFormatExport` / `formats::accept_lossy_xes_to_oced` | `compile_pass/xes_to_oced_named_projection.rs` | `compile_fail/xes_to_oced_loss_report_rejected.rs` | van der Aalst & Berti (2020) OCED §3; IEEE 1849-2023 |
+| `xes-to-oced-without-loss-policy` — `FormatExport::lossy` (optional wrapper) rejected where mandatory `LossyFormatExport` required | `formats::LossyFormatExport` mandatory type gate | `compile_pass/xes_to_oced_named_projection.rs` | `compile_fail/xes_to_oced_without_loss_policy.rs` | `xes_to_oced_without_loss_policy.stderr` |
