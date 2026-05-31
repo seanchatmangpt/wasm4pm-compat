@@ -583,6 +583,93 @@ impl core::fmt::Display for PowlRefusal {
     }
 }
 
+// ── RefusedProjection marker ──────────────────────────────────────────────────
+
+/// Typed marker carrying the **named reason** a POWL projection was refused.
+///
+/// A POWL projection (e.g. POWL → process tree) that cannot proceed is not
+/// an untyped error — it is a *named refusal*. `RefusedProjection<R>` carries
+/// the specific [`PowlRefusal`] reason `R` as a zero-cost `PhantomData` type
+/// parameter, making the refusal auditable without heap allocation.
+///
+/// The concrete reason value is carried alongside: callers can inspect both
+/// the type-level `R` (for static dispatch) and the runtime `.reason()`.
+///
+/// Structure-only: a `RefusedProjection` is a verdict, not a recovery tool.
+/// Graduate to `wasm4pm` to act on admitted shapes.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::powl::{RefusedProjection, PowlRefusal};
+/// let r = RefusedProjection::new(PowlRefusal::IrreducibleProjection);
+/// assert_eq!(r.reason(), &PowlRefusal::IrreducibleProjection);
+/// assert_eq!(format!("{}", r), "POWL refused: IrreducibleProjection");
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RefusedProjection {
+    reason: PowlRefusal,
+}
+
+impl RefusedProjection {
+    /// Construct a refused-projection marker from a named refusal reason.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{RefusedProjection, PowlRefusal};
+    /// let r = RefusedProjection::new(PowlRefusal::CyclicPartialOrder);
+    /// assert_eq!(r.reason(), &PowlRefusal::CyclicPartialOrder);
+    /// ```
+    #[inline]
+    pub fn new(reason: PowlRefusal) -> Self {
+        Self { reason }
+    }
+
+    /// The named refusal reason.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{RefusedProjection, PowlRefusal};
+    /// let r = RefusedProjection::new(PowlRefusal::IrreducibleProjection);
+    /// assert_eq!(r.reason(), &PowlRefusal::IrreducibleProjection);
+    /// ```
+    #[inline]
+    pub fn reason(&self) -> &PowlRefusal {
+        &self.reason
+    }
+
+    /// Consume the marker, yielding the owned refusal reason.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{RefusedProjection, PowlRefusal};
+    /// let r = RefusedProjection::new(PowlRefusal::LanguageMismatch);
+    /// assert_eq!(r.into_reason(), PowlRefusal::LanguageMismatch);
+    /// ```
+    #[inline]
+    pub fn into_reason(self) -> PowlRefusal {
+        self.reason
+    }
+}
+
+impl core::fmt::Display for RefusedProjection {
+    /// Delegates to [`PowlRefusal`]'s `Display`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{RefusedProjection, PowlRefusal};
+    /// let r = RefusedProjection::new(PowlRefusal::InvalidChoice);
+    /// assert_eq!(format!("{}", r), "POWL refused: InvalidChoice");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        core::fmt::Display::fmt(&self.reason, f)
+    }
+}
+
 /// Graduation witness: a `WfNetConst` has been successfully converted to a
 /// `Powl` model under the POWL 2.0 decomposition theorem.
 ///
