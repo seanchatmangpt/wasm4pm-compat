@@ -231,3 +231,17 @@ witness_marker!(
     "Declare constraint-template language",
     Some(2006)
 );
+witness_marker!(
+    /// Alignment-based conformance checking (van Dongen, de Medeiros & Wen, 2008).
+    ///
+    /// Names the alignment approach to conformance — the authority behind
+    /// optimal and heuristic alignments between an event log and a process
+    /// model. Distinct from [`WfNetSoundnessPaper`] (structural soundness)
+    /// and [`OcpqPaper`] (querying). Graduate to `wasm4pm` when an actual
+    /// alignment computation is needed.
+    AlignmentPaper,
+    "alignment-paper",
+    WitnessFamily::Paper,
+    "Alignment-Based Conformance Checking",
+    Some(2008)
+);
