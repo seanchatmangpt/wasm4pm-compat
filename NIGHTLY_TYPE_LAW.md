@@ -69,8 +69,8 @@ Every row says: **which paper law** → **which type invariant** → **which com
 
 | Standard | Type invariant | Pass fixture | Fail fixture |
 |---|---|---|---|
-| OCEL 2.0: event-to-object and object-to-object relations are first-class | `OcelLog` carries `EventObjectLink` and `ObjectObjectLink` fields as distinct, non-optional collections | `ocel_event_object_relation.rs` | **PARTIAL** — no dedicated compile-fail fixture; law enforced structurally by type system, not yet sealed by a trybuild receipt |
-| OCEL 2.0: O2O relations preserved | as above | `ocel_object_object_relation.rs` | **PARTIAL** — no dedicated compile-fail fixture; law enforced structurally by type system, not yet sealed by a trybuild receipt |
+| OCEL 2.0: event-to-object and object-to-object relations are first-class | `OcelLog` carries `EventObjectLink` and `ObjectObjectLink` fields as distinct, non-optional collections | `ocel_event_object_relation.rs` | `ocel_e2o_missing_link.rs` — proves E2O and O2O slices are non-interchangeable |
+| OCEL 2.0: O2O relations preserved | as above | `ocel_object_object_relation.rs` | `ocel_o2o_missing_link.rs` — proves O2O and E2O slices are non-interchangeable |
 
 ---
 
@@ -78,7 +78,7 @@ Every row says: **which paper law** → **which type invariant** → **which com
 
 | Standard | Type invariant | Pass fixture | Fail fixture |
 |---|---|---|---|
-| IEEE 1849-2023: XES is case-centric; incompatible with object-centric OCEL | `XesLog` and `OcelLog` are different types; functions accepting one reject the other | `xes_case_centric_log.rs` | **PARTIAL** — no dedicated compile-fail fixture; type incompatibility is enforced by the type system and covered by the loss law receipt |
+| IEEE 1849-2023: XES is case-centric; incompatible with object-centric OCEL | `XesLog` and `OcelLog` are different types; functions accepting one reject the other | `xes_case_centric_log.rs` | `xes_not_object_centric.rs` — proves XesLog cannot substitute for OcelLog |
 
 ---
 
