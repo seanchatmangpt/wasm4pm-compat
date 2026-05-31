@@ -66,6 +66,16 @@ without `.stderr` is not a valid type-law receipt.
 | `yawl_cancellation_region_rejected` — raw `Vec<String>` not accepted as `CancellationRegion` | `yawl::CancellationRegion` newtype | `compile_pass/yawl_cancellation_region.rs` | `compile_fail/yawl_cancellation_region_rejected.rs` | `yawl_cancellation_region_rejected.stderr` |
 | `yawl_multi_instance_bounds_rejected` — `MultipleInstanceSpecConst<MIN, MAX>` enforces MIN ≤ MAX | `yawl::MultipleInstanceSpecConst<MIN, MAX>` | `compile_pass/yawl_multi_instance.rs` | `compile_fail/yawl_multi_instance_bounds_rejected.rs` | `yawl_multi_instance_bounds_rejected.stderr` |
 | `yawl_wrong_task_type` — `MultipleInstanceSpecConst` not accepted where `CancellationRegion` required | `yawl::CancellationRegion` / `yawl::MultipleInstanceSpecConst` (distinct) | `compile_pass/yawl_cancellation_region.rs` | `compile_fail/yawl_wrong_task_type.rs` | `yawl_wrong_task_type.stderr` |
+| `xes_to_oced_without_loss_policy` — `FormatExport` (optional loss) does not satisfy the XES→OCED mandatory-report gate | `formats::LossyFormatExport` (mandatory) vs `formats::FormatExport` (optional) | `compile_pass/xes_to_oced_named_projection.rs` | `compile_fail/xes_to_oced_without_loss_policy.rs` | `xes_to_oced_without_loss_policy.stderr` |
+| `xes_trace_attribute_shape` — `XesTrace` carries an ordered sequence of `XesEvent`s; attribute lookup is by namespaced key | `xes::XesTrace` / `xes::XesEvent` | `compile_pass/xes_trace_attributes.rs` | — (structural law, no negative path) | — |
+| `xes_event_attribute_witness` — `XesEvent` exposes standard keys (`concept:name`, `time:timestamp`, `org:resource`) via typed helpers; arbitrary keys via `attribute()` | `xes::XesEvent` | `compile_pass/xes_trace_attributes.rs` | — (structural law) | — |
+| `xes_lifecycle_transition_witness` — `XesRefusal::InvalidLifecycleTransition` is the named refusal for `lifecycle:transition` values outside the declared alphabet | `xes::XesRefusal::InvalidLifecycleTransition` | `compile_pass/xes_declared_extension_prefix.rs` | — (refusal variant; compile-fail fixture TBD) | — |
+| `xes_to_ocel_direction_law` — XES→OCEL lifting is distinct from XES→OCED: OCEL adds typed object types and E2O links absent from a flat XES log; the lifting requires a `LossReport` naming inferred object-type assumptions | `xes::XesLog` → `ocel::OcelLog` via `formats::LossyFormatExport` | `compile_pass/xes_case_centric_log.rs` | `compile_fail/xes_not_object_centric.rs` | `xes_not_object_centric.stderr` |
+| `xes_missing_concept_name` — an `XesEvent` lacking `concept:name` is refused as `XesRefusal::MissingConceptName`; a structural exchange law | `xes::XesRefusal::MissingConceptName` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal; no compile-fail for stringly-typed attribute bag) | — |
+| `xes_missing_trace_name` — a `XesTrace` lacking `concept:name` (case id) is refused as `XesRefusal::MissingTraceName` | `xes::XesRefusal::MissingTraceName` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path) | — |
+| `xes_empty_trace` — a `XesTrace` with zero events is refused as `XesRefusal::EmptyTrace` | `xes::XesRefusal::EmptyTrace` | `compile_pass/xes_trace_attributes.rs` | — (runtime refusal path) | — |
+| `xes_invalid_extension` — an `XesExtension` with an empty prefix is refused as `XesRefusal::InvalidExtension` | `xes::XesRefusal::InvalidExtension` | `compile_pass/xes_declared_extension_prefix.rs` | — (runtime refusal path) | — |
+| `xes_no_traces` — a `XesLog` with no traces is refused as `XesRefusal::NoTraces` | `xes::XesRefusal::NoTraces` | `compile_pass/xes_case_centric_log.rs` | — (runtime refusal path) | — |
 
 ---
 
@@ -882,3 +892,14 @@ Both `EventObjectLink` (E2O) and `ObjectObjectLink` (O2O) carry an optional `qua
 |---|---|---|---|---|
 | `ocel_e2o_qualifier_law` — E2O qualifier, when present, names a role | `ocel::EventObjectLink::qualified()` (builder) | `compile_pass/ocel_event_object_relation.rs` | n/a (gap: empty-qualifier validation pending) | OCEL 2.0 §3.4 relation qualifier |
 | `ocel_o2o_qualifier_law` — O2O qualifier, when present, names a relationship type | `ocel::ObjectObjectLink::qualified()` (builder) | `compile_pass/ocel_object_object_relation.rs` | n/a (gap: empty-qualifier validation pending) | OCEL 2.0 §3.4 relation qualifier |
+
+### cardinality-projection-law
+
+OCPQ (Object-Centric Process Querying) introduces cardinality constraints over OCEL object sets: a query result that requests "at most N objects of type T" is a `CardinalityBound<N>` surface, not a free integer. The cardinality law connects the OCEL object-type vocabulary (`OcelDims::object_types`) with the OCPQ cardinality bound: only object types that appear in the log's dimension vocabulary are lawful targets for cardinality constraints. A `CardinalityBound` that references an unknown object type is a structural defect — it cannot be grounded by the log.
+
+The `Between01<NUM, DEN>` metric bound from `src/law.rs` applies to cardinality projections when the bound is expressed as a fraction of the total object count. An `ocpq_cardinality_overflow` compile-fail fixture already seals the arithmetic bound; the cardinality-projection law adds the semantic grounding law connecting the OCEL dimension vocabulary to the OCPQ query scope.
+
+| Law | Enforcing Type | Pass Fixture | Fail Fixture | Paper Source |
+|---|---|---|---|---|
+| `ocel_cardinality_projection_law` — OCPQ cardinality bound must be grounded by OCEL object type | `ocpq::CardinalityBound` + `ocel::OcelDims` (vocabulary grounding) | `compile_pass/ocpq_cardinality_valid_bounds.rs` | `compile_fail/ocpq_cardinality_overflow.rs` | OCEL 2.0 §2 + OCPQ Def 6 |
+| `ocel_dims_scope_law` — OCPQ object scope must intersect OCEL dimension vocabulary | `ocpq::OcpqRefusal::MissingObjectScope` + `ocel::OcelDims` | `compile_pass/ocpq_scoped_query.rs` | `compile_fail/ocpq_missing_scope_rejected.rs` | OCEL 2.0 §2 + OCPQ Def 6 |
