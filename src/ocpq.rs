@@ -284,6 +284,85 @@ impl<const KIND: ObjectPredicateKind> TypedObjectPredicate<KIND> {
     }
 }
 
+/// The structural sub-kind of a relation predicate.
+///
+/// OCPQ Section 4 (BASIC_L) defines three distinct relation predicate shapes:
+/// - [`RelationPredicateKind::E2O`] — event-to-object link (E2O).
+/// - [`RelationPredicateKind::O2O`] — object-to-object link (O2O).
+/// - [`RelationPredicateKind::TimeBetweenEvents`] — time-between-events (TBE).
+///
+/// These map exactly to the [`PredicateKind::E2ORelation`],
+/// [`PredicateKind::O2ORelation`], and [`PredicateKind::TimeBetweenEvents`]
+/// runtime variants, but as a const-param so functions requiring a specific
+/// relation type receive a type error if given the wrong one.
+///
+/// Structure-only: names the sub-kind. Link resolution and temporal evaluation
+/// graduate to `wasm4pm`.
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum RelationPredicateKind {
+    /// An event-to-object relation (E2O): which objects were involved in an event.
+    E2O,
+    /// An object-to-object relation (O2O): how two objects relate to each other.
+    O2O,
+    /// A time-between-events constraint (TBE): duration between two event timestamps.
+    TimeBetweenEvents,
+}
+
+/// A typed relation predicate with its sub-kind encoded as a const generic parameter.
+///
+/// `TypedRelationPredicate<{RelationPredicateKind::E2O}>` and
+/// `TypedRelationPredicate<{RelationPredicateKind::O2O}>` are **different
+/// types** — the wrong link direction is a compile error, not a runtime failure.
+///
+/// Structure-only: carries the predicate expression as a string; link resolution
+/// graduates to `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{TypedRelationPredicate, RelationPredicateKind};
+/// let p = TypedRelationPredicate::<{ RelationPredicateKind::E2O }>::new("e1 → o1 [order]");
+/// assert_eq!(p.kind(), RelationPredicateKind::E2O);
+/// ```
+pub struct TypedRelationPredicate<const KIND: RelationPredicateKind> {
+    expression: alloc::string::String,
+}
+
+impl<const KIND: RelationPredicateKind> TypedRelationPredicate<KIND> {
+    /// Construct a typed relation predicate from an expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedRelationPredicate, RelationPredicateKind};
+    /// let p = TypedRelationPredicate::<{ RelationPredicateKind::O2O }>::new("o1 → o2");
+    /// assert_eq!(p.expression(), "o1 → o2");
+    /// ```
+    pub fn new(expression: impl Into<alloc::string::String>) -> Self {
+        TypedRelationPredicate {
+            expression: expression.into(),
+        }
+    }
+
+    /// The predicate expression string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedRelationPredicate, RelationPredicateKind};
+    /// let p = TypedRelationPredicate::<{ RelationPredicateKind::TimeBetweenEvents }>::new("TBE(e1,e2,0,3600000)");
+    /// assert_eq!(p.expression(), "TBE(e1,e2,0,3600000)");
+    /// ```
+    pub fn expression(&self) -> &str {
+        &self.expression
+    }
+
+    /// The relation predicate sub-kind encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{TypedRelationPredicate, RelationPredicateKind};
+    /// let p = TypedRelationPredicate::<{ RelationPredicateKind::E2O }>::new("e1 → o1");
+    /// assert_eq!(p.kind(), RelationPredicateKind::E2O);
+    /// ```
+    pub const fn kind(&self) -> RelationPredicateKind {
+        KIND
+    }
+}
+
 // ── Predicate witness markers ───────────────────────────────────────────────
 
 /// Witness: a predicate over a single **event**.
