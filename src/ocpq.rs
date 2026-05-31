@@ -652,6 +652,128 @@ impl OcpqQuery {
     }
 }
 
+/// A typed OCPQ query with the scope binding strategy encoded as a const generic
+/// parameter.
+///
+/// `OcpqQueryConst<{OcpqScopeKind::Closed}>` and
+/// `OcpqQueryConst<{OcpqScopeKind::Open}>` are **different types** — a function
+/// requiring a closed-scope query rejects an open-scope query at compile time
+/// rather than at runtime.
+///
+/// The predicates are still dynamically constructed (runtime `Vec`) because OCPQ
+/// query bodies are composed at runtime; only the *scope strategy* is statically
+/// enforced. Graduate to `wasm4pm` for evaluation against a log.
+///
+/// ## Difference from [`OcpqQuery`]
+///
+/// [`OcpqQuery`] uses a runtime [`ObjectScope`] and does not encode scope kind
+/// at the type level. `OcpqQueryConst` adds the const-generic scope kind and uses
+/// [`ObjectScopeConst`] so the scope strategy is part of the type signature.
+///
+/// Structure-only: the query shape. No query planning or evaluation.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+/// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
+///     ObjectScopeConst::<{ OcpqScopeKind::Closed }>::new(["order", "item"]),
+/// );
+/// assert_eq!(q.scope().object_types(), &["order".to_string(), "item".to_string()]);
+/// assert_eq!(q.scope_kind(), OcpqScopeKind::Closed);
+/// ```
+pub struct OcpqQueryConst<const KIND: OcpqScopeKind> {
+    scope: ObjectScopeConst<KIND>,
+    predicates: alloc::vec::Vec<Predicate>,
+    sub_queries: alloc::vec::Vec<OcpqQueryConst<KIND>>,
+}
+
+impl<const KIND: OcpqScopeKind> OcpqQueryConst<KIND> {
+    /// Construct an empty typed query over the given typed scope.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::Open }>::new(
+    ///     ObjectScopeConst::<{ OcpqScopeKind::Open }>::new([] as [&str; 0]),
+    /// );
+    /// assert!(q.predicates().is_empty());
+    /// ```
+    pub fn new(scope: ObjectScopeConst<KIND>) -> Self {
+        OcpqQueryConst {
+            scope,
+            predicates: alloc::vec::Vec::new(),
+            sub_queries: alloc::vec::Vec::new(),
+        }
+    }
+
+    /// The typed object scope.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
+    ///     ObjectScopeConst::new(["order"]),
+    /// );
+    /// assert_eq!(q.scope().object_types(), &["order".to_string()]);
+    /// ```
+    pub fn scope(&self) -> &ObjectScopeConst<KIND> {
+        &self.scope
+    }
+
+    /// The query predicates (untyped at collection level).
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
+    ///     ObjectScopeConst::new(["order"]),
+    /// );
+    /// assert!(q.predicates().is_empty());
+    /// ```
+    pub fn predicates(&self) -> &[Predicate] {
+        &self.predicates
+    }
+
+    /// The scope kind encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::SingleType }>::new(
+    ///     ObjectScopeConst::new(["order"]),
+    /// );
+    /// assert_eq!(q.scope_kind(), OcpqScopeKind::SingleType);
+    /// ```
+    pub const fn scope_kind(&self) -> OcpqScopeKind {
+        KIND
+    }
+
+    /// The nested sub-queries referenced by [`PredicateKind::Nested`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{OcpqQueryConst, ObjectScopeConst, OcpqScopeKind};
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
+    ///     ObjectScopeConst::new(["order"]),
+    /// );
+    /// assert!(q.sub_queries().is_empty());
+    /// ```
+    pub fn sub_queries(&self) -> &[OcpqQueryConst<KIND>] {
+        &self.sub_queries
+    }
+
+    /// Add a predicate to the query body. Builder-style.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{
+    ///     OcpqQueryConst, ObjectScopeConst, OcpqScopeKind, Predicate, PredicateKind, EventPredicate,
+    /// };
+    /// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
+    ///     ObjectScopeConst::new(["order"]),
+    /// )
+    /// .with_predicate(Predicate::<EventPredicate>::new(PredicateKind::Event("activity = pay".into())));
+    /// assert_eq!(q.predicates().len(), 1);
+    /// ```
+    pub fn with_predicate(mut self, predicate: Predicate) -> Self {
+        self.predicates.push(predicate);
+        self
+    }
+}
+
 /// First-class refusal law for OCPQ query shapes.
 ///
 /// Every variant names a **specific** structural law — never a bare
