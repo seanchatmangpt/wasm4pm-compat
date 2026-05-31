@@ -27,7 +27,103 @@
 //! feature). This module only certifies that the *query structure* is
 //! well-formed.
 
+use core::marker::ConstParamTy;
 use core::marker::PhantomData;
+
+// ── Object scope const-param kind ───────────────────────────────────────────
+
+/// The binding strategy of an [`ObjectScopeConst`] — whether the scope is
+/// open (any object type may match), closed (only declared types are in scope),
+/// or typed to a single object type.
+///
+/// Used as a const generic parameter on [`ObjectScopeConst`] so that a function
+/// requiring a `{OcpqScopeKind::Closed}` scope cannot silently receive an
+/// `{OcpqScopeKind::Open}` scope at the type level.
+///
+/// Structure-only: names the scope strategy. Resolving scope membership against
+/// an OCEL log graduates to `wasm4pm`.
+#[derive(ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum OcpqScopeKind {
+    /// The scope admits any object type present in the log (unbounded).
+    Open,
+    /// Only object types explicitly declared in the scope are admissible.
+    Closed,
+    /// The scope is pinned to exactly one object type (a singleton binding).
+    SingleType,
+}
+
+/// A typed object scope with the scope strategy encoded as a const generic
+/// parameter.
+///
+/// `ObjectScopeConst<{OcpqScopeKind::Closed}>` and
+/// `ObjectScopeConst<{OcpqScopeKind::Open}>` are **different types** at
+/// compile time — a function that requires a closed scope rejects an open
+/// scope with a type error rather than a runtime refusal.
+///
+/// Structure-only: the scope is a list of declared object-type names and a
+/// const kind. Scope resolution against an OCEL log graduates to `wasm4pm`.
+///
+/// ```
+/// use wasm4pm_compat::ocpq::{ObjectScopeConst, OcpqScopeKind};
+/// let s = ObjectScopeConst::<{ OcpqScopeKind::Closed }>::new(["order", "item"]);
+/// assert_eq!(s.object_types(), &["order".to_string(), "item".to_string()]);
+/// ```
+pub struct ObjectScopeConst<const KIND: OcpqScopeKind> {
+    object_types: alloc::vec::Vec<alloc::string::String>,
+}
+
+extern crate alloc;
+
+impl<const KIND: OcpqScopeKind> ObjectScopeConst<KIND> {
+    /// Construct a typed object scope from an iterator of object-type names.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{ObjectScopeConst, OcpqScopeKind};
+    /// let s = ObjectScopeConst::<{ OcpqScopeKind::Closed }>::new(["order"]);
+    /// assert!(!s.is_empty());
+    /// ```
+    pub fn new<I, S>(types: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<alloc::string::String>,
+    {
+        ObjectScopeConst {
+            object_types: types.into_iter().map(Into::into).collect(),
+        }
+    }
+
+    /// The declared object types.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{ObjectScopeConst, OcpqScopeKind};
+    /// let s = ObjectScopeConst::<{ OcpqScopeKind::Open }>::new([] as [&str; 0]);
+    /// assert_eq!(s.object_types(), &[] as &[String]);
+    /// ```
+    pub fn object_types(&self) -> &[alloc::string::String] {
+        &self.object_types
+    }
+
+    /// Whether no object types are declared.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{ObjectScopeConst, OcpqScopeKind};
+    /// assert!(ObjectScopeConst::<{ OcpqScopeKind::Open }>::new([] as [&str; 0]).is_empty());
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.object_types.is_empty()
+    }
+
+    /// The scope kind encoded in the const parameter.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocpq::{ObjectScopeConst, OcpqScopeKind};
+    /// let s = ObjectScopeConst::<{ OcpqScopeKind::SingleType }>::new(["order"]);
+    /// assert_eq!(s.kind(), OcpqScopeKind::SingleType);
+    /// ```
+    pub const fn kind(&self) -> OcpqScopeKind {
+        KIND
+    }
+}
 
 // ── Predicate witness markers ───────────────────────────────────────────────
 
