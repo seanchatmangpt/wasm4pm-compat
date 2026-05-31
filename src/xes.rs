@@ -643,6 +643,72 @@ impl XesToOcedProjectionShape {
     }
 }
 
+/// The XES declared-extension law — every namespaced attribute key must
+/// reference a prefix declared in the log's `<extension>` elements.
+///
+/// IEEE 1849-2016 §5.2 states that every attribute key containing a `:` must
+/// consist of a declared-extension prefix followed by `:` and a local name.
+/// This is the *declared-extension law*: undeclared prefixes are not permitted.
+///
+/// `XesDeclaredExtensionLaw` is the *name* of this law as a type, so that
+/// refusal reasons and diagnostic messages can reference it without a string
+/// literal. It pairs with [`XesRefusal::UndeclaredExtensionPrefix`] at the
+/// value level.
+///
+/// Structure-only: it names the law; it does not run the check. The check
+/// lives in [`XesLog::validate`]. Graduate the full structural validation to
+/// `wasm4pm` when runtime enforcement in a streaming context is required.
+///
+/// ```
+/// use wasm4pm_compat::xes::{XesDeclaredExtensionLaw, XesRefusal};
+///
+/// // The law name is stable and diagnostic-friendly.
+/// assert_eq!(XesDeclaredExtensionLaw::NAME, "xes-declared-extension-prefix-law");
+/// assert_eq!(XesDeclaredExtensionLaw::REFUSAL_VARIANT, "UndeclaredExtensionPrefix");
+/// // The law correctly identifies the refusal variant it governs.
+/// let r = XesRefusal::UndeclaredExtensionPrefix;
+/// assert!(XesDeclaredExtensionLaw::governs(r));
+/// assert!(!XesDeclaredExtensionLaw::governs(XesRefusal::MissingConceptName));
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct XesDeclaredExtensionLaw;
+
+impl XesDeclaredExtensionLaw {
+    /// The stable, machine-facing name of this law.
+    pub const NAME: &'static str = "xes-declared-extension-prefix-law";
+
+    /// The [`XesRefusal`] variant name this law produces on violation.
+    pub const REFUSAL_VARIANT: &'static str = "UndeclaredExtensionPrefix";
+
+    /// Whether this law *governs* (is the authority behind) the given
+    /// [`XesRefusal`] variant.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::{XesDeclaredExtensionLaw, XesRefusal};
+    /// assert!(XesDeclaredExtensionLaw::governs(XesRefusal::UndeclaredExtensionPrefix));
+    /// ```
+    pub const fn governs(refusal: XesRefusal) -> bool {
+        matches!(refusal, XesRefusal::UndeclaredExtensionPrefix)
+    }
+
+    /// The human-readable description of this law for diagnostics.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesDeclaredExtensionLaw;
+    /// assert!(!XesDeclaredExtensionLaw::description().is_empty());
+    /// ```
+    pub const fn description() -> &'static str {
+        "IEEE 1849-2016 §5.2: every namespaced attribute key (prefix:local) \
+         must reference an extension prefix declared in the log header."
+    }
+}
+
+impl core::fmt::Display for XesDeclaredExtensionLaw {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "law:{}", Self::NAME)
+    }
+}
+
 /// A type-level witness for a specific XES extension prefix declaration.
 ///
 /// When a [`XesExtension`] is declared in a log, its prefix (e.g. `"concept"`,
