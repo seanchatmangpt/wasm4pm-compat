@@ -64,6 +64,16 @@
 //! sibling modules exist.
 
 #![forbid(unsafe_code)]
+// ── Nightly feature gates ────────────────────────────────────────────────────
+// These are activated ONLY when the `wasm4pm_compat_nightly` custom cfg is set:
+//   RUSTFLAGS="--cfg wasm4pm_compat_nightly" cargo +nightly check --all-features
+// On stable Rust the cfg is never set, so none of these declarations are emitted.
+#![cfg_attr(wasm4pm_compat_nightly, feature(generic_const_exprs))]
+#![cfg_attr(wasm4pm_compat_nightly, feature(adt_const_params))]
+#![cfg_attr(wasm4pm_compat_nightly, feature(min_specialization))]
+#![cfg_attr(wasm4pm_compat_nightly, feature(portable_simd))]
+// Suppress the "incomplete feature" lint that nightly emits for generic_const_exprs.
+#![cfg_attr(wasm4pm_compat_nightly, allow(incomplete_features))]
 
 // ── Always-on: the canon of process-evidence structure ──────────────────────
 

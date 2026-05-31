@@ -199,6 +199,7 @@ pub trait ImportFormat {
     ///     Err(refusal)  => { /* a specific named law, e.g. DanglingEventObjectLink */ }
     /// }
     /// ```
+    #[allow(clippy::type_complexity)]
     fn import(
         env: FormatEnvelope<Self::Witness>,
     ) -> Result<Admission<Self::Admitted, Self::Witness>, Refusal<Self::Reason, Self::Witness>>;
