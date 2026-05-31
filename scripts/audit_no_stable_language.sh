@@ -18,14 +18,20 @@ FAIL=0
 
 # ── 1. Exact forbidden phrases (no legitimate use anywhere) ─────────────────
 #
-# Excluded patterns (meta-audit reports that document the absence of these phrases):
+# Excluded patterns (negating/meta-doc contexts that are correct usage):
 #   "No instances of:"     — FINAL_ALIVE_REPORT.md reporting absence
-#   "| No stable/MSRV"     — FINAL_ALIVE_REPORT.md audit table row
+#   "no affirmative"       — meta-audit language
+#   "no stable fallback"   — NIGHTLY_ONLY_COVENANT.md affirming absence (correct)
+#   "no stable fallback,"  — same, with trailing comma
+#   "Phrases such as:"     — ANTI_REGRESSION_LAWS.md listing examples of forbidden phrases
+#   "stable fallback\","   — ANTI_REGRESSION_LAWS.md listing forbidden phrase in enumeration
 
 for phrase in "stable Rust builds" "wasm4pm_compat_nightly" "minimum stable" "stable fallback"; do
     matches=$(grep -rn "$phrase" "$REPO_ROOT/src/" "$REPO_ROOT/docs/" 2>/dev/null \
         | grep -v "No instances of:" \
         | grep -v "no affirmative" \
+        | grep -v "no stable fallback" \
+        | grep -v "Phrases such as:" \
         || true)
     if [ -n "$matches" ]; then
         echo "FAIL: forbidden phrase '$phrase' found:" >&2
@@ -41,12 +47,14 @@ done
 #   "documented MSRV"      → future milestone table row, forward-looking, correct
 #   "No stable/MSRV"       → FINAL_ALIVE_REPORT.md audit table row, meta-report
 #   "Instances of"         → FINAL_ALIVE_REPORT.md contextual description
+#   "Phrases such as:"     → ANTI_REGRESSION_LAWS.md listing forbidden phrases as meta-doc
 msrv_hits=$(grep -rn "MSRV" "$REPO_ROOT/src/" "$REPO_ROOT/docs/" 2>/dev/null \
     | grep -v "no MSRV" \
     | grep -v "documented MSRV" \
     | grep -v "no-MSRV" \
     | grep -v "No stable/MSRV" \
     | grep -v "Instances of" \
+    | grep -v "Phrases such as:" \
     || true)
 
 if [ -n "$msrv_hits" ]; then
