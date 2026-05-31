@@ -333,6 +333,235 @@ impl BpmnProcess {
     }
 }
 
+// ── BPMN 2.0 Pool and Lane shapes ────────────────────────────────────────────
+
+/// A BPMN 2.0 lane: a swimlane subdividing a pool for an organisational role.
+///
+/// Real-Life BPMN (4th ed.) defines a lane as a subdivision of a pool that
+/// organises flow nodes by responsibility. A lane names which node ids
+/// (from its enclosing pool's process) it claims. This is a structural
+/// assignment claim; it does **not** change the flow semantics.
+///
+/// [`BpmnLane::validate`] checks that every declared `node_id` exists in the
+/// enclosing process's node set, refusing with
+/// [`BpmnRefusal::LaneNodeNotDeclared`] if not.
+///
+/// Structure-only: an organisational label, never an execution boundary.
+///
+/// ```
+/// use wasm4pm_compat::bpmn::BpmnLane;
+/// let lane = BpmnLane::new("lane-ops", "Operations", ["t1", "t2"]);
+/// assert_eq!(lane.id(), "lane-ops");
+/// assert_eq!(lane.node_ids().len(), 2);
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BpmnLane {
+    id: String,
+    name: String,
+    node_ids: Vec<String>,
+}
+
+impl BpmnLane {
+    /// Construct a lane with an id, display name, and the node ids it claims.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::BpmnLane;
+    /// let lane = BpmnLane::new("l1", "Finance", ["t1"]);
+    /// assert_eq!(lane.name(), "Finance");
+    /// ```
+    pub fn new<I, S>(id: impl Into<String>, name: impl Into<String>, node_ids: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: Into<String>,
+    {
+        BpmnLane {
+            id: id.into(),
+            name: name.into(),
+            node_ids: node_ids.into_iter().map(Into::into).collect(),
+        }
+    }
+
+    /// The lane's id.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::BpmnLane;
+    /// assert_eq!(BpmnLane::new("l1", "Ops", ["t1"]).id(), "l1");
+    /// ```
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// The lane's display name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::BpmnLane;
+    /// assert_eq!(BpmnLane::new("l1", "Finance", ["t1"]).name(), "Finance");
+    /// ```
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// The ids of nodes assigned to this lane.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::BpmnLane;
+    /// let lane = BpmnLane::new("l1", "Ops", ["t1", "t2"]);
+    /// assert_eq!(lane.node_ids(), &["t1".to_string(), "t2".to_string()]);
+    /// ```
+    pub fn node_ids(&self) -> &[String] {
+        &self.node_ids
+    }
+
+    /// Validate that all node ids declared by this lane exist in `known_ids`.
+    ///
+    /// Returns [`BpmnRefusal::LaneNodeNotDeclared`] if any id is absent.
+    ///
+    /// ```
+    /// use std::collections::HashSet;
+    /// use wasm4pm_compat::bpmn::{BpmnLane, BpmnRefusal};
+    /// let lane = BpmnLane::new("l1", "Ops", ["t1", "ghost"]);
+    /// let known: HashSet<&str> = ["t1"].into_iter().collect();
+    /// assert_eq!(lane.validate(&known), Err(BpmnRefusal::LaneNodeNotDeclared));
+    /// ```
+    pub fn validate(&self, known_ids: &std::collections::HashSet<&str>) -> Result<(), BpmnRefusal> {
+        for nid in &self.node_ids {
+            if !known_ids.contains(nid.as_str()) {
+                return Err(BpmnRefusal::LaneNodeNotDeclared);
+            }
+        }
+        Ok(())
+    }
+}
+
+/// A BPMN 2.0 pool: the top-level container for a process participant.
+///
+/// Real-Life BPMN (4th ed.) defines a pool as the shape that represents a
+/// single participant in a collaboration. Each pool encloses exactly one
+/// [`BpmnProcess`] and optionally subdivides it into [`BpmnLane`]s.
+///
+/// [`BpmnPool::validate`] checks that the enclosed process is structurally
+/// valid and that every lane's node ids are declared in the process.
+///
+/// Structure-only: participant identity and swimlane assignment; no inter-pool
+/// message-flow semantics (those graduate to `wasm4pm`).
+///
+/// ```
+/// use wasm4pm_compat::bpmn::{BpmnPool, BpmnProcess, BpmnNode, BpmnEdge, BpmnEvent, BpmnTask, BpmnLane};
+/// let process = BpmnProcess::new(
+///     [
+///         BpmnNode::event("s", BpmnEvent::Start),
+///         BpmnNode::task("t", BpmnTask::new("approve")),
+///         BpmnNode::event("e", BpmnEvent::End),
+///     ],
+///     [BpmnEdge::new("s", "t"), BpmnEdge::new("t", "e")],
+/// );
+/// let pool = BpmnPool::new("pool-1", "Claims", process, [BpmnLane::new("l1", "Ops", ["t"])]);
+/// assert!(pool.validate().is_ok());
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BpmnPool {
+    id: String,
+    name: String,
+    process: BpmnProcess,
+    lanes: Vec<BpmnLane>,
+}
+
+impl BpmnPool {
+    /// Construct a pool with an id, display name, process, and lanes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::{BpmnPool, BpmnProcess, BpmnNode, BpmnEdge, BpmnEvent, BpmnTask};
+    /// let process = BpmnProcess::new(
+    ///     [BpmnNode::event("s", BpmnEvent::Start), BpmnNode::event("e", BpmnEvent::End)],
+    ///     [BpmnEdge::new("s", "e")],
+    /// );
+    /// let pool = BpmnPool::new("p1", "Ops", process, []);
+    /// assert_eq!(pool.id(), "p1");
+    /// ```
+    pub fn new<I>(
+        id: impl Into<String>,
+        name: impl Into<String>,
+        process: BpmnProcess,
+        lanes: I,
+    ) -> Self
+    where
+        I: IntoIterator<Item = BpmnLane>,
+    {
+        BpmnPool {
+            id: id.into(),
+            name: name.into(),
+            process,
+            lanes: lanes.into_iter().collect(),
+        }
+    }
+
+    /// The pool's id.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::{BpmnPool, BpmnProcess, BpmnNode, BpmnEdge, BpmnEvent};
+    /// let p = BpmnPool::new("p1", "Ops",
+    ///     BpmnProcess::new(
+    ///         [BpmnNode::event("s", BpmnEvent::Start), BpmnNode::event("e", BpmnEvent::End)],
+    ///         [BpmnEdge::new("s", "e")]),
+    ///     []);
+    /// assert_eq!(p.id(), "p1");
+    /// ```
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    /// The pool's display name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::{BpmnPool, BpmnProcess, BpmnNode, BpmnEdge, BpmnEvent};
+    /// let p = BpmnPool::new("p1", "Finance",
+    ///     BpmnProcess::new(
+    ///         [BpmnNode::event("s", BpmnEvent::Start), BpmnNode::event("e", BpmnEvent::End)],
+    ///         [BpmnEdge::new("s", "e")]),
+    ///     []);
+    /// assert_eq!(p.name(), "Finance");
+    /// ```
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// The process enclosed by this pool.
+    pub fn process(&self) -> &BpmnProcess {
+        &self.process
+    }
+
+    /// The lanes subdividing this pool.
+    pub fn lanes(&self) -> &[BpmnLane] {
+        &self.lanes
+    }
+
+    /// Structurally validate the pool.
+    ///
+    /// Validates the enclosed process and then checks that every lane's node ids
+    /// are declared in the process. Returns [`BpmnRefusal::LaneNodeNotDeclared`]
+    /// if a lane references an undeclared node.
+    ///
+    /// ```
+    /// use wasm4pm_compat::bpmn::{BpmnPool, BpmnProcess, BpmnNode, BpmnEdge, BpmnEvent, BpmnTask, BpmnLane, BpmnRefusal};
+    /// let process = BpmnProcess::new(
+    ///     [BpmnNode::event("s", BpmnEvent::Start), BpmnNode::event("e", BpmnEvent::End)],
+    ///     [BpmnEdge::new("s", "e")],
+    /// );
+    /// // Lane references "ghost" which is not in the process.
+    /// let pool = BpmnPool::new("p1", "Ops", process, [BpmnLane::new("l1", "Fin", ["ghost"])]);
+    /// assert_eq!(pool.validate(), Err(BpmnRefusal::LaneNodeNotDeclared));
+    /// ```
+    pub fn validate(&self) -> Result<(), BpmnRefusal> {
+        self.process.validate()?;
+        let known: std::collections::HashSet<&str> =
+            self.process.nodes().iter().map(BpmnNode::id).collect();
+        for lane in &self.lanes {
+            lane.validate(&known)?;
+        }
+        Ok(())
+    }
+}
+
 /// The specific, named laws under which BPMN graph structure is refused.
 ///
 /// Each variant cites a distinct graph law — never a bare "invalid input".
@@ -355,6 +584,11 @@ pub enum BpmnRefusal {
     MalformedGateway,
     /// A node is unreachable from any start event by graph connectivity.
     DisconnectedNode,
+    /// A [`BpmnLane`] references a node id not declared in the enclosing process.
+    ///
+    /// Law: BPMN 2.0 — a lane may only claim nodes that exist within its pool's
+    /// process. Undeclared references are structurally invalid.
+    LaneNodeNotDeclared,
 }
 
 impl core::fmt::Display for BpmnRefusal {
@@ -367,6 +601,7 @@ impl core::fmt::Display for BpmnRefusal {
             BpmnRefusal::DanglingEdge => "DanglingEdge",
             BpmnRefusal::MalformedGateway => "MalformedGateway",
             BpmnRefusal::DisconnectedNode => "DisconnectedNode",
+            BpmnRefusal::LaneNodeNotDeclared => "LaneNodeNotDeclared",
         };
         write!(f, "BPMN refused by law: {law}")
     }
