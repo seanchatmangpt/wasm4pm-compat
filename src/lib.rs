@@ -217,6 +217,15 @@ pub mod graduation;
 #[cfg(feature = "strict")]
 pub mod strict;
 
+// ── Test helper builders (test-only) ────────────────────────────────────────
+
+/// Test helper builders for common law-compliant constructions.
+///
+/// Available only under `#[cfg(test)]`. Provides zero-boilerplate constructors
+/// for shapes most frequently needed in unit and integration tests.
+#[cfg(test)]
+pub mod test_utils;
+
 // ── Nightly foundry — always-on staging area for paper-derived law surfaces ──
 
 /// Nightly foundry: zero-cost type-law surfaces from process-mining papers.
