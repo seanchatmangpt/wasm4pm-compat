@@ -897,6 +897,265 @@ impl<const N: usize> WellShaped for ReceiptChainConst<N> {
     }
 }
 
+// ── Display impls ────────────────────────────────────────────────────────────
+
+impl core::fmt::Display for Digest {
+    /// Human-readable: emits the raw digest string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// assert_eq!(Digest::new("blake3:deadbeef").to_string(), "blake3:deadbeef");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl core::fmt::Display for ReplayHint {
+    /// Human-readable: emits the raw replay-hint string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// assert_eq!(ReplayHint::new("rerun:plan#42").to_string(), "rerun:plan#42");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl core::fmt::Display for ReceiptShape {
+    /// Human-readable one-liner: `receipt[<witness>] digest=<digest> replay=<hint>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptShape, Digest, ReplayHint};
+    /// let r = ReceiptShape::new("run", Digest::new("d"), ReplayHint::new("h"));
+    /// assert_eq!(r.to_string(), "receipt[run] digest=d replay=h");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "receipt[{}] digest={} replay={}",
+            self.witness, self.digest, self.replay_hint
+        )
+    }
+}
+
+impl core::fmt::Display for ReceiptEnvelope {
+    /// Human-readable one-liner:
+    /// `receipt[<witness>] subject=<subject> digest=<digest> replay=<hint>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptEnvelope, Digest, ReplayHint};
+    /// let e = ReceiptEnvelope::new("case-1", "run", Digest::new("d"), ReplayHint::new("h"));
+    /// assert_eq!(e.to_string(), "receipt[run] subject=case-1 digest=d replay=h");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "receipt[{}] subject={} digest={} replay={}",
+            self.witness, self.subject, self.digest, self.replay_hint
+        )
+    }
+}
+
+impl core::fmt::Display for ReceiptChain {
+    /// Human-readable: `chain[<chain_id>] links=<N>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChain, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChain::try_new("run-001", vec![link]).unwrap();
+    /// assert_eq!(chain.to_string(), "chain[run-001] links=1");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "chain[{}] links={}", self.chain_id, self.links.len())
+    }
+}
+
+impl core::fmt::Display for GraduationReceipt {
+    /// Human-readable:
+    /// `graduation[<reason_tag>] subject=<subject> witness=<witness>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{GraduationReceipt, ReceiptEnvelope, Digest, ReplayHint};
+    /// let env = ReceiptEnvelope::new("log-42", "bridge", Digest::new("d"), ReplayHint::new("h"));
+    /// let gr = GraduationReceipt::new(env, "needs_replay");
+    /// assert_eq!(gr.to_string(), "graduation[needs_replay] subject=log-42 witness=bridge");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "graduation[{}] subject={} witness={}",
+            self.reason_tag, self.envelope.subject, self.envelope.witness
+        )
+    }
+}
+
+impl<const N: usize> core::fmt::Display for ReceiptChainConst<N> {
+    /// Human-readable: `chain-const[<chain_id>] arity=<N>`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptChainConst, ReceiptEnvelope, Digest, ReplayHint};
+    /// let link = ReceiptEnvelope::new("s", "w", Digest::new("d"), ReplayHint::new("h"));
+    /// let chain = ReceiptChainConst::try_new("run-001", [link]).unwrap();
+    /// assert_eq!(chain.to_string(), "chain-const[run-001] arity=1");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "chain-const[{}] arity={N}", self.chain_id)
+    }
+}
+
+// ── From / AsRef impls ───────────────────────────────────────────────────────
+
+impl From<String> for Digest {
+    /// Wrap an owned `String` as a [`Digest`] without cloning.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let d: Digest = String::from("blake3:abc").into();
+    /// assert_eq!(d.0, "blake3:abc");
+    /// ```
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for Digest {
+    /// Wrap a `&str` as a [`Digest`], allocating an owned `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let d: Digest = "blake3:abc".into();
+    /// assert_eq!(d.0, "blake3:abc");
+    /// ```
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+impl From<Digest> for String {
+    /// Unwrap a [`Digest`] back to its inner `String` without cloning.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let s: String = Digest::new("blake3:abc").into();
+    /// assert_eq!(s, "blake3:abc");
+    /// ```
+    fn from(d: Digest) -> Self {
+        d.0
+    }
+}
+
+impl AsRef<str> for Digest {
+    /// Borrow the inner digest string as a `&str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let d = Digest::new("blake3:abc");
+    /// assert_eq!(d.as_ref(), "blake3:abc");
+    /// ```
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<String> for ReplayHint {
+    /// Wrap an owned `String` as a [`ReplayHint`] without cloning.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let h: ReplayHint = String::from("rerun:plan#1").into();
+    /// assert_eq!(h.0, "rerun:plan#1");
+    /// ```
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl From<&str> for ReplayHint {
+    /// Wrap a `&str` as a [`ReplayHint`], allocating an owned `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let h: ReplayHint = "rerun:plan#1".into();
+    /// assert_eq!(h.0, "rerun:plan#1");
+    /// ```
+    fn from(s: &str) -> Self {
+        Self(s.to_owned())
+    }
+}
+
+impl From<ReplayHint> for String {
+    /// Unwrap a [`ReplayHint`] back to its inner `String` without cloning.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let s: String = ReplayHint::new("rerun:plan#1").into();
+    /// assert_eq!(s, "rerun:plan#1");
+    /// ```
+    fn from(h: ReplayHint) -> Self {
+        h.0
+    }
+}
+
+impl AsRef<str> for ReplayHint {
+    /// Borrow the inner replay-hint string as a `&str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let h = ReplayHint::new("rerun:plan#1");
+    /// assert_eq!(h.as_ref(), "rerun:plan#1");
+    /// ```
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<ReceiptRefusal> for ReceiptVerdict {
+    /// Wrap a [`ReceiptRefusal`] directly into [`ReceiptVerdict::Refused`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptRefusal, ReceiptVerdict};
+    /// let v: ReceiptVerdict = ReceiptRefusal::MissingDigest.into();
+    /// assert_eq!(v, ReceiptVerdict::Refused(ReceiptRefusal::MissingDigest));
+    /// ```
+    fn from(r: ReceiptRefusal) -> Self {
+        ReceiptVerdict::Refused(r)
+    }
+}
+
 // ── WellShaped impls ─────────────────────────────────────────────────────────
 
 impl WellShaped for ReceiptShape {
