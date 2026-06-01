@@ -1169,10 +1169,9 @@ impl WfNet<SoundnessClaimed> {
     /// ```
     #[deprecated(
         since = "0.1.0",
-        note = "use WfNetConst which enforces non-forgeability: WfNetConst::witness_soundness \
-                requires a SoundnessProof token that is only constructible inside petri or via \
-                the wasm4pm graduation bridge. WfNet::attest_witnessed is freely callable and \
-                does not enforce the Claimed→Witnessed proof obligation."
+        note = "Forgeability hole: this method produces WfNet<SoundnessWitnessed> without \
+                any structural verification. Use WfNetConst<Sane> and its sealed \
+                construction path instead. See GAP_007 in sources/wasm4pm-compat/STRUCTURAL_GAPS.md."
     )]
     pub fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
         WfNet {
