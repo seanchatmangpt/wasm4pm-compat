@@ -1,0 +1,173 @@
+================================================================================
+AUDIT EXECUTION SUMMARY
+================================================================================
+
+Execution Time: 2026-06-01T12:15:00Z
+CWD: /Users/sac/wasm4pm-compat
+Environment: darwin
+
+================================================================================
+SCRIPTS EXECUTED
+================================================================================
+
+1. audit-no-dto-flattening.sh
+   Status: EXECUTED
+   Exit Code: 1 (FAIL)
+   Result: 2 blocking violations found
+   Output: emitted/audits/audit-no-dto-flattening-20260601-121532.json
+
+2. audit-no-tools-in-compat.sh
+   Status: EXECUTED
+   Exit Code: 0 (PASS)
+   Result: 0 violations, 1 warning
+   Checks Passed: 47/47
+
+3. audit-feature-isolation.sh
+   Status: EXECUTED
+   Exit Code: 0 (PASS)
+   Result: 0 violations, 0 warnings
+   Rules Verified: 6/6
+
+4. audit-projection-receipts.sh
+   Status: EXECUTED (INCOMPLETE)
+   Exit Code: null
+   Result: Manifests found (3), execution deferred
+   Manifests:
+     - ts.projection.yaml (22KB)
+     - wasm.projection.yaml (15KB)
+     - component.projection.yaml (22KB)
+
+5. audit-gap-decomposition.sh
+   Status: EXECUTED
+   Exit Code: 2 (FAIL)
+   Result: 6 critical/high gaps with 0 closure claims
+   Error: unbound variable UNCLASSIFIED_COMMITS at line 266
+
+================================================================================
+AUDIT CLASSIFICATION & SEVERITY
+================================================================================
+
+┌─────────────────────┬────────┬──────────┬─────────────────────┐
+│ Audit               │ Status │ Severity │ Classification      │
+├─────────────────────┼────────┼──────────┼─────────────────────┤
+│ DTO Flattening      │ FAIL   │ CRITICAL │ DEFECT              │
+│ No Tools in Compat  │ PASS   │ NORMAL   │ BOUNDARY_ENFORCEMENT│
+│ Feature Isolation   │ PASS   │ NORMAL   │ FEATURE_MODEL       │
+│ Projection Receipts │ DEFERRED│ DEFERRED │ MANUFACTURING_COVENANT│
+│ Gap Decomposition   │ FAIL   │ CRITICAL │ PROCESS_GOVERNANCE  │
+└─────────────────────┴────────┴──────────┴─────────────────────┘
+
+================================================================================
+GATE STATUS
+================================================================================
+
+GATE STATUS: BLOCKED
+
+BLOCKING ISSUE 1: DTO FLATTENING
+  Violations: 2
+  Severity: CRITICAL
+  Files:
+    - src/wasm/bindings.rs:29
+    - tests/graduation.rs:85
+  Fix Time: ~2 minutes
+  Action: Add // CONTEXT: annotations
+
+BLOCKING ISSUE 2: GAP DECOMPOSITION
+  Violations: 6 (unmapped critical/high gaps)
+  Severity: CRITICAL
+  Gaps:
+    - GAP_001 (HIGH) → 0 closure claims
+    - GAP_COMPONENT (CRITICAL) → 0 closure claims
+    - GAP_LOSS (HIGH) → 0 closure claims
+    - GAP_PROCESS_TREE (HIGH) → 0 closure claims
+    - GAP_TS (CRITICAL) → 0 closure claims
+    - GAP_WASM (CRITICAL) → 0 closure claims
+  Fix Time: ~30 minutes
+  Action: Map gaps to closure claims in commits
+
+================================================================================
+REQUIRED AUDIT RESULTS (COVENANT)
+================================================================================
+
+✗ no DTO flattening
+  Status: FAIL (2 violations, fixable)
+  Blocking: YES
+
+✓ no tool smuggling
+  Status: PASS (0 violations)
+  Blocking: NO
+
+✓ feature isolation
+  Status: PASS (0 violations)
+  Blocking: NO
+
+⏳ projection receipts
+  Status: INCOMPLETE (deferred to pipeline completion)
+  Blocking: NO (currently)
+
+✗ gap decomposition sound
+  Status: FAIL (6 unmapped gaps)
+  Blocking: YES
+
+================================================================================
+INVARIANT VALIDATION
+================================================================================
+
+✓ no file-count ALIVE gate
+  Confirmed: File counts are NOT used for ALIVE certification
+  Rationale: Manufacturing covenant requires receipt evidence, not file counts
+
+✓ no commit-count gate
+  Confirmed: Commit counts are NOT used for ALIVE certification
+  Rationale: gap_id mapping required, explicit gap closure claims required
+
+================================================================================
+OUTPUT FILES
+================================================================================
+
+Location: emitted/audit-machinery/
+
+1. audit-results.yaml (289 lines, 9.3 KB)
+   Complete structured audit results in YAML format
+   Includes all findings, violations, classifications, remediations
+
+2. audit-results.md (352 lines, 11 KB)
+   Detailed audit report in Markdown format
+   Executive summary, per-audit sections, remediation steps, gate status
+
+3. AUDIT_EXECUTION_SUMMARY.txt (this file)
+   Quick reference execution summary
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+IMMEDIATE (5 minutes):
+  [ ] Add // CONTEXT: wasm_boundary_allowed_with_loss_report to src/wasm/bindings.rs:29
+  [ ] Add // CONTEXT: test_fixture_allowed to tests/graduation.rs:85
+  [ ] Re-run: bash ./emitted/audits/audit-no-dto-flattening.sh
+  [ ] Verify exit code 0
+
+SHORT-TERM (30 minutes):
+  [ ] Classify all commits in origin/main..HEAD with gap_id in commit messages
+  [ ] Create closure_claim entries in ggen/emitted/gap-ledger.yaml
+  [ ] Fix UNCLASSIFIED_COMMITS unbound variable in audit-gap-decomposition.sh
+  [ ] Re-run: bash ./emitted/audits/audit-gap-decomposition.sh
+  [ ] Verify exit code 0
+
+MEDIUM-TERM (after pipeline):
+  [ ] Complete projection receipt validation
+  [ ] Verify all 3 manifests have complete receipts
+  [ ] Re-run: bash ./emitted/audits/audit-projection-receipts.sh
+
+VERIFICATION:
+  [ ] Run all 5 audits to confirm PASS across all gates
+  [ ] Commit audit results to ggen/emitted/audit-machinery/
+
+================================================================================
+AUDIT MACHINERY VERSION
+================================================================================
+
+Version: 1.0
+Generated: 2026-06-01
+Reference Documentation: emitted/audit-machinery/audit-results.yaml

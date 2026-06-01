@@ -62,6 +62,85 @@ output_file = "scripts/audit/"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
+# Rule: audit-feature-isolation
+# Renders audit-feature-isolation.sh from template
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-feature-isolation"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-feature-isolation.sh.tera" }
+output_file = "audits/audit-feature-isolation.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-no-dto-flattening
+# Renders audit-no-dto-flattening.sh from template
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-no-dto-flattening"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-no-dto-flattening.sh.tera" }
+output_file = "audits/audit-no-dto-flattening.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-no-tools-in-compat
+# Renders audit-no-tools-in-compat.sh from template
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-no-tools-in-compat"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-no-tools-in-compat.sh.tera" }
+output_file = "audits/audit-no-tools-in-compat.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-projection-receipts
+# Renders audit-projection-receipts.sh from template
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-projection-receipts"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-projection-receipts.sh.tera" }
+output_file = "audits/audit-projection-receipts.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-gap-decomposition
+# Renders audit-gap-decomposition.sh from template
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-gap-decomposition"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-gap-decomposition.sh.tera" }
+output_file = "audits/audit-gap-decomposition.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: blocking-audits (consolidated glob rule)
+# Extracts BlockingAudit instances and renders all audit-*.sh.tera templates
+# into audits/ directory. This is the canonical rule for audit script generation.
+#
+# Template pattern matches:
+#   - templates/audit-feature-isolation.sh.tera -> audits/audit-feature-isolation.sh
+#   - templates/audit-no-dto-flattening.sh.tera -> audits/audit-no-dto-flattening.sh
+#   - templates/audit-no-tools-in-compat.sh.tera -> audits/audit-no-tools-in-compat.sh
+#   - templates/audit-projection-receipts.sh.tera -> audits/audit-projection-receipts.sh
+#   - templates/audit-gap-decomposition.sh.tera -> audits/audit-gap-decomposition.sh
+#
+# When adding new blocking audits:
+#   1. Create templates/audit-<name>.sh.tera
+#   2. This rule will automatically discover and render it
+#   3. Output file: audits/audit-<name>.sh
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "blocking-audits"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { glob = "templates/audit-*.sh.tera" }
+output_file = "audits/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
 # Rule: module-docs
 # Extracts SourceModule instances and renders per-module doc pages into
 # docs/generated/.
@@ -147,6 +226,10 @@ query = { file = "queries/extract-lifecycle-authority.rq" }
 template = { file = "templates/wasm4pm-lifecycle.tera" }
 output_file = "../wasm4pm/src/lifecycle/mod.rs"
 mode = "Overwrite"
+
+[inference]
+enabled = false
+rules = []
 
 [sync]
 enabled = true

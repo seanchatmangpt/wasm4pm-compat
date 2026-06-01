@@ -44,9 +44,9 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 AUDIT_OUTDIR="${REPO_ROOT}/ggen/audits"
-LEDGER_PATH="{{ gapLedgerPath | default(value='ggen/emitted/gap-ledger.yaml') }}"
-COMMIT_START="{{ commitStartRef | default(value='origin/main') }}"
-COMMIT_END="{{ commitEndRef | default(value='HEAD') }}"
+LEDGER_PATH="ggen/emitted/gap-ledger.yaml"
+COMMIT_START="origin/main"
+COMMIT_END="HEAD"
 
 # Counters and tracking
 PASS_COUNT=0
@@ -85,7 +85,7 @@ declare -a ALL_GAP_IDS
 declare -A GAP_SEVERITY
 declare -A GAP_STATUS
 
-{%- raw %}
+
 while IFS= read -r line; do
     if [[ "$line" =~ ^[[:space:]]*-[[:space:]]*id:[[:space:]]*(GAP_[A-Z0-9_]+) ]]; then
         gap_id="${BASH_REMATCH[1]}"
@@ -98,7 +98,7 @@ while IFS= read -r line; do
         GAP_STATUS["${ALL_GAP_IDS[-1]}"]="$status"
     fi
 done < <(grep -E "id:|gap_severity:|status:" "${REPO_ROOT}/${LEDGER_PATH}")
-{%- endraw %}
+
 
 pass "gap-ledger-loaded: ${#ALL_GAP_IDS[@]} gaps loaded"
 
@@ -113,8 +113,8 @@ done
 info ""
 info "Phase 2: Classifying commits in range ${COMMIT_START}..${COMMIT_END}"
 
-declare -a UNCLASSIFIED_COMMITS=()
-declare -a GIT_COMMIT_LOG=()
+declare -a UNCLASSIFIED_COMMITS
+declare -a GIT_COMMIT_LOG
 
 # Pre-fetch git log to avoid subprocess scope issues
 while IFS='|' read -r line; do

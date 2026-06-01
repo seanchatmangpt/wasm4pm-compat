@@ -44,9 +44,9 @@ set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 AUDIT_OUTDIR="${REPO_ROOT}/ggen/audits"
-LEDGER_PATH="ggen/emitted/gap-ledger.yaml"
-COMMIT_START="origin/main"
-COMMIT_END="HEAD"
+LEDGER_PATH="${1:-ggen/emitted/gap-ledger.yaml}"
+COMMIT_START="${2:-origin/main}"
+COMMIT_END="${3:-HEAD}"
 
 # Counters and tracking
 PASS_COUNT=0
@@ -111,8 +111,8 @@ done
 info ""
 info "Phase 2: Classifying commits in range ${COMMIT_START}..${COMMIT_END}"
 
-declare -a UNCLASSIFIED_COMMITS
-declare -a GIT_COMMIT_LOG
+declare -a UNCLASSIFIED_COMMITS=()
+declare -a GIT_COMMIT_LOG=()
 
 # Pre-fetch git log to avoid subprocess scope issues
 while IFS='|' read -r line; do

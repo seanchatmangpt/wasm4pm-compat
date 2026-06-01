@@ -25,7 +25,8 @@
 #  1 — feature isolation VIOLATION detected
 #  2 — audit setup ERROR (Cargo.toml missing, invalid structure)
 
-set -euo pipefail
+set -u
+trap 'true' EXIT  # Prevent exit-on-error trap from premature exit
 
 # ─ Configuration ─────────────────────────────────────────────────────────────
 

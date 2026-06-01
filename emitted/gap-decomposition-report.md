@@ -1,0 +1,456 @@
+# Gap Decomposition Report
+
+Generated: 2026-06-01T12:18:33.539441
+
+Total commits analyzed: 411
+
+## Summary by Classification
+
+- **FIXTURE_RECEIPT**: 116 commits
+- **CHECKPOINT**: 39 commits
+- **AUDIT_MACHINERY**: 4 commits
+- **ONTOLOGY_LAW**: 114 commits
+- **QUERY_SURFACE**: 3 commits
+- **TEMPLATE_SURFACE**: 5 commits
+- **AUXILIARY**: 19 commits
+- **UNMAPPED**: 111 commits
+
+**Commits with explicit gap references**: 1
+
+## Detailed Breakdown
+
+### CHECKPOINT (39 commits)
+
+- `664cdd0` fixture-fail: seal OCEL-O2O-TypeDistinction
+- `ac732c6` fixture-fail: seal XES-CaseCentric-OcelDistinction
+- `d9258e4` ledger: sync NIGHTLY_TYPE_LAW — OCEL E2O, O2O, XES PARTIAL entries now sealed
+- `ef85a8b` checkpoint: PAPERLAW_ALIVE_002 report
+- `3d0c3ea` fixture-fail: seal WorkflowPattern-PatternKind-TypeDistinction
+- `1e157da` audit: fix FINAL_ALIVE_REPORT fixture counts and paper coverage after sprint
+- `3ffc195` fixture-fail: seal ComplianceTarget-OutcomeLabel-TypeDistinction
+- `0023948` audit: fix WfNet2PowlWitness clippy::manual-non-exhaustive warning
+- `0f96ccd` checkpoint: PAPERLAW_ALIVE_002 report — final sprint results
+- `e63aa01` checkpoint: record PAPERLAW_ALIVE_002 baseline
+- `29901cd` stderr: seal typed id mismatch receipt
+- `037cb67` stderr: seal receipt shape negative receipt
+- `5f188dc` fixture-fail: yawl_cancellation_region law violation rejected
+- `e1949cb` stderr: seal YAWL law receipt
+- `ccd275c` stderr: seal BPMN boundary receipt
+- `02420ff` stderr: seal OCPQ law receipt
+- `327425c` stderr: seal DFG law receipt
+- `ba735ab` stderr: seal WfNet2POWL receipt
+- `765e71a` fixture-fail: discovery engine absent from compat + stderr: seal engine creep boundary
+- `5226f56` type-law: add GraduationCandidate sealed marker trait + fixture-pass: graduation candidate marker compiles
+- `4ddc069` checkpoint: record PAPERLAW_003 gate output
+- `1e12d14` checkpoint: record PAPERLAW_PARTIAL_003 residuals
+- `06dc462` checkpoint: seal PAPERLAW_003 sprint final report
+- `309023e` fixture-fail: refusal_without_named_law law violation rejected
+- `7284de1` paper-law: define bipartite-arc-sealed-trait-law for petri-law family
+- `9b975f7` type-law: add EvidenceState sealed trait to evidence-states surface
+- `9c12aa6` type-law: add typed-id-families TypedId sealed trait
+- `1379cc1` type-law: expand powl AcyclicWitness sealed trait and assert_acyclic gate
+- `ba56658` type-law: expand ocpq IsOcpqPredicate sealed trait over seven canonical witnesses
+- `8e41330` type-law: expand dfg DfgSourceMarker/DfgTargetMarker sealed endpoint roles
+- `863ce4b` type-law: harden evidence-states — Projectible sealed trait
+- `0e8e7e8` audit: add unsealed refusal detection
+- `0b27c3d` fixture-fail: Evidence wrong-witness confusion rejected stderr: seal cross-witness confusion receipts
+- `315a90e` fixture-fail: export requires Exportable not Admitted rejected
+- `0061df0` example: add powl_process_tree — POWL/process-tree shapes and arity enforcement
+- `70440df` fixture-fail: BipartiteArcNonCopyWeightLaw rejected
+- `2200eca` fixture-fail: metric-const-violations — seal Between01 law across all five metric types
+- `9136a51` checkpoint: AGI quality sprint — process cube, temporal, object lifecycle, streaming, causality, correlation
+- `a73022d` checkpoint: seal PAPERLAW_CROWN_004 sprint final report
+
+### FIXTURE_RECEIPT (116 commits)
+
+- `7c2fc42` type-law: ocpq cardinality/flattening/scope — ALIVE fixtures for three OCPQ laws
+- `551c016` fix(fixtures): correct Predicate type in ocpq compile-pass fixtures
+- `402a799` stderr: receipt OCEL-E2O-TypeDistinction
+- `317f475` stderr: receipt OCEL-O2O-TypeDistinction
+- `82ca550` stderr: receipt XES-CaseCentric-OcelDistinction
+- `f005c7d` fixture-pass: prove WorkflowPattern-ConstParam-TypeDistinction
+- `739e8c5` fixture-pass: prove SeparableWfNet-Marker-Compiles
+- `029716a` fixture-pass: prove DeclareConstraint-TemplateArity-Shape
+- `1eda847` fixture-pass: prove DFG-StructureOnly-Shape
+- `7d10d01` fixture-pass: prove ReceiptShape-StructureOnly
+- `784b23b` fixture-pass: prove CompatDiagnostic-NamedLawVocabulary
+- `5c1a68e` fixture-pass: prove WfNet2PowlWitness-Compiles
+- `214f687` fixture-pass: evidence admitted construction via lawful path
+- `e67e852` fixture-pass: typed id family construction
+- `53e8f5c` fixture-fail: object id rejected as event id
+- `f67400d` fixture-fail: receipt without required witness rejected
+- `5f11d86` fixture-fail: ocpq_cardinality law violation rejected
+- `7acff07` fixture-fail: ocpq_missing_scope law violation rejected
+- `f65ac6a` fixture-fail: wfnet2powl_precondition law violation rejected
+- `2a599ed` fixture-fail: separable_wfnet law violation rejected
+- `9ba28f0` fixture-fail: xes_to_oced_loss_report law violation rejected
+- `74bbad6` fixture-fail: xes_undeclared_extension_prefix law violation rejected
+- `d385eb9` fixture-fail: yawl_multi_instance_bounds law violation rejected
+- `122e6aa` fixture-fail: dfg_engine_boundary law violation rejected
+- `cb1488f` fixture-fail: declare_binary_arity law violation rejected
+- `ef4c2f6` fixture-fail: YAWL task type confusion rejected
+- `8230855` fixture-fail: BPMN pool/lane confusion rejected
+- `92b1fc7` fixture-fail: OCPQ cardinality bounds rejected
+- `842f5d1` fixture-fail: DFG edge type confusion rejected
+- `3b6ccf9` fixture-fail: WfNet2POWL rejects wrong source type
+- `fa38610` fixture-pass: strict export boundary with fixture compiles
+- `38e52d1` docs-law: update TYPE_LAW_CROSSWALK with sprint additions
+- `861c088` fixture-fail: ocpq_object_type_mixing law violation rejected
+- `dac87fe` fixture-fail: xes_to_oced_without_loss_policy law violation rejected
+- `8a53fbf` fixture-fail: compliance_witness_wrong_target law violation rejected
+- `c1b8748` fixture-pass: LossPolicy::RefuseLoss proves Project impl refuses loss under RefuseLoss policy
+- `2185d75` fixture-pass: state Refused token is distinct zero-sized terminal lifecycle marker
+- `41145ea` fixture-fail: Rejects a FilterShape applied to an incompatible Pm4pyShape — proves check_filter_shape enforces the pm4py shape law at compile time.
+- `588788b` fixture-pass: Ocel20 witness marker — proves distinct named-law identity and correct Standard-family metadata
+- `b340750` fixture-pass: eventlog_trace_shape — proves Trace constructs as case-centric sequence carrier
+- `51bc335` fixture-pass: eventlog_log_shape — proves EventLog constructs and EventLogRefusal variants are nameable
+- `f7929fc` fixture-pass: ReceiptEnvelope digest field — proves four-field provenance bearer with subject, witness, digest, and replay hint is well-shaped
+- `eba0db8` fixture-pass: admission_admit_trait_surface — proves Admit trait satisfiable as the only Raw→Admitted path
+- `96b0275` fixture-pass: loss_report_shape — proves LossReport<From,To,Items> constructs with typed shape markers
+- `cf92a6b` fixture-pass: formats_envelope_shape — proves FormatEnvelope<W> constructs with witness marker and FormatKind
+- `9f0f534` fixture-pass: formats_round_trip_claim — proves RoundTripClaim constructs as named round-trip fidelity assertion
+- `dbfeb04` fixture-pass: diagnostic shape construction — proves Copy/Clone/PartialEq/Hash/Debug and all 9 variants constructible
+- `628102d` fixture-pass: GraduateToWasm4pm trait bound satisfiable on GraduationCandidate type
+- `92752de` fixture-pass: nightly_foundry::petri_law surface constructible — Murata arc matrices
+- `fcb9b03` fixture-pass: nightly_foundry::evidence_law surface constructible — Blue River Dam label
+- `4ae11c2` fixture-pass: ReceiptEnvelope constructs with Digest and ReplayHint — envelope carrier shape
+- `2e96fae` fixture-pass: ObjectCentricDfg constructs lawfully — per-object-type DFG carrier
+- `142b0be` fixture-pass: BpmnGateway and BpmnEvent enum variants construct lawfully
+- `58c5d6b` fixture-pass: BpmnProcess and BpmnEdge construct lawfully — full bpmn graph carrier
+- `5e19ab2` fixture-pass: ProcessTree, ProcessTreeOperator, ProcessTreeNode construct lawfully
+- `0514a22` fixture-pass: conformance Generalization metric satisfies Between01 law
+- `7cc5712` fixture-pass: conformance Simplicity metric satisfies Between01 law
+- `41eca91` fixture-pass: interop OcelToXesProjection bridge proves PROJECTION_NAME constant
+- `8fd172b` fix(ui-tests): move graduation_wasm4pm_bridge_trait to compile_pass_wasm4pm
+- `b10ecdc` paper-law: define process-tree-loop-arity-law packet for TypedLoopNode const gate
+- `1c0912f` type-law: harden typed-id-families compile-pass fixture
+- `13a998b` type-law: add typed-id-families CaseId/TraceId compile-fail receipt
+- `aef3db8` type-law: add typed-id-families ObjectTypeId/ObjectId compile-fail receipt
+- `bccbe95` type-law: harden typed-id-families TypedId trait-bound compile-pass receipt
+- `90afd37` type-law: add loss-policy-chain named_loss_descriptor compile-pass fixture
+- `6248d6e` type-law: add loss-policy-chain named_loss_shape_mismatch compile-fail fixture
+- `ca69a75` type-law: add loss-policy-chain loss_report_is_lossless_bound compile-fail fixture
+- `d9d8471` type-law: add metric-const-law compile-fail fixtures for GeneralizationConst and SimplicityConst
+- `6ff9508` type-law: harden metric-const-law compile-pass fixtures to use GeneralizationConst and SimplicityConst aliases
+- `65a66a2` type-law: expand declare — compile-pass fixture for DeclareTemplate full set
+- `b3f21a7` type-law: expand declare — compile-pass fixture for OcDeclareConstraint shape
+- `0f3b310` type-law: harden typed-id-families — trybuild receipts for Cow<str> names and id_of
+- `650e55b` fixture-pass: evidence-lifecycle batch — 7 compile-pass receipts
+- `85e968e` fixture-pass: typed-ids batch — 20 compile-pass law receipts
+- `93df325` fixture-pass: loss-chain batch + Crown surfaces — 127→200 compile-pass fixtures
+- `1dd9cb3` fixture-pass: ReceiptRefusal::MissingWitness named-law surface compiles
+- `3da2610` fixture-pass: ReceiptChain with two links — minimal multi-step provenance
+- `ec40817` fixture-pass: ReplayHint field construction — carried not executed surface
+- `f98a8e7` fixture-pass: ReceiptVerdict Display — Admitted and Refused(law) named diagnostics
+- `d5244e8` fixture-pass: ReceiptEnvelope all four public fields accessible
+- `def687a` fixture-pass: ReceiptChainConst<2> WellShaped trait dispatch and iter
+- `c4d71e5` fixture-pass: GraduationReceipt reason_tag is &'static str boundary key
+- `84d12c8` fixture-pass: metric-types batch — Between01 boundaries, QualityProfile, and specific metric values
+- `c5210dc` fixture-pass: ocel-attributes batch — 18 new compile-pass receipts (213 → 231)
+- `6645280` fixture-pass: xes-shapes batch — 8 new compile-pass receipts
+- `927f8cd` fixture-pass: petri-wfnet batch — 30 compile-pass receipts
+- `22d0bb8` fixture-fail: replace engine-creep absence fixture with method-not-found law receipt
+- `28d6263` fix: conformance_verdict_is_perfect compile-pass fixture — use Deviation<()> not Deviation<LogOnlyMove>
+- `b1eb33d` fixture-pass: add strict-graduation batch — ProcessBoundary, StrictViolation, BoundaryClaimKind law receipts
+- `9c7bb19` fixture-fail: evidence state violations rejected
+- `250d921` fixture-fail: typed ID violations rejected
+- `d34f98f` fixture-fail: metric bounds and ConditionCell violations rejected
+- `16e4ba2` fixture-fail: process tree and POWL arity violations rejected
+- `b3c106c` fixture-fail: export boundary round-trip violations rejected
+- `cfc5fc3` fixture-fail: OCEL/XES log and link type confusions rejected
+- `7b5bb26` fixture-fail: OCPQ typed predicate kind violations rejected
+- `4f2e47d` fixture-fail: Petri net node marker and WfNet soundness violations rejected
+- `bc52331` fixture-pass(formats): FormatKind, FormatEnvelope, FormatExport, LossyFormatExport, ExportFormat, RoundTripClaim lawful construction compiles
+- `db25d59` fixture-pass(interop): OcelShape, XesShape, OcedShape, projection consts, GraduationCandidate, ImportFormat lawful construction compiles
+- `2dd5bc5` fixture-pass(diagnostic): all CompatDiagnostic variants as named-law verdicts compile
+- `7117c4b` fixture-fail: multi-family compile-fail receipt batch (126 total)
+- `628a3cf` fixture-fail: remove unused import from loss_without_report_on_allow_path
+- `c689a71` fixture-fail: receipt wrong witness marker rejected
+- `6750046` fixture-fail: ReceiptChain wrong length N rejected
+- `3f15989` fixture-fail: ReceiptVerdict on non-receipt type rejected
+- `53da27d` fixture-fail: GraduationReceipt not substitutable for ReceiptEnvelope
+- `e837cef` fixture-fail: replay_hint wrong type rejected
+- `da65e3c` fixture-fail: receipt without lawful witness marker rejected
+- `260acd3` fixture-fail: final batch to 165 compile-fail fixtures
+- `2d22cff` fixture-fail: object lifecycle wrong transition rejected
+- `102ce32` fixture-fail: ObjectLifecycleTransitionLaw — fix .stderr from E0391 to E0308
+- `3e3c049` fixture-pass: ObjectLifecycleTransitionLaw — avoid nightly E0391 cycle in compile-pass fixture
+- `fbcfbaa` fixture-fail: OcDeclareConstraint rejected where DeclareConstraint required
+- `ea0d736` fixture-fail: OCPQ E2O relation predicate rejected where O2O required
+- `71cb618` fixture-fail: OcDeclareRefusal::ScopeMismatch rejected where OcDeclareConstraint required
+- `32ac0dc` feat(ggen): extend substrate with wasm4pm authority queries + templates; add workflow, interop, xes surfaces; new compile-fail receipts
+
+### AUDIT_MACHINERY (4 commits)
+
+- `2e85d44` audit: add anti-regression scripts (features, stable-language, engine-creep, receipts, paper-ledger)
+- `d3090aa` audit: create scripts/audit/ directory and migrate 5 core scripts
+- `229943e` audit: add pass-fail pairs coverage audit
+- `f524de1` fix(ggen): correct source file naming — .ggen → .tera; consolidate audit templates
+
+### ONTOLOGY_LAW (114 commits)
+
+- `3fd70bc` WASM4PM-COMPAT-TYPELAW-ALIVE-001: nightly-first type-law receipts
+- `fdc54ba` type-law: xes-to-oced-projection-named — named lossy projection descriptor
+- `f4bece3` type-law: xes-undeclared-extension-prefix-refusal — enforce named law in validate()
+- `fbc3463` type-law: add YawlCancellationRegion and YawlMultipleInstanceSpec
+- `8a92946` type-law: add ChoiceGraphNode — POWL 2.0 choice-graph operator shape
+- `4af266a` type-law: add BpmnPool and BpmnLane — BPMN 2.0 pool/lane structural shapes
+- `a97a5cf` type-law: add OcpqChildSetBound and OcpqTypedRelationPredicate
+- `291e263` type-law: add ComplianceTarget — compliance-constraint prediction target
+- `dff984a` type-law: add YawlPaper, SeparableWfNetPaper, WorkflowPatternsPaper witnesses
+- `8046afc` type-law: add WorkflowPattern ConstParamTy enum
+- `9e9e0db` type-law: add SeparableWfNet marker type
+- `08d9725` ledger: sync NIGHTLY_TYPE_LAW — add WorkflowPattern and SeparableWfNet rows
+- `35a62b8` paper-ledger: sync Coverage Summary — no MISSING_TYPE_LAW entries remain
+- `f278af2` type-law: add WfNet2PowlWitness graduation witness
+- `6242e09` ledger: sync NIGHTLY_TYPE_LAW — add ComplianceTarget type-law row
+- `3d39deb` paper-law: define ocel-law object-change and relation law packet for compat type surfaces
+- `9be7e10` paper-law: define xes-law crosswalk rows for xes-law family packet
+- `b543c9b` paper-law: define partial-order-law crosswalk rows for powl-law family
+- `9ce8197` type-law: add witness-families InductiveMiner marker
+- `0667494` type-law: add witness-families DeclareConstraints marker
+- `7cb9fd4` type-law: add witness-families AlignmentPaper marker
+- `d869db3` type-law: add witness-families OcPetriNets marker
+- `23f6bce` type-law: add witness-families LogSkeleton marker
+- `46a9efb` type-law: add witness-families AlphaMiner marker
+- `455a5de` type-law: add Parsed→Refused transition to evidence-states surface
+- `b2c49de` type-law: add Admitted→Exportable transition to evidence-states surface
+- `c66fa2a` type-law: add Admitted→Receipted transition to evidence-states surface
+- `8e5b2f9` type-law: add Projected and Exportable transition methods to evidence-states surface
+- `a795c65` type-law: add Refused path marker impl to evidence-states surface
+- `11c8279` type-law: bind Evidence<T, State, W> struct to EvidenceState to harden evidence-states
+- `fe7792c` type-law: harden evidence-states law with state transition test suite
+- `9c96492` type-law: add typed-id-families CaseId newtype
+- `1e7933b` type-law: add typed-id-families ObjectTypeId and EventTypeId newtypes
+- `16a3b8d` type-law: add typed-id-families Display, PartialOrd, Ord impls
+- `c85c8fb` type-law: add loss-policy-chain LossPolicy predicate methods
+- `6385ccf` type-law: add loss-policy-chain ProjectionName Display impl
+- `6f32f8a` type-law: add loss-policy-chain NamedLoss type
+- `3b82fdb` type-law: add loss-policy-chain LossReport summary/is_lossless helpers
+- `706fa48` type-law: harden loss-policy-chain law
+- `a6ff5ef` type-law: harden ReceiptEnvelope with try_from_parts refusal surface
+- `1023892` type-law: harden ReceiptRefusal with BrokenChainLink and EmptyChain variants
+- `a159f66` type-law: add ReceiptChain for multi-step provenance
+- `3d73c8a` type-law: add GraduationReceipt marker for compat-to-wasm4pm boundary
+- `bb45ded` type-law: add WellShaped trait unifying shape checks across receipt types
+- `ba6ba8a` type-law: add ReceiptChain::extend_with for law-guarded chain extension
+- `abdb192` type-law: add receipt_shapes integration tests for hardened surface
+- `705c73f` type-law: add metric-const-law GeneralizationConst and SimplicityConst type aliases
+- `61394c6` type-law: add metric-const-law Generalization and Simplicity runtime newtypes
+- `4257465` type-law: harden metric-const-law ConformanceVerdict with all four quality dimensions
+- `c1385a2` type-law: add metric-const-law GeneralizationUnavailable and SimplicityUnavailable refusal variants
+- `4cc558c` type-law: add metric-const-law integration tests for Generalization and Simplicity
+- `96513fb` type-law: expand ocel OcelAttributeValue List and Map variants
+- `b994c62` type-law: expand ocel OcelAttribute float/boolean/timestamp_ns constructors
+- `1fd5613` type-law: expand ocel ObjectTypeTag trait and TypedObject<OT> wrapper
+- `f1d7234` type-law: expand ocel EventTypeTag trait and TypedEvent<ET> wrapper
+- `efe6686` type-law: expand ocel AttributeTypeTag trait and TypedAttribute<AT> wrapper
+- `da46576` type-law: expand ocel TypedObjectChange with OcelAttributeValue construction
+- `22f5206` type-law: expand witness OcelObjectType/OcelEventType/OcelAttributeType markers
+- `8646eef` type-law: expand xes XesStandardPrefix enum
+- `a74465f` type-law: expand xes XesLifecycleTransition alphabet
+- `f1d1da9` type-law: expand xes XesEvent lifecycle_transition accessor
+- `c877d7b` type-law: expand xes XesTraceAttributes trace-level attribute shape
+- `a61a433` type-law: expand xes XesExtensionPrefixWitness authority label
+- `80159e8` type-law: expand xes XesToOcedProjectionShape named projection
+- `659446e` type-law: expand xes XesDeclaredExtensionLaw named law type
+- `c731e0c` type-law: expand xes XesLifecycleExt and XesConceptExt witness markers
+- `e27c820` type-law: expand petri place/transition node-kind markers
+- `d947f21` type-law: expand petri BipartiteArcConst with ArcDirectionConst param
+- `d500eb8` type-law: expand petri SeparableWfNetMarker phantom enum
+- `717189f` type-law: expand petri MissingFinalMarkingError standalone type
+- `252c588` type-law: expand petri WfNet2Powl witness marker
+- `8f83b05` type-law: expand petri InitialFinalMarkingPair marking shape
+- `c607d34` type-law: expand petri WfNetSoundnessProofOf typed proof carrier
+- `660cb5b` type-law: expand petri WfNetQuery soundness-state runtime accessor
+- `99b956d` type-law: expand powl AcyclicPartialOrder witness marker
+- `f8dfb54` type-law: expand powl PowlChoiceNode typed choice struct
+- `39033c7` type-law: expand powl TypedPowlLoopNode with const-generic arity law
+- `b59e23e` type-law: expand powl RefusedProjection typed marker
+- `5a060f8` type-law: expand powl smoke tests for new type surfaces
+- `31a22ee` type-law: expand powl PowlRefusal with InvalidChoiceArity and LoopMissingDoBody
+- `efaec94` type-law: expand powl smoke tests for arity and loop-body refusal laws
+- `e758fa6` type-law: expand law ProcessTreeOperatorKind ConstParamTy enum
+- `1eddde4` type-law: expand process_tree TypedXorNode, TypedAndNode, TypedSeqNode
+- `e9addf3` type-law: expand process_tree TypedOrNode arity-gated operator
+- `702bfe5` type-law: expand process_tree operator_minimum_arity and operator_maximum_arity
+- `dbb9edf` type-law: expand declare DeclareTemplate — full template set with extended unary/binary/chain/negative variants
+- `390b98d` type-law: expand declare — smoke tests for extended templates and OcDeclareConstraint
+- `f869bb1` type-law: expand ocpq ObjectScopeConst with OcpqScopeKind const-param
+- `32f8c72` type-law: expand ocpq EventPredicateKind and ObjectPredicateKind const-params
+- `ea1136a` type-law: expand ocpq RelationPredicateKind const-param and TypedRelationPredicate
+- `f278d88` type-law: expand ocpq CardinalityBoundConst with compile-time MIN<=MAX law
+- `0a33608` type-law: expand ocpq ChildSetBoundConst with compile-time labelled CBS law
+- `1b13510` type-law: expand ocpq OcpqQueryConst with const-generic scope kind
+- `1f64b7d` type-law: expand dfg DfgActivityId typed activity name
+- `f4e418f` type-law: expand dfg DfgTypedEdge phantom source/target markers
+- `4eac48e` type-law: expand dfg DfgObjectType typed OC-DFG object-type label
+- `bcea405` type-law: expand dfg InconsistentObjectType law + ObjectCentricDfg::validate_all
+- `464d81b` type-law: expand dfg DfgEdgeKey typed deduplication key for edge pairs
+- `24b6129` type-law: expand dfg DfgDuration/DfgFrequency/DfgWeight interop hardening
+- `b0496a5` type-law: harden evidence-states — state transition marker structs
+- `362ed04` type-law: harden evidence-states — EvidenceMode re-export in evidence module
+- `24a02d8` type-law: harden evidence-states — refuse() fast-reject constructor on Raw
+- `441e438` type-law: harden typed-id-families — ObjectTypeName, EventTypeName (Cow<str>)
+- `c567c8b` type-law: harden loss-policy-chain add NamedLossConst<const NAME>
+- `ade0d73` type-law: harden loss-policy-chain add LossChain multi-step documentation
+- `e1ddaa4` type-law: harden loss-policy-chain [ProjectionBoundary]
+- `2ad72bf` type-law: harden receipt-shapes [ReceiptVerdict + ReceiptChainConst<N>]
+- `3f9199e` type-law: harden metric-const-law [add QualityProfile]
+- `c4f802c` type-law: expand conformance [QualityDimension enum]
+- `ef563a8` type-law: add DivergenceWitness and ConvergenceWitness markers — paper #49 partial coverage
+- `ece91bb` type-law: add CausalNet structural shapes — Weijters&Ribeiro 2011 Heuristics Miner output
+- `e50eeea` type-law: add ObjectLifecycle typed phase law — LifecycledObject const-generic phase transitions
+- `2fd3199` type-law: add ProcessCube dimensional structure — van der Aalst 2013 process cube shapes
+- `9e55d46` type-law: add process cube projection view witnesses
+
+### QUERY_SURFACE (3 commits)
+
+- `6058c9e` paper-ledger: add Process Querying Methods — PARTIAL_WITH_REASON
+- `505d8f1` paper-ledger: add Approximate Semantic Process Querying — COVERED_BY_GRADUATION_BOUNDARY
+- `a25497a` example: add ocpq_typed_query — typed OCPQ query shape construction
+
+### TEMPLATE_SURFACE (5 commits)
+
+- `009dc01` paper-law: define response/precedence/succession law packet for compat type surfaces
+- `20093a6` paper-law: define absence/existence constraint law packet for compat type surfaces
+- `52dc849` dx: add IntoIterator impls for collection-holding process evidence types
+- `cfeab1a` feat(ggen): wire post-handcoding substrate -- ggen.toml, Makefile.toml, ontology, queries, templates
+- `5ccaa36` feat(ggen): manufacture ecosystem-intel foundation — substrate for ALIVE_001
+
+### AUXILIARY (19 commits)
+
+- `f94762a` docs: add WASM4PM-COMPAT-PRD-ARD.md — nightly-first covenant, 10-point ALIVE, paper→type mapping
+- `5ead978` docs-law: update NIGHTLY_ONLY_COVENANT
+- `e3540ec` docs-law: update GRADUATION_BOUNDARIES
+- `52aa503` docs-law: update ANTI_REGRESSION_LAWS
+- `4031481` docs: expand README with key concepts, examples, and module table
+- `3ecfd10` docs: expand crate-level documentation in lib.rs
+- `2e8d6f0` docs: update CLAUDE.md with DX innovation surfaces and example programs
+- `1cae355` docs: create QUICK_START developer guide
+- `c76f321` example: add evidence_lifecycle — Raw→Parsed→Admitted→Receipted one-way door
+- `66e9085` example: add loss_projection — full LossPolicy chain for OCEL→XES flattening
+- `d4bdab4` example: add petri_net_construction — typed arcs, WF-net construction, soundness typestate
+- `df05c90` example: add declare_constraint_model — Declare/OC-Declare constraint shape composition
+- `d21c063` example: add conformance_metrics — compile-time [0,1] metric type construction
+- `48d41d1` example: add receipt_chain — ReceiptEnvelope, ReceiptChain, ReceiptChainConst<2>, GraduationReceipt, ReceiptVerdict
+- `a5cdd02` example: add witness_authority — zero-cost type-level authority markers
+- `08ba84c` example: add causal_net_shape — CausalNet output shape, bindings, and DependencyMeasure
+- `9e4453b` chore: add .claude/, .agents/, and build artifacts to .gitignore
+- `8d6e0fc` docs(paper): add ch09 process-intelligence SPR thesis --- lifecycle calculus, autonomic actuation, Reverse Porter Five, 6 algorithms
+- `dbb5b37` docs: GAP_001 closure plan—compat/wasm4pm type bridge [GAP_001]
+
+### UNMAPPED (111 commits)
+
+- `277d528` feat: initial wasm4pm-compat — nightly-first process-evidence covenant
+- `6f9f6e1` paper-ledger: inventory workflow paper corpus — 20 papers classified
+- `e2cce1c` ledger: init COMMIT_SPRINT_LEDGER for PAPERLAW_ALIVE_002 sprint
+- `a11d28a` paper-ledger: upgrade #3 POWL 2.0 to PARTIAL, #14 Workflow Patterns to COVERED_BY_TYPE
+- `1e8f2ab` paper-ledger: upgrade #3 POWL 2.0 to COVERED_BY_TYPE
+- `64e179b` ledger: finalize COMMIT_SPRINT_LEDGER — sprint summary and all 29 commits recorded
+- `4bdd39e` ledger: update graduation boundary entries with explicit targets
+- `74a7fa8` ledger: create PAPERLAW_004_CROWN_PLAN
+- `e52a786` paper-law: extract bipartite arc and incidence-matrix law from Petri Nets: Properties, Analysis and Applications
+- `9bc04fc` paper-law: extract WF-net soundness criterion law from The Application of Petri Nets to Workflow Management
+- `349af29` paper-ledger: add The Application of Petri Nets to Workflow Management — COVERED_BY_TYPE
+- `b7138e6` paper-ledger: add OCEL: A Standard for Object-Centric Event Logs — COVERED_BY_TYPE
+- `1259697` paper-ledger: add Discovering Object-Centric Petri Nets — COVERED_BY_GRADUATION_BOUNDARY
+- `23aca7f` paper-ledger: add Process Mining: Discovery, Conformance and Enhancement — COVERED_BY_GRADUATION_BOUNDARY
+- `5920fa7` paper-ledger: add Conformance Checking: Relating Processes and Models — COVERED_BY_GRADUATION_BOUNDARY
+- `32d86f9` paper-law: extract E2O link law from OCEL: A Standard for Object-Centric Event Logs
+- `75296af` paper-ledger: add Aligning Observed and Modeled Behavior (token-based replay) — COVERED_BY_GRADUATION_BOUNDARY
+- `805d4c8` paper-ledger: add Measuring Precision of Modeled Behavior — COVERED_BY_GRADUATION_BOUNDARY
+- `06debda` paper-ledger: add Inductive Miner — Infrequent (IMf) — COVERED_BY_GRADUATION_BOUNDARY
+- `7e60d35` paper-ledger: add A Directly Follows Graph for Object-Centric Process Mining — COVERED_BY_GRADUATION_BOUNDARY
+- `6b1c4ca` paper-ledger: add POWL: Partially Ordered Workflow Language — COVERED_BY_TYPE
+- `fccdef5` paper-law: extract POWL node-kind laws from POWL: Partially Ordered Workflow Language
+- `dc91a7b` paper-ledger: add Free-Choice Petri Nets — COVERED_BY_GRADUATION_BOUNDARY
+- `646d53a` paper-ledger: add Heuristics Miner — COVERED_BY_GRADUATION_BOUNDARY
+- `31c3d59` paper-law: extract GatewayKind/EventKind structural law from BPMN 2.0 OMG Spec
+- `a0442e3` paper-ledger: add Weske BPM (2012) — COVERED_BY_GRADUATION_BOUNDARY
+- `ffdb284` paper-ledger: add BPMN 2.0 OMG Spec — COVERED_BY_TYPE
+- `c3014d0` paper-law: extract ResourcePerspective/DataPerspective law from Multi-Perspective PM
+- `7573a10` paper-law: extract DivergenceWitness/ConvergenceWitness law from OC-PM Divergence/Convergence
+- `9af3f37` paper-ledger: add Multi-Perspective Process Mining — PARTIAL_WITH_REASON
+- `00f51eb` paper-ledger: add Directly-Follows Graphs Mining & Filtering — COVERED_BY_GRADUATION_BOUNDARY
+- `1109db3` paper-ledger: add OC-PM Divergence/Convergence — COVERED_BY_TYPE
+- `259b4f6` paper-ledger: add Object-Centric Process Mining: Extracting and Materializing Object-Centric Event Logs — COVERED_BY_GRADUATION_BOUNDARY
+- `c59b32a` paper-ledger: add Conformance Checking Using Petri Net Unfoldings — COVERED_BY_GRADUATION_BOUNDARY
+- `130a668` paper-ledger: add Mining Roles from Event Logs — COVERED_BY_GRADUATION_BOUNDARY
+- `3f2fd12` paper-ledger: add Process Performance Analysis Using Business Process Intelligence — COVERED_BY_GRADUATION_BOUNDARY
+- `ea92cb9` paper-law: extract StochasticArcWeight/ImmediateTransition/TimedTransition law from Stochastic Conformance Checking with Stochastic Petri Nets
+- `9d65954` paper-ledger: update summary and priority work for #57-#61 additions
+- `3b12cd0` paper-ledger: add Anti-Alignments — COVERED_BY_GRADUATION_BOUNDARY
+- `d8b14a2` paper-ledger: add XES IEEE 1849-2016 — DUPLICATE_OR_BACKGROUND
+- `7f1ed70` paper-ledger: add Temporal Profile Conformance Checking — PARTIAL_WITH_REASON
+- `060fe23` paper-law: extract TemporalProfile/TimeDelta/ZScore law from Temporal Profile Conformance Checking
+- `a3006af` paper-ledger: add Replay Techniques for Conformance Analysis — COVERED_BY_GRADUATION_BOUNDARY
+- `828f8dd` paper-ledger: add Event Logs and Their Metadata — COVERED_BY_TYPE
+- `9da4b7d` paper-law: extract XES metadata law from Event Logs and Their Metadata
+- `80e0bee` paper-ledger: update summary counts and priority work for #62-#67
+- `ae374ee` paper-law: define object-scoped-witness law packet for compat type surfaces
+- `ac68963` paper-law: define place-marker-law for petri-law family
+- `59e7fb0` paper-law: define transition-marker-law for petri-law family
+- `574e9c2` paper-law: define marking-shape-law for petri-law family
+- `868e150` paper-law: define ocel-law attribute-witness and dimensions-law packet for compat type surfaces
+- `7f1fa40` paper-law: define ocel-law object-type-witness and event-type-witness packet for compat type surfaces
+- `7903f84` paper-law: define ocel-law relation-qualifier law packet for compat type surfaces
+- `947c927` paper-law: define ocel-law cardinality-projection law packet for compat type surfaces
+- `5b6403d` paper-law: define ocel-law ocel-to-xes-boundary law packet for compat type surfaces
+- `2f9f54f` paper-law: define alignment-cost-law packet for compat type surfaces
+- `6eac951` paper-law: define soundness-witness-state-law for petri-law family
+- `11abbad` paper-law: define token-replay-boundary packet for compat type surfaces
+- `08cbf69` paper-law: define relation-predicate law packet for compat type surfaces
+- `09a4117` paper-law: define fitness-precision-f1-metric-law packet for compat type surfaces
+- `91bbab2` paper-law: define generalization-simplicity-law packet for compat type surfaces
+- `208ddb3` paper-law: define prediction-target-witness packet for compat type surfaces
+- `57a6ab3` paper-law: define xes-law trace-attribute-witness law packet for compat type surfaces
+- `63ec33f` paper-law: define xes-law event-attribute-witness law packet for compat type surfaces
+- `934cfd4` paper-law: define risk-score-witness packet for compat type surfaces
+- `f832a38` paper-law: define xes-law extension-prefix-law packet for compat type surfaces
+- `df1375f` paper-law: define xes-law xes-multi-perspective-law packet for compat type surfaces
+- `2a43822` paper-law: define irreducible-state-law packet for POWL ExceedsProcessTree marker
+- `fe34dbb` paper-law: define relation-predicate law packet section for declare-ocpq family
+- `80ec20f` paper-law: define projection-refusal-law packet for POWL-to-process-tree named refusals
+- `9a7a149` paper-law: define cardinality-bound-law packet section for declare-ocpq family
+- `6286862` paper-law: define POWL-to-process-tree boundary law packet for compat type surfaces
+- `0778221` paper-law: define typed-child-set-law packet section for declare-ocpq family
+- `be4948d` paper-law: define silent-node-law packet for POWL SilentTransition type surface
+- `2ef95a1` paper-law: define process-tree-operator-law packet for ProcessTreeOperator type surface
+- `ebd67e2` paper-law: define powl-choice-graph-connectivity-law packet for POWL 2.0 ChoiceGraph
+- `9d748f7` paper-law: define powl-law family crosswalk summary for POWL/process-tree laws
+- `0032a96` paper-ledger: add Rozinat & van der Aalst 2008 — COVERED_BY_GRADUATION_BOUNDARY
+- `642ad75` paper-ledger: add de Leoni & Mannhardt 2015 — COVERED_BY_GRADUATION_BOUNDARY
+- `f0732e9` paper-ledger: add Burattin 2017 — COVERED_BY_GRADUATION_BOUNDARY
+- `ab8bdf8` dx: add Display impl for EvidenceMode — human-readable stage name
+- `ee64a4d` impl: add Debug for Evidence<T,S,W> and Display for Refusal<R,W>
+- `8cc9a54` impl: add Display/From/Into/AsRef for loss module types
+- `e3482f1` dx: add Display/From/Into/AsRef impls for receipt module types
+- `10accc2` impl: add Display for QualityMetricKind — human-readable variant names
+- `a45db93` dx: add Display impls for conformance score newtypes and ConformanceVerdict
+- `b1a0254` impl: add Display and From impls for OcelAttributeValue in ocel
+- `6acd2f4` dx: add Display/AsRef/From impls for xes types
+- `153702a` dx: add Display impl for CompatDiagnostic and DiagnosticSeverity — human-readable output
+- `ce0885e` dx: add Display impl for SoundnessState — human-readable output
+- `c546c55` dx: add Display impl for PredictionTarget — human-readable output
+- `8c7da36` qol: add type aliases for common Evidence<T,State,W> combinations
+- `dfd0784` qol: add #[must_use] annotations to Result/Option-returning functions
+- `c1f38d2` qol: add ::new() convenience constructors for typed ID families
+- `c669fd7` qol: add into_inner/as_inner accessor methods to newtype wrappers
+- `a48bed5` dx: add test helper builders for common law-compliant constructions
+- `d6f4cc5` dx: add evidence lifecycle integration test
+- `6f067f0` dx: add loss chain integration test
+- `a4d96a2` dx: add witness authority metadata integration test
+- `ace85ed` dx: add metric bounds integration test
+- `d6abe41` dx: add typed ID family integration test
+- `a567653` dx: add developer-facing comments to const assertion error messages
+- `a32cea1` ux: add #[doc(alias)] for common API search terms
+- `0a1b45e` ux: flatten commonly-used types in crate root re-exports
+- `4fa8201` ux: add feature flag documentation to Cargo.toml
+- `bfca13c` ux: add deprecation markers and stability annotations to public API
+- `061ca73` dx: add structural bridge conversions between related process evidence types
+- `d1cad56` bench: add law_bounds_bench proving const law is zero runtime overhead
+- `02db935` bench: add evidence_lifecycle_bench proving zero-cost state transitions
+- `6de8f2b` bench: add id_operations_bench proving newtype zero-overhead guarantee
+- `b42f7ea` paper-law: extract process cube dimensional law from van der Aalst 2013
+

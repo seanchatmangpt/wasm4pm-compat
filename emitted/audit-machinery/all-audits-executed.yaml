@@ -1,0 +1,237 @@
+---
+audit_execution_summary:
+  timestamp: "2026-06-01T12:35:22Z"
+  repository: "/Users/sac/wasm4pm-compat"
+  total_audits: 5
+  passed: 2
+  failed: 3
+  warnings: 6
+
+audits:
+  - name: "audit-feature-isolation.sh"
+    sequence: 1
+    exit_code: 0
+    status: "PASS"
+    violations: 0
+    warnings: 0
+    summary: "All feature isolation rules PASS"
+    details:
+      - rule: "Default feature (formats) isolation"
+        result: "PASS"
+        finding: "Default feature 'formats' does not enable specta, tsify, or wasm-bindgen"
+      - rule: "Default feature code isolation"
+        result: "PASS"
+        finding: "Always-on modules do not use wasm-bindgen or tsify"
+      - rule: "ts feature isolation"
+        result: "PASS"
+        finding: "ts feature does not directly enable wasm-bindgen; ts module is gated in lib.rs"
+      - rule: "wasm feature engine isolation"
+        result: "PASS"
+        finding: "wasm modules do not import engine-facing modules; wasm module is gated in lib.rs"
+      - rule: "wasm4pm feature gating (GRADUATION BRIDGE ONLY)"
+        result: "PASS"
+        finding: "engine_bridge module is gated by wasm4pm feature; contains no discovery/conformance/replay/OCPQ imports"
+      - rule: "No feature implies wasm4pm (independence gate)"
+        result: "PASS"
+        finding: "No feature (ts, wasm, formats, strict) implies or enables wasm4pm"
+      - rule: "Cross-feature integrity"
+        result: "PASS"
+        finding: "serde, specta, tsify, wasm-bindgen declared as optional dependencies"
+      - rule: "Feature model integrity"
+        result: "PASS"
+        finding: "Valid feature count (6); all features properly gated in lib.rs"
+
+  - name: "audit-no-dto-flattening.sh"
+    sequence: 2
+    exit_code: 1
+    status: "FAIL"
+    blocking_violations: 2
+    allowed_violations: 0
+    summary: "2 blocking DTO flattening violation(s)"
+    violations:
+      - file: "src/wasm/bindings.rs"
+        line: 29
+        severity: "BLOCKING"
+        pattern: "pub fn get_state_tags() -> Result<JsValue, JsValue>"
+        context_required: "Must be wrapped in one of: compat_core_violation, wasm_boundary_allowed_with_loss_report, engine_projection_allowed, test_fixture_allowed"
+      - file: "tests/graduation.rs"
+        line: 85
+        severity: "BLOCKING"
+        pattern: "let tags_val = get_state_tags().unwrap();"
+        context_required: "Must be wrapped in one of: compat_core_violation, wasm_boundary_allowed_with_loss_report, engine_projection_allowed, test_fixture_allowed"
+    action_items:
+      - "Wrap each violation in a permitted context annotation (// CONTEXT: <name>)"
+      - "Add annotation on the line(s) before the violation"
+      - "Re-run audit after fixes"
+
+  - name: "audit-no-tools-in-compat.sh"
+    sequence: 3
+    exit_code: 0
+    status: "PASS (WITH WARNINGS)"
+    checks_passed: 47
+    checks_failed: 0
+    checks_warned: 1
+    summary: "Engine functions properly isolated from wasm4pm-compat exports"
+    scan_results:
+      - scan: "Direct Function Exports"
+        result: "PASS"
+        finding: "No direct pub fn exports of: simulate_replay, compute_alignment, discover_model, execute_ocpq, run_conformance, mint_receipt, benchmark_gate_run"
+      - scan: "Type Export Smuggling"
+        result: "PASS"
+        finding: "No type exports related to forbidden engine functions"
+      - scan: "WASM Export Bypass Detection"
+        result: "PASS"
+        finding: "No #[export_name] or #[wasm_bindgen] name overrides for engine functions"
+      - scan: "Trait Implementation Smuggling"
+        result: "PASS"
+        finding: "No trait/impl smuggling of engine functions"
+      - scan: "Engine Dependency Analysis"
+        result: "PASS"
+        finding: "No engine imports detected in source"
+      - scan: "Graduation Bridge Verification"
+        result: "PASS"
+        finding: "GraduateToWasm4pm is properly feature-gated"
+      - scan: "Generated Artifacts Analysis"
+        result: "INFO"
+        finding: "Generated artifacts directory not yet built (expected at this stage)"
+      - scan: "WIT Surface Validation"
+        result: "INFO"
+        finding: "No WIT files found (expected if not a WASM component project)"
+    warnings:
+      - code: "cargo-feature"
+        message: "Found 'wasm4pm' or 'engine' in Cargo.toml features"
+        severity: "advisory"
+        action: "Review features configuration (non-blocking)"
+
+  - name: "audit-projection-receipts.sh"
+    sequence: 4
+    exit_code: 1
+    status: "FAIL (RECEIPTS MISSING)"
+    passes: 10
+    failures: 0
+    warnings: 5
+    unreceipted: 6
+    summary: "6 projection(s) missing receipt evidence"
+    projections_checked:
+      - name: "ts (TypeScript)"
+        manifest: "ts.projection.yaml"
+        status: "INCOMPLETE"
+        findings:
+          - type: "GAP"
+            item: "Source ontology missing: process-intelligence.ttl"
+            severity: "blocking"
+          - type: "WARN"
+            item: "Query missing: ts-projection.rq (may be embedded in template)"
+            severity: "advisory"
+          - type: "PASS"
+            item: "Template exists: ts-projection.rs.tera"
+          - type: "PASS"
+            item: "Output path declared: generated/wasm4pm-compat"
+          - type: "WARN"
+            item: "Output directory not yet generated"
+            severity: "advisory"
+      - name: "wasm (WASM Component)"
+        manifest: "wasm.projection.yaml"
+        status: "INCOMPLETE"
+        findings:
+          - type: "GAP"
+            item: "Source ontology missing: process-intelligence.ttl"
+            severity: "blocking"
+          - type: "WARN"
+            item: "Query missing: wasm-projection.rq (may be embedded in template)"
+            severity: "advisory"
+          - type: "GAP"
+            item: "Template missing: wasm-projection.rs.tera"
+            severity: "blocking"
+          - type: "PASS"
+            item: "Output path declared: target/wasm32-unknown-unknown/release"
+          - type: "WARN"
+            item: "Output directory not yet generated"
+            severity: "advisory"
+      - name: "component (Component Model)"
+        manifest: "component.projection.yaml"
+        status: "INCOMPLETE"
+        findings:
+          - type: "GAP"
+            item: "Source ontology missing: process-intelligence.ttl"
+            severity: "blocking"
+          - type: "WARN"
+            item: "Query missing: component-projection.rq (may be embedded in template)"
+            severity: "advisory"
+          - type: "GAP"
+            item: "Template missing: component-model.tera"
+            severity: "blocking"
+          - type: "GAP"
+            item: "Output path missing in manifest"
+            severity: "blocking"
+          - type: "PASS"
+            item: "Receipt path declared: generated/component.receipt.json"
+    action_items:
+      - "Ensure process-intelligence.ttl exists in ggen/ontology/"
+      - "Add projection queries to ggen/queries/ (if not embedded in templates)"
+      - "Ensure templates exist in ggen/templates/"
+      - "Verify output_dir declared in all *.projection.yaml manifests"
+      - "Verify receipt_path declared in all *.projection.yaml manifests"
+      - "Run projection manufacture and commit artifacts to git"
+
+  - name: "audit-gap-decomposition.sh"
+    sequence: 5
+    exit_code: 1
+    status: "FAIL (PRECONDITION)"
+    summary: "Gap ledger not found"
+    failures:
+      - check: "gap-ledger-exists"
+        result: "FAIL"
+        finding: "Gap ledger file not found at repository root (.)"
+        error_message: "Cannot proceed with gap decomposition without gap ledger"
+    action_items:
+      - "Locate or create gap ledger file at repository root"
+      - "Ensure gap ledger is in expected format (YAML or JSON)"
+      - "Re-run audit after gap ledger is in place"
+
+summary_by_status:
+  PASS: 1
+  PASS_WITH_WARNINGS: 1
+  FAIL: 3
+
+blocking_issues:
+  - audit: "audit-no-dto-flattening.sh"
+    count: 2
+    issue_type: "DTO flattening boundary violations"
+    files_affected:
+      - "src/wasm/bindings.rs"
+      - "tests/graduation.rs"
+    severity: "CRITICAL"
+    remediation: "Add context annotations to mark permitted DTO flattening locations"
+
+  - audit: "audit-projection-receipts.sh"
+    count: 6
+    issue_type: "Missing projection receipt evidence"
+    missing_artifacts:
+      - "process-intelligence.ttl (source ontology)"
+      - "wasm-projection.rs.tera (template)"
+      - "component-model.tera (template)"
+      - "component projection output_dir (manifest declaration)"
+    severity: "CRITICAL"
+    remediation: "Complete projection manufacture pipeline; commit artifacts to git"
+
+  - audit: "audit-gap-decomposition.sh"
+    count: 1
+    issue_type: "Precondition failure"
+    missing: "Gap ledger file"
+    severity: "CRITICAL"
+    remediation: "Create gap ledger at repository root in expected format"
+
+next_steps:
+  - priority: 1
+    task: "Fix DTO flattening violations in src/wasm/bindings.rs and tests/graduation.rs"
+    audit: "audit-no-dto-flattening.sh"
+    action: "Add // CONTEXT: annotations and re-run audit"
+  - priority: 2
+    task: "Complete projection receipt infrastructure"
+    audit: "audit-projection-receipts.sh"
+    action: "Create ontology, templates; run projection manufacture; commit receipts"
+  - priority: 3
+    task: "Locate or initialize gap ledger"
+    audit: "audit-gap-decomposition.sh"
+    action: "Create gap ledger file at repository root; verify format"

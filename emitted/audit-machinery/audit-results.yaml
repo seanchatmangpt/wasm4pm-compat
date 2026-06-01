@@ -1,0 +1,289 @@
+audit_run:
+  timestamp: "2026-06-01T12:15:00Z"
+  environment: "darwin"
+  cwd: "/Users/sac/wasm4pm-compat"
+
+audits:
+
+  audit_no_dto_flattening:
+    name: "DTO Flattening Boundary Audit"
+    classification: "DEFECT"
+    status: "FAIL"
+    exit_code: 1
+    severity: "CRITICAL"
+
+    description: >
+      Validates that Evidence and Admission DTOs are not flattened into
+      state_tag, payload_json, or receipt_json fields in core modules.
+      Forbidden patterns (EvidenceDto, AdmissionDto, RefusalDto, ReceiptDto,
+      to_json_string) are allowed ONLY in permitted contexts:
+      compat_core_violation, wasm_boundary_allowed_with_loss_report,
+      engine_projection_allowed, test_fixture_allowed.
+
+    findings:
+      blocking_violations: 2
+      allowed_violations: 0
+      affected_files:
+        - path: "src/wasm/bindings.rs"
+          line: 29
+          violation_type: "DTO_FLATTENING"
+          pattern_found: "pub fn get_state_tags() -> Result<JsValue, JsValue>"
+          required_context: "Required: // CONTEXT: test_fixture_allowed or wasm_boundary_allowed_with_loss_report"
+
+        - path: "tests/graduation.rs"
+          line: 85
+          violation_type: "DTO_FLATTENING"
+          pattern_found: "let tags_val = get_state_tags().unwrap()"
+          required_context: "Required: // CONTEXT: test_fixture_allowed"
+
+    remediation:
+      action: "WRAP_IN_CONTEXT"
+      steps:
+        - "Add // CONTEXT: wasm_boundary_allowed_with_loss_report before src/wasm/bindings.rs:29"
+        - "Add // CONTEXT: test_fixture_allowed before tests/graduation.rs:85"
+        - "Re-run: bash ./emitted/audits/audit-no-dto-flattening.sh"
+
+    receipt_file: "emitted/audits/audit-no-dto-flattening-20260601-121532.json"
+
+  audit_no_tools_in_compat:
+    name: "No Tools in Compat"
+    classification: "BOUNDARY_ENFORCEMENT"
+    status: "PASS"
+    exit_code: 0
+    severity: "NORMAL"
+    warnings: 1
+
+    description: >
+      Enforces that engine functions (simulate_replay, compute_alignment,
+      discover_model, execute_ocpq, run_conformance, mint_receipt,
+      benchmark_gate_run) are NOT exported from wasm4pm-compat.
+      compat is structure-only; engine logic graduates via GraduateToWasm4pm
+      trait (feature-gated wasm4pm).
+
+    findings:
+      direct_exports: 0
+      type_smuggling: 0
+      wasm_export_bypass: 0
+      trait_impl_smuggling: 0
+      engine_dependencies: 0
+
+      checks_passed: 47
+      checks_failed: 0
+
+      graduation_bridge:
+        status: "VERIFIED"
+        feature_gated: true
+        location: "src/graduation.rs"
+        feature_flag: "wasm4pm"
+
+    warnings:
+      - "WARNING: found 'wasm4pm' feature flag in Cargo.toml (expected and allowed)"
+
+    confidence: "HIGH"
+
+  audit_feature_isolation:
+    name: "Feature Isolation Conformance"
+    classification: "FEATURE_MODEL"
+    status: "PASS"
+    exit_code: 0
+    severity: "NORMAL"
+
+    description: >
+      Validates feature model: default (formats), strict, wasm4pm, ts, wasm
+      features are properly gated and do not cross-contaminate.
+      No feature implies engine logic. wasm4pm is graduation bridge only.
+
+    findings:
+      violations: 0
+      warnings: 0
+
+      rules:
+        rule_1_default_isolation:
+          name: "Default feature isolation"
+          status: "PASS"
+          description: "Default feature 'formats' does not enable specta, tsify, or wasm-bindgen"
+
+        rule_2_code_isolation:
+          name: "Default feature code isolation"
+          status: "PASS"
+          description: "Always-on modules do not use wasm-bindgen or tsify"
+
+        rule_3_ts_isolation:
+          name: "ts feature isolation"
+          status: "PASS"
+          checks:
+            - "ts feature does not directly enable wasm-bindgen"
+            - "ts module is gated in lib.rs"
+
+        rule_4_wasm_isolation:
+          name: "wasm feature engine isolation"
+          status: "PASS"
+          checks:
+            - "wasm modules do not import engine-facing modules"
+            - "wasm module is gated in lib.rs"
+
+        rule_5_graduation_gating:
+          name: "wasm4pm feature gating (GRADUATION BRIDGE ONLY)"
+          status: "PASS"
+          checks:
+            - "engine_bridge module is gated by wasm4pm feature in lib.rs"
+            - "engine_bridge contains no discovery/conformance/replay/OCPQ imports"
+            - "wasm4pm graduation boundary types properly isolated"
+
+        rule_6_independence:
+          name: "No feature implies wasm4pm"
+          status: "PASS"
+          description: "No feature (ts, wasm, formats, strict) implies or enables wasm4pm"
+
+      cross_feature_integrity:
+        serde: "declared as optional dependency"
+        specta: "declared as optional dependency"
+        tsify: "declared as optional dependency"
+        wasm_bindgen: "declared as optional dependency"
+
+      feature_model_integrity:
+        total_features: 6
+        minimum_required: 3
+        status: "valid"
+        gated_features:
+          - name: "formats"
+            gated: true
+          - name: "strict"
+            gated: true
+          - name: "wasm4pm"
+            gated: true
+          - name: "ts"
+            gated: true
+          - name: "wasm"
+            gated: true
+
+    confidence: "HIGH"
+
+  audit_projection_receipts:
+    name: "Projection Receipt Validation"
+    classification: "MANUFACTURING_COVENANT"
+    status: "INCOMPLETE"
+    exit_code: null
+    severity: "DEFERRED"
+
+    description: >
+      Validates that every rendered projection from the three projection
+      manifests (TypeScript, WASM, Component Model) has complete receipt
+      evidence: source ontology, query, template, output path, receipt entry,
+      and checkpoint effect. Each projection must satisfy the manufacturing
+      covenant: all artifacts are tracked, all queries are logged, all templates
+      are named, all outputs are checkpointed.
+
+    findings:
+      manifests_found:
+        - "ggen/projections/ts.projection.yaml"
+        - "ggen/projections/wasm.projection.yaml"
+        - "ggen/projections/component.projection.yaml"
+
+      status_notes: "Script execution incomplete. Requires manual review of projection manifests."
+
+    recommendation: "Run after manufacturing pipeline completion"
+    confidence: "DEFERRED"
+
+  audit_gap_decomposition:
+    name: "Gap Decomposition Soundness"
+    classification: "PROCESS_GOVERNANCE"
+    status: "FAIL"
+    exit_code: 2
+    severity: "CRITICAL"
+
+    description: >
+      Validates that gaps are explicitly mapped to closure claims in commits.
+      Enforces: CRITICAL/HIGH gaps must have at least one closure claim.
+      ALIVE status must cite specific gap_id, not inferred from commit count.
+      Every GAP_CLOSURE commit must reference a gap_id. Auxiliary commits must
+      be explicitly classified in commit message.
+
+    findings:
+      gaps_loaded: 6
+      gaps:
+        - id: "GAP_001"
+          priority: "HIGH"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+        - id: "GAP_COMPONENT"
+          priority: "CRITICAL"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+        - id: "GAP_LOSS"
+          priority: "HIGH"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+        - id: "GAP_PROCESS_TREE"
+          priority: "HIGH"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+        - id: "GAP_TS"
+          priority: "CRITICAL"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+        - id: "GAP_WASM"
+          priority: "CRITICAL"
+          status: "MANUFACTURED"
+          closure_claims: 0
+
+      violations:
+        rule_3_1:
+          rule: "Critical/HIGH gaps must have at least one closure claim"
+          violations: 6
+          affected_gaps: ["GAP_001", "GAP_COMPONENT", "GAP_LOSS", "GAP_PROCESS_TREE", "GAP_TS", "GAP_WASM"]
+
+        rule_3_2:
+          rule: "ALIVE status must cite specific gap_id, not inferred from commit count"
+          status: "NOT_VERIFIED"
+
+        rule_3_3:
+          rule: "Every GAP_CLOSURE commit must reference a gap_id"
+          status: "INCOMPLETE"
+
+        rule_3_4:
+          rule: "Auxiliary commits must be explicitly classified"
+          error: "Script failure at line 266 (unbound variable UNCLASSIFIED_COMMITS)"
+
+    remediation:
+      action: "CLASSIFY_COMMITS_AND_CLOSURE_CLAIMS"
+      steps:
+        - "Audit all commits in origin/main..HEAD"
+        - "Add explicit gap_id classification to all commits"
+        - "Create closure_claim entries for each gap mapped to specific commits"
+        - "Update ggen/emitted/gap-ledger.yaml with closure claim counts"
+        - "Fix unbound variable error in audit script at line 266"
+
+    confidence: "LOW"
+
+summary:
+  total_audits: 5
+  passed: 2
+  failed: 2
+  incomplete: 1
+
+  gate_status: "BLOCKED"
+  gate_blocking_audits:
+    - "audit_no_dto_flattening (2 violations)"
+    - "audit_gap_decomposition (6 unmapped critical/high gaps)"
+
+  gate_requirements:
+    - "Fix DTO flattening violations with context annotations"
+    - "Map all 6 gaps to specific closure claims in commits"
+    - "Verify gap_id citations in ALIVE status"
+    - "Complete projection receipt validation after pipeline completion"
+
+  required_audit_results_passing:
+    - "no DTO flattening ✗ (2 violations, fixable)"
+    - "no tool smuggling ✓"
+    - "feature isolation ✓"
+    - "projection receipts ⏳ (deferred)"
+    - "gap decomposition sound ✗ (6 unmapped gaps)"
+
+  no_file_count_ALIVE: "CONFIRMED (not counting files, per rules)"
+  no_commit_count_gate: "CONFIRMED (gap_id mapping required, not commit count)"
