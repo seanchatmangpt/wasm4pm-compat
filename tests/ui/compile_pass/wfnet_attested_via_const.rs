@@ -25,5 +25,5 @@ fn main() {
 
     // Prove the const states are distinct types — would fail to compile if unified.
     let _ = WfNetConst::<{ SoundnessState::Unknown }>::new();
-    let _ = WfNetConst::<{ SoundnessState::Claimed }>::new();
+    let _ = WfNetConst::<{ SoundnessState::Unknown }>::new().claim_sound();
 }

@@ -1,12 +1,15 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/loss_report_items_type_mismatch.rs:36:24
+  --> tests/ui/compile_fail/loss_report_items_type_mismatch.rs:33:26
    |
-36 |     accepts_static_items(report);
-   |     ---------------------- ^^^^^^ expected `LossReport<OcelShape, XesShape, Vec<&'static str>>`, found `LossReport<OcelShape, XesShape, Vec<String>>`
+33 |     accepts_static_items(report);
+   |     -------------------- ^^^^^^ expected `&'static str`, found `std::string::String`
+   |     |
+   |     arguments to this function are incorrect
    |
-   |
+   = note: expected struct `LossReport<OcelShape, XesShape, Vec<&'static str>>`
+              found struct `LossReport<OcelShape, XesShape, Vec<std::string::String>>`
 note: function defined here
-  --> tests/ui/compile_fail/loss_report_items_type_mismatch.rs:25:4
+  --> tests/ui/compile_fail/loss_report_items_type_mismatch.rs:23:4
    |
-25 | fn accepts_static_items(_report: LossReport<OcelShape, XesShape, Vec<&'static str>>) {}
-   |    --------------------- -----------------------------------------------
+23 | fn accepts_static_items(_report: LossReport<OcelShape, XesShape, Vec<&'static str>>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^ -----------------------------------------------------------

@@ -705,3 +705,50 @@ witness_marker!(
     "Time Perspective (Mannhardt et al. 2016)",
     Some(2016)
 );
+/*
+ * IMPLEMENTATION: Witness Lattice (Join-Semilattice)
+ * Enforces Axiom 2: Monotonic Witness progression.
+ */
+/// Represents a value in a Join-Semilattice.
+pub trait Join {
+    fn join(self, other: Self) -> Self;
+}
+
+/// A state that can reach a "Contradiction" (Top) value.
+pub trait WithTop {
+    fn is_top(&self) -> bool;
+}
+
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum WitnessState<W: Witness> {
+    Unknown(core::marker::PhantomData<W>),
+    Satisfied(core::marker::PhantomData<W>),
+    Violated(core::marker::PhantomData<W>),
+    Contradiction(core::marker::PhantomData<W>),
+}
+
+impl<W: Witness> Clone for WitnessState<W> {
+    fn clone(&self) -> Self {
+        *self
+    }
+}
+
+impl<W: Witness> Copy for WitnessState<W> {}
+
+impl<W: Witness> Join for WitnessState<W> {
+    fn join(self, other: Self) -> Self {
+        match (self, other) {
+            (WitnessState::Unknown(_), s) => s,
+            (s, WitnessState::Unknown(_)) => s,
+            (WitnessState::Satisfied(_), WitnessState::Satisfied(_)) => self,
+            (WitnessState::Violated(_), WitnessState::Violated(_)) => self,
+            _ => WitnessState::Contradiction(core::marker::PhantomData),
+        }
+    }
+}
+
+impl<W: Witness> WithTop for WitnessState<W> {
+    fn is_top(&self) -> bool {
+        matches!(self, WitnessState::Contradiction(_))
+    }
+}

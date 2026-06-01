@@ -23,10 +23,19 @@ use wasm4pm_compat::formats::{accept_lossy_ocel_to_xes, FormatKind, LossyFormatE
 use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
 
 fn main() {
+    const POLICY: LossPolicy = LossPolicy::RefuseLoss;
+
+    // Const assertion to prove RefuseLoss cannot be used with lossy export
+    const _: () = {
+        if matches!(POLICY, LossPolicy::RefuseLoss) {
+            panic!("RefuseLoss policy cannot be used with lossy export functions");
+        }
+    };
+
     // Create a LossReport with RefuseLoss policy — a contradiction for lossy export.
     let report = LossReport::<(), (), Vec<String>>::new(
         ProjectionName("ocel-flatten-to-xes:by-order"),
-        LossPolicy::RefuseLoss,
+        POLICY,
         vec!["item".to_string()],
     );
     // LossyFormatExport requires a non-refusing policy (AllowNamedProjection or

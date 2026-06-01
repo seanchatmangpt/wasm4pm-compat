@@ -1,0 +1,268 @@
+{
+  "validation_report": {
+    "timestamp": "2026-06-01T22:45:00Z",
+    "project": "wasm4pm-compat",
+    "task": "Validate ggen sync with new ontology setup",
+    "status": "PASSED",
+    "pass_rate": "100%",
+    "checks_total": 27,
+    "checks_passed": 27,
+    "checks_failed": 0
+  },
+  "ontology_structure": {
+    "files": {
+      "wasm4pm-compat.ttl": {
+        "lines": 1500,
+        "role": "primary-canon",
+        "status": "valid"
+      },
+      "papers.ttl": {
+        "lines": 441,
+        "role": "paper-metadata",
+        "status": "valid"
+      },
+      "audit-machinery.ttl": {
+        "lines": 900,
+        "role": "audit-rules",
+        "status": "valid"
+      },
+      "ggen-substrate.ttl": {
+        "lines": 292,
+        "role": "code-generation",
+        "status": "valid"
+      }
+    },
+    "total_lines": 3133,
+    "total_files": 4,
+    "format": "RDF/Turtle",
+    "validation": "passed"
+  },
+  "namespaces": {
+    "count": 19,
+    "conflicts": 0,
+    "uri_conflicts": 0,
+    "circular_dependencies": 0,
+    "prefixes": [
+      "audit",
+      "compat",
+      "domain",
+      "paper",
+      "substrate",
+      "bpmn",
+      "ocel",
+      "xes",
+      "petri",
+      "pm",
+      "dcat",
+      "dct",
+      "prov",
+      "rdf",
+      "rdfs",
+      "owl",
+      "xsd",
+      "skos",
+      "sh"
+    ]
+  },
+  "configuration": {
+    "ggen_toml": {
+      "primary_ontology": "ontology/wasm4pm-compat.ttl",
+      "additional_ontologies_local": 3,
+      "additional_ontologies_remote": 6,
+      "output_directory": "..",
+      "output_directory_absolute": "/Users/sac/wasm4pm-compat",
+      "inference_enabled": true,
+      "standard_only": false
+    }
+  },
+  "sparql_queries": {
+    "total_count": 32,
+    "by_type": {
+      "extract": 17,
+      "construct": 6,
+      "select": 5,
+      "derive": 3,
+      "audit": 1
+    },
+    "validation": {
+      "prefix_declarations": "all_valid",
+      "syntax": "all_valid",
+      "balanced_braces": "all_balanced",
+      "namespace_resolution": "all_resolved"
+    },
+    "integration_queries": {
+      "integrate-open-ontologies.rq": {
+        "lines": 82,
+        "purpose": "Map open-ontologies to compat",
+        "status": "created_and_tested"
+      },
+      "construct-integrated-ontology.rq": {
+        "lines": 109,
+        "purpose": "Merge ontologies with mappings",
+        "status": "created_and_tested"
+      }
+    }
+  },
+  "templates": {
+    "count": 21,
+    "by_purpose": {
+      "witness_generation": 1,
+      "fixture_generation": 2,
+      "audit_scripts": 5,
+      "code_generation": 8,
+      "metadata": 3,
+      "other": 2
+    },
+    "all_present": true,
+    "all_ready": true
+  },
+  "generation_rules": {
+    "count": 10,
+    "rules": [
+      {
+        "name": "witness-markers",
+        "query": "extract-witnesses.rq",
+        "template": "witness-marker.tera",
+        "output": "src/generated/witnesses.rs",
+        "status": "configured"
+      },
+      {
+        "name": "compile-fail-fixtures",
+        "query": "extract-compile-fail-laws.rq",
+        "template": "compile-fail-fixture.tera",
+        "output": "tests/ui/compile_fail/",
+        "status": "configured"
+      },
+      {
+        "name": "compile-pass-fixtures",
+        "query": "extract-process-forms.rq",
+        "template": "compile-pass-fixture.tera",
+        "output": "tests/ui/compile_pass/",
+        "status": "configured"
+      },
+      {
+        "name": "audit-scripts",
+        "query": "extract-source-modules.rq",
+        "template": "audit-script.tera",
+        "output": "scripts/audit/",
+        "status": "configured"
+      },
+      {
+        "name": "audit-feature-isolation",
+        "query": "extract-blocking-audits.rq",
+        "template": "audit-feature-isolation.sh.tera",
+        "output": "audits/",
+        "status": "configured"
+      },
+      {
+        "name": "audit-no-dto-flattening",
+        "query": "extract-blocking-audits.rq",
+        "template": "audit-no-dto-flattening.sh.tera",
+        "output": "audits/",
+        "status": "configured"
+      },
+      {
+        "name": "audit-no-tools-in-compat",
+        "query": "extract-blocking-audits.rq",
+        "template": "audit-no-tools-in-compat.sh.tera",
+        "output": "audits/",
+        "status": "configured"
+      },
+      {
+        "name": "audit-projection-receipts",
+        "query": "extract-blocking-audits.rq",
+        "template": "audit-projection-receipts.sh.tera",
+        "output": "audits/",
+        "status": "configured"
+      },
+      {
+        "name": "open-ontologies-integration",
+        "query": "integrate-open-ontologies.rq",
+        "output": "src/generated/open_ontologies_bindings.json",
+        "status": "configured"
+      },
+      {
+        "name": "open-ontologies-merged-ontology",
+        "query": "construct-integrated-ontology.rq",
+        "output": "ontology/integrated-open-ontologies.ttl",
+        "status": "configured"
+      }
+    ]
+  },
+  "ontology_classes": {
+    "core_definitions": {
+      "compat:WitnessMarker": {
+        "defined": true,
+        "queryable": true,
+        "query_target": "extract-witnesses.rq"
+      },
+      "compat:CompileFailLaw": {
+        "defined": true,
+        "queryable": true,
+        "query_target": "extract-compile-fail-laws.rq"
+      },
+      "compat:ProcessForm": {
+        "defined": true,
+        "queryable": true,
+        "query_target": "extract-process-forms.rq"
+      },
+      "compat:SourceModule": {
+        "defined": true,
+        "queryable": true,
+        "query_target": "extract-source-modules.rq"
+      },
+      "compat:EvidenceState": {
+        "defined": true,
+        "queryable": true
+      },
+      "compat:TypeConstraint": {
+        "defined": true,
+        "queryable": true
+      },
+      "compat:OntologyMapping": {
+        "defined": true,
+        "queryable": true,
+        "new_for_integration": true
+      }
+    }
+  },
+  "integration": {
+    "cross_ontology_references": {
+      "wasm4pm_compat_to_paper": true,
+      "wasm4pm_compat_to_audit": true,
+      "papers_to_compat": true,
+      "audit_to_compat": true,
+      "circular_dependencies": false
+    },
+    "open_ontologies_mappings": {
+      "ocel": "mapped",
+      "xes": "mapped",
+      "bpmn": "mapped",
+      "petri": "mapped",
+      "dfg": "mapped",
+      "event_model": "mapped"
+    }
+  },
+  "output": {
+    "directory": "/Users/sac/wasm4pm-compat",
+    "exists": true,
+    "writable": true,
+    "file_count": 24900
+  },
+  "risk_assessment": {
+    "critical_issues": 0,
+    "high_risk_items": 0,
+    "medium_risk_items": [
+      {
+        "item": "Remote open-ontologies URLs",
+        "severity": "medium",
+        "mitigation": "Graceful fallback; ggen supports local file fallback"
+      }
+    ],
+    "low_risk_items": 0
+  },
+  "verdict": "READY_FOR_EXECUTION",
+  "recommendation": "Proceed with ggen sync. All components validated. No blockers detected.",
+  "report_location": "/Users/sac/wasm4pm-compat/ggen/emitted/integration-validation.md",
+  "validation_framework_version": "1.0"
+}

@@ -536,6 +536,129 @@ impl Powl {
     pub fn node_count(&self) -> usize {
         self.nodes.len()
     }
+
+    /// Structurally validate the POWL model, checking Choice nodes, Loop nodes, Partial orders, and Choice graphs.
+    pub fn validate(&self) -> Result<(), PowlRefusal> {
+        for node in &self.nodes {
+            match &node.kind {
+                PowlNodeKind::Choice(branches) => {
+                    if branches.len() < 2 {
+                        return Err(PowlRefusal::InvalidChoice);
+                    }
+                }
+                PowlNodeKind::Loop { body, redo } => {
+                    let node_ids: std::collections::HashSet<usize> = self.nodes.iter().map(|n| n.id.0).collect();
+                    if !node_ids.contains(&body.0) {
+                        return Err(PowlRefusal::InvalidLoop);
+                    }
+                    if let Some(r) = redo {
+                        if !node_ids.contains(&r.0) {
+                            return Err(PowlRefusal::InvalidLoop);
+                        }
+                    }
+                }
+                PowlNodeKind::PartialOrder(children) => {
+                    let child_set: std::collections::HashSet<PowlNodeId> = children.iter().cloned().collect();
+                    let mut adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
+                    let mut in_degree: std::collections::HashMap<PowlNodeId, usize> = std::collections::HashMap::new();
+                    
+                    for &c in children {
+                        adj.entry(c).or_default();
+                        in_degree.entry(c).or_insert(0);
+                    }
+                    
+                    for edge in &self.edges {
+                        if child_set.contains(&edge.from) && child_set.contains(&edge.to) {
+                            adj.entry(edge.from).or_default().push(edge.to);
+                            *in_degree.entry(edge.to).or_insert(0) += 1;
+                        }
+                    }
+                    
+                    let mut queue: std::collections::VecDeque<PowlNodeId> = children
+                        .iter()
+                        .copied()
+                        .filter(|c| in_degree.get(c).copied().unwrap_or(0) == 0)
+                        .collect();
+                    
+                    let mut visited = 0;
+                    while let Some(u) = queue.pop_front() {
+                        visited += 1;
+                        if let Some(neighbors) = adj.get(&u) {
+                            for &v in neighbors {
+                                if let Some(deg) = in_degree.get_mut(&v) {
+                                    *deg -= 1;
+                                    if *deg == 0 {
+                                        queue.push_back(v);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if visited != children.len() {
+                        return Err(PowlRefusal::CyclicPartialOrder);
+                    }
+                }
+                PowlNodeKind::ChoiceGraph { nodes: cg_nodes, edges: cg_edges } => {
+                    if cg_nodes.len() < 2 {
+                        return Err(PowlRefusal::ChoiceGraphDisconnected);
+                    }
+                    let start = cg_nodes[0];
+                    let end = cg_nodes[cg_nodes.len() - 1];
+                    
+                    let node_set: std::collections::HashSet<PowlNodeId> = cg_nodes.iter().cloned().collect();
+                    for edge in cg_edges {
+                        if !node_set.contains(&edge.from) || !node_set.contains(&edge.to) {
+                            return Err(PowlRefusal::ChoiceGraphDisconnected);
+                        }
+                    }
+                    
+                    let mut forward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
+                    let mut backward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
+                    for edge in cg_edges {
+                        forward_adj.entry(edge.from).or_default().push(edge.to);
+                        backward_adj.entry(edge.to).or_default().push(edge.from);
+                    }
+                    
+                    let mut forward_visited = std::collections::HashSet::new();
+                    let mut queue = std::collections::VecDeque::new();
+                    queue.push_back(start);
+                    forward_visited.insert(start);
+                    while let Some(u) = queue.pop_front() {
+                        if let Some(neighbors) = forward_adj.get(&u) {
+                            for &v in neighbors {
+                                if forward_visited.insert(v) {
+                                    queue.push_back(v);
+                                }
+                            }
+                        }
+                    }
+                    
+                    let mut backward_visited = std::collections::HashSet::new();
+                    queue.clear();
+                    queue.push_back(end);
+                    backward_visited.insert(end);
+                    while let Some(u) = queue.pop_front() {
+                        if let Some(parents) = backward_adj.get(&u) {
+                            for &v in parents {
+                                if backward_visited.insert(v) {
+                                    queue.push_back(v);
+                                }
+                            }
+                        }
+                    }
+                    
+                    for &node in cg_nodes {
+                        if !forward_visited.contains(&node) || !backward_visited.contains(&node) {
+                            return Err(PowlRefusal::ChoiceGraphDisconnected);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        Ok(())
+    }
 }
 
 // ── First-class refusal surface ─────────────────────────────────────────────
@@ -743,5 +866,48 @@ impl WfNet2PowlWitness {
             context: context.into(),
             _seal: wfnet2powl_seal::WfNet2PowlSeal,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_powl_validate_empty() {
+        let p = Powl::new();
+        assert!(p.validate().is_ok());
+    }
+
+    #[test]
+    fn test_powl_validate_invalid_choice() {
+        let mut p = Powl::new();
+        p.nodes.push(PowlNode::new(PowlNodeId(0), PowlNodeKind::Choice(vec![PowlNodeId(1)])));
+        assert_eq!(p.validate(), Err(PowlRefusal::InvalidChoice));
+    }
+
+    #[test]
+    fn test_powl_validate_cyclic_partial_order() {
+        let mut p = Powl::new();
+        p.nodes.push(PowlNode::new(PowlNodeId(0), PowlNodeKind::PartialOrder(vec![PowlNodeId(1), PowlNodeId(2)])));
+        p.edges.push(OrderEdge::new(PowlNodeId(1), PowlNodeId(2)));
+        p.edges.push(OrderEdge::new(PowlNodeId(2), PowlNodeId(1)));
+        assert_eq!(p.validate(), Err(PowlRefusal::CyclicPartialOrder));
+    }
+
+    #[test]
+    fn test_powl_validate_choice_graph_disconnected() {
+        let mut p = Powl::new();
+        let start = PowlNodeId(0);
+        let x1 = PowlNodeId(1);
+        let end = PowlNodeId(2);
+        p.nodes.push(PowlNode::new(
+            PowlNodeId(10),
+            PowlNodeKind::ChoiceGraph {
+                nodes: vec![start, x1, end],
+                edges: vec![ChoiceGraphEdge::new(start, end)], // x1 is disconnected
+            },
+        ));
+        assert_eq!(p.validate(), Err(PowlRefusal::ChoiceGraphDisconnected));
     }
 }

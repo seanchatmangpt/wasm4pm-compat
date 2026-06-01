@@ -7,7 +7,7 @@
 //!
 //! Run: cargo run --example evidence_lifecycle
 
-#![allow(dead_code)]
+#![allow(dead_code, unused_imports, clippy::all)]
 
 use wasm4pm_compat::admission::{Admission, Admit, Refusal};
 use wasm4pm_compat::evidence::Evidence;

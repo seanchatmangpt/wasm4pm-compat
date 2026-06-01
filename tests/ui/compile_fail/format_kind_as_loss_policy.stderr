@@ -1,13 +1,21 @@
-error[E0308]: mismatched types
-  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:27:29
+warning: unused imports: `LossReport` and `ProjectionName`
+  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:17:40
    |
-27 |     requires_loss_policy(kind);
+17 | use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};
+   |                                        ^^^^^^^^^^  ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:24:26
+   |
+24 |     requires_loss_policy(kind);
    |     -------------------- ^^^^ expected `LossPolicy`, found `FormatKind`
    |     |
    |     arguments to this function are incorrect
    |
 note: function defined here
-  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:23:4
+  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:19:4
    |
-23 | fn requires_loss_policy(_policy: LossPolicy) {}
-   |    -------------------- -----
+19 | fn requires_loss_policy(_policy: LossPolicy) {}
+   |    ^^^^^^^^^^^^^^^^^^^^ -------------------

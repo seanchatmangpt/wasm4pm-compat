@@ -1,10 +1,13 @@
-error[E0308]: mismatched types
-  --> tests/ui/compile_fail/projection_name_string_lifetime.rs:24:54
+error[E0597]: `name` does not live long enough
+  --> tests/ui/compile_fail/projection_name_string_lifetime.rs:22:48
    |
-24 |     let _proj: ProjectionName = ProjectionName(name.as_str());
-   |                                                 ^^^^^^^^^^^^^ expected `&'static str`, found `&str`
-   |
-help: consider using a `const` item to coerce the expression to the `&'static str` type
-   |
-23 |     const name: &str = format!("dynamic-projection-{}", 42);
-   |     +++++
+20 |     let name = format!("dynamic-projection-{}", 42);
+   |         ---- binding `name` declared here
+21 |     // This must fail: String is not &'static str.
+22 |     let _proj: ProjectionName = ProjectionName(name.as_str());
+   |                                                ^^^^---------
+   |                                                |
+   |                                                borrowed value does not live long enough
+   |                                                this usage requires that `name` is borrowed for `'static`
+23 | }
+   | - `name` dropped here while still borrowed

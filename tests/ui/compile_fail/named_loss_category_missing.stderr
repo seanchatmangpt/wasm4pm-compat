@@ -1,10 +1,15 @@
-error[E0308]: mismatched types
-  --> tests/ui/compile_fail/named_loss_category_missing.rs:23:19
+error[E0597]: `category` does not live long enough
+  --> tests/ui/compile_fail/named_loss_category_missing.rs:24:9
    |
-23 |         category.as_str(),
-   |         ^^^^^^^^^^^^^^^^ expected `&'static str`, found `&str`
-   |
-help: consider using a `const` item to coerce the expression to the `&'static str` type
-   |
-21 |     const category: &str = format!("LostItems_{}", 42);
-   |     +++++
+20 |       let category = format!("LostItems_{}", 42);
+   |           -------- binding `category` declared here
+21 |       // This must fail: owned String is not &'static str.
+22 |       let _loss = NamedLoss::new(
+   |  _________________-
+23 | |         ProjectionName("some-projection"),
+24 | |         category.as_str(),
+   | |         ^^^^^^^^ borrowed value does not live long enough
+25 | |     );
+   | |_____- argument requires that `category` is borrowed for `'static`
+26 |   }
+   |   - `category` dropped here while still borrowed

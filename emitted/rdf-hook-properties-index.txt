@@ -1,0 +1,90 @@
+=============================================================================
+RDF HOOK PROPERTIES REFERENCE — QUICK INDEX
+=============================================================================
+
+Document: emitted/rdf-hook-properties.md (1,170 lines)
+
+PROPERTY FAMILIES (14 categories):
+
+1. AUDIT SPECIFICATION PROPERTIES (9 properties)
+   - audit:specName, lawName, auditScope, scopeTarget, carrierType
+   - audit:witnessRequired, stateRequired, verdictType, applicableTemplate
+
+2. AUDIT TEMPLATE PROPERTIES (3 properties)
+   - audit:templateName, templateKind, instantiatedBy
+
+3. AUDIT EXECUTABLE PROPERTIES (3 properties)
+   - audit:executableId, fixtureFile, expectedStderr
+
+4. AUDIT GATE PROPERTIES (3 properties)
+   - audit:gateName, gateCondition, gateSeverity
+
+5. FORBIDDEN PATTERN PROPERTIES (3 properties)
+   - audit:patternName, forbiddenBy, allowedIn
+
+6. ALLOWED CONTEXT PROPERTIES (3 properties)
+   - audit:contextName, contextScope, exceptionReason
+
+7. GAP PROPERTIES (6 properties)
+   - audit:gapId, gapCategory, gapSeverity, relatedLaw
+   - audit:remediationPlan, gapOpenedAt, gapOpenedDate
+
+8. COMMIT EVIDENCE PROPERTIES (6 properties)
+   - audit:commitHash, commitAuthor, commitTimestamp, commitMessage
+   - audit:parentCommit, carriesReceipt
+
+9. CLOSURE CLAIM PROPERTIES (4 properties)
+   - audit:closesGap, closingCommit, closureMethod, closureTimestamp
+
+10. AUXILIARY COMMIT PROPERTIES (2 properties)
+    - audit:supportsGapClosure, advancesAuditReadiness
+
+11. CHECKPOINT CLAIM PROPERTIES (6 properties)
+    - audit:checkpointName, checkpointCommit, checkpointTimestamp
+    - audit:allLawsCovered, allGapsClosed, passedAllGates
+
+12. EVIDENCE LIFECYCLE PROPERTIES (6 properties)
+    - domain:carriedValue, evidenceState, evidenceWitness
+    - domain:admissionVerdictOf, refusalReasonType, refusalVerdictOf
+
+13. LOSS ACCOUNTING PROPERTIES (4 properties)
+    - domain:lossFromType, lossToType, lossItemCount, lossPolicy
+
+14. TYPE CONSTRAINT PROPERTIES (2 properties)
+    - domain:hasCompileFailLaw, requiresNightlyFeature
+
+=============================================================================
+TOTAL PROPERTIES DOCUMENTED: 60 RDF hook properties
+
+KEY FEATURES:
+
+✓ Domain/Range Classes — every property clearly typed
+✓ Cardinality Constraints — functional/multi-valued annotations
+✓ Formal OWL/RDF Definitions — sourced from canonical ontologies
+✓ Usage Patterns — SPARQL query examples for each property
+✓ Inverse/Related Properties — semantic network mapping
+✓ Allowed Values — enum-valued property constraints
+✓ Cardinality Summary Table — quick reference (all 60 properties)
+✓ Usage Pattern Examples — 3 end-to-end examples showing property chains
+✓ Closed-World Statement — exhaustive property inventory
+
+=============================================================================
+SOURCED FROM ONTOLOGIES:
+
+- /ggen/ontology/wasm4pm-compat.ttl (type-law kernel)
+- /ggen/ontology/audit-machinery.ttl (audit specs and gates)
+- /ggen/ontology/domain-evidence-structure.ttl (evidence lifecycle)
+- /ggen/ontology/domain-type-constraints.ttl (compile-time laws)
+
+=============================================================================
+DOCUMENT SECTIONS:
+
+1. Overview — document scope and structure
+2. Property Families (14 sections) — detailed per-property documentation
+3. Cardinality Summary Table — quick reference for all 60 properties
+4. Usage Pattern Examples — 3 end-to-end SPARQL query examples
+5. Inverse and Related Properties — semantic network index
+6. Closed-World Statement — exhaustive property inventory assertion
+7. Related Documentation — links to source ontologies and requirements
+
+=============================================================================

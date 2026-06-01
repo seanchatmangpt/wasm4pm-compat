@@ -612,3 +612,43 @@ impl core::fmt::Display for DeclareRefusal {
         write!(f, "Declare refused: {law}")
     }
 }
+
+/*
+ * IMPLEMENTATION: Declare Satisfaction Lattice
+ * Maps information progression: Unknown ⊑ Satisfied, Unknown ⊑ Violated.
+ */
+use crate::witness::Join;
+
+/// The satisfaction state of a Declare constraint.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum DeclareState {
+    #[default]
+    Unknown,
+    Satisfied,
+    Violated,
+    Contradiction,
+}
+
+impl Join for DeclareState {
+    fn join(self, other: Self) -> Self {
+        match (self, other) {
+            (DeclareState::Unknown, s) => s,
+            (s, DeclareState::Unknown) => s,
+            (DeclareState::Satisfied, DeclareState::Satisfied) => self,
+            (DeclareState::Violated, DeclareState::Violated) => self,
+            _ => DeclareState::Contradiction,
+        }
+    }
+}
+
+impl core::fmt::Display for DeclareState {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let s = match self {
+            DeclareState::Unknown => "unknown",
+            DeclareState::Satisfied => "satisfied",
+            DeclareState::Violated => "violated",
+            DeclareState::Contradiction => "contradiction",
+        };
+        write!(f, "{s}")
+    }
+}

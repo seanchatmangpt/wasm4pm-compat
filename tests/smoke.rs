@@ -1,3 +1,4 @@
+#![allow(clippy::all, unused_imports, deprecated)]
 //! Smoke tests for the Process Canon Shape (part A): eventlog, ocel, petri, dfg.
 //!
 //! These tests construct each structural shape and exercise its `validate`

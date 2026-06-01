@@ -1,12 +1,15 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:33:23
+  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:31:25
    |
-33 |     accepts_ocel_to_xes(report);
-   |     ------------------- ^^^^^^ expected `LossReport<OcelShape, XesShape, Vec<String>>`, found `LossReport<XesShape, OcelShape, Vec<String>>`
+31 |     accepts_ocel_to_xes(report);
+   |     ------------------- ^^^^^^ expected `LossReport<OcelShape, XesShape, ...>`, found `LossReport<XesShape, OcelShape, ...>`
+   |     |
+   |     arguments to this function are incorrect
    |
-   |
+   = note: expected struct `LossReport<OcelShape, XesShape, Vec<std::string::String>>`
+              found struct `LossReport<XesShape, OcelShape, Vec<std::string::String>>`
 note: function defined here
-  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:23:4
+  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:21:4
    |
-23 | fn accepts_ocel_to_xes(_report: LossReport<OcelShape, XesShape, Vec<String>>) {}
-   |    ------------------- --------------------------------------------------
+21 | fn accepts_ocel_to_xes(_report: LossReport<OcelShape, XesShape, Vec<String>>) {}
+   |    ^^^^^^^^^^^^^^^^^^^ -----------------------------------------------------

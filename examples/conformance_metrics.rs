@@ -8,7 +8,7 @@
 //! Run: cargo run --example conformance_metrics
 
 #![feature(generic_const_exprs, adt_const_params)]
-#![allow(incomplete_features)]
+#![allow(incomplete_features, unused_features, clippy::all)]
 #![allow(dead_code)]
 
 use wasm4pm_compat::conformance::{

@@ -1,3 +1,4 @@
+#![allow(clippy::all, deprecated)]
 //! Example: CausalNet structural shapes — Heuristics Miner output
 //!
 //! Demonstrates the structural shapes produced by the Heuristics Miner algorithm
