@@ -1987,7 +1987,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #75 — Time-Aware Predictive Monitoring (Polato et al., 2018)
+## #75 — Time-Aware Predictive Monitoring — graduation boundary (Polato et al., 2018)
 
 **Paper:** Time-Aware Predictive Monitoring of Business Processes
 **Canon family:** `PREDICTION_DRIFT`
