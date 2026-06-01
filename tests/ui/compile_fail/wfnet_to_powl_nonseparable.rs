@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SeparabilityNonForgeabilityLaw — SeparableWfNet cannot be constructed via struct literal; the private _seal field prevents forging a separability claim outside declare_separable (Kourani, Park & van der Aalst 2026 Theorem 4.3)
 
 // COMPILE-FAIL: Non-separable WF-net cannot be projected to POWL without named refusal
 //

@@ -1,6 +1,7 @@
 #![feature(generic_const_exprs)]
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: Need9ConditionCellLaw — ConditionCell<BITS> requires BITS <= 8; nine or more bits signals a split is needed
 
 // COMPILE-FAIL: Need9 law — ConditionCell<9> violates BITS <= 8.
 // Paper: Blue River Dam covenant — "Need9 means split."

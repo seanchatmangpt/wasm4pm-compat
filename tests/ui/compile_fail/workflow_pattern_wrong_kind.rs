@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: WorkflowPatternDistinctionLaw — PatternNet<ParallelSplit> is a different type from PatternNet<ExclusiveChoice>; named workflow patterns are distinct structural laws that cannot be confused at function boundaries (Russell, van der Aalst & ter Hofstede 2016)
 
 // COMPILE-FAIL: WorkflowPattern const-generic type distinction —
 // a ParallelSplit net cannot be passed where an ExclusiveChoice net is required.

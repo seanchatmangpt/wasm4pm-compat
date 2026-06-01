@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeSeqArityLaw — TypedSeqNode requires ARITY >= 2; a sequence over a single element is degenerate and rejected at compile time (Leemans 2013)
 
 // COMPILE-FAIL: SEQ arity law.
 // Paper: Leemans (2013) — sequence over one element is degenerate.

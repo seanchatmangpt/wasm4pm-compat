@@ -1,6 +1,7 @@
 #![feature(generic_const_exprs)]
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SimplicityBoundsLaw — SimplicityConst<NUM,DEN> requires NUM <= DEN; simplicity scores above 1.0 violate Between01 at compile time
 
 // COMPILE-FAIL: SimplicityConst bounds law — simplicity must be in [0, 1].
 // Law: Between01<NUM, DEN> requires NUM <= DEN; 3/2 > 1 violates this.

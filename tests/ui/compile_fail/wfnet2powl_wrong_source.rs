@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: WfNet2PowlSourceLaw — a bare PetriNet cannot enter the WF-net→POWL conversion gate; the gate requires SeparableWfNet, not a plain net with no soundness or separability marker (Kourani, Park & van der Aalst 2026 Theorem 4.3)
 
 // COMPILE-FAIL: WfNet2PowlSourceLaw — a plain PetriNet (non-WF-net) cannot
 // be passed through the WF-net to POWL conversion gate.

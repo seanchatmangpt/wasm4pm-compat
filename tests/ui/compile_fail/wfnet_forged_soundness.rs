@@ -1,6 +1,7 @@
 #![feature(adt_const_params)]
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: WfNetSoundnessNonForgeabilityLaw — WfNetConst<Witnessed> cannot be constructed via struct literal; the private _seal field prevents forging a soundness witness outside the petri module
 
 // COMPILE-FAIL: WF-net soundness non-forgeability.
 // Law: SoundnessState::Witnessed is only reachable via witness_soundness(proof),

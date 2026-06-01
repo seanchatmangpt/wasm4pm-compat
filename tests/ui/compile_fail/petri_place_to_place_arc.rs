@@ -1,3 +1,4 @@
+// Law: BipartitePetriArcLaw — P→P arcs are unconstructible; only P→T (PlaceToTransitionArc) and T→P (TransitionToPlaceArc) are lawful (Murata 1989 §2)
 // COMPILE-FAIL: Bipartite arc law — place→place arcs are unconstructible.
 // Paper: Murata (1989) §2 — F ⊆ (P×T) ∪ (T×P), no P→P arcs.
 // Expected error: PlaceToTransitionArc.weight field has type Weight, not PlaceId;

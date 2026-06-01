@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeAndArityLaw — TypedAndNode requires ARITY >= 2; a parallel composition of one child is degenerate and rejected at compile time (Leemans 2013)
 
 // COMPILE-FAIL: AND (parallel) arity law.
 // Paper: Leemans (2013) — parallel composition of one is degenerate.

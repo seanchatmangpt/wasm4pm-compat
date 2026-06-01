@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SeparabilityPreconditionLaw — a bare WfNetConst does not carry the separability marker; only SeparableWfNet<S> satisfies gates enforcing Definition 4.1 (Kourani, Park & van der Aalst 2026)
 
 // COMPILE-FAIL: SeparableWfNet separability precondition — a plain WfNetConst
 // is not accepted where SeparableWfNet is required.

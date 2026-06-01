@@ -1,3 +1,4 @@
+// Law: BipartitePetriArcLaw — T→T arcs are unconstructible; TransitionToPlaceArc and PlaceToTransitionArc are distinct non-interchangeable types (Murata 1989 §2)
 // COMPILE-FAIL: Bipartite arc law — transition→transition arcs are unconstructible.
 // Paper: Murata (1989) §2 — F ⊆ (P×T) ∪ (T×P), no T→T arcs.
 // Expected error: TransitionToPlaceArc<T1, T2, u8> cannot be assigned to

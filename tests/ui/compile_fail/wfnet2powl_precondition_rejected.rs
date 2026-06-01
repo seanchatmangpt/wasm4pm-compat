@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: WfNet2PowlPreconditionLaw — a plain WfNetConst does not satisfy the SeparableWfNet precondition; a conversion gate that requires SeparableWfNet rejects it (Kourani, Park & van der Aalst 2026 Theorem 4.3)
 
 // COMPILE-FAIL: wfnet2powl_precondition — SeparableWfNet precondition is
 // enforced at the type level; a plain WfNetConst (without separability marker)

@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeXorArityLaw — TypedXorNode requires ARITY >= 2; exclusive choice over a single branch is degenerate and rejected at compile time (Leemans 2013)
 
 // COMPILE-FAIL: XOR arity law.
 // Paper: Leemans (2013) — exclusive choice between one thing is degenerate.

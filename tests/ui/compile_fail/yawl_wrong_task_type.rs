@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: YawlTaskTypeDistinctionLaw — MultipleInstanceSpecConst<MIN,MAX> and CancellationRegion are structurally distinct YAWL shapes; one cannot be substituted for the other (YAWL Definition 1)
 
 // COMPILE-FAIL: YawlTaskTypeConfusionLaw — a MultipleInstanceSpecConst cannot
 // be passed where a CancellationRegion is required.

@@ -1,6 +1,7 @@
 #![feature(generic_const_exprs)]
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: GeneralizationBoundsLaw — GeneralizationConst<NUM,DEN> requires NUM <= DEN; scores above 1.0 are rejected at compile time
 
 // COMPILE-FAIL: GeneralizationConst bounds law — generalization must be in [0, 1].
 // Law: Between01<NUM, DEN> requires NUM <= DEN; 2/1 > 1 violates this.
