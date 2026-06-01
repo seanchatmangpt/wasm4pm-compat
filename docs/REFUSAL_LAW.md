@@ -116,6 +116,41 @@ secret "yes".
 
 ---
 
+## Named reasons in `src/admission.rs`
+
+The `Admit` trait in `src/admission.rs` defines the `Reason` associated type and
+`Refusal<R, W>` struct. The module enforces:
+
+1. `Refusal<R, W>` is a first-class struct, not an alias for `String` or `Box<dyn Error>`.
+2. The `R` type parameter must name a **specific named law** as its variants.
+3. `Refusal::new(reason)` is the only constructor — it accepts the `R` value directly.
+4. `Display` for `Refusal<R, W>` formats as `"Refusal: <reason>"` — the witness `W`
+   is zero-sized `PhantomData` and carries no display value.
+
+### Named reason examples used across the codebase
+
+| Domain | Named reason variant | Law broken |
+|--------|----------------------|------------|
+| OCEL 2.0 | `DanglingEventObjectLink` | An event references a non-existent object |
+| OCEL 2.0 | `UnqualifiedObjectRelation` | E2O relation lacks its qualifier |
+| OCEL 2.0 | `DuplicateObjectId` | Two objects share an identifier |
+| WF-net | `MissingFinalMarking` | No reachable final marking |
+| WF-net | `UnsoundWfNet` | Soundness criterion violated |
+| WF-net | `DeadTransition` | A transition can never fire |
+| XES | `MissingConceptName` | Event lacks `concept:name` |
+| XES | `NonMonotonicTimestamps` | `time:timestamp` not ordered within a trace |
+| Loss | `FlatteningLoss` | Object-centric links dropped without policy |
+| POWL | `CyclicPartialOrder` | Partial order is not acyclic |
+| POWL | `DanglingOperatorChild` | Operator references a missing child |
+
+### The compile-fail receipt
+
+`tests/ui/compile_fail/refusal_without_named_law.rs` proves this at the type level:
+a `Refusal` that uses a catch-all reason type (not a specific named enum variant)
+fails to compile. This is the trybuild proof that the law is sealed.
+
+---
+
 ## The diagnostic that enforces this
 
 `CompatDiagnostic::MissingRefusalPath` names the meta-law: *every serious surface
