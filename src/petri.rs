@@ -1173,7 +1173,8 @@ impl WfNet<SoundnessClaimed> {
                 any structural verification. Use WfNetConst<Sane> and its sealed \
                 construction path instead. See GAP_007 in sources/wasm4pm-compat/STRUCTURAL_GAPS.md."
     )]
-    pub fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
+    #[allow(dead_code)]
+    pub(crate) fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
         WfNet {
             net: self.net,
             final_marking: self.final_marking,

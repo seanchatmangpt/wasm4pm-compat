@@ -1,0 +1,104 @@
+{
+  "meta": {
+    "source": "audit-machinery.ttl",
+    "queries": [
+      "select-forbidden-patterns.rq",
+      "select-allowed-contexts.rq"
+    ],
+    "extracted_date": "2026-06-01",
+    "description": "Forbidden patterns and allowed context rules for audit template instantiation"
+  },
+  "forbidden_patterns": [
+    {
+      "name": "condition-cell-overflow",
+      "description": "Declaring or using ConditionCell<BITS> with BITS > 8, violating the 'Need 9 means split' law. The Blue River Dam covenant limits condition cells to 8 bits.",
+      "law_uri": "https://wasm4pm-compat.rs/ontology#ConditionCellOverflowLaw",
+      "audit_scope": "crate",
+      "enforcement": "compile-time",
+      "allowed_contexts": []
+    },
+    {
+      "name": "raw-evidence-exported-as-admitted",
+      "description": "Exporting or returning Evidence<T, Raw, W> as if it were Admitted, or using a Raw-state evidence where Admitted is required. This violates the one-way-door law.",
+      "law_uri": "https://wasm4pm-compat.rs/ontology#RawExportedAsAdmittedLaw",
+      "audit_scope": "crate",
+      "enforcement": "compile-fail (E0308)",
+      "allowed_contexts": []
+    },
+    {
+      "name": "silent-structure-loss",
+      "description": "Performing a lossy transformation (e.g., OCEL → XES, removing object links) without emitting a LossReport. The loss is hidden from audit.",
+      "law_uri": "https://wasm4pm-compat.rs/ontology#CompatDiagnostic",
+      "audit_scope": "module",
+      "scope_target": "src/loss.rs",
+      "enforcement": "runtime",
+      "allowed_contexts": [
+        "named-projection"
+      ]
+    },
+    {
+      "name": "soundness-forged",
+      "description": "Constructing or manipulating a WfNetConst<SoundnessWitnessed> without passing through wasm4pm's soundness verification. Soundness witnesses are non-forgeable.",
+      "law_uri": "https://wasm4pm-compat.rs/ontology#SoundnessForgedLaw",
+      "audit_scope": "crate",
+      "enforcement": "type-level seal",
+      "allowed_contexts": []
+    },
+    {
+      "name": "witness-discrimination-violation",
+      "description": "Using Admission<T, W1> in place of Admission<T, W2>, or merging evidence admitted against different witnesses without proper re-admission. Witness tags are sealed.",
+      "law_uri": "https://wasm4pm-compat.rs/ontology#WitnessDiscriminationLaw",
+      "audit_scope": "crate",
+      "enforcement": "compile-fail (E0308)",
+      "allowed_contexts": []
+    }
+  ],
+  "allowed_contexts": [
+    {
+      "name": "internal-bridge-assembly",
+      "scope": "witness",
+      "scope_target": "src/witness.rs",
+      "exception_reason": "The Wasm4pmBridge and InternalBridge witness markers are used in src/witness.rs to tag internal bridge code. Some forbidden patterns are allowed during bridge assembly for compatibility reasons.",
+      "override_policy": "narrow-exception",
+      "related_forbidden_patterns": []
+    },
+    {
+      "name": "named-projection",
+      "scope": "module",
+      "scope_target": "src/loss.rs",
+      "exception_reason": "The src/loss.rs module explicitly implements loss accounting. Lossy transformations are allowed here only if they use the Project trait and emit a LossReport. This is not a blanket exception — loss must be named and recorded.",
+      "override_policy": "conditional-exception",
+      "related_forbidden_patterns": [
+        "silent-structure-loss"
+      ]
+    },
+    {
+      "name": "wasm4pm-graduation",
+      "scope": "feature",
+      "scope_target": "wasm4pm",
+      "exception_reason": "The src/graduation.rs module and the wasm4pm feature gate are entry points to the wasm4pm engine. Some otherwise forbidden patterns (e.g., non-forgeable witness construction) are allowed here because the wasm4pm engine is a trusted execution boundary.",
+      "override_policy": "graduation-boundary",
+      "related_forbidden_patterns": [
+        "soundness-forged"
+      ]
+    }
+  ],
+  "audit_template_bindings": {
+    "template_kind_mapping": {
+      "condition-cell-overflow": "static-analysis",
+      "raw-evidence-exported-as-admitted": "compile-fail-fixture",
+      "silent-structure-loss": "runtime-test",
+      "soundness-forged": "type-state-proof",
+      "witness-discrimination-violation": "compile-fail-fixture"
+    },
+    "fixture_paths": {
+      "compile-fail": "tests/ui/compile_fail/",
+      "compile-pass": "tests/ui/compile_pass/",
+      "runtime": "tests/"
+    },
+    "verdict_types": {
+      "boolean": ["condition-cell-overflow", "raw-evidence-exported-as-admitted", "silent-structure-loss", "witness-discrimination-violation"],
+      "type-law-proof": ["soundness-forged"]
+    }
+  }
+}

@@ -5,3 +5,12 @@
 .agents/
 *.rlib
 conformance_verdict_is_perfect
+
+# ggen/emitted/ — rendered artifacts (not source)
+# Residents: gap-ledger.yaml, *.md (indices, reports), *.yaml (feature maps, ledgers),
+# *.rs (generated stubs), *.wit (component interface), *.sh (audit scripts)
+ggen/emitted/*.yaml
+ggen/emitted/*.md
+ggen/emitted/*.rs
+ggen/emitted/*.wit
+ggen/emitted/*.sh

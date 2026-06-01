@@ -11,7 +11,7 @@
 
 #[cfg(feature = "wasm4pm")]
 fn main() {
-    use wasm4pm_compat::graduation::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
+    use wasm4pm_compat::engine_bridge::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
 
     println!("Graduation candidate (case for leaving compat, no engine run)\n");
 

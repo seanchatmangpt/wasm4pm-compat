@@ -1,0 +1,288 @@
+================================================================================
+SPARC AUDIT VALIDATION CHECKPOINT ARCHITECTURE
+================================================================================
+
+Four coupled SPARQL queries enforce hostile assumptions from process-mining-chicago-tdd.
+
+PRINCIPLE: If the RDF knowledge graph cannot prove a lawful audit happened, it did not.
+
+================================================================================
+CHECKPOINT VALIDATION FLOW
+================================================================================
+
+                           ┌─────────────────────────────────┐
+                           │  ALIVE Certification Candidate  │
+                           │  (CheckpointClaim RDF triple)   │
+                           └──────────────┬──────────────────┘
+                                          │
+                                ┌─────────▼────────────┐
+                                │  Validate Gate 1:    │
+                                │  Receipt Evidence    │
+                                │  (ASK Query)         │
+                                └──────────┬───────────┘
+                                           │
+                            ┌──────────────┴──────────────┐
+                            │ For all committed fixtures, │
+                            │ verify audit:carriesReceipt │
+                            │ links to compat:Receipt      │
+                            └──────────────┬──────────────┘
+                                           │
+                                ┌─────────▼────────────┐
+                                │  Validate Gate 2:    │
+                                │  Law Coverage        │
+                                │  (ASK Query)         │
+                                └──────────┬───────────┘
+                                           │
+                            ┌──────────────┴──────────────┐
+                            │ For all compat:CompileFailLaw,│
+                            │ verify audit:AuditExecutable │
+                            │ fixture exists              │
+                            └──────────────┬──────────────┘
+                                           │
+                                ┌─────────▼────────────┐
+                                │  Validate Gate 3:    │
+                                │  Gap Traceability    │
+                                │  (SELECT Query)      │
+                                └──────────┬───────────┘
+                                           │
+                            ┌──────────────┴──────────────┐
+                            │ For every audit:ClosureClaim,│
+                            │ verify audit:closesGap      │
+                            │ references an audit:Gap      │
+                            └──────────────┬──────────────┘
+                                           │
+                                ┌─────────▼────────────┐
+                                │  Validate Gate 4:    │
+                                │  Gap Remediation     │
+                                │  (SELECT Query)      │
+                                └──────────┬───────────┘
+                                           │
+                            ┌──────────────┴──────────────┐
+                            │ For critical/major gaps,     │
+                            │ verify closure OR acceptance │
+                            │ OR PARTIAL documentation     │
+                            └──────────────┬──────────────┘
+                                           │
+                                ┌─────────▼────────────┐
+                                │   All Gates Pass?    │
+                                │  (4 queries valid)   │
+                                └──────────┬───────────┘
+                                           │
+                        ┌──────────────────┴──────────────────┐
+                        │                                     │
+                    YES │                                     │ NO
+                        ▼                                     ▼
+            ┌──────────────────────┐      ┌──────────────────────────┐
+            │  ALIVE Certification │      │  Audit Failure           │
+            │  SEALED              │      │  Return validation       │
+            │  (CheckpointClaim)   │      │  violations for          │
+            │  Immutable record    │      │  remediation             │
+            └──────────────────────┘      └──────────────────────────┘
+
+================================================================================
+QUERY SPECIFICATIONS
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Query 1: audit-no-file-count-alive.rq                                        │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Type:     ASK (Boolean)                                                      │
+│ Severity: FATAL                                                              │
+│                                                                              │
+│ Validates: Checkpoint claims are evidence-backed, not file volume metrics    │
+│                                                                              │
+│ Rule:     For each CheckpointClaim with passedAllGates = true:              │
+│             ∀ CheckpointClaim.checkpointCommit → CommitEvidence.commitHash  │
+│             ∃ CommitEvidence.carriesReceipt → compat:Receipt                │
+│                                                                              │
+│ Returns:  FALSE (pass)  — All checkpoints have receipt evidence             │
+│           TRUE (fail)   — At least one checkpoint has zero receipts         │
+│                                                                              │
+│ Hostile Assumption: If code says "ALIVE" but no trybuild receipts exist,    │
+│                     then the certification is phantom.                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Query 2: audit-no-commit-count-gate.rq                                       │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Type:     ASK (Boolean)                                                      │
+│ Severity: FATAL                                                              │
+│                                                                              │
+│ Validates: Law coverage is verified by law-fixture mapping, not velocity    │
+│                                                                              │
+│ Rule:     For each CheckpointClaim with allLawsCovered = true:              │
+│             ∀ compat:CompileFailLaw ∈ scope                                 │
+│             ∃ audit:AuditExecutable fixture with audit:fixtureFile          │
+│             ∃ audit:expectedStderr file (.stderr)                           │
+│                                                                              │
+│ Returns:  FALSE (pass)  — All laws in scope have linked fixtures            │
+│           TRUE (fail)   — At least one law has no fixture                   │
+│                                                                              │
+│ Hostile Assumption: If event log shows N commits but M laws are uncovered,   │
+│                     then commit count is an audit anti-pattern. Law coverage│
+│                     MUST be verified by RDF triples.                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Query 3: audit-gap-closure-claims-have-gap-id.rq                            │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Type:     SELECT (Rows = violations)                                         │
+│ Severity: FATAL                                                              │
+│                                                                              │
+│ Validates: Every gap closure is traceable to a documented gap               │
+│                                                                              │
+│ Rule:     ∀ audit:ClosureClaim                                              │
+│             ∃ audit:closesGap ?gap                                          │
+│             ∃ ?gap.audit:gapId                                              │
+│                                                                              │
+│ Returns:  Empty (pass)      — All closure claims reference gaps             │
+│           Rows (fail)       — Orphaned closure claims found                 │
+│                                                                              │
+│ Columns:  ?closureClaim     → URI of orphaned claim                         │
+│           ?closingCommit    → Commit hash (undocumented closure)            │
+│           ?closureMethod    → fixture-added | law-proved | ...              │
+│                                                                              │
+│ Hostile Assumption: If closure claims exist but do not reference gaps,      │
+│                     then remediation is phantom (not traceable).            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ Query 4: audit-critical-gaps-have-remediation.rq                             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│ Type:     SELECT (Rows = violations)                                         │
+│ Severity: FATAL                                                              │
+│                                                                              │
+│ Validates: Critical and major gaps are closed, accepted, or documented      │
+│                                                                              │
+│ Rule:     ∀ audit:Gap where gapSeverity ∈ {critical, major}                 │
+│             (∃ audit:ClosureClaim with closureTimestamp)                    │
+│           ∨ (gapCategory = "accepted-debt")                                 │
+│           ∨ (remediationPlan contains "PARTIAL")                            │
+│                                                                              │
+│ Returns:  Empty (pass)      — All critical gaps are remediated              │
+│           Rows (fail)       — Open critical gaps found                      │
+│                                                                              │
+│ Columns:  ?gapId             → Gap identifier (GAP_XXX)                     │
+│           ?gapSeverity       → critical | major | minor                     │
+│           ?remediationPlan   → Documented plan or status                    │
+│           ?hasClosureClaim   → true | false                                 │
+│           ?acceptedAsDebt    → true | false                                 │
+│                                                                              │
+│ Remediation Paths:                                                           │
+│   Path A (Close):    Add audit:ClosureClaim with closureTimestamp           │
+│   Path B (Accept):   Change gapCategory to "accepted-debt"                  │
+│   Path C (Partial):  Mark remediationPlan with "PARTIAL_REMEDIATION"        │
+│                                                                              │
+│ Hostile Assumption: If critical gaps are open and undocumented, release     │
+│                     can silently occur from invalid state.                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+VALIDATION DECISION TABLE
+================================================================================
+
+Gate 1    Gate 2    Gate 3        Gate 4          ALIVE Status
+(Receipt) (Law)     (Closure)     (Remediation)
+─────────────────────────────────────────────────────────────────────────────
+FALSE     FALSE     Empty         Empty           ✓ PASSED (all gates green)
+FALSE     FALSE     Empty         ROWS            ✓ BLOCKED (critical gaps open)
+FALSE     FALSE     ROWS          Empty           ✗ BLOCKED (orphaned closures)
+FALSE     FALSE     ROWS          ROWS            ✗ BLOCKED (multiple failures)
+FALSE     TRUE      *             *               ✗ BLOCKED (law coverage fails)
+TRUE      *         *             *               ✗ BLOCKED (no receipt evidence)
+─────────────────────────────────────────────────────────────────────────────
+
+Legend:
+  FALSE = ASK query returns false (pass)
+  TRUE  = ASK query returns true (fail)
+  Empty = SELECT query returns no rows (pass)
+  ROWS  = SELECT query returns violations (fail)
+  *     = Don't care (gate already failed)
+
+================================================================================
+PROCESS-MINING-CHICAGO-TDD HOSTILE ASSUMPTIONS ENFORCED
+================================================================================
+
+Query 1 enforces:
+  HA_ProofGatesCanPass_NonConforming
+    → Proof gates passing is not proof of conformance without receipts
+    → Receipts must be explicitly linked in the knowledge graph
+
+Query 2 enforces:
+  HA_DeclaredPipelineNotReal
+    → Declared law coverage (metric: "N laws") ≠ real law coverage
+    → Must verify via RDF triples: each law has a fixture
+    → Commit count is an anti-pattern; reject velocity metrics
+
+Query 3 enforces:
+  HA_VariantExplosion + HA_ReleaseMayOccurFromInvalid
+    → Gap closures can be phantom (claimed but not traceable)
+    → Must verify every closure references a documented gap
+    → Undocumented closures can hide hidden loops and rework
+
+Query 4 enforces:
+  HA_ReleaseMayOccurFromInvalid + HA_ReceiptsEmittedOutOfCycle
+    → Critical gaps left open break the audit model
+    → Gap remediation must be explicit: closed, accepted, or PARTIAL
+    → No silent gaps permitted at ALIVE certification
+
+================================================================================
+INTEGRATION POINTS
+================================================================================
+
+Ontology Input:
+  - ggen/ontology/audit-machinery.ttl    ← Core audit machinery
+  - ggen/ontology/wasm4pm-compat.ttl     ← Type law surfaces
+  - ggen/ontology/papers.ttl             ← Authority index
+
+Query Usage:
+  Sequential validation (all must pass):
+    1. audit-no-file-count-alive.rq        (receipt evidence)
+    2. audit-no-commit-count-gate.rq       (law coverage)
+    3. audit-gap-closure-claims-have-gap-id.rq (closure traceability)
+    4. audit-critical-gaps-have-remediation.rq (gap remediation)
+
+Output Interpretation:
+  - Queries 1 & 2 (ASK): MUST return FALSE to pass
+  - Queries 3 & 4 (SELECT): MUST return empty to pass
+  - Any failure blocks ALIVE checkpoint certification
+
+Future Extensions:
+  - OCEL event log derivation from query results
+  - pm4py conformance checking of checkpoint claims
+  - Temporal variance analysis of gap remediation patterns
+  - Cross-crate graduation boundary validation with wasm4pm
+
+================================================================================
+FILE MANIFEST
+================================================================================
+
+ggen/queries/audit-no-file-count-alive.rq
+  ├─ Type: ASK
+  ├─ Validates: Receipt evidence (not file count)
+  └─ Severity: FATAL
+
+ggen/queries/audit-no-commit-count-gate.rq
+  ├─ Type: ASK
+  ├─ Validates: Law coverage (not commit count)
+  └─ Severity: FATAL
+
+ggen/queries/audit-gap-closure-claims-have-gap-id.rq
+  ├─ Type: SELECT
+  ├─ Validates: Closure traceability (no orphans)
+  └─ Severity: FATAL
+
+ggen/queries/audit-critical-gaps-have-remediation.rq
+  ├─ Type: SELECT
+  ├─ Validates: Gap remediation (closed/accepted/PARTIAL)
+  └─ Severity: FATAL
+
+ggen/queries/README-VALIDATION-QUERIES.md
+  └─ Full documentation with examples and remediation paths
+
+ggen/VALIDATION-CHECKPOINT-ARCHITECTURE.txt
+  └─ This file: architecture overview
+
+================================================================================
+END OF VALIDATION CHECKPOINT ARCHITECTURE
+================================================================================

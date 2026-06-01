@@ -1,0 +1,18 @@
+RATIONALE: ggen/emitted/ is a rendered artifacts directory
+STATUS: All files .gitignored in ../../.gitignore
+REASON: Artifacts are regenerated from source (intel, rules, templates, projections)
+
+Expected artifact types:
+- *.yaml  : gap-ledger.yaml, feature maps, ledgers (machine-readable)
+- *.md    : GAP_LEDGER_REPORT.md, indices, README, SYNTHESIS docs (human-readable)
+- *.rs    : generated Rust stubs (code generation artifacts — future)
+- *.wit   : component interfaces (code generation artifacts — future)
+- *.sh    : rendered audit scripts (validation artifacts — future)
+
+NEVER commit emitted files directly. Instead:
+1. Review the artifact content locally
+2. If valid, merge changes to source (ggen/intel/, ggen/rules/, etc.)
+3. Let orchestration regenerate artifacts on next run
+4. Discard emitted/ before committing
+
+If you need to track artifact provenance, use git diff or pipeline logs, not .gitignore exceptions.

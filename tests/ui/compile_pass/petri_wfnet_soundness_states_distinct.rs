@@ -15,7 +15,4 @@ fn main() {
 
     let claimed = wf.claim_sound();
     only_claimed(&claimed);
-
-    let witnessed = claimed.attest_witnessed();
-    only_witnessed(&witnessed);
 }

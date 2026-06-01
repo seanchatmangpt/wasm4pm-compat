@@ -5,7 +5,7 @@
 // sealed trait. This fixture covers wasm4pm_compat::graduation::GraduationReason,
 // GraduationCandidate (the struct), and GraduateToWasm4pm.
 
-use wasm4pm_compat::graduation::{
+use wasm4pm_compat::engine_bridge::{
     GraduateToWasm4pm, GraduationCandidate, GraduationReason,
 };
 

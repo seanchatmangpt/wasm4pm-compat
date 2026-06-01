@@ -118,8 +118,7 @@ fn smoke_petri() {
     assert!(wf.final_marking().is_some());
 
     // Soundness is a typestate CLAIM, never computed here. Walk the markers.
-    let claimed: WfNet<SoundnessClaimed> = wf.claim_sound();
-    let _witnessed: WfNet<SoundnessWitnessed> = claimed.attest_witnessed();
+    let _claimed: WfNet<SoundnessClaimed> = wf.claim_sound();
 
     // Refusal: a WF-net without a final marking is refused by a named law.
     let no_final = WfNet::new(net, Marking::empty());

@@ -1,0 +1,83 @@
+# AUDIT TEMPLATE BINDINGS
+# Extracted from audit-machinery.ttl via select-forbidden-patterns.rq and select-allowed-contexts.rq
+
+## FORBIDDEN PATTERNS (5 total)
+
+### Pattern 1: condition-cell-overflow
+  Description: Declaring or using ConditionCell<BITS> with BITS > 8, violating the 'Need 9 means split' law. The Blue River Dam covenant limits condition cells to 8 bits.
+  Forbidden By: https://wasm4pm-compat.rs/ontology#ConditionCellOverflowLaw
+  Allowed In: (none)
+  Scope: Crate-wide; compile-time law enforced via generic_const_exprs
+
+### Pattern 2: raw-evidence-exported-as-admitted
+  Description: Exporting or returning Evidence<T, Raw, W> as if it were Admitted, or using a Raw-state evidence where Admitted is required. This violates the one-way-door law.
+  Forbidden By: https://wasm4pm-compat.rs/ontology#RawExportedAsAdmittedLaw
+  Allowed In: (none)
+  Scope: Crate-wide; compile-fail law (E0308 type mismatch)
+
+### Pattern 3: silent-structure-loss
+  Description: Performing a lossy transformation (e.g., OCEL → XES, removing object links) without emitting a LossReport. The loss is hidden from audit.
+  Forbidden By: https://wasm4pm-compat.rs/ontology#CompatDiagnostic
+  Allowed In: named-projection
+  Scope: Module-level exception (src/loss.rs); runtime enforcement via LossReport carrier
+
+### Pattern 4: soundness-forged
+  Description: Constructing or manipulating a WfNetConst<SoundnessWitnessed> without passing through wasm4pm's soundness verification. Soundness witnesses are non-forgeable.
+  Forbidden By: https://wasm4pm-compat.rs/ontology#SoundnessForgedLaw
+  Allowed In: (none)
+  Scope: Crate-wide; type-level seal (Witness path is crate-private)
+
+### Pattern 5: witness-discrimination-violation
+  Description: Using Admission<T, W1> in place of Admission<T, W2>, or merging evidence admitted against different witnesses without proper re-admission. Witness tags are sealed.
+  Forbidden By: https://wasm4pm-compat.rs/ontology#WitnessDiscriminationLaw
+  Allowed In: (none)
+  Scope: Crate-wide; compile-fail law (E0308 type mismatch)
+
+## ALLOWED CONTEXTS (3 total)
+
+### Context 1: internal-bridge-assembly
+  Scope: witness
+  Exception Reason: The Wasm4pmBridge and InternalBridge witness markers are used in src/witness.rs to tag internal bridge code. Some forbidden patterns are allowed during bridge assembly for compatibility reasons.
+  Related Forbidden Patterns: (none explicitly linked)
+  Audit Override Policy: Narrow exception for bridge implementation layer only
+
+### Context 2: named-projection
+  Scope: module (src/loss.rs)
+  Exception Reason: The src/loss.rs module explicitly implements loss accounting. Lossy transformations are allowed here only if they use the Project trait and emit a LossReport. This is not a blanket exception — loss must be named and recorded.
+  Related Forbidden Patterns: silent-structure-loss
+  Audit Override Policy: Conditional exception — loss only allowed if LossReport is present
+
+### Context 3: wasm4pm-graduation
+  Scope: feature (wasm4pm)
+  Exception Reason: The src/graduation.rs module and the wasm4pm feature gate are entry points to the wasm4pm engine. Some otherwise forbidden patterns (e.g., non-forgeable witness construction) are allowed here because the wasm4pm engine is a trusted execution boundary.
+  Related Forbidden Patterns: (potential soundness-forged exception)
+  Audit Override Policy: Graduation boundary exception for wasm4pm integration
+
+## AUDIT TEMPLATE INPUT BINDINGS
+
+### For audit-template.ttl or audit-executor:
+
+1. Forbidden Patterns Bindings:
+   - Pattern names: [condition-cell-overflow, raw-evidence-exported-as-admitted, silent-structure-loss, soundness-forged, witness-discrimination-violation]
+   - Carry law URIs from compat:CompileFailLaw references
+   - Provide context exclusion lists per pattern
+   - Supply scope (crate-wide, module-level) for audit machinery selection
+
+2. Allowed Context Bindings:
+   - Context names: [internal-bridge-assembly, named-projection, wasm4pm-graduation]
+   - Scope types: witness, module, feature
+   - Exception reasons (human-readable, for audit logs)
+   - Related forbidden patterns (for bidirectional audit queries)
+
+3. Audit Executable Parameters:
+   - Template Kind: compile-fail-fixture (patterns 2, 5), runtime-test (pattern 3), static-analysis (pattern 1), type-state-proof (pattern 4)
+   - Fixture Files: tests/ui/compile_fail/*.rs for patterns 2, 5; src/loss.rs for pattern 3
+   - Expected Stderr: For compile-fail patterns, expected compiler diagnostics (E0308 type errors)
+
+## QUERY EXECUTION NOTES
+
+Both queries return bindings in long-form (one row per relationship) rather than aggregated:
+- select-forbidden-patterns.rq: One row per (pattern, allowed_context) pair; patterns without contexts return single row with NULL ?contextName
+- select-allowed-contexts.rq: One row per (context, forbidden_pattern) pair; contexts without links return single row with NULL ?forbiddenPatternName
+
+This design allows audit template to iterate through all bindings without aggregation complexity.

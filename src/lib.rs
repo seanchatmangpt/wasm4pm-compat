@@ -223,15 +223,21 @@ pub mod xes;
 
 // ── Feature-gated: capability stages ────────────────────────────────────────
 
+/// Graduation bridge traits toward the `wasm4pm` execution engine.
+#[cfg(feature = "wasm4pm")]
+pub mod engine_bridge;
 /// Import/export contracts, round-trip claims, and loss surfaces.
 #[cfg(feature = "formats")]
 pub mod formats;
-/// Graduation bridge traits toward the `wasm4pm` execution engine.
-#[cfg(feature = "wasm4pm")]
-pub mod graduation;
 /// Opt-in boundary judgment: strict admission/refusal declaration surfaces.
 #[cfg(feature = "strict")]
 pub mod strict;
+/// Browser TypeScript law projections.
+#[cfg(feature = "ts")]
+pub mod ts;
+/// WebAssembly boundary projections and ABI bindings.
+#[cfg(feature = "wasm")]
+pub mod wasm;
 
 // ── Test helper builders (test-only) ────────────────────────────────────────
 
@@ -269,6 +275,7 @@ pub use crate::receipt::ReceiptEnvelope;
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
 pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
 pub use crate::workflow::{
-    BranchToken, ParallelWorkflow, Pending, Running, Completed, Canceled, CompletedWorkflow, JoinPoint
+    BranchToken, Canceled, Completed, CompletedWorkflow, JoinPoint, ParallelWorkflow, Pending,
+    Running,
 };
 pub use crate::xes::XesLog;

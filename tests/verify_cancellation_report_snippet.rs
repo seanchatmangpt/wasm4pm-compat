@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use wasm4pm_compat::{
-    BranchToken, ParallelWorkflow, Pending, Running, Completed, Canceled, CompletedWorkflow, JoinPoint
+    BranchToken, Canceled, Completed, CompletedWorkflow, JoinPoint, ParallelWorkflow, Pending,
+    Running,
 };
 
 // =============================================================================

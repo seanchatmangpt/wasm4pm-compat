@@ -1,0 +1,11 @@
+{
+  "audit_name": "audit-no-dto-flattening",
+  "timestamp": "2026-06-01T19:07:19Z",
+  "forbidden_patterns": "get_state_tags",
+  "allowed_contexts": "test_fixture_allowed",
+  "results": {
+    "blocking_violations": 2,
+    "allowed_violations": 0,
+    "status": "FAIL"
+  }
+}

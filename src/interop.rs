@@ -706,7 +706,11 @@ impl crate::loss::Project for OcelToXesProjection {
         if policy == crate::loss::LossPolicy::RefuseLoss {
             return Err(crate::ocel::OcelRefusal::FlatteningLoss);
         }
-        Ok(crate::loss::LossReport::new(self.projection_name(), policy, Vec::new()))
+        Ok(crate::loss::LossReport::new(
+            self.projection_name(),
+            policy,
+            Vec::new(),
+        ))
     }
 }
 
@@ -723,6 +727,10 @@ impl crate::loss::Project for XesToOcedProjection {
         if policy == crate::loss::LossPolicy::RefuseLoss {
             return Err(crate::xes::XesRefusal::LiftingLoss);
         }
-        Ok(crate::loss::LossReport::new(self.projection_name(), policy, Vec::new()))
+        Ok(crate::loss::LossReport::new(
+            self.projection_name(),
+            policy,
+            Vec::new(),
+        ))
     }
 }

@@ -9,6 +9,7 @@ keywords = ["process-mining", "ocel", "event-log", "evidence", "conformance"]
 categories = ["science", "data-structures"]
 
 [lib]
+crate-type = ["cdylib", "rlib"]
 # Doctests require per-doctest nightly feature flags (generic_const_exprs,
 # adt_const_params) that don't propagate from the crate root. Running them
 # as the default incurs 200+ separate rustc invocations on a nightly compiler.
@@ -16,30 +17,45 @@ categories = ["science", "data-structures"]
 doctest = false
 
 [features]
-# Public feature surface is EXACTLY three. No per-format flags.
-# Nightly toolchain required — see rust-toolchain.toml.
 default = ["formats"]
 
 # formats: Import/export contracts, round-trip claims, and loss surfaces.
-# Enable this for any code that crosses format boundaries (OCEL↔XES, etc.)
-# This is the default feature — most users should leave it enabled.
 formats = []
 
 # strict: Opt-in boundary judgment with stricter admission/refusal surfaces.
-# Enable for production pipelines that require verified export boundaries.
-# Adds the `strict` module with `ExportBoundaryConst` and related types.
 strict = []
 
-# wasm4pm: Graduation bridge traits toward the wasm4pm execution engine.
-# Enable when building a wasm4pm adapter that consumes compat types.
-# Adds the `graduation` module exposing the bridge trait surfaces.
+# ts: Expose TypeScript law projection for browsers.
+ts = [
+  "dep:specta",
+  "dep:serde",
+  "dep:tsify",
+  "dep:wasm-bindgen",
+]
+
+# wasm: Expose WASM-safe boundary projection and validations.
+wasm = [
+  "dep:wasm-bindgen",
+  "dep:serde-wasm-bindgen",
+  "dep:tsify",
+  "dep:serde",
+  "dep:specta",
+]
+
+# wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
 
 [dependencies]
+serde = { version = "1.0", features = ["derive"], optional = true }
+specta = { version = "1.0.5", optional = true }
+tsify = { version = "0.4.5", features = ["js"], optional = true }
+wasm-bindgen = { version = "0.2.92", optional = true }
+serde-wasm-bindgen = { version = "0.6", optional = true }
 
 [dev-dependencies]
 trybuild = "1"
 criterion = { version = "0.5", features = ["html_reports"] }
+serde_json = "1.0"
 
 [[bench]]
 name = "zero_cost_types"

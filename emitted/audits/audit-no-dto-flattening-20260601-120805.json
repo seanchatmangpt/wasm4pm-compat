@@ -1,0 +1,11 @@
+{
+  "audit_name": "audit-no-dto-flattening",
+  "timestamp": "2026-06-01T19:08:05Z",
+  "forbidden_patterns": "EvidenceDto,AdmissionDto,RefusalDto,ReceiptDto,payload_json,state_tag,to_json_string,receipt_json",
+  "allowed_contexts": "compat_core_violation,wasm_boundary_allowed_with_loss_report,engine_projection_allowed,test_fixture_allowed",
+  "results": {
+    "blocking_violations": 1,
+    "allowed_violations": 0,
+    "status": "FAIL"
+  }
+}

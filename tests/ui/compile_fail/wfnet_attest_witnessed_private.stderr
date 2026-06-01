@@ -1,0 +1,20 @@
+warning: unreachable statement
+ --> tests/ui/compile_fail/wfnet_attest_witnessed_private.rs:8:5
+  |
+7 |     let net: WfNet<_> = todo!();
+  |                         ------- any code following this expression is unreachable
+8 |     let _witnessed = net.attest_witnessed(); // ERROR: E0624
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+  |
+  = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0624]: method `attest_witnessed` is private
+ --> tests/ui/compile_fail/wfnet_attest_witnessed_private.rs:8:26
+  |
+8 |     let _witnessed = net.attest_witnessed(); // ERROR: E0624
+  |                          ^^^^^^^^^^^^^^^^ private method
+  |
+ ::: src/petri.rs
+  |
+  |     pub(crate) fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
+  |     ----------------------------------------------------------------- private method defined here

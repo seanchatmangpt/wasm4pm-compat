@@ -57,7 +57,7 @@ impl GraduationReason {
     /// The stable tag for this reason.
     ///
     /// ```
-    /// use wasm4pm_compat::graduation::GraduationReason;
+    /// use wasm4pm_compat::engine_bridge::GraduationReason;
     /// assert_eq!(GraduationReason::NeedsDiscovery.tag(), "needs_discovery");
     /// ```
     #[must_use]
@@ -80,7 +80,7 @@ impl GraduationReason {
     /// re-implementing, process mining).
     ///
     /// ```
-    /// use wasm4pm_compat::graduation::GraduationReason;
+    /// use wasm4pm_compat::engine_bridge::GraduationReason;
     /// assert!(GraduationReason::RebuildingProcessMiningLocally.is_hard_signal());
     /// assert!(!GraduationReason::NeedsBenchmarkGate.is_hard_signal());
     /// ```
@@ -121,7 +121,7 @@ impl GraduationCandidate {
     /// Build a candidate for `subject`, grounded in `evidence_ref`, for `reason`.
     ///
     /// ```
-    /// use wasm4pm_compat::graduation::{GraduationCandidate, GraduationReason};
+    /// use wasm4pm_compat::engine_bridge::{GraduationCandidate, GraduationReason};
     /// let c = GraduationCandidate::new(
     ///     GraduationReason::NeedsDiscovery,
     ///     "p2p OCEL log",
@@ -148,7 +148,7 @@ impl GraduationCandidate {
     /// it.
     ///
     /// ```
-    /// use wasm4pm_compat::graduation::{GraduationCandidate, GraduationReason};
+    /// use wasm4pm_compat::engine_bridge::{GraduationCandidate, GraduationReason};
     /// let c = GraduationCandidate::new(GraduationReason::NeedsReplay, "log", "");
     /// assert!(!c.is_grounded());
     /// ```
@@ -172,7 +172,7 @@ pub trait GraduateToWasm4pm {
     /// Produce the graduation case for `self`.
     ///
     /// ```
-    /// use wasm4pm_compat::graduation::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
+    /// use wasm4pm_compat::engine_bridge::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
     ///
     /// struct PendingDiscovery { log_hash: String }
     ///

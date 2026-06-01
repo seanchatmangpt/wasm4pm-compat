@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/admission_wrong_witness_lawful_path.rs:26:28
+   |
+26 |     requires_xes_admission(ocel_admission); // ERROR: expected Xes1849, found Ocel20
+   |     ---------------------- ^^^^^^^^^^^^^^ expected `Admission<String, Xes1849>`, found `Admission<String, Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Admission<std::string::String, Xes1849>`
+              found struct `Admission<std::string::String, Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/admission_wrong_witness_lawful_path.rs:21:4
+   |
+21 | fn requires_xes_admission(_: Admission<String, Xes1849>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ -----------------------------

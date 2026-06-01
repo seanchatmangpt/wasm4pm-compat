@@ -1,9 +1,10 @@
+#![cfg(feature = "wasm4pm")]
+
 use wasm4pm_compat::admission::{Admission, Admit, Refusal};
 use wasm4pm_compat::evidence::Evidence;
-use wasm4pm_compat::state::{Admitted, Raw, Receipted};
+use wasm4pm_compat::receipt::{ReceiptBuilder, ReceiptEnvelope};
+use wasm4pm_compat::state::{Admitted, Raw};
 use wasm4pm_compat::witness::Ocel20;
-use wasm4pm_compat::receipt::{ReceiptBuilder, ReceiptEnvelope, Digest, ReplayHint};
-use wasm4pm_compat::graduation::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
 
 // The Blue River Dam Bridge
 // "BlueRiverDam = κ ∘ ρ ∘ α ∘ μ"
@@ -17,7 +18,9 @@ impl Admit for OcelAdmitter {
     type Reason = &'static str;
     type Witness = Ocel20;
 
-    fn admit(raw: Evidence<String, Raw, Ocel20>) -> Result<Admission<String, Ocel20>, Refusal<&'static str, Ocel20>> {
+    fn admit(
+        raw: Evidence<String, Raw, Ocel20>,
+    ) -> Result<Admission<String, Ocel20>, Refusal<&'static str, Ocel20>> {
         if raw.value.contains("event") {
             Ok(Admission::new(raw.value))
         } else {
@@ -66,12 +69,15 @@ fn test_blue_river_dam_flow() {
 
     // Actuation (α)
     let actuated_result = ActuationEngine::actuate(admitted_evidence);
-    
+
     // Receipt (ρ)
     let receipt = ReceiptGenerator::generate(&actuated_result);
-    
+
     // Checkpoint (κ)
     let checkpointed = CheckpointStore::save(receipt);
-    
-    assert!(checkpointed, "Blue River Dam = κ ∘ ρ ∘ α ∘ μ is not satisfied");
+
+    assert!(
+        checkpointed,
+        "Blue River Dam = κ ∘ ρ ∘ α ∘ μ is not satisfied"
+    );
 }
