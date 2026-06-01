@@ -1,3 +1,4 @@
+// Law: DiagnosticSeverityDistinctionLaw — MigrationRecommended is an advisory variant; all other CompatDiagnostic variants name mandatory structural laws; no variant is a bare catch-all
 // COMPILE-PASS: CompatDiagnostic severity classification — proves the advisory
 // variant (MigrationRecommended) is structurally distinct from mandatory-law
 // variants, and that severity can be classified at compile-constructible runtime

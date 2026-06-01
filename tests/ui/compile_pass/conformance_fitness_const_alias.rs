@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: FitnessConstAliasBoundsLaw — FitnessConst resolves through Metric alias and satisfies Between01 for valid fractions in [0,1]
 
 // COMPILE-PASS: FitnessConst<NUM, DEN> type alias resolves and satisfies Between01
 // bounds for valid fractions — covers conformance metric type alias surface.

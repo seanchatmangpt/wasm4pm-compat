@@ -1,3 +1,4 @@
+// Law: RoundTripClaimShapeLaw — RoundTripClaim requires a named fixture; is_named() reflects blank vs. non-blank fixture names; PartialEq and Clone are implemented
 // COMPILE-PASS: RoundTripClaim constructs with required FormatEnvelope contract
 //
 // Proves that:

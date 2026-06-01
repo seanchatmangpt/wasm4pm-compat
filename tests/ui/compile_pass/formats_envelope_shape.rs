@@ -1,3 +1,4 @@
+// Law: FormatEnvelopeShapeLaw — FormatEnvelope<W> constructs with a witness marker and FormatKind; kind variants are distinct and tag() returns stable machine-readable strings
 // COMPILE-PASS: FormatEnvelope<W> constructs with a witness marker and FormatKind variant
 //
 // Proves that:

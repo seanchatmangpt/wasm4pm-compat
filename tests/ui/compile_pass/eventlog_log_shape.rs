@@ -1,3 +1,4 @@
+// Law: EventLogShapeLaw — EventLog is constructible from traces; EventLogRefusal variants are distinct named laws, not bare error strings
 // COMPILE-PASS: eventlog::EventLog constructs lawfully and EventLogRefusal is nameable
 //
 // Proves that:

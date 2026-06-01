@@ -1,3 +1,4 @@
+// Law: VacuousConformanceClaimLaw — a ConformanceTriple with zero claimed dimensions is not grounded; is_grounded() returns false for empty claims
 // COMPILE-PASS: ConformanceTriple empty — proves a zero-dimension triple is not grounded
 
 use wasm4pm_compat::interop::ConformanceTriple;

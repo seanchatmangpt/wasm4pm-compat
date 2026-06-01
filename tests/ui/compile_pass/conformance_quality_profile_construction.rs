@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: QualityProfileFiveMetricsLaw — QualityProfile requires all five van der Aalst quality dimensions to independently satisfy Between01 bounds at construction time
 
 // COMPILE-PASS: QualityProfile construction — all five metric slots satisfy
 // Between01 bounds simultaneously.

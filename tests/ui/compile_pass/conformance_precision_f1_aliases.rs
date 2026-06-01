@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: QualityMetricKindDistinctionLaw — Metric<Fitness,N,D>, Metric<Precision,N,D>, and Metric<F1,N,D> are three distinct types; the KIND const-param prevents silent conflation
 
 // COMPILE-PASS: PrecisionConst and F1Const type aliases are distinct types at
 // compile time — prevents KIND-parameter conflation.

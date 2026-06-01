@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: GeneralizationConstBoundsLaw — GeneralizationConst satisfies Between01 for valid fractions; Generalization and Simplicity are distinct Metric kinds even when NUM and DEN match
 
 // COMPILE-PASS: GeneralizationConst<NUM, DEN> (and the underlying
 // Metric<{QualityMetricKind::Generalization}, NUM, DEN>) satisfies Between01 bounds

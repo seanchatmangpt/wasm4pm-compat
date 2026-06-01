@@ -1,3 +1,4 @@
+// Law: RefusalCarriesNamedLaw — Refusal::new accepts a named reason and into_reason retrieves it; no bare InvalidInput is permitted
 // COMPILE-PASS: Refusal::new and into_reason — proves refusal carries named law and yields it
 
 use wasm4pm_compat::admission::Refusal;

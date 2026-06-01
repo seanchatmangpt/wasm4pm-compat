@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SimplicitySevenEighthsLaw — SimplicityConst<7,8> = 0.875 satisfies Between01; batch-target value compiles
 
 // COMPILE-PASS: SimplicityConst<7,8> — 0.875 simplicity score is lawful.
 //

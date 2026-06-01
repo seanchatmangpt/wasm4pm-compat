@@ -1,3 +1,4 @@
+// Law: ConformanceTripleFitnessPrecisionLaw — fitness_and_precision() constructor produces a grounded two-dimension claim that is not vacuous
 // COMPILE-PASS: ConformanceTriple::fitness_and_precision — proves the two-dimension conformance claim
 
 use wasm4pm_compat::interop::ConformanceTriple;

@@ -1,3 +1,4 @@
+// Law: OcelToXesProjectionNamedLaw — OcelToXesProjection carries a stable PROJECTION_NAME and case_type; projection is named and structure-only
 // COMPILE-PASS: OcelToXesProjection — proves the named projection descriptor constructs correctly
 
 use wasm4pm_compat::interop::OcelToXesProjection;

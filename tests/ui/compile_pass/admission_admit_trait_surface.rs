@@ -1,3 +1,4 @@
+// Law: AdmitTraitOnewayDoorLaw — Admit trait is the only sanctioned Raw→Admitted path; result carries named Refusal reason, not InvalidInput
 // COMPILE-PASS: Admit trait can be satisfied — only sanctioned Raw→Admitted path
 //
 // Proves that:

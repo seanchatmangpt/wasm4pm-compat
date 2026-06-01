@@ -1,3 +1,4 @@
+// Law: CaseCentricTraceShapeLaw — eventlog::Trace is a case-centric trace carrier distinct from XES trace; validates structural laws without engine logic
 // COMPILE-PASS: eventlog::Trace constructs lawfully — case-centric trace carrier
 //
 // Proves that:

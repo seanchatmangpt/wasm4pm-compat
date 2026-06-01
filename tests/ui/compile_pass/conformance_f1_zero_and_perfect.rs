@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: F1ScoreBoundsLaw — F1Const boundary values 0/1 and 1/1 both satisfy Between01; the closed interval endpoints compile
 
 // COMPILE-PASS: F1Const<0,1> and F1Const<1,1> — zero and perfect F1 are lawful.
 //

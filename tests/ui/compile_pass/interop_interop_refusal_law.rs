@@ -1,3 +1,4 @@
+// Law: InteropRefusalNamedLawLaw — all InteropRefusal variants return a stable machine-readable law string via .law(); no bare error strings are present
 // COMPILE-PASS: InteropRefusal::law — proves all refusal variants have stable named law strings
 
 use wasm4pm_compat::interop::InteropRefusal;

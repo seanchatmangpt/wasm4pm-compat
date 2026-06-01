@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: GeneralizationNineTenthsLaw — GeneralizationConst<9,10> = 0.9 satisfies Between01; batch-target value compiles
 
 // COMPILE-PASS: GeneralizationConst<9,10> — 0.9 generalization score is lawful.
 //

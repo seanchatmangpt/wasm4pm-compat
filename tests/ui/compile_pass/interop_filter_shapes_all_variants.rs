@@ -1,3 +1,4 @@
+// Law: FilterShapeVariantsLaw — all FilterShape variants (Activity, Timeframe, ObjectType, Attribute) are constructible; the closed set is exhaustive
 // COMPILE-PASS: FilterShape all variants — proves all FilterShape variants construct
 
 use wasm4pm_compat::interop::FilterShape;

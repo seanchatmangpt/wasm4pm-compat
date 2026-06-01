@@ -1,3 +1,4 @@
+// Law: DimensionShapeMismatchLaw — FilterShape::ObjectType on a flat Pm4pyShape returns InteropRefusal::DimensionShapeMismatch; Activity filters on flat shapes are permitted
 // COMPILE-PASS: check_filter_shape — proves DimensionShapeMismatch for ObjectType filter on flat shape
 
 use wasm4pm_compat::interop::{

@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: Between01BoundaryLaw — Both endpoints of the [0,1] interval (0/1 and 1/1) satisfy Between01 bounds; the closed interval is lawful at both ends
 
 // COMPILE-PASS: Between01<0,1> and Between01<1,1> — boundary values are lawful.
 //

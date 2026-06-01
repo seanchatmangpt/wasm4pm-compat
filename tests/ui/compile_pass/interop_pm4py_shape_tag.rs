@@ -1,3 +1,4 @@
+// Law: Pm4pyShapeStableTagLaw — all Pm4pyShape variants return stable machine-readable tag strings via .tag(); tags are not bare error labels
 // COMPILE-PASS: Pm4pyShape::tag — proves all Pm4pyShape variants have stable machine-readable tags
 
 use wasm4pm_compat::interop::Pm4pyShape;

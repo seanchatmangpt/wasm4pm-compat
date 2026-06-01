@@ -1,3 +1,4 @@
+// Law: FlatClaimOverObjectCentricLaw — a flat-claim admission on an ObjectCentricLog is refused as FlatClaimOverObjectCentric; object-centric artifacts cannot be treated as flat
 // COMPILE-PASS: ArtifactGrounding OCEL flat claim refused — proves FlatClaimOverObjectCentric law
 
 use wasm4pm_compat::interop::{ArtifactGrounding, InteropRefusal, Pm4pyShape};

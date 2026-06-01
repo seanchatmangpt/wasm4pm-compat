@@ -1,3 +1,4 @@
+// Law: RefusalNamedLawLaw — Refusal<R,W> requires a specific named reason type and is witness-parametric; Refusal<R,W1> and Refusal<R,W2> are distinct types
 // COMPILE-PASS: Refusal<R, W> carries a named-law reason and is witness-distinct
 //
 // Proves that:

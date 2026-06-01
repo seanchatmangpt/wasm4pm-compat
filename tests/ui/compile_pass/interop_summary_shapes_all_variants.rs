@@ -1,3 +1,4 @@
+// Law: SummaryShapeVariantsLaw — all SummaryShape variants (Counts, TraceVariants, etc.) are constructible; the closed set is exhaustive
 // COMPILE-PASS: SummaryShape all variants — proves all SummaryShape variants construct
 
 use wasm4pm_compat::interop::SummaryShape;

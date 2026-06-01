@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs, adt_const_params)]
 #![allow(incomplete_features)]
+// Law: MetricSpecificValuesBoundsLaw — FitnessConst<3,4> and PrecisionConst<1,2> satisfy Between01; both specific rational values compile
 
 // COMPILE-PASS: FitnessConst<3,4> and PrecisionConst<1,2> specific values.
 //

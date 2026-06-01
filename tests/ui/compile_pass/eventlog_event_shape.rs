@@ -1,3 +1,4 @@
+// Law: CaseCentricEventShapeLaw — eventlog::Event carries activity, timestamp, resource, and lifecycle as structure-only fields; distinct from OcelEvent
 // COMPILE-PASS: eventlog::Event constructs lawfully — activity, timestamp, resource, lifecycle
 //
 // Proves that:

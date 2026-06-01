@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: MetricBoundsLaw — FitnessConst<3,4> and PrecisionConst<1,2> are valid fractions satisfying Between01; lawful conformance verdict construction compiles
 
 // COMPILE-PASS: Metric bounds law — valid fractional scores compile.
 // FitnessConst<3, 4> = 0.75 ∈ [0,1], PrecisionConst<1, 2> = 0.5 ∈ [0,1].

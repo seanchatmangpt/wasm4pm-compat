@@ -1,3 +1,4 @@
+// Law: ConformanceTripleShapeLaw — a triple claiming all three dimensions (fitness+precision+f1) is grounded and not vacuous
 // COMPILE-PASS: ConformanceTriple all three dimensions — proves a fully-claimed triple is grounded
 
 use wasm4pm_compat::interop::ConformanceTriple;

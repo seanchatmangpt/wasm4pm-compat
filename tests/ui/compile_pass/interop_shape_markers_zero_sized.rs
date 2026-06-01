@@ -1,3 +1,4 @@
+// Law: ShapeMarkersZeroSizedLaw — OcelShape, XesShape, and OcedShape are uninhabited zero-sized enum markers; they prevent cross-format confusion at PhantomData boundaries
 // COMPILE-PASS: OcelShape/XesShape/OcedShape zero-sized markers — proves shape markers are uninhabited enums
 
 use wasm4pm_compat::interop::{OcedShape, OcelShape, XesShape};

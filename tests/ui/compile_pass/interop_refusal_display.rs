@@ -1,3 +1,4 @@
+// Law: InteropRefusalDisplayLaw — all InteropRefusal variants implement Display as "interop refusal: <law>"; consistent named-law formatting
 // COMPILE-PASS: InteropRefusal Display — proves all refusal variants format as "interop refusal: <law>"
 
 use wasm4pm_compat::interop::InteropRefusal;

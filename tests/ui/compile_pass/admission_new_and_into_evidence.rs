@@ -1,3 +1,4 @@
+// Law: AdmissionMintingLaw — Admission::new constructs admitted evidence and into_evidence seals it to Evidence<T, Admitted, W>
 // COMPILE-PASS: Admission::new and into_evidence — proves admission mints and seals to Admitted evidence
 
 use wasm4pm_compat::admission::Admission;

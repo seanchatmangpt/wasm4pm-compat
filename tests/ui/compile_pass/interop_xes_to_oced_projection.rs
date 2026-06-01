@@ -1,3 +1,4 @@
+// Law: XesToOcedProjectionNamedLaw — XesToOcedProjection carries a stable PROJECTION_NAME and introduced_object_type; the lifting projection is named and structure-only
 // COMPILE-PASS: XesToOcedProjection — proves the named XES-to-OCED lifting descriptor constructs correctly
 
 use wasm4pm_compat::interop::XesToOcedProjection;

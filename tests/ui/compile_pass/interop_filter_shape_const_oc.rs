@@ -1,3 +1,4 @@
+// Law: ObjectCentricFilterGateLaw — FilterShapeConst<true> satisfies RequiresObjectCentric; the assert_filter_oc_compatible gate accepts it at compile time
 // COMPILE-PASS: FilterShapeConst<true> — proves object-centric filter shape const compiles through gate
 
 use wasm4pm_compat::interop::{assert_filter_oc_compatible, FilterShapeConst};
