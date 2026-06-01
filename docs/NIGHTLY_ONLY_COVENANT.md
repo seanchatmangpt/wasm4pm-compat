@@ -55,3 +55,15 @@ correct failure mode is a compilation error, not a feature flag that silences th
 law.
 
 > Structure-only. Nightly-always. No retreat.
+
+
+## Nightly regression protocol
+
+When the pinned nightly introduces a breaking change:
+
+1. Update `rust-toolchain.toml` to the last known-good nightly
+2. Document the regression in `CHANGELOG.md` with the bad nightly hash
+3. Open a tracking issue referencing the upstream rustc bug
+4. Mark affected source with `// NIGHTLY-REGRESSION: <hash> <upstream-issue>`
+
+The covenant: we never weaken the type law to accommodate a compiler bug.
