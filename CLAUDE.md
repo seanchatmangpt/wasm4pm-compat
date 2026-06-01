@@ -148,6 +148,34 @@ The ALIVE certification gate is `cargo test --test ui_tests`. This runs trybuild
 
 A compile-fail fixture that fails for the wrong reason (missing import, typo, unstable feature drift) is **not** a valid type-law receipt.
 
+## DX innovation surfaces
+
+Modules that expose builder APIs, `Display` impls, or `From` conversions for ergonomic use:
+
+| Module | DX surface |
+|---|---|
+| `eventlog` | `Event::new(…).at_ns(…).by(…).with_lifecycle(…)` — full builder chain; `EventLog::from_traces([…])`, `Trace::new(id, [events])` |
+| `ocel` | `OcelEvent::new(…).at_ns(…)`, `EventObjectLink::new(…).qualified(…)`, `ObjectObjectLink::new(…).qualified(…)`, `ObjectChange::new(…).at_ns(…)` — builder chains on all link/change types |
+| `loss` | `ProjectionName` implements `Display`; `LossPolicy::is_refusing()`, `is_named()`, `is_reporting()` — guard helpers without pattern-matching |
+| `admission` | `Admission<T,W>` and `Refusal<R,W>` implement manual `Debug` so witness `W` need not be `Debug` — enables `Result::expect` / `expect_err` |
+| `evidence` | `Evidence::raw(v)` free constructor; full typestate transition chain as infallible builder methods (`into_parsed`, `into_admitted` via `Admit`, `into_projected`, `into_exportable`, `into_receipted`) |
+| `ids` | Zero-cost `#[repr(transparent)]` newtype wrappers with `From<&str>`, `From<String>`, and `Display` for all identifier types |
+| `witness` | All witness markers implement `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `Hash`; `Witness::KEY`, `TITLE`, `YEAR`, `FAMILY` const metadata |
+| `strict` | `ProcessBoundary::fully_attested(kind, name)` convenience constructor; `StrictViolation::law()` returns a `&'static str` human-readable law name |
+| `graduation` | `GraduationReason::tag()`, `is_hard_signal()` — label helpers; `GraduationCandidate::is_grounded()` |
+
+## Example programs
+
+Runnable examples in `examples/` (run with `cargo run --example <name>`):
+
+| Example | Feature flag | What it demonstrates |
+|---|---|---|
+| `basic_eventlog` | (none) | `Event`/`Trace`/`EventLog` builder API, `validate()`, `EventStream` append-only buffer |
+| `basic_ocel` | (none) | `OcelLog` construction with E2O/O2O links and object changes, structural `validate()` |
+| `ocel_to_xes_projection` | `formats` (default) | Full OCEL → XES loss covenant: `ProjectionName`, `LossPolicy::AllowWithReport` vs `ForbidLoss`, named `XesExportRefusal` |
+| `strict_boundary_claim` | `strict` | Declare `ProcessBoundary`, run `StrictCheck`, observe `StrictViolation::MissingLossPolicy`, `MissingRefusalPath`, `HiddenProcessMiningGrowth` |
+| `graduation_candidate` | `wasm4pm` | Implement `GraduateToWasm4pm`, produce a grounded vs ungrounded `GraduationCandidate` |
+
 ## Invariants that must never be violated
 
 - `#![forbid(unsafe_code)]` — no exceptions.
