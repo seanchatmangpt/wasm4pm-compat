@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/wfnet_claimed_as_witnessed.rs:13:24
+   |
+13 |     requires_witnessed(claimed);
+   |     ------------------ ^^^^^^^ expected `wasm4pm_compat::law::SoundnessState::Witnessed`, found `Claimed`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Witnessed>`
+              found struct `WfNetConst<Claimed>`
+note: function defined here
+  --> tests/ui/compile_fail/wfnet_claimed_as_witnessed.rs:7:4
+   |
+ 7 | fn requires_witnessed(_net: WfNetConst<{ SoundnessState::Witnessed }>) {}
+   |    ^^^^^^^^^^^^^^^^^^ -----------------------------------------------

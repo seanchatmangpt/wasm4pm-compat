@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `TransitionNodeMarker: IsPlaceNode` is not satisfied
+  --> tests/ui/compile_fail/petri_transition_node_as_place.rs:10:17
+   |
+10 |     needs_place(TransitionNodeMarker);
+   |     ----------- ^^^^^^^^^^^^^^^^^^^^ the trait `IsPlaceNode` is not implemented for `TransitionNodeMarker`
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `IsPlaceNode` is implemented for `PlaceNodeMarker`
+  --> src/petri.rs
+   |
+   | impl IsPlaceNode for PlaceNodeMarker {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `needs_place`
+  --> tests/ui/compile_fail/petri_transition_node_as_place.rs:6:19
+   |
+ 6 | fn needs_place<P: IsPlaceNode>(_: P) {}
+   |                   ^^^^^^^^^^^ required by this bound in `needs_place`

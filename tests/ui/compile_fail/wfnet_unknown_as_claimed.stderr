@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/wfnet_unknown_as_claimed.rs:12:22
+   |
+12 |     requires_claimed(unknown);
+   |     ---------------- ^^^^^^^ expected `Claimed`, found `wasm4pm_compat::law::SoundnessState::Unknown`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `WfNetConst<Claimed>`
+              found struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Unknown>`
+note: function defined here
+  --> tests/ui/compile_fail/wfnet_unknown_as_claimed.rs:7:4
+   |
+ 7 | fn requires_claimed(_net: WfNetConst<{ SoundnessState::Claimed }>) {}
+   |    ^^^^^^^^^^^^^^^^ ---------------------------------------------
