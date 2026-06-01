@@ -2080,7 +2080,7 @@ receipts. BPMN shapes in `src/bpmn.rs` implement the BPMN structural vocabulary.
 
 ---
 
-## #74 — Process Mining: Data Science in Action, 2nd ed. (van der Aalst, 2016)
+## #74 — Process Mining: Data Science in Action, 2nd ed. — law-packet (van der Aalst, 2016)
 
 **Paper:** Process Mining: Data Science in Action (2nd edition)
 **Canon family:** `PETRI_NETS`
