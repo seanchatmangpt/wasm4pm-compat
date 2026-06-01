@@ -39,3 +39,20 @@ wasm4pm = []
 
 [dev-dependencies]
 trybuild = "1"
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "zero_cost_types"
+harness = false
+
+[[bench]]
+name = "law_bounds_bench"
+harness = false
+
+[[bench]]
+name = "evidence_lifecycle_bench"
+harness = false
+
+[[bench]]
+name = "id_operations_bench"
+harness = false
