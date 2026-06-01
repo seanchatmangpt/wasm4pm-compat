@@ -441,6 +441,13 @@ impl Fitness {
     }
 }
 
+impl core::fmt::Display for Fitness {
+    /// Formats the fitness score as a human-readable percentage, e.g. `"85.00%"`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:.2}%", self.0 * 100.0)
+    }
+}
+
 /// A precision score in the closed unit interval `[0, 1]`.
 ///
 /// `#[repr(transparent)]` over `f64`. It **carries** a verdict; it does **NOT**
@@ -477,6 +484,13 @@ impl Precision {
     /// ```
     pub fn get(self) -> f64 {
         self.0
+    }
+}
+
+impl core::fmt::Display for Precision {
+    /// Formats the precision score as a human-readable percentage, e.g. `"70.00%"`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:.2}%", self.0 * 100.0)
     }
 }
 
@@ -517,6 +531,13 @@ impl F1 {
     /// ```
     pub fn get(self) -> f64 {
         self.0
+    }
+}
+
+impl core::fmt::Display for F1 {
+    /// Formats the F1 score as a human-readable percentage, e.g. `"50.00%"`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:.2}%", self.0 * 100.0)
     }
 }
 
@@ -563,6 +584,13 @@ impl Generalization {
     }
 }
 
+impl core::fmt::Display for Generalization {
+    /// Formats the generalization score as a human-readable percentage, e.g. `"90.00%"`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:.2}%", self.0 * 100.0)
+    }
+}
+
 /// A simplicity score in the closed unit interval `[0, 1]`.
 ///
 /// `#[repr(transparent)]` over `f64`. It **carries** a verdict; it does **NOT**
@@ -603,6 +631,13 @@ impl Simplicity {
     /// ```
     pub fn get(self) -> f64 {
         self.0
+    }
+}
+
+impl core::fmt::Display for Simplicity {
+    /// Formats the simplicity score as a human-readable percentage, e.g. `"60.00%"`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{:.2}%", self.0 * 100.0)
     }
 }
 
@@ -700,6 +735,38 @@ impl ConformanceVerdict {
     /// ```
     pub fn is_perfect(&self) -> bool {
         self.deviations.is_empty() && matches!(self.fitness, Some(f) if f.get() == 1.0)
+    }
+}
+
+impl core::fmt::Display for ConformanceVerdict {
+    /// Formats the verdict as a compact human-readable summary.
+    ///
+    /// Present scores are shown as percentages; absent slots are shown as `"—"`.
+    /// Deviation count is appended.
+    ///
+    /// Example: `"fitness=85.00% precision=72.00% f1=77.78% generalization=— simplicity=— deviations=3"`
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        fn fmt_score<T: core::fmt::Display>(
+            f: &mut core::fmt::Formatter<'_>,
+            label: &str,
+            slot: &Option<T>,
+        ) -> core::fmt::Result {
+            match slot {
+                Some(v) => write!(f, "{label}={v}"),
+                None => write!(f, "{label}=\u{2014}"),
+            }
+        }
+
+        fmt_score(f, "fitness", &self.fitness)?;
+        f.write_str(" ")?;
+        fmt_score(f, "precision", &self.precision)?;
+        f.write_str(" ")?;
+        fmt_score(f, "f1", &self.f1)?;
+        f.write_str(" ")?;
+        fmt_score(f, "generalization", &self.generalization)?;
+        f.write_str(" ")?;
+        fmt_score(f, "simplicity", &self.simplicity)?;
+        write!(f, " deviations={}", self.deviations.len())
     }
 }
 
