@@ -220,6 +220,31 @@ pub enum PredictionTarget {
     ComplianceConstraint,
 }
 
+impl core::fmt::Display for PredictionTarget {
+    /// Human-readable name of the prediction target kind.
+    ///
+    /// ```
+    /// use wasm4pm_compat::prediction::PredictionTarget;
+    /// assert_eq!(format!("{}", PredictionTarget::NextActivity), "next-activity");
+    /// assert_eq!(format!("{}", PredictionTarget::OutcomeLabel), "outcome-label");
+    /// assert_eq!(format!("{}", PredictionTarget::RemainingTime), "remaining-time");
+    /// assert_eq!(format!("{}", PredictionTarget::DriftSignal), "drift-signal");
+    /// assert_eq!(format!("{}", PredictionTarget::Risk), "risk");
+    /// assert_eq!(format!("{}", PredictionTarget::ComplianceConstraint), "compliance-constraint");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            PredictionTarget::NextActivity => "next-activity",
+            PredictionTarget::OutcomeLabel => "outcome-label",
+            PredictionTarget::RemainingTime => "remaining-time",
+            PredictionTarget::DriftSignal => "drift-signal",
+            PredictionTarget::Risk => "risk",
+            PredictionTarget::ComplianceConstraint => "compliance-constraint",
+        };
+        write!(f, "{name}")
+    }
+}
+
 /// A complete prediction problem: the observed prefix and the target asked of
 /// it, tagged with a target witness `T`.
 ///
