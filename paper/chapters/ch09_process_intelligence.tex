@@ -1,0 +1,886 @@
+\chapter{Process Intelligence: A Full-Lifecycle Autonomic Framework}
+\label{ch:process-intelligence}
+
+This chapter encodes the \emph{Process Intelligence} thesis as a formal
+framework. The universal business of a process-intelligence system is:
+\textbf{manufacturing board-admissible process reality from public standards,
+type law, receipts, replay, refusal, residuals, and lifecycle authority}.
+Every section that follows is a formal unpacking of that sentence.
+
+% -----------------------------------------------------------------------------
+\section{The Prime Thesis}
+\label{sec:pi-thesis}
+% -----------------------------------------------------------------------------
+
+A process-intelligence system is not a reporting system that describes what
+happened. It is an \emph{actuation system} that manufactures evidence-bearing
+transitions across the full process lifecycle: design, simulation, construction,
+activation, operation, monitoring, repair, optimization, board projection,
+integration, decommissioning, and archive.
+
+The thesis is stated as follows.
+
+\begin{definition}[Universal Process Business]
+\label{def:universal-business}
+The universal business of a process-intelligence system is to manufacture
+\emph{board-admissible process reality} --- that is, claims about process
+behavior that are backed by public-standard evidence, type law, receipts,
+replay bundles, explicit refusals, and explicit residuals --- from an
+operational world $O$ by way of admissibility, actuation, projection, and
+checkpoint functions.
+\end{definition}
+
+The full lifecycle addressed by the framework is:
+
+\begin{equation}
+\label{eq:lifecycle-set}
+L = \{\,\mathrm{Design},\; \mathrm{Simulation},\; \mathrm{Construction},\;
+      \mathrm{Activation},\; \mathrm{Operation},\; \mathrm{Monitoring},\;
+      \mathrm{Repair},\; \mathrm{Optimization},\; \mathrm{BoardProjection},\;
+      \mathrm{Integration},\; \mathrm{Decommission},\; \mathrm{Archive}\,\}.
+\end{equation}
+
+No lifecycle stage is privileged. Board projection is not the goal; archive is
+not the end. The framework treats every stage as an equal manufacturing surface
+with identical receipt and refusal obligations.
+
+% -----------------------------------------------------------------------------
+\section{Fundamental Objects}
+\label{sec:pi-objects}
+% -----------------------------------------------------------------------------
+
+\begin{definition}[Fundamental Symbols]
+\label{def:symbols}
+The following symbols are used throughout this chapter.
+\begin{itemize}
+  \item $O$ --- the raw operational world (observed events, objects, relations
+    as they arrive before any standard mapping).
+  \item $O^*$ --- the public-standard admissible operational world: the image
+    of $O$ under the admissibility and manufacturing function $\mu$.
+  \item $P$ --- a process (a typed, lifecycle-carrying entity).
+  \item $L$ --- the lifecycle state space (equation~\ref{eq:lifecycle-set}).
+  \item $E$ --- process evidence: receipted, typed observations of process
+    behavior.
+  \item $T$ --- type law: the compile-time constraint system enforced by
+    \texttt{wasm4pm-compat}.
+  \item $R$ --- receipts: non-forgeable proofs that a lawful transition
+    occurred.
+  \item $F$ --- refusals: typed, law-named rejection records.
+  \item $X$ --- residuals: partial, unresolved, or disputed evidence that is
+    neither admitted nor refused but must be accounted for explicitly.
+  \item $Q$ --- queries: structured interrogations of admitted evidence.
+  \item $M$ --- mined models: process models discovered from event logs by a
+    process-mining algorithm.
+  \item $C$ --- conformance verdicts: outputs of model-vs-log comparison.
+  \item $B$ --- board claims: projections of admitted process evidence into
+    board-level representations.
+  \item $D$ --- decommissioning states: terminal lifecycle positions for
+    retired processes.
+  \item $\mu$ --- the admissibility and manufacturing function:
+    $\mu(O, T, L) \to O^*$ or $\mathrm{Refuse}(F)$.
+  \item $\alpha$ --- the actuation function:
+    $\alpha(K, P, L, T) \to \tau$ where $K$ is a knowledge base and $\tau$ is
+    a lifecycle transition.
+  \item $\rho$ --- the receipt function: $\rho(\tau) = R_\tau$, the receipt
+    that proves transition $\tau$ was lawfully executed.
+  \item $\pi$ --- the projection function:
+    $\pi(P_i) \to B$ or $\pi(P_i, \mathrm{Risk}, \ldots) \to B_{M\&A}$.
+  \item $\kappa$ --- the checkpoint function:
+    $\kappa(\tau) \in \{\mathrm{ADMIT}(R),\; \mathrm{REFUSE}(F),\;
+    \mathrm{PARTIAL}(X)\}$.
+  \item $\delta$ --- the decommissioning function:
+    $\delta(P) \to \mathrm{Retired}(P) + \mathrm{Archive}(A) +
+    \mathrm{Receipt}(R_\delta)$.
+\end{itemize}
+\end{definition}
+
+\subsection{Core Manufacturing Equations}
+
+The three core equations of the framework are:
+
+\begin{equation}
+\label{eq:manufacture}
+  R \vdash P_i = \mu(O^*, T, L)
+\end{equation}
+
+Equation~\eqref{eq:manufacture} states that an admissible process instance
+$P_i$ is the output of applying the manufacturing function $\mu$ to the
+admissible world $O^*$ under type law $T$ and lifecycle state space $L$, and
+that this output is only valid when receipted by $R$.
+
+\begin{equation}
+\label{eq:board-claim}
+  R,\; \mathrm{Replay},\; \mathrm{Audit} \vdash B = \pi(P_i)
+\end{equation}
+
+Equation~\eqref{eq:board-claim} states that a board claim $B$ is the
+projection of a receipted, replayed, and audited process instance $P_i$.
+Projection without replay is not a board claim; it is an assertion.
+
+\begin{equation}
+\label{eq:ma-claim}
+  R,\; \mathrm{Replay},\; X,\; F \vdash
+  B_{M\&A} = \pi(P_i,\; \mathrm{Risk},\; \mathrm{Synergy},\;
+              \mathrm{Integration},\; \mathrm{Debt})
+\end{equation}
+
+Equation~\eqref{eq:ma-claim} states the M\&A deck form: a merger or
+acquisition claim must project process evidence with explicit treatment of
+residuals $X$ and refusals $F$ alongside risk, synergy, integration, and
+technical debt. An M\&A deck that omits $X$ and $F$ is not board-admissible.
+
+% -----------------------------------------------------------------------------
+\section{The Lifecycle Calculus}
+\label{sec:pi-calculus}
+% -----------------------------------------------------------------------------
+
+\begin{definition}[Lifecycle State Machine]
+\label{def:lifecycle-sm}
+A valid process lifecycle is a directed state machine
+\[
+  P \;:\; L_0 \to L_1 \to \cdots \to L_n
+\]
+where:
+\begin{enumerate}
+  \item each $L_k \in L$ (the lifecycle state space of
+    equation~\ref{eq:lifecycle-set}),
+  \item every transition $\tau_k : L_k \to L_{k+1}$ is \emph{lawful} (admitted
+    by $\mu$ under type law $T$), and
+  \item every lawful transition emits evidence: $\rho(\tau_k) = R_k$.
+\end{enumerate}
+There is no lawful transition that does not produce a receipt.
+\end{definition}
+
+\begin{theorem}[Transition Receipt Law]
+\label{thm:receipt-law}
+For every process $P$ and every transition $\tau_i$ in the lifecycle of $P$:
+\[
+  \forall \tau_i \in \mathrm{lifecycle}(P),\quad
+  \mathrm{lawful}(\tau_i) \;\Rightarrow\;
+  \exists\, R_i \text{ such that } R_i \text{ proves } \tau_i.
+\]
+\end{theorem}
+
+\begin{proof}
+By Definition~\ref{def:lifecycle-sm}, the receipt function $\rho$ is defined
+on every lawful transition with codomain in $R$. The set $R$ of receipts is
+non-empty whenever a lawful transition occurs, because $\rho$ is total on
+lawful transitions by construction. A transition for which no $R_i$ exists
+is therefore not a lawful transition; the lifecycle state machine does not
+advance without a receipt.
+\end{proof}
+
+\subsection{The Blue River Dam Rule}
+
+The checkpoint function $\kappa$ is total on the set of all transitions:
+
+\begin{theorem}[Blue River Dam Rule]
+\label{thm:brd-rule}
+For every transition $\tau$ in any process lifecycle:
+\[
+  \kappa(\tau) \;\in\;
+  \{\;\mathrm{ADMIT}(R),\quad \mathrm{REFUSE}(F),\quad \mathrm{PARTIAL}(X)\;\}.
+\]
+There is no silent success state. There is no unnamed failure state.
+\end{theorem}
+
+\begin{proof}
+The codomain of $\kappa$ is defined to be exactly
+$\{\mathrm{ADMIT}(R), \mathrm{REFUSE}(F), \mathrm{PARTIAL}(X)\}$ by
+Definition~\ref{def:symbols}. Any runtime outcome that cannot be placed in one
+of these three classes is a defect in the system implementing $\kappa$, not a
+valid lifecycle outcome. Silent success is not a member of the codomain and
+therefore cannot be produced by a conforming implementation.
+\end{proof}
+
+\begin{remark}
+$\mathrm{PARTIAL}(X)$ is not a degraded form of $\mathrm{ADMIT}$. It is a
+first-class outcome that carries explicit residuals $X$. A board claim
+derived from a $\mathrm{PARTIAL}$ transition is valid precisely because the
+residuals are explicit; a claim that silently discards residuals is invalid.
+\end{remark}
+
+% -----------------------------------------------------------------------------
+\section{Autonomic Knowledge Actuation}
+\label{sec:pi-actuation}
+% -----------------------------------------------------------------------------
+
+Classical knowledge management systems describe processes: $K$ describes $P$.
+The process-intelligence framework actuates processes: $\alpha(K, P, L, T)
+\to \tau$. The distinction is fundamental.
+
+\begin{definition}[Autonomic Actuation]
+\label{def:actuation}
+A transition $\tau$ in the process lifecycle is \emph{valid} if and only if:
+\begin{enumerate}
+  \item $\tau = \alpha(K, P, L, T)$ for some knowledge base $K$, process $P$,
+    current lifecycle stage $L$, and type law $T$, and
+  \item $\kappa(\tau) \in \{\mathrm{ADMIT}(R),\; \mathrm{REFUSE}(F),\;
+    \mathrm{PARTIAL}(X)\}$.
+\end{enumerate}
+A transition that satisfies condition 1 but fails condition 2 is a defect
+in the actuation function $\alpha$.
+\end{definition}
+
+\begin{proposition}[Autonomic Completeness]
+\label{prop:autonomic-completeness}
+A process-intelligence system is \emph{autonomically complete} if and only if
+for every lifecycle stage $\ell \in L$ and every lawful input $(K, P, \ell, T)$,
+the actuation function $\alpha$ produces a transition $\tau$ such that
+$\kappa(\tau)$ is defined and non-silent.
+\end{proposition}
+
+The contrast with prior art is captured in the following table. Old systems
+accumulate knowledge and produce reports. This system actuates knowledge and
+produces receipted transitions.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+\textbf{Property} & \textbf{Classical KM} & \textbf{Autonomic PI} \\
+\midrule
+Knowledge role & Descriptive ($K$ describes $P$) & Actuative
+  ($\alpha(K,P,L,T) \to \tau$) \\
+Transition output & Narrative & $\kappa(\tau) \in \{$ADMIT, REFUSE, PARTIAL$\}$ \\
+Failure mode & Silent omission & $\mathrm{REFUSE}(F)$ with named law \\
+Uncertainty mode & Untracked & $\mathrm{PARTIAL}(X)$ with explicit residuals \\
+Board admissibility & Asserted & Receipted via $\rho(\tau) = R$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% -----------------------------------------------------------------------------
+\section{Public Standards as Manufacturing Feedstock}
+\label{sec:pi-standards}
+% -----------------------------------------------------------------------------
+
+Let $\mathcal{S}$ be the set of public standards recognized by the framework:
+
+\begin{equation}
+\label{eq:standards}
+\mathcal{S} = \{\,\mathrm{OCEL},\; \mathrm{XES},\; \mathrm{BPMN},\;
+  \mathrm{Petri},\; \mathrm{WF\text{-}net},\; \mathrm{POWL},\;
+  \mathrm{Declare},\; \mathrm{ProcessTree},\; \mathrm{DFG},\;
+  \mathrm{OCPQ},\; \mathrm{OTel},\; \mathrm{PROV\text{-}O},\;
+  \mathrm{SHACL}\,\}.
+\end{equation}
+
+\begin{definition}[Reverse Lock-In Principle]
+\label{def:reverse-lock-in}
+For a process-intelligence system grounded in $\mathcal{S}$:
+\[
+  \frac{\partial\,\mathrm{Value}}{\partial\,\mathrm{Standards}} > 0.
+\]
+Every new public standard $s \notin \mathcal{S}$ is a new manufacturing
+surface, not a threat to existing surfaces. Adding $s$ to $\mathcal{S}$
+strictly increases the admissible operational world $O^*$.
+\end{definition}
+
+\begin{proposition}[Standards Asymmetry]
+For proprietary-vendor systems, a new standard commoditizes existing lock-in
+and reduces vendor margin. For a process-intelligence system satisfying
+Definition~\ref{def:reverse-lock-in}, a new standard opens a new manufacturing
+surface and increases the combinatorial manufacturing space
+(Section~\ref{sec:pi-combinatorial}).
+\end{proposition}
+
+This asymmetry is not accidental. It follows directly from the structure of
+the admissibility function $\mu$: $\mu$ accepts as input any evidence shape
+that can be mapped to a public-standard type in $\mathcal{S}$. Expanding
+$\mathcal{S}$ expands the domain of $\mu$.
+
+% -----------------------------------------------------------------------------
+\section{Reverse Porter Five Algebra}
+\label{sec:pi-porter}
+% -----------------------------------------------------------------------------
+
+The classical Porter Five Forces model describes industry margin as a function
+of five competitive forces. The process-intelligence framework inverts this
+relationship.
+
+\begin{definition}[Porter Five Force Variables]
+\label{def:porter-vars}
+Let $\beta$ = buyer power, $\sigma$ = supplier power, $\upsilon$ =
+substitution threat, $\varepsilon$ = threat of new entrants, $\gamma$ =
+competitive rivalry.
+\end{definition}
+
+\begin{definition}[Conventional Margin Equation]
+\label{def:conventional-margin}
+Under the classical model, industry margin is:
+\[
+  \mathrm{Margin} = f(-\beta,\; -\sigma,\; -\upsilon,\; -\varepsilon,\;
+  -\gamma),
+\]
+where each force enters negatively: every increase in any force compresses
+margin.
+\end{definition}
+
+\begin{theorem}[Reverse Porter Authority]
+\label{thm:reverse-porter}
+For a process-intelligence system satisfying Definitions~\ref{def:universal-business}
+and~\ref{def:reverse-lock-in}, every increase in a Porter force increases
+the demand for validation authority:
+\[
+  \forall\, v \in \{\beta, \sigma, \upsilon, \varepsilon, \gamma\},\quad
+  v \uparrow \;\Rightarrow\;
+  \mathrm{demand\_for\_validation\_authority} \uparrow.
+\]
+\end{theorem}
+
+\begin{proof}
+As competitive pressure increases, counterparties (buyers, regulators, boards,
+auditors) increase their demand for verifiable evidence of process claims.
+A system that can produce receipted, replayed, and publicly-standard-grounded
+evidence satisfies this demand directly. Conventional systems that produce
+narrative claims cannot. Therefore, every force that increases competitive
+pressure also increases the relative advantage of the process-intelligence
+framework. The proof reduces to the observation that validation authority is
+not a commodity under competitive pressure; it is a differentiator.
+\end{proof}
+
+\begin{remark}
+This is the formal content of the phrase ``the moat deepens as the market
+heats'': in a quiet market, receipted evidence is a convenience; in a
+contested market, it is the admission ticket to the board.
+\end{remark}
+
+% -----------------------------------------------------------------------------
+\section{The PM4Py Oracle Formulation}
+\label{sec:pi-pm4py}
+% -----------------------------------------------------------------------------
+
+PM4Py is the reference implementation of the process-mining literature. For
+each PM4Py capability $c$, the framework defines a complete capability tuple:
+
+\begin{definition}[Capability Tuple $\Omega$]
+\label{def:omega}
+\[
+\Omega(c) = \bigl\{\;
+  \mathrm{Input}(c),\;
+  \mathrm{Output}(c),\;
+  \mathrm{Standard}(c),\;
+  \mathrm{Algorithm}(c),\;
+  \mathrm{CompatType}(c),\;
+  \mathrm{WasmExec}(c),\;
+  \mathrm{Refusal}(c),\;
+  \mathrm{Receipt}(c),\;
+  \mathrm{Replay}(c),\;
+  \mathrm{Lifecycle}(c),\;
+  \mathrm{BoardClaim}(c)\;
+\bigr\}.
+\]
+\end{definition}
+
+\begin{definition}[Blue River Ready]
+\label{def:brr}
+A capability $c$ is \emph{Blue River Ready} ($\mathrm{BRR}(c)$) if and only if:
+\[
+  \mathrm{BRR}(c) \;\Longleftrightarrow\;
+  \mathrm{PM4Py}(c) \;\wedge\; \mathrm{TypeLaw}(c) \;\wedge\;
+  \mathrm{ExecAuthority}(c) \;\wedge\; \mathrm{Receipt}(c) \;\wedge\;
+  \mathrm{Replay}(c) \;\wedge\; \mathrm{Lifecycle}(c).
+\]
+\end{definition}
+
+$\mathrm{PM4Py}(c)$ means the capability is implemented in the PM4Py library.
+$\mathrm{TypeLaw}(c)$ means a type-law surface exists in
+\texttt{wasm4pm-compat}. $\mathrm{ExecAuthority}(c)$ means the capability has
+a designated execution authority in \texttt{wasm4pm}. $\mathrm{Receipt}(c)$,
+$\mathrm{Replay}(c)$, and $\mathrm{Lifecycle}(c)$ mean the capability
+participates in the receipt, replay, and lifecycle frameworks respectively.
+
+The goal of the \texttt{wasm4pm-compat} crate is to make $\mathrm{TypeLaw}(c)$
+true for every $c$ for which $\mathrm{PM4Py}(c)$ is true.
+
+% -----------------------------------------------------------------------------
+\section{Six Manufacturing Algorithms}
+\label{sec:pi-algorithms}
+% -----------------------------------------------------------------------------
+
+\subsection{Algorithm 1: Paper-to-Law Manufacturing}
+\label{sec:pi-alg1}
+
+For each academic paper $p$ in the process-mining literature, define the
+paper extraction tuple:
+\[
+  \Phi(p) = \bigl\{\;
+    O_p,\; A_p,\; I_p,\; Y_p,\; H_p,\;
+    \mathrm{Fail}_p,\; \mathrm{Compat}_p,\; \mathrm{Wasm}_p,\;
+    \mathrm{PM4Py}_p,\; \mathrm{Fixtures}_p,\; \mathrm{Receipts}_p,\;
+    \mathrm{Replay}_p,\; \mathrm{Board}_p,\;
+    \mathrm{Lifecycle}_p,\; \mathrm{Decommission}_p
+  \;\bigr\},
+\]
+where $O_p$ = object types, $A_p$ = algorithm name, $I_p$ = input types,
+$Y_p$ = output types, $H_p$ = hyperparameters, $\mathrm{Fail}_p$ = known
+failure modes.
+
+\begin{definition}[Coverage Law]
+\label{def:coverage-law}
+Paper $p$ is \emph{covered} by the framework if and only if:
+\[
+  \mathrm{Covered}(p) \;\Longleftrightarrow\;
+  \mathrm{Compat}_p \;\vee\; \mathrm{Wasm}_p \;\vee\;
+  \mathrm{ExplicitGraduationBoundary}_p.
+\]
+A paper that is neither in the compat surface nor the wasm surface must have
+an explicit graduation boundary annotation explaining why it belongs to neither.
+\end{definition}
+
+\begin{algorithm}[H]
+\caption{Paper-to-Law Manufacturing}
+\label{alg:paper-law}
+\DontPrintSemicolon
+\KwIn{Academic paper $p$ with content corpus $\mathcal{C}_p$.}
+\KwOut{$\Phi(p)$ extraction tuple; coverage verdict
+       $\mathrm{Covered}(p)$ or $\mathrm{Refused}(F_p)$.}
+\BlankLine
+Extract $\{O_p, A_p, I_p, Y_p, H_p\}$ from abstract and formal sections of $p$\;
+Extract $\mathrm{Fail}_p$ from failure-mode and complexity sections\;
+\BlankLine
+\tcp{Determine manufacturing surface assignment}
+\uIf{structural type in \texttt{wasm4pm-compat} can represent $I_p \to Y_p$}{
+  $\mathrm{Compat}_p \leftarrow \mathtt{true}$\;
+}\uElseIf{algorithm $A_p$ requires execution in \texttt{wasm4pm}}{
+  $\mathrm{Wasm}_p \leftarrow \mathtt{true}$\;
+}\uElse{
+  \uIf{explicit graduation boundary documented}{
+    $\mathrm{ExplicitGraduationBoundary}_p \leftarrow \mathtt{true}$\;
+  }\Else{
+    \Return $\mathrm{Refused}(F_p = \texttt{MissingGraduationBoundary})$\;
+  }
+}
+\BlankLine
+Generate $\mathrm{Fixtures}_p$ (compile-fail + compile-pass) for $\Phi(p)$\;
+Emit $\mathrm{Receipts}_p$ for each generated fixture\;
+\Return $\Phi(p)$ with $\mathrm{Covered}(p) = \mathtt{true}$\;
+\end{algorithm}
+
+\subsection{Algorithm 2: Admissible Process Evidence}
+\label{sec:pi-alg2}
+
+\begin{algorithm}[H]
+\caption{Admissible Process Evidence}
+\label{alg:admit-evidence}
+\DontPrintSemicolon
+\KwIn{Raw value $x : T$, witness marker $W$, type law $T_{\mathrm{law}}$.}
+\KwOut{\Evidence{T}{\texttt{Admitted}}{W} or $\mathrm{Refusal}(F)$ or
+       $\mathrm{Partial}(X)$.}
+\BlankLine
+\tcp{Layer 1: structural shape}
+\If{$x$ does not conform to the structural schema of $W$}{
+  \Return $\mathrm{Refusal}(\texttt{StructuralSchemaMismatch})$\;
+}
+\tcp{Layer 2: object identity}
+\If{any object identifier in $x$ is null or malformed}{
+  \Return $\mathrm{Refusal}(\texttt{MalformedObjectIdentifier})$\;
+}
+\tcp{Layer 3: event identity}
+\If{any event identifier in $x$ is null or malformed}{
+  \Return $\mathrm{Refusal}(\texttt{MalformedEventIdentifier})$\;
+}
+\tcp{Layer 4: object-event links}
+\If{any event has no qualifying object link}{
+  \Return $\mathrm{Refusal}(\texttt{DanglingEventObjectLink})$\;
+}
+\tcp{Layer 5: object-object links}
+\If{any O2O link references an undefined object}{
+  \Return $\mathrm{Refusal}(\texttt{UndefinedObjectInLink})$\;
+}
+\tcp{Layer 6: lifecycle state}
+\If{$x$ is not admissible from the current lifecycle stage $L$}{
+  \Return $\mathrm{Refusal}(\texttt{InvalidLifecycleTransition})$\;
+}
+\tcp{Layer 7: public standard mapping}
+\If{$W \notin \mathcal{S}$ and no explicit graduation boundary}{
+  \Return $\mathrm{Refusal}(\texttt{UnmappedStandard})$\;
+}
+\tcp{Layer 8: loss policy}
+\uIf{loss is present and policy is \texttt{RefuseLoss}}{
+  \Return $\mathrm{Refusal}(\texttt{LossPolicyViolation})$\;
+}\ElseIf{loss is present and policy is \texttt{AllowNamedProjection}
+         but no name given}{
+  \Return $\mathrm{Partial}(X = \{\texttt{UnnamedProjection}\})$\;
+}
+\BlankLine
+\Return \Evidence{T}{\texttt{Admitted}}{W}$(x)$\;
+\end{algorithm}
+
+\subsection{Algorithm 3: Receipt-Bearing Execution}
+\label{sec:pi-alg3}
+
+\begin{algorithm}[H]
+\caption{Receipt-Bearing Execution}
+\label{alg:receipt-exec}
+\DontPrintSemicolon
+\KwIn{Admitted evidence \Evidence{T}{\texttt{Admitted}}{W}, algorithm $a$,
+      parameters $\theta$.}
+\KwOut{Verdict $V$ + Receipt $R$ + ReplayBundle $\Gamma$ + Residual $X$.}
+\BlankLine
+$V \leftarrow a(\Evidence{T}{\texttt{Admitted}}{W},\; \theta)$\;
+\BlankLine
+\tcp{Receipt law: every verdict must produce a receipt}
+$R \leftarrow \rho(a,\; \theta,\; \Evidence{T}{\texttt{Admitted}}{W},\; V)$\;
+\If{$R = \emptyset$}{
+  \Return $\mathrm{Defect}(\texttt{MissingReceipt})$\;
+  \tcp{Execution without receipt is a system defect, not a process outcome}
+}
+\BlankLine
+\tcp{Replay bundle: receipt must be replayable against admitted evidence}
+$\Gamma \leftarrow \textsc{BuildReplayBundle}(R,\;
+  \Evidence{T}{\texttt{Admitted}}{W})$\;
+\If{$\textsc{Replay}(\Gamma) \neq V$}{
+  \Return $\mathrm{Defect}(\texttt{ReplayMismatch})$\;
+}
+\BlankLine
+\tcp{Residual accounting: unexplained evidence must be explicit}
+$X \leftarrow \Evidence{T}{\texttt{Admitted}}{W} \setminus
+  \mathrm{dom}(\Gamma)$\;
+\BlankLine
+\tcp{Invariants: $V \Rightarrow R$, $R \Rightarrow \Gamma$,
+     $\Gamma \Rightarrow \Evidence{T}{\texttt{Admitted}}{W}$}
+\Return $(V,\; R,\; \Gamma,\; X)$\;
+\end{algorithm}
+
+\begin{theorem}[Execution Invariant Chain]
+\label{thm:exec-invariant}
+For any execution satisfying Algorithm~\ref{alg:receipt-exec}:
+\[
+  V \;\Rightarrow\; R, \qquad
+  R \;\Rightarrow\; \Gamma, \qquad
+  \Gamma \;\Rightarrow\; \Evidence{T}{\texttt{Admitted}}{W}.
+\]
+\end{theorem}
+
+\begin{proof}
+The algorithm returns a defect and halts if $R = \emptyset$ (no receipt from
+a verdict) or if $\Gamma$ does not reproduce $V$ (replay mismatch). Therefore
+any non-defect return satisfies $V \Rightarrow R$ (the receipt was produced)
+and $R \Rightarrow \Gamma$ (the replay bundle was built from the receipt).
+The third implication $\Gamma \Rightarrow \Evidence{T}{\texttt{Admitted}}{W}$
+holds because $\Gamma$ is constructed from the admitted evidence directly;
+the replay cannot reference evidence that was not admitted.
+\end{proof}
+
+\subsection{Algorithm 4: M\&A Deck Manufacturing}
+\label{sec:pi-alg4}
+
+\begin{algorithm}[H]
+\caption{M\&A Deck Manufacturing}
+\label{alg:ma-deck}
+\DontPrintSemicolon
+\KwIn{Process instance $P_i$; risk model $\mathrm{Risk}$; synergy model
+      $\mathrm{Synergy}$; integration plan $\mathrm{Integration}$; debt
+      registry $\mathrm{Debt}$.}
+\KwOut{Board claim $B_{M\&A}$ or $\mathrm{PARTIAL}(X)$ or $\mathrm{REFUSED}(F)$.}
+\BlankLine
+$\mathrm{Claims} \leftarrow \textsc{ExtractClaims}(P_i,\; \mathrm{Risk},\;
+  \mathrm{Synergy},\; \mathrm{Integration},\; \mathrm{Debt})$\;
+\BlankLine
+\For{each claim $B_j \in \mathrm{Claims}$}{
+  \tcp{A claim is valid iff all six pillars hold}
+  $\mathrm{valid}(B_j) \leftarrow
+    E_j \wedge T_j \wedge R_j \wedge
+    \mathrm{Replay}_j \wedge S_j \wedge L_j$\;
+  \BlankLine
+  \uIf{$\neg E_j$}{
+    $B_j \leftarrow \mathrm{REFUSED}(\texttt{MissingEvidence})$\;
+  }\uElseIf{$\neg T_j$}{
+    $B_j \leftarrow \mathrm{REFUSED}(\texttt{TypeLawViolation})$\;
+  }\uElseIf{$\neg R_j$}{
+    $B_j \leftarrow \mathrm{REFUSED}(\texttt{MissingReceipt})$\;
+  }\uElseIf{$\neg \mathrm{Replay}_j$}{
+    $B_j \leftarrow \mathrm{REFUSED}(\texttt{ReplayUnavailable})$\;
+  }\uElseIf{$\neg S_j$}{
+    $B_j \leftarrow \mathrm{PARTIAL}(\texttt{UnmappedStandard})$\;
+  }\uElseIf{$\neg L_j$}{
+    $B_j \leftarrow \mathrm{PARTIAL}(\texttt{IncompleteLifecycle})$\;
+  }
+}
+\BlankLine
+\uIf{all claims valid}{
+  \Return $B_{M\&A} = \pi(P_i,\; \mathrm{Risk},\; \mathrm{Synergy},\;
+    \mathrm{Integration},\; \mathrm{Debt})$\;
+}\uElseIf{some claims $\mathrm{PARTIAL}$, none $\mathrm{REFUSED}$}{
+  \Return $\mathrm{PARTIAL}(X = \{B_j : B_j = \mathrm{PARTIAL}(\cdot)\})$\;
+}\Else{
+  \Return $\mathrm{REFUSED}(F = \{B_j : B_j = \mathrm{REFUSED}(\cdot)\})$\;
+}
+\end{algorithm}
+
+\subsection{Algorithm 5: Decommissioning}
+\label{sec:pi-alg5}
+
+\begin{algorithm}[H]
+\caption{Process Decommissioning}
+\label{alg:decommission}
+\DontPrintSemicolon
+\KwIn{Active process $P$ with dependency set $\mathrm{Deps}(P)$ and
+      claims set $\mathrm{Claims}(P)$.}
+\KwOut{$\delta(P) = \mathrm{Retired}(P) + \mathrm{Archive}(A) +
+       \mathrm{Receipt}(R_\delta)$ or $\mathrm{REFUSED}(F)$.}
+\BlankLine
+\tcp{Precondition 1: all dependencies closed or refused}
+\ForEach{$d \in \mathrm{Deps}(P)$}{
+  \If{$\kappa(d) \notin \{\mathrm{ADMIT}(\cdot),\; \mathrm{REFUSE}(\cdot)\}$}{
+    \Return $\mathrm{REFUSED}(\texttt{OpenDependency}(d))$\;
+  }
+}
+\BlankLine
+\tcp{Precondition 2: all claims archived or revoked}
+\ForEach{$b \in \mathrm{Claims}(P)$}{
+  \If{$b$ is neither archived nor revoked}{
+    \Return $\mathrm{REFUSED}(\texttt{UnarchivedClaim}(b))$\;
+  }
+}
+\BlankLine
+\tcp{Decommissioning is a lawful lifecycle transition --- it must emit a receipt}
+$A \leftarrow \textsc{Archive}(P)$\;
+$R_\delta \leftarrow \rho(\delta,\; P,\; A)$\;
+\If{$R_\delta = \emptyset$}{
+  \Return $\mathrm{REFUSED}(\texttt{MissingDecommissionReceipt})$\;
+}
+\BlankLine
+\Return $\mathrm{Retired}(P) + \mathrm{Archive}(A) +
+  \mathrm{Receipt}(R_\delta)$\;
+\end{algorithm}
+
+\subsection{Algorithm 6: Board Claim Reliability}
+\label{sec:pi-alg6}
+
+\begin{algorithm}[H]
+\caption{Board Claim Reliability Assessment}
+\label{alg:board-reliability}
+\DontPrintSemicolon
+\KwIn{Board claim $B$; evidence $E$; type law $T$; receipt $R$;
+      replay bundle $\Gamma$; standard $S$; lifecycle $L$;
+      residuals $X$; refusals $F$.}
+\KwOut{$\mathrm{Reliable}(B)$ or $\mathrm{Unreliable}(B, \mathrm{reason})$.}
+\BlankLine
+\tcp{Reliability requires all eight pillars, including explicit residuals
+     and known refusal boundaries}
+$\mathrm{pillars} \leftarrow
+  E \wedge T \wedge R \wedge \Gamma \wedge S \wedge L \wedge
+  \mathrm{explicit}(X) \wedge \mathrm{explicit}(F)$\;
+\BlankLine
+\uIf{$\mathrm{pillars} = \mathtt{true}$}{
+  \Return $\mathrm{Reliable}(B)$\;
+}\Else{
+  $\mathrm{missing} \leftarrow \{p : p \in \mathrm{pillars},\;
+    p = \mathtt{false}\}$\;
+  \Return $\mathrm{Unreliable}(B,\; \mathrm{missing})$\;
+}
+\BlankLine
+\tcp{Note: reliability requires explicit(X), not zero(X).}
+\tcp{A claim with known residuals is MORE reliable than one with hidden residuals.}
+\end{algorithm}
+
+% -----------------------------------------------------------------------------
+\section{The Algebra of Board Reliance}
+\label{sec:pi-algebra}
+% -----------------------------------------------------------------------------
+
+\begin{definition}[Validation Semiring]
+\label{def:semiring}
+Let $\mathcal{V} = \{E, T, R, \Gamma, S, L, \mathrm{explicit}(X),
+\mathrm{explicit}(F)\}$ be the set of eight validation components. Define:
+\begin{align*}
+  v_1 \wedge v_2 &= \text{joint requirement (meet): both must hold,} \\
+  v_1 \vee v_2   &= \text{sufficient condition (join): either suffices.}
+\end{align*}
+$(\mathcal{V}, \wedge, \vee)$ forms a semiring with
+additive identity $\mathbf{0}$ (no component holds) and multiplicative
+identity $\mathbf{1}$ (all components hold).
+\end{definition}
+
+\begin{theorem}[Board Reliability Condition]
+\label{thm:reliability}
+A board claim $B$ is reliable if and only if:
+\begin{equation}
+\label{eq:reliability}
+  \mathrm{Reliable}(B) \;\Longleftrightarrow\;
+  E \;\wedge\; T \;\wedge\; R \;\wedge\; \Gamma \;\wedge\; S \;\wedge\; L
+  \;\wedge\; \mathrm{explicit}(X) \;\wedge\; \mathrm{explicit}(F).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Any claim lacking evidence $E$ is ungrounded. Any claim lacking type law $T$
+has no structural guarantee. Any claim lacking receipt $R$ cannot be audited.
+Any claim lacking replay $\Gamma$ cannot be verified ex post. Any claim
+lacking standard grounding $S$ is privately defined. Any claim lacking
+lifecycle coverage $L$ may be stale. Any claim with hidden residuals ($\neg
+\mathrm{explicit}(X)$) conceals uncertainty, which is worse than revealing it.
+Any claim with unknown refusal boundaries ($\neg \mathrm{explicit}(F)$)
+conceals the scope of what was not tested. The conjunction is therefore
+necessary: removing any single conjunct creates a known reliability gap.
+\end{proof}
+
+\begin{corollary}[Residuals Strengthen Reliability]
+\label{cor:residuals}
+Unknown risk $>$ refused false claim. Explicitly stating residuals $X$ and
+refusals $F$ does not weaken a board claim; it strengthens the epistemic
+foundation of the claim by making the boundary of knowledge visible.
+\end{corollary}
+
+% -----------------------------------------------------------------------------
+\section{Combinatorial Maximalism}
+\label{sec:pi-combinatorial}
+% -----------------------------------------------------------------------------
+
+The manufacturing surface of the process-intelligence framework is the
+Cartesian product of all admissible dimensions:
+
+\begin{equation}
+\label{eq:manufacturing-surface}
+  |\mathrm{Surface}| = |\mathcal{S}| \times |L| \times |\mathcal{A}| \times
+  |\mathcal{F}| \times |\mathcal{R}| \times |\mathcal{Q}| \times
+  |\mathcal{B}| \times |\mathcal{D}|,
+\end{equation}
+
+where $\mathcal{S}$ is the standard set (equation~\ref{eq:standards}),
+$L$ is the lifecycle state space (equation~\ref{eq:lifecycle-set}),
+$\mathcal{A}$ is the algorithm set (all PM4Py capabilities), $\mathcal{F}$
+is the refusal reason type set, $\mathcal{R}$ is the receipt type set,
+$\mathcal{Q}$ is the query type set, $\mathcal{B}$ is the board claim type
+set, and $\mathcal{D}$ is the decommissioning state set.
+
+Each cell in this product space is a distinct manufacturing task; each
+manufacturing task produces at least one receipt-bearing commit.
+
+\subsection{Takt Equation}
+
+\begin{definition}[Takt Equation]
+\label{def:takt}
+The commit throughput equation is:
+\[
+  C = n \times d \times t,
+\]
+where $C$ = total commits per month, $n$ = number of production cells (parallel
+manufacturing threads), $d$ = working days per month, $t$ = commits per cell
+per day.
+\end{definition}
+
+For a target of $C = 5000$ commits per month with $d = 30$ days and
+$n = 10$ production cells:
+
+\[
+  t = \frac{C}{n \times d} = \frac{5000}{10 \times 30} \approx 16.7
+  \text{ commits per cell per day.}
+\]
+
+This is a manufacturing rate target, not a velocity aspiration. Each commit
+must carry a receipt; a commit without a receipt does not count toward $C$.
+The Takt equation therefore also specifies the minimum receipt density of the
+production system.
+
+\begin{proposition}[Surface Scalability]
+\label{prop:surface-scalability}
+As $|\mathcal{S}|$ grows (new public standards are published), the
+manufacturing surface (equation~\ref{eq:manufacturing-surface}) grows
+multiplicatively. The Takt equation is unchanged; only $n$ must scale to
+maintain $t$.
+\end{proposition}
+
+% -----------------------------------------------------------------------------
+\section{The Blue River Dam Operating Equation}
+\label{sec:pi-brd}
+% -----------------------------------------------------------------------------
+
+The complete operating cycle of the process-intelligence framework is
+expressed as a function composition:
+
+\begin{equation}
+\label{eq:brd}
+  \mathrm{BlueRiverDam} = \kappa \circ \rho \circ \alpha \circ \mu.
+\end{equation}
+
+Expanding equation~\eqref{eq:brd}:
+
+\begin{equation}
+\label{eq:brd-expanded}
+  \kappa\bigl(\rho\bigl(\alpha\bigl(\mu(O^*)\bigr)\bigr)\bigr)
+  \;\to\; \mathrm{ALIVE} \;\mid\; \mathrm{PARTIAL} \;\mid\;
+  \mathrm{REFUSED}.
+\end{equation}
+
+Reading left to right: raw operational world $O$ is passed through $\mu$ to
+produce the admissible operational world $O^*$; the actuation function
+$\alpha$ produces a lifecycle transition from $O^*$; the receipt function
+$\rho$ stamps the transition with a non-forgeable proof; the checkpoint
+function $\kappa$ classifies the result into one of the three and only three
+terminal states.
+
+\begin{theorem}[Operating Equation Completeness]
+\label{thm:brd-completeness}
+The Blue River Dam operating equation~\eqref{eq:brd-expanded} is complete:
+every possible outcome of a process-intelligence manufacturing cycle is
+captured by $\{\mathrm{ALIVE}, \mathrm{PARTIAL}, \mathrm{REFUSED}\}$.
+\end{theorem}
+
+\begin{proof}
+By the Blue River Dam Rule (Theorem~\ref{thm:brd-rule}), $\kappa$ maps every
+transition to exactly one of $\{\mathrm{ADMIT}(R), \mathrm{REFUSE}(F),
+\mathrm{PARTIAL}(X)\}$. $\mathrm{ADMIT}(R)$ is the receipted success case,
+written $\mathrm{ALIVE}$ at the system level. $\mathrm{REFUSE}(F)$ is the
+named refusal case, written $\mathrm{REFUSED}$. $\mathrm{PARTIAL}(X)$ is the
+explicit residual case. The three cases are mutually exclusive and exhaustive
+by the definition of $\kappa$'s codomain.
+\end{proof}
+
+\begin{remark}
+The four-function composition $\kappa \circ \rho \circ \alpha \circ \mu$ is
+not an architectural diagram. It is a mathematical specification. An
+implementation that produces output in $\{\mathrm{ALIVE}, \mathrm{PARTIAL},
+\mathrm{REFUSED}\}$ for every input in $O$ satisfies the specification. An
+implementation that can produce output outside this set --- including null,
+exception, or silent success --- does not satisfy the specification and is a
+defect.
+\end{remark}
+
+% -----------------------------------------------------------------------------
+\section{Chapter Summary}
+\label{sec:pi-summary}
+% -----------------------------------------------------------------------------
+
+This chapter has established the following formal content.
+
+\paragraph{Lifecycle calculus.} A valid process lifecycle is a directed state
+machine over $L$ (equation~\ref{eq:lifecycle-set}) in which every lawful
+transition emits a receipt (Theorem~\ref{thm:receipt-law}). There is no silent
+success state (Theorem~\ref{thm:brd-rule}).
+
+\paragraph{Autonomic actuation.} The actuation function $\alpha(K,P,L,T) \to
+\tau$ replaces the classical knowledge-management relationship $K$ describes
+$P$ with a receipt-bearing transition obligation (Definition~\ref{def:actuation}).
+
+\paragraph{Reverse Porter authority.} Every increase in competitive pressure
+increases the demand for validation authority; the process-intelligence
+framework satisfies this demand through receipted, replayed,
+publicly-standard-grounded evidence (Theorem~\ref{thm:reverse-porter}).
+
+\paragraph{PM4Py oracle.} Blue River Ready is a six-predicate conjunction
+over PM4Py coverage, type law, execution authority, receipt, replay, and
+lifecycle (Definition~\ref{def:brr}).
+
+\paragraph{Six algorithms.} Paper-to-law manufacturing
+(Algorithm~\ref{alg:paper-law}), admissible evidence
+(Algorithm~\ref{alg:admit-evidence}), receipt-bearing execution
+(Algorithm~\ref{alg:receipt-exec}), M\&A deck manufacturing
+(Algorithm~\ref{alg:ma-deck}), decommissioning
+(Algorithm~\ref{alg:decommission}), and board claim reliability
+(Algorithm~\ref{alg:board-reliability}) together constitute the complete
+manufacturing protocol.
+
+\paragraph{Board reliability algebra.} Reliability is a conjunction of eight
+components (Theorem~\ref{thm:reliability}); explicit residuals strengthen
+rather than weaken reliability (Corollary~\ref{cor:residuals}).
+
+\paragraph{Operating equation.} $\mathrm{BlueRiverDam} = \kappa \circ \rho
+\circ \alpha \circ \mu$ is complete and exhaustive
+(Theorem~\ref{thm:brd-completeness}).
+
+\bigskip
+\noindent\textbf{The product is CodeManufactory; process reality is merely
+proof that CodeManufactory works.}
