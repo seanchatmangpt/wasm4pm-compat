@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/receipt_admission_wrong_witness_type.rs:17:5
+   |
+14 |     let no_witness: Admission<String, String> = todo!();
+   |                                                 ------- any code following this expression is unreachable
+...
+17 |     requires_ocel_admission(no_witness);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/receipt_admission_wrong_witness_type.rs:17:29
+   |
+17 |     requires_ocel_admission(no_witness);
+   |     ----------------------- ^^^^^^^^^^ expected `Admission<String, Ocel20>`, found `Admission<String, String>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Admission<std::string::String, Ocel20>`
+              found struct `Admission<std::string::String, std::string::String>`
+note: function defined here
+  --> tests/ui/compile_fail/receipt_admission_wrong_witness_type.rs:11:4
+   |
+11 | fn requires_ocel_admission(_a: Admission<String, Ocel20>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^ -----------------------------
