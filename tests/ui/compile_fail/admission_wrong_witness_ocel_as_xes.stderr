@@ -1,0 +1,25 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/admission_wrong_witness_ocel_as_xes.rs:12:5
+   |
+11 |     let ocel_admission: Admission<OcelLog, Ocel20> = todo!();
+   |                                                      ------- any code following this expression is unreachable
+12 |     requires_xes_admission(ocel_admission); // ERROR: expected Xes1849, found Ocel20
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/admission_wrong_witness_ocel_as_xes.rs:12:28
+   |
+12 |     requires_xes_admission(ocel_admission); // ERROR: expected Xes1849, found Ocel20
+   |     ---------------------- ^^^^^^^^^^^^^^ expected `Admission<OcelLog, Xes1849>`, found `Admission<OcelLog, Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Admission<wasm4pm_compat::OcelLog, Xes1849>`
+              found struct `Admission<wasm4pm_compat::OcelLog, Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/admission_wrong_witness_ocel_as_xes.rs:8:4
+   |
+ 8 | fn requires_xes_admission(_: Admission<OcelLog, Xes1849>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ ------------------------------
