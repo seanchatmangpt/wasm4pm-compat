@@ -30,7 +30,8 @@ for phrase in "stable Rust builds" "wasm4pm_compat_nightly" "minimum stable" "st
     matches=$(grep -rn "$phrase" "$REPO_ROOT/src/" "$REPO_ROOT/docs/" 2>/dev/null \
         | grep -v "No instances of:" \
         | grep -v "no affirmative" \
-        | grep -v "no stable fallback" \
+        | grep -v -i "no stable fallback" \
+        | grep -v "### No stable fallback" \
         | grep -v "Phrases such as:" \
         || true)
     if [ -n "$matches" ]; then
@@ -55,6 +56,8 @@ msrv_hits=$(grep -rn "MSRV" "$REPO_ROOT/src/" "$REPO_ROOT/docs/" 2>/dev/null \
     | grep -v "No stable/MSRV" \
     | grep -v "Instances of" \
     | grep -v "Phrases such as:" \
+    | grep -v "do not add MSRV" \
+    | grep -v "MSRV badges" \
     || true)
 
 if [ -n "$msrv_hits" ]; then

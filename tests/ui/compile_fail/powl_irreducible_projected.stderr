@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `Irreducible: TreeProjectable` is not satisfied
+  --> tests/ui/compile_fail/powl_irreducible_projected.rs:10:29
+   |
+10 |     assert_tree_projectable(Irreducible);
+   |     ----------------------- ^^^^^^^^^^^ the trait `TreeProjectable` is not implemented for `Irreducible`
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `TreeProjectable` is implemented for `wasm4pm_compat::powl::ProcessTreeProjectable`
+  --> src/powl.rs
+   |
+   | impl TreeProjectable for ProcessTreeProjectable {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `assert_tree_projectable`
+  --> src/powl.rs
+   |
+   | pub fn assert_tree_projectable<P: TreeProjectable>(_marker: P) -> bool {
+   |                                   ^^^^^^^^^^^^^^^ required by this bound in `assert_tree_projectable`

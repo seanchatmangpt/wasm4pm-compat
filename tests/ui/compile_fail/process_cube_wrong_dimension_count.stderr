@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/process_cube_wrong_dimension_count.rs:14:29
+   |
+14 |     requires_three_dim_cell(cell);
+   |     ----------------------- ^^^^ expected `3`, found `2`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `CubeCell<3>`
+              found struct `CubeCell<2>`
+note: function defined here
+  --> tests/ui/compile_fail/process_cube_wrong_dimension_count.rs:8:4
+   |
+ 8 | fn requires_three_dim_cell(_cell: CubeCell<3>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^ ------------------

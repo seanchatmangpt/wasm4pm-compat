@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/correlation_schema_mismatch.rs:17:28
+   |
+17 |     requires_by_object_log(by_case);
+   |     ---------------------- ^^^^^^^ expected `"by-object"`, found `"by-case"`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `CorrelatedLog<LogA, LogB, "by-object">`
+              found struct `CorrelatedLog<LogA, LogB, "by-case">`
+note: function defined here
+  --> tests/ui/compile_fail/correlation_schema_mismatch.rs:11:4
+   |
+11 | fn requires_by_object_log(_log: CorrelatedLog<LogA, LogB, "by-object">) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ --------------------------------------------

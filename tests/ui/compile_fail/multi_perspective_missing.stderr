@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/multi_perspective_missing.rs:21:26
+   |
+21 |     requires_cf_and_data(cf_only);
+   |     -------------------- ^^^^^^^ expected `PerspectiveCombination<..., ...>`, found `ControlFlowPerspective`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `MultiPerspectiveEvidence<u32, PerspectiveCombination<ControlFlowPerspective, DataPerspective>>`
+              found struct `MultiPerspectiveEvidence<u32, ControlFlowPerspective>`
+note: function defined here
+  --> tests/ui/compile_fail/multi_perspective_missing.rs:10:4
+   |
+10 | fn requires_cf_and_data(
+   |    ^^^^^^^^^^^^^^^^^^^^
+11 |     _ev: MultiPerspectiveEvidence<u32, PerspectiveCombination<ControlFlowPerspective, DataPerspective>>,
+   |     ---------------------------------------------------------------------------------------------------

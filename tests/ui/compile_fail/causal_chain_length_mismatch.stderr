@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/causal_chain_length_mismatch.rs:14:31
+   |
+14 |     requires_three_link_chain(chain);
+   |     ------------------------- ^^^^^ expected `3`, found `2`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `CausalChain<3>`
+              found struct `CausalChain<2>`
+note: function defined here
+  --> tests/ui/compile_fail/causal_chain_length_mismatch.rs:8:4
+   |
+ 8 | fn requires_three_link_chain(_chain: CausalChain<3>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^ ----------------------

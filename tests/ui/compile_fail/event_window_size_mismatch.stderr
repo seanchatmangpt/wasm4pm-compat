@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/event_window_size_mismatch.rs:14:24
+   |
+14 |     requires_window_20(window_10);
+   |     ------------------ ^^^^^^^^^ expected `20`, found `10`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `EventWindow<u8, 20>`
+              found struct `EventWindow<u8, 10>`
+note: function defined here
+  --> tests/ui/compile_fail/event_window_size_mismatch.rs:8:4
+   |
+ 8 | fn requires_window_20(_window: EventWindow<u8, 20>) {}
+   |    ^^^^^^^^^^^^^^^^^^ ----------------------------

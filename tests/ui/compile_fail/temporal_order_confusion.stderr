@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/temporal_order_confusion.rs:16:22
+   |
+16 |     requires_offline(online_ev);
+   |     ---------------- ^^^^^^^^^ expected `OfflineAnalysisContext`, found `OnlineMonitoringContext`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `ContextualEvidence<u64, OfflineAnalysisContext>`
+              found struct `ContextualEvidence<u64, OnlineMonitoringContext>`
+note: function defined here
+  --> tests/ui/compile_fail/temporal_order_confusion.rs:8:4
+   |
+ 8 | fn requires_offline(_ev: ContextualEvidence<u64, OfflineAnalysisContext>) {}
+   |    ^^^^^^^^^^^^^^^^ ----------------------------------------------------

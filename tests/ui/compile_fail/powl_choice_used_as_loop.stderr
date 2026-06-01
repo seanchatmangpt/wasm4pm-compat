@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/powl_choice_used_as_loop.rs:13:17
+   |
+13 |     accept_loop(choice);
+   |     ----------- ^^^^^^ expected `TypedPowlLoopNode<Vec<PowlNodeId>, 2>`, found `PowlChoiceNode`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `TypedPowlLoopNode<Vec<PowlNodeId>, 2>`
+              found struct `PowlChoiceNode`
+note: function defined here
+  --> tests/ui/compile_fail/powl_choice_used_as_loop.rs:9:4
+   |
+ 9 | fn accept_loop(_node: TypedPowlLoopNode<Vec<PowlNodeId>, 2>) {}
+   |    ^^^^^^^^^^^ --------------------------------------------
