@@ -182,6 +182,8 @@ pub mod interop;
 pub mod law;
 /// Loss policy, loss report, and named projection law.
 pub mod loss;
+/// Multi-perspective process evidence: ControlFlow/Data/Resource/Time perspective markers.
+pub mod multiperspective;
 /// Object lifecycle law: typed phase markers and lawful phase transitions.
 pub mod object_lifecycle;
 /// Object-centric event log (OCEL) shape.
