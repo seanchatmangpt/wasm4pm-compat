@@ -204,6 +204,12 @@ pub mod process_cube;
 pub mod process_tree;
 /// Receipt shape: provenance-bearing evidence envelope.
 pub mod receipt;
+/// Causal consistency law: CausalChain, CausalLink, CausalConsistency, CausallyOrderedEvidence.
+pub mod causality;
+/// Cross-log correlation law: CorrelationKey, CorrelatedLog, CorrelationSchema shapes.
+pub mod correlation;
+/// Streaming evidence context law: online vs. offline collection markers and EventWindow.
+pub mod streaming;
 /// Temporal ordering and profile law surfaces.
 pub mod temporal;
 /// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
