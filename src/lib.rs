@@ -1,17 +1,27 @@
 //! # wasm4pm-compat
 //!
-//! A **minimal, paper-complete, structure-only** Rust process-evidence standard.
+//! A **nightly-only, paper-complete, structure-only** Rust process-evidence
+//! standard.
 //!
 //! > **Start with compatibility. Graduate to execution.**
 //!
-//! This crate is a *compatibility surface* for process mining: it knows the full
-//! canon of process-evidence shapes — events, traces, logs, OCEL, XES, BPMN,
-//! Petri nets, WF-nets, OC-Petri-nets, POWL, process trees, Declare, OC-Declare,
-//! OCPQ, DFG, conformance verdicts, prediction problems, and receipt-shaped
-//! evidence — and represents them as small, strongly-named, transparent types
-//! with witness markers and typestate wrappers.
+//! ## Nightly requirement
 //!
-//! ## What this crate **IS**
+//! This crate **requires nightly Rust** unconditionally. The `rust-toolchain.toml`
+//! pins the toolchain to nightly. The following features are declared at the
+//! crate root with no cfg gate:
+//!
+//! - `generic_const_exprs` — law machinery and `WfNetConst<SOUNDNESS>`
+//! - `adt_const_params` — `ConditionCell<BITS>`, `Between01<NUM,DEN>`, and
+//!   `Metric<KIND,NUM,DEN>`
+//! - `const_trait_impl` — compile-time trait dispatch in law surfaces
+//! - `min_specialization` — type-law narrowing in `nightly_foundry`
+//! - `portable_simd` — SIMD-width type-law surface in `nightly_foundry`
+//!
+//! There is no stable build target and no MSRV. Applications must conform
+//! *upward* to the type law, not the other way around.
+//!
+//! ## What this crate IS
 //!
 //! - A *structure-only* standard: the **shape** of process evidence and the
 //!   **laws** of admission, refusal, and lossy projection.
@@ -19,9 +29,12 @@
 //!   then exported back out (or graduated to `wasm4pm`) — never laundered
 //!   raw-to-raw.
 //! - A place where **refusal is first-class**: every serious surface refuses
-//!   with a *specific named law*, never a bare `InvalidInput`.
+//!   with a *specific named law* (e.g. `DanglingEventObjectLink`,
+//!   `MissingFinalMarking`, `UnsoundWfNet`), never a bare `InvalidInput`.
+//! - Built from **small, transparent, strongly-named types**: `PhantomData`
+//!   witness/state markers and zero-cost `#[repr(transparent)]` ID wrappers.
 //!
-//! ## What this crate is **NOT**
+//! ## What this crate is NOT
 //!
 //! - **Not** a lite version of `wasm4pm`. It contains **no engines**: no
 //!   discovery, no conformance checking, no replay, no alignment, no
@@ -29,6 +42,23 @@
 //! - **Not** a data-laundering tool. Lossy projection always requires a named
 //!   projection, a [`loss::LossPolicy`], a [`loss::LossReport`], and a refusal
 //!   path.
+//!
+//! ## The one-way door
+//!
+//! The central invariant is a typed, one-way lifecycle enforced by the type system:
+//!
+//! ```text
+//! Raw ──parse──▶ Parsed ──admit──▶ Admitted ──▶ {Projected | Exportable | Receipted}
+//!   │                                  ▲
+//!   └────────────── refuse ────────────┴──▶ Refused  (terminal; carries a named law)
+//! ```
+//!
+//! [`evidence::Evidence<T, State, W>`] is the universal carrier. `State` and `W`
+//! are zero-sized `PhantomData` tags — zero runtime cost. `Evidence<T, Raw, W>` and
+//! `Evidence<T, Admitted, W>` are **different types**. A function demanding admitted
+//! evidence cannot be called with raw evidence. The `Admitted` constructor is
+//! `pub(crate)` — the **only** public path to admitted evidence is
+//! [`admission::Admit::admit`].
 //!
 //! ## Feature model
 //!
@@ -42,12 +72,29 @@
 //! | `wasm4pm`  |   no    | graduation bridge traits toward the `wasm4pm` execution engine |
 //!
 //! There are **no per-format flags** (no `ocel`/`xes`/`bpmn`/…). Nightly is
-//! **not** a feature: the crate requires nightly unconditionally (see
-//! `rust-toolchain.toml`). `nightly_foundry.rs` is a staging module, always on.
+//! **not** a Cargo feature: the crate requires nightly unconditionally.
+//! `nightly_foundry.rs` is a staging module that is always on.
+//!
+//! ## Test surfaces
+//!
+//! Three distinct surfaces with different purposes and cadences:
+//!
+//! - **Fast loop** — `cargo test --all-features --tests`: unit and integration
+//!   tests; sub-second after the initial build. Run on every change.
+//! - **ALIVE gate** — `cargo test --test ui_tests -- --ignored`: trybuild
+//!   compile-fail and compile-pass fixtures that certify the type law. Explicit
+//!   opt-in; ~4 min cold. A compile-fail fixture failing for the *wrong* reason
+//!   is not a valid type-law receipt.
+//! - **Documentation audit** — `cargo test --doc --all-features`: verifies
+//!   every public doctest compiles. Explicit opt-in; slow on nightly (each
+//!   doctest touching nightly features is a separate `rustc` invocation).
+//!
+//! Doctests are **disabled** in the default test run (`doctest = false` in
+//! `Cargo.toml`) to keep the dev loop fast.
 //!
 //! ## Adoption example
 //!
-//! Construct the core event-log shape via the [`prelude`]:
+//! Build the core event-log shape via the [`prelude`]:
 //!
 //! ```ignore
 //! use wasm4pm_compat::prelude::*;
@@ -59,9 +106,43 @@
 //! assert_eq!(log.trace_count(), 1);
 //! ```
 //!
-//! The example is `ignore`d here because the always-on shape modules are
-//! authored alongside this crate root; it is written to compile once those
-//! sibling modules exist.
+//! The full `Raw → Admitted` path:
+//!
+//! ```ignore
+//! use wasm4pm_compat::admission::{Admit, Admission, Refusal};
+//! use wasm4pm_compat::evidence::Evidence;
+//! use wasm4pm_compat::state::Raw;
+//! use wasm4pm_compat::witness::Ocel20;
+//!
+//! enum LinkedOcel {}
+//!
+//! impl Admit for LinkedOcel {
+//!     type Raw = bool;
+//!     type Admitted = bool;
+//!     type Reason = &'static str;
+//!     type Witness = Ocel20;
+//!     fn admit(raw: Evidence<bool, Raw, Ocel20>)
+//!         -> Result<Admission<bool, Ocel20>, Refusal<&'static str, Ocel20>>
+//!     {
+//!         if raw.value { Ok(Admission::new(true)) }
+//!         else { Err(Refusal::new("DanglingEventObjectLink")) }
+//!     }
+//! }
+//!
+//! let admitted = LinkedOcel::admit(Evidence::raw(true)).unwrap().into_evidence();
+//! let exportable = admitted.into_exportable();
+//! assert_eq!(exportable.value, true);
+//! ```
+//!
+//! Examples are `ignore`d here; see the `examples/` directory for runnable
+//! walkthroughs of each capability stage.
+//!
+//! ## Graduation path
+//!
+//! When you need to *run* something — discover a model, check conformance, replay a
+//! log — you graduate. With the `wasm4pm` feature, bridge traits hand your typed
+//! compat evidence to the execution engine. The compat crate stays structure-only;
+//! the engine does the work.
 
 // ── Nightly features — unconditional (nightly toolchain required) ────────────
 #![feature(generic_const_exprs)]
