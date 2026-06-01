@@ -1,15 +1,18 @@
 // COMPILE-FAIL: Engine creep boundary — no discovery execution exists in wasm4pm-compat.
 //
 // Law: compat carries structure only; process discovery execution graduates to wasm4pm.
-// A future developer who adds ProcessDiscoveryEngine to this crate WILL break this fixture.
-// That breakage is the intended alarm — engine capability must not grow in the compat layer.
+// This fixture proves the absence of discovery execution on real compat types:
+// calling a hypothetical `.discover_process_model()` method on OcelLog produces
+// E0599 ("no method named `discover_process_model` found for struct `OcelLog`")
+// — the compat API has no discovery execution, not merely a missing type name.
 //
-// Expected error: `ProcessDiscoveryEngine` not found in `wasm4pm_compat`
-// This IS the pass condition: absence of the engine type is the law being receipted.
-#[allow(unused_imports)]
-use wasm4pm_compat::*;
+// Expected error: E0599 — method `discover_process_model` not found on `OcelLog`
+// This IS the pass condition: absence of engine methods on compat types is the law receipted.
+use wasm4pm_compat::ocel::OcelLog;
+
 fn main() {
+    let log = OcelLog::default();
     // Discovery execution must not exist in compat — it graduates to wasm4pm.
-    // This fixture proves the absence by attempting to use a non-existent type.
-    let _: wasm4pm_compat::ProcessDiscoveryEngine = todo!();
+    // This call must fail: OcelLog has no discovery engine methods.
+    let _ = log.discover_process_model();
 }
