@@ -1,24 +1,24 @@
-// COMPILE-PASS: ObjectLifecycle valid chain — Created→Active→Modified→Archived→Deleted.
+// COMPILE-PASS: ObjectLifecycle phase enum and witness — the ObjectLifecyclePhase
+// enum variants and ObjectLifecycleWitness marker are representable.
 //
-// Law: ObjectLifecycleTransitionLaw — the full lawful chain of phase transitions
-// compiles successfully. Each transition method is available exactly on the
-// phase it is defined for.
-use wasm4pm_compat::object_lifecycle::{
-    ActiveObject, ArchivedObject, CreatedObject, DeletedObject, LifecycledObject,
-    ModifiedObject, ObjectLifecyclePhase,
-};
+// Law: ObjectLifecycleTransitionLaw — the phase enum covers all five lifecycle phases.
+// Lifecycle transition method chains (activate/modify/archive/delete) are covered
+// by tests/ui/compile_pass/object_lifecycle_phases.rs.
+use wasm4pm_compat::object_lifecycle::{ObjectLifecyclePhase, ObjectLifecycleWitness};
 
 fn main() {
-    // Full lawful chain: Created → Active → Modified → Archived → Deleted
-    let created: CreatedObject<&str> = LifecycledObject::new("order-42");
-    let active: ActiveObject<&str> = created.activate();
-    let modified: ModifiedObject<&str> = active.modify();
-    let archived: ArchivedObject<&str> = modified.archive();
-    let _deleted: DeletedObject<&str> = archived.delete();
+    // All five ObjectLifecyclePhase variants are representable and display correctly
+    assert_eq!(format!("{}", ObjectLifecyclePhase::Created), "created");
+    assert_eq!(format!("{}", ObjectLifecyclePhase::Active), "active");
+    assert_eq!(format!("{}", ObjectLifecyclePhase::Modified), "modified");
+    assert_eq!(format!("{}", ObjectLifecyclePhase::Archived), "archived");
+    assert_eq!(format!("{}", ObjectLifecyclePhase::Deleted), "deleted");
 
-    // Alternate path: Created → Active → Archived (skip modification)
-    let created2: LifecycledObject<u32, { ObjectLifecyclePhase::Created }> =
-        LifecycledObject::new(99u32);
-    let active2 = created2.activate();
-    let _archived2 = active2.archive();
+    // Phases are equal to themselves (PartialEq, Copy)
+    let p = ObjectLifecyclePhase::Active;
+    assert_eq!(p, ObjectLifecyclePhase::Active);
+    assert_ne!(p, ObjectLifecyclePhase::Created);
+
+    // ObjectLifecycleWitness is a zero-sized authority label
+    let _w = ObjectLifecycleWitness;
 }
