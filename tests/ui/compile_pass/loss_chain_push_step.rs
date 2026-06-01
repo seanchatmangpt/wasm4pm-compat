@@ -1,3 +1,4 @@
+// Law: LossChainPushStepLaw — LossChain::push records a NamedLoss step and the chain is no longer lossless after the push
 // COMPILE-PASS: LossChain::push — proves a single NamedLoss step can be recorded
 
 use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};

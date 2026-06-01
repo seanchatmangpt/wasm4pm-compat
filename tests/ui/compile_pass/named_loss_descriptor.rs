@@ -1,3 +1,4 @@
+// Law: NamedLossDescriptorLaw — NamedLoss pairs a ProjectionName with a loss-category label; it is usable as LossReport::Items and formats as "<projection>/<category>"
 // COMPILE-PASS: NamedLoss — proves the named-loss descriptor pairs a
 // ProjectionName with a loss-category label and is usable as LossReport::Lost.
 //

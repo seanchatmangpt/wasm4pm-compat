@@ -1,3 +1,4 @@
+// Law: ProjectionBoundaryDisplayLaw — ProjectionBoundary<LABEL> implements Display as the boundary label string baked in as a const-generic param
 // COMPILE-PASS: ProjectionBoundary Display — proves Display formats as the boundary label
 
 #![feature(adt_const_params)]

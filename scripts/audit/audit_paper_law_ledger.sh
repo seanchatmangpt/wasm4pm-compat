@@ -9,7 +9,7 @@
 # This script checks that the summary count for MISSING_TYPE_LAW is 0.
 # Any non-zero count means active type-law gaps remain.
 
-REPO_ROOT="$(dirname "$0")/.."
+REPO_ROOT="$(dirname "$0")/../.."
 LEDGER="$REPO_ROOT/docs/PAPER_COVERAGE_LEDGER.md"
 
 if [ ! -f "$LEDGER" ]; then

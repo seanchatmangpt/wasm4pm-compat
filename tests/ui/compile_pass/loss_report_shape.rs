@@ -1,3 +1,4 @@
+// Law: LossReportFromToDistinctLaw — LossReport<From,To,Items> carries distinct From and To shape markers; LossReport<A,B,I> and LossReport<C,D,I> are different types
 // COMPILE-PASS: LossReport<From, To, Items> constructs lawfully with typed From/To markers
 //
 // Proves that:

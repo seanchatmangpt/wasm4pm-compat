@@ -1,3 +1,4 @@
+// Law: LossPolicyCopyLaw — LossPolicy is Copy; a policy decision can be passed by value without ownership transfer
 // COMPILE-PASS: LossPolicy Copy semantics — proves LossPolicy is Copy and can be passed by value
 
 use wasm4pm_compat::loss::LossPolicy;

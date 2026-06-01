@@ -1,3 +1,4 @@
+// Law: LossChainExtendLaw — LossChain::extend merges two sub-pipeline chains into one ordered trail; cumulative loss accounting is correct
 // COMPILE-PASS: LossChain::extend — proves two sub-pipeline chains merge into one
 
 use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};

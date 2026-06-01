@@ -15,10 +15,12 @@ for fail_rs in "$FAIL_DIR"/*.rs; do
   # Extract the law keyword: first token of the filename (up to first underscore group)
   # Strategy: look for any compile_pass fixture sharing the first meaningful word
   first_word=$(echo "$base" | cut -d'_' -f1)
-  matches=$(ls "$PASS_DIR"/"${first_word}"*.rs 2>/dev/null | wc -l)
+  shopt -s nullglob
+  pass_files=("$PASS_DIR"/"${first_word}"*.rs)
+  matches=${#pass_files[@]}
   if [[ "$matches" -eq 0 ]]; then
     echo "  WARN  no compile_pass pair for: $base (keyword: $first_word)"
-    ((UNMATCHED++))
+    UNMATCHED=$((UNMATCHED + 1))
   fi
 done
 

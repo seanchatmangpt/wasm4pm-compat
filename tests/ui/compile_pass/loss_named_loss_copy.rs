@@ -1,3 +1,4 @@
+// Law: NamedLossCopyLaw — NamedLoss is Copy; a loss descriptor can be reused after assignment without ownership transfer
 // COMPILE-PASS: NamedLoss Copy semantics — proves NamedLoss is Copy and can be used after a move
 
 use wasm4pm_compat::loss::{NamedLoss, ProjectionName};

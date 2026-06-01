@@ -1,3 +1,4 @@
+// Law: ProjectionNameDisplayLaw — ProjectionName formats as its contained &'static str; the name is stable and auditable as a machine-readable key
 // COMPILE-PASS: ProjectionName Display — proves ProjectionName formats as its contained static str
 
 use wasm4pm_compat::loss::ProjectionName;

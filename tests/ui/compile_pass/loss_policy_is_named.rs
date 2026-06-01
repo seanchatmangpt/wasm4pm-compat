@@ -1,3 +1,4 @@
+// Law: LossPolicyIsNamedLaw — is_named() returns true only for AllowNamedProjection; RefuseLoss and AllowLossWithReport return false
 // COMPILE-PASS: LossPolicy::is_named — proves the predicate identifies AllowNamedProjection only
 
 use wasm4pm_compat::loss::LossPolicy;

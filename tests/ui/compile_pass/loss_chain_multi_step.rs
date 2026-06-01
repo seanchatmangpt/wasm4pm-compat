@@ -1,3 +1,4 @@
+// Law: LossChainMultiStepLaw — a multi-step projection pipeline accumulates all named losses in order; no step is silently dropped
 // COMPILE-PASS: LossChain multi-step — proves a two-step pipeline accumulates both named losses
 
 use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};

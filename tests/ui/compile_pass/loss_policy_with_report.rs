@@ -1,3 +1,4 @@
+// Law: LossPolicyAllowWithReportLaw — AllowLossWithReport requires a full itemized LossReport; every discarded item must be named in the report
 // COMPILE-PASS: LossPolicy::AllowLossWithReport — proves a Project impl produces a full LossReport enumerating discarded items
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};

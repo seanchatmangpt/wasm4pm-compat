@@ -1,3 +1,4 @@
+// Law: NamedLossConstDistinctTypesLaw — NamedLossConst<"DroppedObjectTypeLinks"> and NamedLossConst<"FlattenedMultiObjectRelation"> are distinct types; const-generic names produce non-interchangeable markers
 // COMPILE-PASS: NamedLossConst distinct types — proves two different loss category names produce distinct types
 
 #![feature(adt_const_params)]

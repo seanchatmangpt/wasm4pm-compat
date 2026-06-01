@@ -1,3 +1,4 @@
+// Law: ProjectionBoundaryDistinctTypesLaw — ProjectionBoundary<"ocel-to-xes"> and ProjectionBoundary<"xes-to-dfg"> are distinct zero-sized types; const-generic boundary names produce non-interchangeable markers
 // COMPILE-PASS: ProjectionBoundary distinct types — proves two boundary names produce distinct zero-sized types
 
 #![feature(adt_const_params)]

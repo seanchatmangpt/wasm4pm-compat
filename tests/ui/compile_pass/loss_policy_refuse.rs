@@ -1,3 +1,4 @@
+// Law: LossPolicyRefuseLaw — a Project impl under RefuseLoss must return an error on any lossy transformation; silent loss is a compile-time defect
 // COMPILE-PASS: LossPolicy::RefuseLoss — proves a Project impl can refuse loss under the RefuseLoss policy
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};

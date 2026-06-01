@@ -1,3 +1,4 @@
+// Law: LossReportCloneLaw — LossReport<From,To,Items> is Clone when Items: Clone; uninhabited shape marker enums do not need to implement Clone
 // COMPILE-PASS: LossReport Clone — proves LossReport is Clone when Items: Clone (shape markers need not be Clone)
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};

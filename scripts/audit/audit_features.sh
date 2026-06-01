@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-CARGO_TOML="$(dirname "$0")/../Cargo.toml"
+CARGO_TOML="$(dirname "$0")/../../Cargo.toml"
 
 FAIL=0
 

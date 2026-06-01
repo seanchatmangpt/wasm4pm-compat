@@ -1,3 +1,4 @@
+// Law: ProjectTraitFullChainLaw — ProjectionName+LossPolicy+LossReport form a complete accounting chain; all three are required for a lawful projection
 // COMPILE-PASS: Project trait full chain — proves ProjectionName+LossPolicy+LossReport chain compiles end-to-end
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};

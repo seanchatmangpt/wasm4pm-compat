@@ -11,11 +11,20 @@ if [[ ! -f "$ADMISSION" ]]; then
   exit 1
 fi
 
-HITS=$(grep -cE "(InvalidInput|GenericError)" "$ADMISSION" 2>/dev/null || echo "0")
+# Only match non-comment, non-doc-comment code lines.
+# grep -n output is "lineno:content"; strip to content, then filter out comment lines.
+# Disable pipefail here: grep -v exits 1 when all lines are filtered (expected for clean state).
+HITS=$(set +o pipefail; grep -nE "(InvalidInput|GenericError)" "$ADMISSION" 2>/dev/null \
+  | sed 's/^[0-9]*://' \
+  | grep -vE '^[[:space:]]*//' \
+  | wc -l | tr -d ' ')
 
 if [[ "$HITS" -gt 0 ]]; then
-  echo "  FAIL  unsealed refusal variant (InvalidInput or GenericError) found in $ADMISSION"
-  grep -nE "(InvalidInput|GenericError)" "$ADMISSION" | sed 's/^/         /'
+  echo "  FAIL  unsealed refusal variant (InvalidInput or GenericError) found in non-comment lines of $ADMISSION"
+  grep -nE "(InvalidInput|GenericError)" "$ADMISSION" 2>/dev/null \
+    | sed 's/^[0-9]*://' \
+    | grep -vE '^[[:space:]]*//' \
+    | sed 's/^/         /'
   exit 1
 fi
 

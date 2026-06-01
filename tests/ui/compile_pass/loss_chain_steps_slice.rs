@@ -1,3 +1,4 @@
+// Law: LossChainStepsSliceLaw — LossChain::steps() returns the ordered slice of all accumulated NamedLoss entries; ordering is preserved
 // COMPILE-PASS: LossChain::steps — proves steps() returns an ordered slice of NamedLoss entries
 
 use wasm4pm_compat::loss::{LossChain, NamedLoss, ProjectionName};

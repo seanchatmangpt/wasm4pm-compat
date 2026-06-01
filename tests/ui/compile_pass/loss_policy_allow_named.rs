@@ -1,3 +1,4 @@
+// Law: LossPolicyAllowNamedProjectionLaw — AllowNamedProjection permits named loss without enumerating items; the projection name is the sole accounting unit
 // COMPILE-PASS: LossPolicy::AllowNamedProjection — proves a Project impl allows named loss without itemizing it
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};

@@ -1,3 +1,4 @@
+// Law: LossReportIsLosslessLaw — LossReport::is_lossless() returns true when Items is vacuously empty; only IsEmpty-implementing types can be checked
 // COMPILE-PASS: LossReport::is_lossless — proves vacuously empty reports are recognized as lossless
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};

@@ -13,7 +13,7 @@
 #   - "documented MSRV" in a future-milestone table row (forward-looking label)
 # Those are excluded by filtering out the negating/future patterns.
 
-REPO_ROOT="$(dirname "$0")/.."
+REPO_ROOT="$(dirname "$0")/../.."
 FAIL=0
 
 # ── 1. Exact forbidden phrases (no legitimate use anywhere) ─────────────────

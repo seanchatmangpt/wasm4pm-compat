@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# audit_missing_type_law.sh — grep docs/PAPER_COVERAGE_LEDGER.md for MISSING_TYPE_LAW.
-# Exit 1 if any found. (Gate 2.)
+# audit_missing_type_law.sh — check docs/PAPER_COVERAGE_LEDGER.md for
+# MISSING_TYPE_LAW entries with a non-zero count. Exit 1 if any active gaps
+# remain. (Gate 2 — complements audit_paper_law_ledger.sh.)
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -11,13 +12,21 @@ if [[ ! -f "$LEDGER" ]]; then
   exit 1
 fi
 
-COUNT=$(grep -c "MISSING_TYPE_LAW" "$LEDGER" 2>/dev/null || echo "0")
+# The summary row looks like: | `MISSING_TYPE_LAW` | <count> | ...
+# The legend/definition row does not have a numeric second column.
+count_line=$(grep "^| \`MISSING_TYPE_LAW\` |" "$LEDGER" | grep -v "Canon family present" || true)
 
-if [[ "$COUNT" -gt 0 ]]; then
-  echo "  FAIL  $COUNT MISSING_TYPE_LAW entries found in $LEDGER"
-  grep -n "MISSING_TYPE_LAW" "$LEDGER" | sed 's/^/         /'
+if [[ -z "$count_line" ]]; then
+  echo "  FAIL  MISSING_TYPE_LAW summary row not found in $LEDGER"
   exit 1
 fi
 
-echo "  PASS  no MISSING_TYPE_LAW entries in $LEDGER"
+count=$(echo "$count_line" | awk -F'|' '{print $3}' | tr -d ' ')
+
+if [[ "$count" != "0" ]]; then
+  echo "  FAIL  MISSING_TYPE_LAW count is ${count} (expected 0) in $LEDGER"
+  exit 1
+fi
+
+echo "  PASS  MISSING_TYPE_LAW count = 0 in $LEDGER"
 exit 0

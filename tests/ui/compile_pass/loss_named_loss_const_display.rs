@@ -1,3 +1,4 @@
+// Law: NamedLossConstDisplayLaw — NamedLossConst<NAME> implements Display as the category name baked into the type at compile time
 // COMPILE-PASS: NamedLossConst Display — proves Display formats as the category name
 
 #![feature(adt_const_params)]

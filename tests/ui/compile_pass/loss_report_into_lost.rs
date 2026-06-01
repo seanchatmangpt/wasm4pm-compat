@@ -1,3 +1,4 @@
+// Law: LossReportIntoLostLaw — LossReport::into_lost() consumes the report and yields only the discarded items; no policy or projection info leaks into the items
 // COMPILE-PASS: LossReport::into_lost — proves consuming the report yields only the discarded items
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};

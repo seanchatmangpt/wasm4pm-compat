@@ -9,7 +9,7 @@
 #
 # Only checks non-comment lines (lines not starting with optional whitespace + //).
 
-REPO_ROOT="$(dirname "$0")/.."
+REPO_ROOT="$(dirname "$0")/../.."
 FAIL=0
 
 for name in discover replay_log align_trace token_replay; do

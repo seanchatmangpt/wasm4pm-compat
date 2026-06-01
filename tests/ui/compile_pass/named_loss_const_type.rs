@@ -1,3 +1,4 @@
+// Law: NamedLossConstTypeLaw — NamedLossConst<NAME> bakes the loss category into the type at compile time; the category is not a runtime string but a type-level constant
 // COMPILE-PASS: NamedLossConst — proves compile-time const-generic loss category baked into type
 
 #![feature(adt_const_params)]

@@ -1,3 +1,4 @@
+// Law: LossChainNewEmptyLaw — LossChain::new() starts empty and is_lossless(); an unstarted projection trail has no recorded losses
 // COMPILE-PASS: LossChain::new — proves an empty LossChain constructs and reports lossless
 
 use wasm4pm_compat::loss::LossChain;

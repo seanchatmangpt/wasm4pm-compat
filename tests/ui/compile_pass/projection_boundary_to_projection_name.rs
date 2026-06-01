@@ -1,3 +1,4 @@
+// Law: ProjectionBoundaryToProjectionNameLaw — ProjectionBoundary::projection_name() converts the const-generic boundary label into a ProjectionName usable in LossReport
 // COMPILE-PASS: ProjectionBoundary::projection_name — proves boundary converts to ProjectionName for use in LossReport
 
 #![feature(adt_const_params)]

@@ -1,3 +1,4 @@
+// Law: LossReportSummaryLaw — LossReport::summary() produces a NamedLoss pairing the projection name with the loss category; summary is auditable and stable
 // COMPILE-PASS: LossReport::summary — proves summary() produces a NamedLoss pairing projection + category
 
 use wasm4pm_compat::loss::{LossPolicy, LossReport, ProjectionName};

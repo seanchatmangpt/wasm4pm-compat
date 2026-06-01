@@ -4,7 +4,7 @@
 # For every .rs file in tests/ui/compile_fail/, checks that a .stderr file with
 # the same stem exists. Lists any missing receipts and exits 1 if any are found.
 
-REPO_ROOT="$(dirname "$0")/.."
+REPO_ROOT="$(dirname "$0")/../.."
 COMPILE_FAIL_DIR="$REPO_ROOT/tests/ui/compile_fail"
 FAIL=0
 MISSING=()

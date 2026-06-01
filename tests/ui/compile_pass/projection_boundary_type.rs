@@ -1,3 +1,4 @@
+// Law: ProjectionBoundaryTypeLaw — ProjectionBoundary<LABEL> is a zero-sized const-generic marker; its label is baked into the type and accessible via Display
 // COMPILE-PASS: ProjectionBoundary — proves const-generic boundary marker constructs and names correctly
 
 #![feature(adt_const_params)]

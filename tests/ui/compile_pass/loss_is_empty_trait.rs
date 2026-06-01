@@ -1,3 +1,4 @@
+// Law: IsEmptyTraitLaw — IsEmpty blanket impls cover Vec<T>, &[T], and &str; is_lossless() on LossReport depends on this bound
 // COMPILE-PASS: IsEmpty trait — proves IsEmpty blanket impls work for Vec<T>, &[T], and &str
 
 use wasm4pm_compat::loss::IsEmpty;
