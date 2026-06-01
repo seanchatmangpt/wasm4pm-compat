@@ -140,6 +140,42 @@ macro_rules! typed_id {
             pub const fn raw(self) -> $raw {
                 self.raw
             }
+
+            #[doc = concat!("Consumes `self` and returns the underlying raw `", stringify!($raw), "` value.")]
+            ///
+            /// Identical to [`raw`](Self::raw); provided for newtype-wrapper
+            /// ergonomics so callers can use the same `into_inner()` idiom
+            /// across all ID kinds.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            #[doc = concat!("use wasm4pm_compat::ids::", stringify!($name), ";")]
+            /// enum Local {}
+            #[doc = concat!("assert_eq!(", stringify!($name), "::<Local>::new(5).into_inner(), 5);")]
+            /// ```
+            #[inline]
+            pub const fn into_inner(self) -> $raw {
+                self.raw
+            }
+
+            #[doc = concat!("Borrows the underlying raw `", stringify!($raw), "` value.")]
+            ///
+            /// Identical to [`AsRef`] but using the newtype-wrapper ergonomic
+            /// name `as_inner()` so callers can use a consistent idiom across
+            /// all ID kinds.
+            ///
+            /// # Examples
+            ///
+            /// ```
+            #[doc = concat!("use wasm4pm_compat::ids::", stringify!($name), ";")]
+            /// enum Local {}
+            #[doc = concat!("assert_eq!(*", stringify!($name), "::<Local>::new(9).as_inner(), 9);")]
+            /// ```
+            #[inline]
+            pub const fn as_inner(&self) -> &$raw {
+                &self.raw
+            }
         }
 
         // Manual derives so `K` need not itself be `Clone`/`Copy`/etc.
