@@ -1977,7 +1977,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #73 — Scalable Process Discovery and Conformance Checking (Leemans, 2022)
+## #73 — Scalable Process Discovery (Leemans, 2022)
 
 **Paper:** Scalable Process Discovery and Conformance Checking
 **Canon family:** `PROCESS_TREES_INDUCTIVE`
