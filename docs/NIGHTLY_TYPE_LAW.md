@@ -2121,7 +2121,7 @@ shapes from the 2016 edition are covered across the canon modules.
 
 ---
 
-## #78 — BPMN Miner (Conforti, Dumas, Garcia-Banuelos, La Rosa, 2015)
+## #78 — BPMN Miner — law-packet (Conforti, Dumas, Garcia-Banuelos, La Rosa, 2015)
 
 **Paper:** BPMN Miner: Recovering BPMN Process Models with Subprocesses
 **Canon family:** `WORKFLOW_PATTERNS_BPMN`
