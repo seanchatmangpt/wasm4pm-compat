@@ -2159,7 +2159,7 @@ already typed in `src/bpmn.rs`. BPMN discovery execution graduates to wasm4pm.
 
 ---
 
-## #79 — Object-Centric Process Mining: Dealing with Divergence and Convergence (van der Aalst, 2013)
+## #79 — OC Process Mining precursor — law-packet (van der Aalst, 2013)
 
 **Paper:** Object-Centric Process Mining: Dealing with Divergence and Convergence (2013 precursor)
 **Canon family:** `OCEL_OBJECT_CENTRIC`
