@@ -14,7 +14,7 @@
 // lost. The type mismatch is the compile-time gate.
 //
 // Expected error: mismatched types — () is not LossReport<OcelShape, XesShape, Vec<&str>>.
-use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};
+use wasm4pm_compat::loss::{LossPolicy, LossReport, Project};
 
 struct BareProjection;
 
