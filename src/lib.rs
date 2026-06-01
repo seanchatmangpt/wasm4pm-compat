@@ -266,3 +266,4 @@ pub use crate::eventlog::{Event, EventLog, Trace};
 pub use crate::petri::{PetriNet, WfNet, WfNetConst};
 pub use crate::admission::{Admission, Admit, Refusal};
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
+pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
