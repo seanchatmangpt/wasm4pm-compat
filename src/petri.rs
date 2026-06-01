@@ -1170,6 +1170,7 @@ impl WfNet<SoundnessClaimed> {
     /// let _w: WfNet<SoundnessWitnessed> = wf.attest_witnessed();
     /// ```
     #[deprecated(
+        since = "0.1.0",
         note = "use WfNetConst which enforces non-forgeability: WfNetConst::witness_soundness \
                 requires a SoundnessProof token that is only constructible inside petri or via \
                 the wasm4pm graduation bridge. WfNet::attest_witnessed is freely callable and \
