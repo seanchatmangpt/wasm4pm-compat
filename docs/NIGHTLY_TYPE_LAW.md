@@ -1997,7 +1997,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #76 — Predictive PM Methods Survey (Di Francescomarino et al., 2017)
+## #76 — Predictive PM Methods Survey — graduation boundary (Di Francescomarino et al., 2017)
 
 **Paper:** Predictive Process Monitoring Methods: Which One Suits Me Best?
 **Canon family:** `PREDICTION_DRIFT`
