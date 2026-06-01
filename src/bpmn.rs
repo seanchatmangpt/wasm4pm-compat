@@ -296,6 +296,7 @@ impl BpmnProcess {
     /// );
     /// assert_eq!(p.validate(), Err(BpmnRefusal::DanglingEdge));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), BpmnRefusal> {
         use std::collections::HashSet;
 
@@ -423,6 +424,7 @@ impl BpmnLane {
     /// let known: HashSet<&str> = ["t1"].into_iter().collect();
     /// assert_eq!(lane.validate(&known), Err(BpmnRefusal::LaneNodeNotDeclared));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self, known_ids: &std::collections::HashSet<&str>) -> Result<(), BpmnRefusal> {
         for nid in &self.node_ids {
             if !known_ids.contains(nid.as_str()) {
@@ -551,6 +553,7 @@ impl BpmnPool {
     /// let pool = BpmnPool::new("p1", "Ops", process, [BpmnLane::new("l1", "Fin", ["ghost"])]);
     /// assert_eq!(pool.validate(), Err(BpmnRefusal::LaneNodeNotDeclared));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), BpmnRefusal> {
         self.process.validate()?;
         let known: std::collections::HashSet<&str> =

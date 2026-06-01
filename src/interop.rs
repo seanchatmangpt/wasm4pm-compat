@@ -279,6 +279,7 @@ impl<W> ArtifactGrounding<W> {
     /// assert!(g.admit_flat().is_err()); // OCEL refused under a flat claim
     /// assert!(matches!(g.admit_flat(), Err(InteropRefusal::FlatClaimOverObjectCentric)));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn admit_flat(&self) -> Result<(), InteropRefusal> {
         if !self.is_grounded() {
             return Err(InteropRefusal::UngroundedArtifact);
@@ -356,6 +357,7 @@ impl core::fmt::Display for InteropRefusal {
 ///     Err(InteropRefusal::DimensionShapeMismatch)
 /// );
 /// ```
+#[must_use = "check the shape-check result"]
 pub fn check_filter_shape(artifact: Pm4pyShape, filter: FilterShape) -> Result<(), InteropRefusal> {
     if matches!(filter, FilterShape::ObjectType) && !artifact.is_object_centric() {
         return Err(InteropRefusal::DimensionShapeMismatch);

@@ -83,6 +83,7 @@ pub mod petri_law {
         }
 
         /// Token count at place `p`. Returns `None` if `p >= P`.
+        #[must_use]
         #[inline]
         pub fn at(&self, p: usize) -> Option<u32> {
             self.0.get(p).copied()

@@ -47,6 +47,78 @@ impl Activity {
     pub fn new(label: impl Into<String>) -> Self {
         Self(label.into())
     }
+
+    /// Consumes `self` and returns the underlying `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::Activity;
+    /// assert_eq!(Activity::new("approve").into_inner(), "approve");
+    /// ```
+    #[inline]
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+
+    /// Borrows the underlying label as a `&str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::Activity;
+    /// assert_eq!(Activity::new("approve").as_inner(), "approve");
+    /// ```
+    #[inline]
+    pub fn as_inner(&self) -> &str {
+        &self.0
+    }
+}
+
+impl From<&str> for Activity {
+    /// Wraps a `&str` label as an [`Activity`], allocating an owned `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::Activity;
+    /// let a: Activity = "approve".into();
+    /// assert_eq!(a.0, "approve");
+    /// ```
+    #[inline]
+    fn from(s: &str) -> Self {
+        Activity(s.to_owned())
+    }
+}
+
+impl From<String> for Activity {
+    /// Wraps an owned `String` label as an [`Activity`]. Infallible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::Activity;
+    /// let a: Activity = String::from("approve").into();
+    /// assert_eq!(a.0, "approve");
+    /// ```
+    #[inline]
+    fn from(s: String) -> Self {
+        Activity(s)
+    }
+}
+
+impl AsRef<str> for Activity {
+    /// Borrows the label string as `&str`.
+    #[inline]
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl core::fmt::Display for Activity {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(&self.0)
+    }
 }
 
 /// The closed set of Declare templates supported by this compat surface.
@@ -464,6 +536,7 @@ impl OcDeclareConstraint {
     /// let invalid = OcDeclareConstraint::new(inner, vec![]);
     /// assert_eq!(invalid.validate(), Err(OcDeclareRefusal::EmptyObjectTypeList));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), OcDeclareRefusal> {
         if self.object_types.is_empty() {
             return Err(OcDeclareRefusal::EmptyObjectTypeList);

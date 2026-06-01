@@ -758,6 +758,7 @@ impl Arc {
     /// use wasm4pm_compat::petri::Arc;
     /// assert_eq!(Arc::place_to_transition("p", "t").object_type(), None);
     /// ```
+    #[must_use]
     pub fn object_type(&self) -> Option<&str> {
         self.object_type.as_deref()
     }
@@ -900,6 +901,7 @@ impl InitialFinalMarkingPair {
     /// );
     /// assert_eq!(bad.validate(), Err(PetriRefusal::MissingInitialMarking));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         if self.initial.is_empty() {
             return Err(PetriRefusal::MissingInitialMarking);
@@ -997,6 +999,7 @@ impl PetriNet {
     /// );
     /// assert_eq!(net.validate(), Err(PetriRefusal::InvalidVariableArc));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         use std::collections::HashSet;
         let pids: HashSet<&str> = self.places.iter().map(Place::id).collect();
@@ -1086,6 +1089,7 @@ impl<S> WfNet<S> {
     }
 
     /// The final marking, if declared.
+    #[must_use]
     pub fn final_marking(&self) -> Option<&Marking> {
         self.final_marking.as_ref()
     }
@@ -1110,6 +1114,7 @@ impl<S> WfNet<S> {
     /// let wf = WfNet::new(net, Marking::new([("snk".to_string(), 1)]));
     /// assert_eq!(wf.validate(), Err(PetriRefusal::MissingInitialMarking));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         self.net.validate()?;
         if self.net.initial_marking().is_empty() {
@@ -1241,6 +1246,7 @@ impl ObjectCentricPetriNet {
     /// let ocpn = ObjectCentricPetriNet::new(net, ["order".to_string()]);
     /// assert_eq!(ocpn.validate(), Err(PetriRefusal::ObjectTypeNotPreserved));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         self.net.validate()?;
         for a in self.net.arcs() {
@@ -1407,6 +1413,7 @@ impl MultipleInstanceSpec {
     /// let zero = MultipleInstanceSpec::new(0, Some(1), None, InstanceCreationKind::Static);
     /// assert_eq!(zero.validate(), Err(PetriRefusal::InvalidInstanceBounds));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         if self.min == 0 {
             return Err(PetriRefusal::InvalidInstanceBounds);

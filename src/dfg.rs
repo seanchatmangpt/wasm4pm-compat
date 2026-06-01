@@ -65,6 +65,58 @@ impl DfgActivityId {
     pub const fn as_str(self) -> &'static str {
         self.0
     }
+
+    /// Consumes `self` and returns the underlying `&'static str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgActivityId;
+    /// assert_eq!(DfgActivityId::new("pay").into_inner(), "pay");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn into_inner(self) -> &'static str {
+        self.0
+    }
+
+    /// Borrows the underlying `&'static str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgActivityId;
+    /// assert_eq!(DfgActivityId::new("pay").as_inner(), "pay");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn as_inner(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl From<&'static str> for DfgActivityId {
+    /// Wraps a static string as a [`DfgActivityId`]. Infallible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgActivityId;
+    /// let id: DfgActivityId = "pay".into();
+    /// assert_eq!(id.as_str(), "pay");
+    /// ```
+    #[inline]
+    fn from(s: &'static str) -> Self {
+        DfgActivityId(s)
+    }
+}
+
+impl AsRef<str> for DfgActivityId {
+    /// Borrows the activity name as a `&str`.
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.0
+    }
 }
 
 impl core::fmt::Display for DfgActivityId {
@@ -330,6 +382,7 @@ impl Dfg {
     /// let g = Dfg::new([DfgNode::new("a")], [DfgEdge::new("a", "ghost", 1)]);
     /// assert_eq!(g.validate(), Err(DfgRefusal::DanglingEdge));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), DfgRefusal> {
         use std::collections::HashSet;
         if self.nodes.is_empty() {
@@ -580,6 +633,7 @@ impl DfgEdgeFull {
     /// use wasm4pm_compat::dfg::DfgEdgeFull;
     /// assert!(DfgEdgeFull::new("a", "b", 1).duration_ns().is_none());
     /// ```
+    #[must_use]
     pub fn duration_ns(&self) -> Option<DfgDuration> {
         self.duration_ns
     }
@@ -727,6 +781,58 @@ impl DfgObjectType {
     pub const fn as_str(self) -> &'static str {
         self.0
     }
+
+    /// Consumes `self` and returns the underlying `&'static str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgObjectType;
+    /// assert_eq!(DfgObjectType::new("order").into_inner(), "order");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn into_inner(self) -> &'static str {
+        self.0
+    }
+
+    /// Borrows the underlying `&'static str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgObjectType;
+    /// assert_eq!(DfgObjectType::new("order").as_inner(), "order");
+    /// ```
+    #[inline]
+    #[must_use]
+    pub const fn as_inner(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl From<&'static str> for DfgObjectType {
+    /// Wraps a static string as a [`DfgObjectType`]. Infallible.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgObjectType;
+    /// let t: DfgObjectType = "order".into();
+    /// assert_eq!(t.as_str(), "order");
+    /// ```
+    #[inline]
+    fn from(s: &'static str) -> Self {
+        DfgObjectType(s)
+    }
+}
+
+impl AsRef<str> for DfgObjectType {
+    /// Borrows the object-type name as a `&str`.
+    #[inline]
+    fn as_ref(&self) -> &str {
+        self.0
+    }
 }
 
 impl core::fmt::Display for DfgObjectType {
@@ -787,6 +893,7 @@ impl ObjectCentricDfg {
     /// assert!(oc.get("order").is_some());
     /// assert!(oc.get("item").is_none());
     /// ```
+    #[must_use]
     pub fn get(&self, object_type: &str) -> Option<&Dfg> {
         self.per_type
             .iter()
@@ -834,6 +941,7 @@ impl ObjectCentricDfg {
     ///     .with_type_dfg("order", Dfg::new([DfgNode::new("b")], []));
     /// assert_eq!(dup.validate_all(), Err(DfgRefusal::InconsistentObjectType));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate_all(&self) -> Result<(), DfgRefusal> {
         use std::collections::HashSet;
         let mut seen: HashSet<&str> = HashSet::new();

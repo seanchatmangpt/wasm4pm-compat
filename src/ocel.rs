@@ -333,6 +333,7 @@ impl OcelEvent {
     /// use wasm4pm_compat::ocel::OcelEvent;
     /// assert_eq!(OcelEvent::new("e1", "a").timestamp_ns(), None);
     /// ```
+    #[must_use]
     pub fn timestamp_ns(&self) -> Option<i64> {
         self.timestamp_ns
     }
@@ -408,6 +409,7 @@ impl EventObjectLink {
     /// use wasm4pm_compat::ocel::EventObjectLink;
     /// assert_eq!(EventObjectLink::new("e", "o").qualifier(), None);
     /// ```
+    #[must_use]
     pub fn qualifier(&self) -> Option<&str> {
         self.qualifier.as_deref()
     }
@@ -482,6 +484,7 @@ impl ObjectObjectLink {
     /// use wasm4pm_compat::ocel::ObjectObjectLink;
     /// assert_eq!(ObjectObjectLink::new("a", "b").qualifier(), None);
     /// ```
+    #[must_use]
     pub fn qualifier(&self) -> Option<&str> {
         self.qualifier.as_deref()
     }
@@ -576,6 +579,7 @@ impl ObjectChange {
     /// use wasm4pm_compat::ocel::ObjectChange;
     /// assert_eq!(ObjectChange::new("o", "a", "v").timestamp_ns(), None);
     /// ```
+    #[must_use]
     pub fn timestamp_ns(&self) -> Option<i64> {
         self.timestamp_ns
     }
@@ -682,6 +686,7 @@ impl OcelLog {
     /// );
     /// assert_eq!(log.validate(), Err(OcelRefusal::DanglingEventObjectLink));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), OcelRefusal> {
         if self.objects.is_empty() {
             return Err(OcelRefusal::MissingObject);
@@ -1321,6 +1326,7 @@ impl TypedObjectChange {
     /// use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
     /// assert_eq!(TypedObjectChange::new("o", "a", OcelAttributeValue::Boolean(false)).timestamp_ns(), None);
     /// ```
+    #[must_use]
     pub fn timestamp_ns(&self) -> Option<i64> {
         self.timestamp_ns
     }

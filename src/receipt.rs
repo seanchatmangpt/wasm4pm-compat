@@ -71,6 +71,34 @@ impl Digest {
     pub fn new(s: impl Into<String>) -> Self {
         Self(s.into())
     }
+
+    /// Consumes `self` and returns the underlying `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let s = Digest::new("blake3:abc").into_inner();
+    /// assert_eq!(s, "blake3:abc");
+    /// ```
+    #[inline]
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+
+    /// Borrows the underlying string as a `&str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::Digest;
+    /// let d = Digest::new("blake3:abc");
+    /// assert_eq!(d.as_inner(), "blake3:abc");
+    /// ```
+    #[inline]
+    pub fn as_inner(&self) -> &str {
+        &self.0
+    }
 }
 
 /// A replay hint carried by a receipt.
@@ -94,6 +122,34 @@ impl ReplayHint {
     /// ```
     pub fn new(s: impl Into<String>) -> Self {
         Self(s.into())
+    }
+
+    /// Consumes `self` and returns the underlying `String`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let s = ReplayHint::new("rerun:plan#42").into_inner();
+    /// assert_eq!(s, "rerun:plan#42");
+    /// ```
+    #[inline]
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+
+    /// Borrows the underlying string as a `&str`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReplayHint;
+    /// let h = ReplayHint::new("rerun:plan#42");
+    /// assert_eq!(h.as_inner(), "rerun:plan#42");
+    /// ```
+    #[inline]
+    pub fn as_inner(&self) -> &str {
+        &self.0
     }
 }
 
@@ -317,6 +373,173 @@ impl core::fmt::Display for ReceiptRefusal {
     }
 }
 
+// ── ReceiptBuilder ───────────────────────────────────────────────────────────
+
+/// Ergonomic builder for [`ReceiptEnvelope`].
+///
+/// The builder is typed over a [`crate::witness::Witness`] `W` so the
+/// witness name is filled automatically from `W::KEY` — callers never
+/// need to pass a raw string for the witness field. All other parts
+/// (subject, digest, replay hint) are supplied via the chainable setter
+/// methods.
+///
+/// ## What this type **IS**
+///
+/// - A convenience surface that removes the four-argument call to
+///   [`ReceiptEnvelope::try_from_parts`] from everyday construction code.
+/// - Type-indexed: the `W` parameter makes a `ReceiptBuilder<Ocel20>` and a
+///   `ReceiptBuilder<Xes1849>` distinct at the call site.
+///
+/// ## What this type is **NOT**
+///
+/// - **Not** a validator. [`ReceiptBuilder::build`] delegates validation to
+///   [`ReceiptEnvelope::try_from_parts`]; all refusal laws are unchanged.
+/// - **Not** a hash engine. The digest is carried, not computed.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{ReceiptBuilder, ReceiptRefusal};
+/// use wasm4pm_compat::witness::Ocel20;
+///
+/// let env = ReceiptBuilder::<Ocel20>::new()
+///     .subject("case-42")
+///     .digest("blake3:abc123")
+///     .replay_hint("rerun:plan#42")
+///     .build()
+///     .unwrap();
+/// assert_eq!(env.subject, "case-42");
+/// assert_eq!(env.witness, "ocel-2.0");
+/// assert!(env.is_well_shaped());
+/// ```
+pub struct ReceiptBuilder<W> {
+    subject: Option<String>,
+    digest: Option<String>,
+    replay_hint: Option<String>,
+    _witness: core::marker::PhantomData<W>,
+}
+
+impl<W: crate::witness::Witness> ReceiptBuilder<W> {
+    /// Start building a receipt envelope for witness `W`.
+    ///
+    /// The witness name is fixed to `W::KEY`; use the setter methods to supply
+    /// the remaining three fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReceiptBuilder;
+    /// use wasm4pm_compat::witness::Xes1849;
+    ///
+    /// let b = ReceiptBuilder::<Xes1849>::new();
+    /// // Fields are empty until set.
+    /// assert!(b.build().is_err());
+    /// ```
+    #[must_use]
+    pub fn new() -> Self {
+        ReceiptBuilder {
+            subject: None,
+            digest: None,
+            replay_hint: None,
+            _witness: core::marker::PhantomData,
+        }
+    }
+
+    /// Set the subject field (the named thing being receipted).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReceiptBuilder;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let b = ReceiptBuilder::<Ocel20>::new().subject("case-1");
+    /// assert!(b.build().is_err()); // digest and replay_hint still unset
+    /// ```
+    #[must_use]
+    pub fn subject(mut self, s: impl Into<String>) -> Self {
+        self.subject = Some(s.into());
+        self
+    }
+
+    /// Set the digest field (a pre-computed content digest string).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReceiptBuilder;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let b = ReceiptBuilder::<Ocel20>::new().digest("blake3:abc");
+    /// assert!(b.build().is_err()); // subject and replay_hint still unset
+    /// ```
+    #[must_use]
+    pub fn digest(mut self, d: impl Into<String>) -> Self {
+        self.digest = Some(d.into());
+        self
+    }
+
+    /// Set the replay hint field.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::ReceiptBuilder;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let b = ReceiptBuilder::<Ocel20>::new().replay_hint("rerun:plan#1");
+    /// assert!(b.build().is_err()); // subject and digest still unset
+    /// ```
+    #[must_use]
+    pub fn replay_hint(mut self, h: impl Into<String>) -> Self {
+        self.replay_hint = Some(h.into());
+        self
+    }
+
+    /// Attempt to build a [`ReceiptEnvelope`], returning a named
+    /// [`ReceiptRefusal`] if any required field is missing or empty.
+    ///
+    /// Delegates to [`ReceiptEnvelope::try_from_parts`]; all refusal laws
+    /// (MissingSubject, MissingWitness, MissingDigest, MissingReplayHint)
+    /// are preserved.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::{ReceiptBuilder, ReceiptRefusal};
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// // All fields set — Ok.
+    /// let ok = ReceiptBuilder::<Ocel20>::new()
+    ///     .subject("case-1")
+    ///     .digest("blake3:abc")
+    ///     .replay_hint("rerun:plan#1")
+    ///     .build();
+    /// assert!(ok.is_ok());
+    ///
+    /// // Missing subject — Err.
+    /// let bad = ReceiptBuilder::<Ocel20>::new()
+    ///     .digest("blake3:abc")
+    ///     .replay_hint("rerun:plan#1")
+    ///     .build();
+    /// assert_eq!(bad, Err(ReceiptRefusal::MissingSubject));
+    /// ```
+    #[must_use = "check the shape-check result"]
+    pub fn build(self) -> Result<ReceiptEnvelope, ReceiptRefusal> {
+        let subject = self.subject.unwrap_or_default();
+        let digest = Digest::new(self.digest.unwrap_or_default());
+        let replay_hint = ReplayHint::new(self.replay_hint.unwrap_or_default());
+        ReceiptEnvelope::try_from_parts(subject, W::KEY, digest, replay_hint)
+    }
+}
+
+impl<W: crate::witness::Witness> Default for ReceiptBuilder<W> {
+    /// An empty builder — identical to [`ReceiptBuilder::new`].
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // ── ReceiptChain ─────────────────────────────────────────────────────────────
 
 /// A multi-step provenance chain: an ordered sequence of [`ReceiptEnvelope`]s.
@@ -500,6 +723,7 @@ impl ReceiptChain {
     /// assert_eq!(chain.extend_with(bad), Err(ReceiptRefusal::BrokenChainLink(2)));
     /// assert_eq!(chain.len(), 2); // unchanged
     /// ```
+    #[must_use = "check whether the link was accepted"]
     pub fn extend_with(&mut self, link: ReceiptEnvelope) -> Result<(), ReceiptRefusal> {
         if !link.is_well_shaped() {
             return Err(ReceiptRefusal::BrokenChainLink(self.links.len()));

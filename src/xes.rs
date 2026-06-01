@@ -159,6 +159,7 @@ impl XesEvent {
     /// assert_eq!(e.attribute("org:resource"), Some("alice"));
     /// assert_eq!(e.attribute("missing"), None);
     /// ```
+    #[must_use]
     pub fn attribute(&self, key: &str) -> Option<&str> {
         self.attributes
             .iter()
@@ -172,6 +173,7 @@ impl XesEvent {
     /// use wasm4pm_compat::xes::XesEvent;
     /// assert_eq!(XesEvent::new().with("concept:name", "a").concept_name(), Some("a"));
     /// ```
+    #[must_use]
     pub fn concept_name(&self) -> Option<&str> {
         self.attribute("concept:name")
     }
@@ -183,6 +185,7 @@ impl XesEvent {
     /// let e = XesEvent::new().with("time:timestamp", "2026-05-30T00:00:00Z");
     /// assert!(e.timestamp().is_some());
     /// ```
+    #[must_use]
     pub fn timestamp(&self) -> Option<&str> {
         self.attribute("time:timestamp")
     }
@@ -193,6 +196,7 @@ impl XesEvent {
     /// use wasm4pm_compat::xes::XesEvent;
     /// assert_eq!(XesEvent::new().with("org:resource", "alice").resource(), Some("alice"));
     /// ```
+    #[must_use]
     pub fn resource(&self) -> Option<&str> {
         self.attribute("org:resource")
     }
@@ -212,6 +216,7 @@ impl XesEvent {
     /// let e2 = XesEvent::new().with("lifecycle:transition", "custom");
     /// assert_eq!(e2.lifecycle_transition(), None);
     /// ```
+    #[must_use]
     pub fn lifecycle_transition(&self) -> Option<XesLifecycleTransition> {
         self.attribute("lifecycle:transition")
             .and_then(XesLifecycleTransition::parse)
@@ -227,6 +232,7 @@ impl XesEvent {
     /// let e = XesEvent::new().with("lifecycle:transition", "custom-value");
     /// assert_eq!(e.lifecycle_transition_raw(), Some("custom-value"));
     /// ```
+    #[must_use]
     pub fn lifecycle_transition_raw(&self) -> Option<&str> {
         self.attribute("lifecycle:transition")
     }
@@ -298,6 +304,7 @@ impl XesTraceAttributes {
     /// assert_eq!(ta.get("k"), Some("v"));
     /// assert_eq!(ta.get("missing"), None);
     /// ```
+    #[must_use]
     pub fn get(&self, key: &str) -> Option<&str> {
         self.attributes
             .iter()
@@ -312,6 +319,7 @@ impl XesTraceAttributes {
     /// let ta = XesTraceAttributes::new().with("concept:name", "case-7");
     /// assert_eq!(ta.concept_name(), Some("case-7"));
     /// ```
+    #[must_use]
     pub fn concept_name(&self) -> Option<&str> {
         self.get("concept:name")
     }
@@ -495,6 +503,7 @@ impl XesLog {
     /// let log = XesLog::new("l", [], [XesTrace::new("c", [XesEvent::new()])]);
     /// assert_eq!(log.validate(), Err(XesRefusal::MissingConceptName));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), XesRefusal> {
         if self.name.is_empty() {
             return Err(XesRefusal::MissingLogName);
@@ -888,6 +897,7 @@ impl XesLifecycleTransition {
     /// assert_eq!(XesLifecycleTransition::parse("complete"), Some(XesLifecycleTransition::Complete));
     /// assert_eq!(XesLifecycleTransition::parse("custom"), None);
     /// ```
+    #[must_use]
     pub fn parse(s: &str) -> Option<Self> {
         match s {
             "schedule" => Some(XesLifecycleTransition::Schedule),
@@ -1016,6 +1026,7 @@ impl XesStandardPrefix {
     /// assert_eq!(XesStandardPrefix::parse("lifecycle"), Some(XesStandardPrefix::Lifecycle));
     /// assert_eq!(XesStandardPrefix::parse("custom"), None);
     /// ```
+    #[must_use]
     pub fn parse(s: &str) -> Option<Self> {
         match s {
             "concept" => Some(XesStandardPrefix::Concept),

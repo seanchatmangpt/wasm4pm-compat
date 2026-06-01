@@ -359,6 +359,7 @@ impl PowlChoiceNode {
     /// let ok  = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
     /// assert!(ok.validate().is_ok());
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<&[PowlNodeId], PowlRefusal> {
         if self.is_well_formed() {
             Ok(&self.branches)

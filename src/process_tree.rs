@@ -486,6 +486,7 @@ impl ProcessTree {
     /// t2.nodes.push(ProcessTreeNode::Activity("a".into()));
     /// assert_eq!(t2.admit_shape(), Err(ProcessTreeRefusal::MissingRoot));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn admit_shape(&self) -> Result<(), ProcessTreeRefusal> {
         // A non-empty tree must declare a root.
         if !self.nodes.is_empty() && self.root.is_none() {

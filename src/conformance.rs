@@ -420,6 +420,7 @@ impl Fitness {
     /// assert!(Fitness::new(1.5).is_none());
     /// assert!(Fitness::new(-0.1).is_none());
     /// ```
+    #[must_use]
     pub fn new(value: f64) -> Option<Self> {
         if value.is_finite() && (0.0..=1.0).contains(&value) {
             Some(Self(value))
@@ -466,6 +467,7 @@ impl Precision {
     /// assert!(Precision::new(0.0).is_some());
     /// assert!(Precision::new(2.0).is_none());
     /// ```
+    #[must_use]
     pub fn new(value: f64) -> Option<Self> {
         if value.is_finite() && (0.0..=1.0).contains(&value) {
             Some(Self(value))
@@ -513,6 +515,7 @@ impl F1 {
     /// assert!(F1::new(0.5).is_some());
     /// assert!(F1::new(f64::NAN).is_none());
     /// ```
+    #[must_use]
     pub fn new(value: f64) -> Option<Self> {
         if value.is_finite() && (0.0..=1.0).contains(&value) {
             Some(Self(value))
@@ -563,6 +566,7 @@ impl Generalization {
     /// assert!(Generalization::new(1.1).is_none());
     /// assert!(Generalization::new(f64::INFINITY).is_none());
     /// ```
+    #[must_use]
     pub fn new(value: f64) -> Option<Self> {
         if value.is_finite() && (0.0..=1.0).contains(&value) {
             Some(Self(value))
@@ -613,6 +617,7 @@ impl Simplicity {
     /// assert!(Simplicity::new(1.0).is_some());
     /// assert!(Simplicity::new(-0.5).is_none());
     /// ```
+    #[must_use]
     pub fn new(value: f64) -> Option<Self> {
         if value.is_finite() && (0.0..=1.0).contains(&value) {
             Some(Self(value))

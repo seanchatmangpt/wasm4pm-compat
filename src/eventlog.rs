@@ -121,6 +121,7 @@ impl Event {
     /// use wasm4pm_compat::eventlog::Event;
     /// assert_eq!(Event::new("x").timestamp_ns(), None);
     /// ```
+    #[must_use]
     pub fn timestamp_ns(&self) -> Option<i64> {
         self.timestamp_ns
     }
@@ -131,6 +132,7 @@ impl Event {
     /// use wasm4pm_compat::eventlog::Event;
     /// assert_eq!(Event::new("x").resource(), None);
     /// ```
+    #[must_use]
     pub fn resource(&self) -> Option<&str> {
         self.resource.as_deref()
     }
@@ -141,6 +143,7 @@ impl Event {
     /// use wasm4pm_compat::eventlog::Event;
     /// assert_eq!(Event::new("x").lifecycle(), None);
     /// ```
+    #[must_use]
     pub fn lifecycle(&self) -> Option<&str> {
         self.lifecycle.as_deref()
     }
@@ -251,6 +254,7 @@ impl Trace {
     /// let bad = Trace::new("c", [Event::new("a").at_ns(5), Event::new("b").at_ns(1)]);
     /// assert_eq!(bad.validate(), Err(EventLogRefusal::NonMonotonicTrace));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
         if self.case_id.is_empty() {
             return Err(EventLogRefusal::MissingCaseId);
@@ -348,6 +352,7 @@ impl EventLog {
     /// let bad = EventLog::from_traces([Trace::from_events([])]);
     /// assert_eq!(bad.validate(), Err(EventLogRefusal::EmptyTrace));
     /// ```
+    #[must_use = "check the shape-check result"]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
         for t in &self.traces {
             t.validate()?;
