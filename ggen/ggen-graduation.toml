@@ -1,0 +1,52 @@
+[project]
+name = "wasm4pm-compat"
+version = "0.1.0"
+description = "Post-handcoding substrate framework: type law renders everything"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ontology/wasm4pm-compat.ttl"
+additional = ["ontology/papers.ttl"]
+standard_only = false
+
+[generation]
+output_dir = ".."
+
+# ---------------------------------------------------------------------------
+# Rule: graduation-map
+# Extracts GraduationBoundary instances and renders the graduation boundary
+# map at docs/GRADUATION_BOUNDARIES_GENERATED.md.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "graduation-map"
+query = { file = "queries/extract-graduation-candidates.rq" }
+template = { file = "templates/graduation-boundary-map.tera" }
+output_file = "docs/GRADUATION_BOUNDARIES_GENERATED.md"
+mode = "Overwrite"
+
+[inference]
+enabled = true
+rules = [
+  { name = "graph", construct = "queries/construct-graph.rq" }
+]
+
+[sync]
+enabled = true
+on_change = "manual"
+validate_after = true
+conflict_mode = "fail"
+
+[rdf]
+formats = ["turtle"]
+default_format = "turtle"
+strict_validation = false
+
+[templates]
+enable_caching = true
+auto_reload = true
+
+[output]
+formatting = "default"
+line_length = 100
+indent = 4

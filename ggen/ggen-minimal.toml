@@ -1,0 +1,48 @@
+[project]
+name = "wasm4pm-compat"
+version = "0.1.0"
+description = "Post-handcoding substrate framework: type law renders everything"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ontology/wasm4pm-compat.ttl"
+additional = ["ontology/papers.ttl"]
+standard_only = false
+
+[generation]
+output_dir = ".."
+
+[[generation.rules]]
+name = "witness-markers"
+query = { file = "queries/extract-witnesses.rq" }
+template = { file = "templates/witness-marker.tera" }
+output_file = "src/generated/witnesses.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "audit-feature-isolation"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-feature-isolation.sh.tera" }
+output_file = "audits/audit-feature-isolation.sh"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "module-docs"
+query = { file = "queries/extract-source-modules.rq" }
+template = { file = "templates/module-docs.tera" }
+output_file = "docs/generated/"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "paper-ledger"
+query = { file = "queries/extract-paper-coverage.rq" }
+template = { file = "templates/paper-ledger-row.tera" }
+output_file = "docs/PAPER_COVERAGE_LEDGER_GENERATED.md"
+mode = "Overwrite"
+
+[inference]
+enabled = true
+rules = [
+  { name = "passthrough", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }" }
+]

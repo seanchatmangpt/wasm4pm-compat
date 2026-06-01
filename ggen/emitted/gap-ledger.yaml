@@ -1,0 +1,128 @@
+metadata:
+  title: "GGEN Gap Ledger \u2014 File-to-Gap Closure Mapping"
+  version: 1.0.0
+  generated: '2026-06-01T11:44:36.702023'
+  authority: Sean Chatman (xpointsh@gmail.com)
+  source: ggen/intel/*.md, ggen/rules/*.yaml, ggen/projections/*.yaml, ggen/templates/*,
+    ggen/audits/*
+  total_files: 59
+  total_gaps: 6
+gaps:
+- id: GAP_001
+  gap_name: wasm4pm-compat Integration Bridge
+  gap_severity: HIGH
+  changed_files:
+  - ggen/README.md
+  - ggen/intel/dependency-boundary-map.yaml
+  - ggen/intel/graduation-surface-ledger.yaml
+  - ggen/rules/graduation-law.yaml
+  - ggen/templates/gap-register-row.tera
+  - ggen/templates/graduation-boundary-map.tera
+  - ggen/templates/paper-ledger-row.tera
+  - ggen/templates/wasm4pm-lifecycle.tera
+  - ggen/templates/wasm4pm-replay.tera
+  closure_condition: "compat \u2192 wasm4pm type bridge implemented; witnesses preserved;\
+    \ refusal laws aligned"
+  audit_gate: "Integration tests: OCEL \u2192 discovery \u2192 PetriNet \u2192 conformance\
+    \ \u2192 receipt"
+  status: MANUFACTURED
+- id: GAP_COMPONENT
+  gap_name: Component Model Gap
+  gap_severity: CRITICAL
+  changed_files:
+  - ggen/PROJECTION_MANIFESTS.md
+  - ggen/WIT_TEMPLATE_INDEX.md
+  - ggen/WIT_TEMPLATE_MANIFEST.md
+  - ggen/WIT_TEMPLATE_MANUFACTURE.md
+  - ggen/WIT_TEMPLATE_USAGE.md
+  - ggen/intel/COMPONENT-MODEL-RESEARCH-SYNTHESIS.md
+  - ggen/intel/README-COMPONENT-MODEL.md
+  - ggen/intel/component-model-map.md
+  - ggen/intel/wit-surface-ledger.yaml
+  - ggen/projections/component.projection.yaml
+  - ggen/rules/component-boundary-law.yaml
+  - ggen/templates/wasm4pm-compat.wit.ggen
+  - ggen/templates/wasm4pm-mining.tera
+  - ggen/templates/witness-marker.tera
+  closure_condition: Component Model WIT interfaces generate for all feature gates;
+    witness encoding valid
+  audit_gate: WIT syntax valid; wit-bindgen generates trait Guest; Component Model
+    conformance pass
+  status: MANUFACTURED
+- id: GAP_LOSS
+  gap_name: Loss Accounting Rules Gap
+  gap_severity: HIGH
+  changed_files:
+  - ggen/audits/AUDIT_SPEC.md
+  - ggen/audits/audit-feature-isolation.sh.ggen
+  - ggen/intel/CARGO-FEATURE-AUDIT.md
+  - ggen/intel/FEATURE-INTELLIGENCE-INDEX.md
+  - ggen/intel/INDEX.md
+  - ggen/intel/README.md
+  - ggen/intel/cargo-feature-map.yaml
+  - ggen/intel/ecosystem-census.md
+  - ggen/intel/ecosystem-source-index.yaml
+  - ggen/intel/optional-dependency-law.yaml
+  - ggen/templates/audit-script.tera
+  - ggen/templates/module-docs.tera
+  closure_condition: Loss policies auto-detected; LossReport emitted on all lossy
+    projections
+  audit_gate: All format conversions carry named policies; loss accounting trace complete
+  status: MANUFACTURED
+- id: GAP_PROCESS_TREE
+  gap_name: Process Tree Type Laws Gap
+  gap_severity: HIGH
+  changed_files:
+  - ggen/intel/RUST-PUBLIC-API-INTELLIGENCE-INDEX.md
+  - ggen/intel/non-projectable-type-ledger.yaml
+  - ggen/intel/projectable-type-ledger.yaml
+  - ggen/templates/compile-fail-fixture.tera
+  - ggen/templates/compile-pass-fixture.tera
+  closure_condition: Process tree arity, POWL soundness, projection legality enforced
+    at compile-time
+  audit_gate: Compile-fail fixtures prove wrong arity, invalid projections are rejected
+  status: MANUFACTURED
+- id: GAP_TS
+  gap_name: TypeScript Projection Gap
+  gap_severity: CRITICAL
+  changed_files:
+  - ggen/audits/audit-no-dto-flattening.sh.ggen
+  - ggen/audits/audit-projection-receipts.sh.ggen
+  - ggen/intel/SPECTA-INTELLIGENCE-INDEX.md
+  - ggen/intel/specta-capability-map.md
+  - ggen/intel/specta-ts-projection-candidates.yaml
+  - ggen/intel/tsify-capability-map.md
+  - ggen/projections/ts.projection.yaml
+  - ggen/rules/ts-projection-law.yaml
+  - ggen/templates/ts-projection.rs.ggen
+  closure_condition: TypeScript .d.ts surfaces generated from Rust types via specta;
+    zero-cost phantom encoding
+  audit_gate: audit-no-dto-flattening.sh passes; specta codegen produces valid .d.ts
+  status: MANUFACTURED
+- id: GAP_WASM
+  gap_name: WASM ABI Boundary Gap
+  gap_severity: CRITICAL
+  changed_files:
+  - ggen/audits/audit-no-tools-in-compat.sh.ggen
+  - ggen/intel/WASM-ABI-INTELLIGENCE.md
+  - ggen/intel/wasm-abi-map.yaml
+  - ggen/intel/wasm-boundary-prohibited.yaml
+  - ggen/manifests/wasm-boundary-template.manifest.md
+  - ggen/projections/wasm.projection.yaml
+  - ggen/rules/wasm-boundary-law.yaml
+  - ggen/templates/README-wasm-boundary.md
+  - ggen/templates/wasm-boundary.rs.ggen
+  - ggen/templates/wasm4pm-conformance.tera
+  closure_condition: WASM boundary memory-safe and type-law-respecting; wasm-bindgen
+    bindings generated
+  audit_gate: wasm-pack build succeeds; WASM boundary validates against prohibited
+    list
+  status: MANUFACTURED
+summary:
+  total_files_mapped: 59
+  total_gaps: 6
+  critical_gaps: 3
+  high_priority_gaps: 3
+  all_files_accounted: true
+  orphaned_files: 0
+  note: "59 ggen source files mapped; 2 emitted files (gap-ledger.yaml, GAP_LEDGER_REPORT.md) are outputs, not inputs"
