@@ -159,3 +159,57 @@ The principle, stated plainly: **a compatibility layer that loses evidence in
 secret is worse than no layer, because it provides false assurance.** The loss
 law turns every unavoidable loss into a named, policied, reported, refusable
 event — so the loss travels on the record, never off it.
+
+---
+
+## `ProjectionName` and `LossReport` are mandatory, not optional
+
+Two types enforce accountability beyond the policy decision:
+
+### `ProjectionName`
+
+```rust
+pub struct ProjectionName(pub &'static str);
+```
+
+A newtype over `&'static str`. Not a `String`, not a `&str` — the static lifetime
+and newtype wrapper mean:
+
+1. The name lives in the binary, not in user-supplied runtime data.
+2. A bare `&str` does not satisfy the type — `ProjectionName("name")` is required.
+3. Two runs of the same projection have the same `ProjectionName`, making the
+   operation recognizable and auditable.
+
+The compile-fail fixture `projection_name_bare_str.rs` proves that a raw `&str`
+is rejected where `ProjectionName` is required.
+
+### `LossReport<From, To, Items>`
+
+```rust
+pub struct LossReport<From, To, Items> {
+    pub projection: ProjectionName,
+    pub policy: LossPolicy,
+    pub lost: Items,
+    // From / To are zero-sized PhantomData shape tags
+}
+```
+
+Key properties:
+
+- `From` and `To` type parameters tag the shapes bridged. A `LossReport<OcelShape, XesShape, _>`
+  cannot be confused with a `LossReport<XesShape, OcedShape, _>`.
+- `lost` holds the concrete discarded items — an inspectable record, not a count.
+- `is_lossless()` is only available when `Items: IsEmpty`, enforced at compile time.
+  (See `loss_report_is_lossless_bound.rs` for the compile-fail receipt.)
+- `AllowLossWithReport` path that returns `()` instead of a `LossReport` is
+  rejected by the compiler (see `loss_without_report_on_allow_path.rs`).
+
+### The three-type lock
+
+A lawful lossy projection requires all three in sequence:
+
+```
+LossPolicy → ProjectionName → LossReport
+```
+
+Omitting any one of the three is a compile error, not a runtime warning.
