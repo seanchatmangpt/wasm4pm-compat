@@ -1965,6 +1965,78 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
+## #72 — Process Mining Techniques in Conformance Testing (Burattin, 2017)
+
+**Paper:** Process Mining Techniques in Conformance Testing of Information Systems
+**Canon family:** `CONFORMANCE_ALIGNMENT`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** All conformance metric shapes (`FitnessConst`, `PrecisionConst`, `Metric<KIND, NUM, DEN>` with `Between01`) are already typed in `src/conformance.rs`. This survey paper covers token replay, alignment, log skeleton, and declarative conformance — all execution techniques that graduate to wasm4pm. The structural surfaces are fully covered by existing entries #38 (Carmona et al. 2018), #39 (token replay), #40 (ETC precision), #32 (alignments 2011), and #30 (log skeleton).
+
+**Graduates:** token replay conformance checking (`NeedsConformanceExecution`), alignment-based conformance (`NeedsConformanceExecution`), log skeleton conformance (`NeedsConformanceExecution`), declarative constraint checking (`NeedsConformanceExecution`).
+
+---
+
+## #73 — Scalable Process Discovery and Conformance Checking (Leemans, 2022)
+
+**Paper:** Scalable Process Discovery and Conformance Checking
+**Canon family:** `PROCESS_TREES_INDUCTIVE`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** Process tree shapes (`ProcessTree`, `TypedLoopNode<ARITY>`, `ProcessOperator`) are identical to base IM (#27) and already typed in compat. The IMlc scalable discovery variant adds no new structural output types. Scalable cut detection and directly-follows abstraction execution graduate to wasm4pm (`NeedsDiscovery`).
+
+---
+
+## #75 — Time-Aware Predictive Monitoring (Polato et al., 2018)
+
+**Paper:** Time-Aware Predictive Monitoring of Business Processes
+**Canon family:** `PREDICTION_DRIFT`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** `PredictionTarget` in `src/prediction.rs` provides the prediction target substrate. Time-aware remaining-time prediction model training and inference (survival analysis, LSTM, regression) graduate to wasm4pm (`RebuildingProcessMiningLocally`). `PredictionHorizon` const-generic param is the missing structural surface (tracked under #54 Predictive PM survey active obligation).
+
+---
+
+## #76 — Predictive PM Methods Survey (Di Francescomarino et al., 2017)
+
+**Paper:** Predictive Process Monitoring Methods: Which One Suits Me Best?
+**Canon family:** `PREDICTION_DRIFT`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** `PredictionTarget` in `src/prediction.rs` covers all three prediction target kinds (outcome, next-activity, remaining-time). `PrefixLength` const-generic param not yet typed (tracked under #54 active obligation). ML classifier training and inference graduate to wasm4pm (`RebuildingProcessMiningLocally`).
+
+---
+
+## #77 — Predictive Business Process Monitoring — LSTM (Tax et al., 2017)
+
+**Paper:** Predictive Business Process Monitoring with LSTM Neural Networks
+**Canon family:** `PREDICTION_DRIFT`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** `PredictionTarget` in `src/prediction.rs` provides the structural prediction target surface (next-activity and remaining-time targets). LSTM model training and inference graduate to wasm4pm (`RebuildingProcessMiningLocally`). No new structural types required beyond #54 and #76.
+
+---
+
+## #80 — Log Skeletons: A Classification Approach (Verbeek, 2019)
+
+**Paper:** Log Skeletons: A Classification Approach to Process Discovery
+**Canon family:** `LOG_SKELETON`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** `DeclareConstraint`/`DeclareTemplate` variants in `src/declare.rs` implement the log skeleton constraint shapes (always-after, always-before, never-together, equivalence, directly-follows). Log skeleton derivation algorithm execution (constraint mining from event logs, case classification) graduates to wasm4pm (`NeedsConformanceExecution`). This paper is a discovery paper for the log skeleton; the 2018 conformance paper by the same author (#30) is the structural basis.
+
+---
+
+## #81 — OCPA: A Python Library for Object-Centric Process Analysis (Schuster et al., 2023)
+
+**Paper:** OCPA: A Python Library for Object-Centric Process Analysis
+**Canon family:** `SYSTEMS_API`
+**Verdict:** `COVERED_BY_GRADUATION_BOUNDARY`
+
+**Graduation boundary:** All OCPA structural shapes are already typed across canon modules: `OcelLog`/`OcelEvent`/`OcelObject`/`EventObjectLink` in `src/ocel.rs`, `Dfg`/`DfgNode`/`DfgEdge` in `src/dfg.rs`, `WfNetConst` in `src/petri.rs`, `OcpqQuery`/`OcpqResult` in `src/ocpq.rs`. OCPA algorithm execution (OC process discovery, OC conformance checking, OCPQ query execution) graduates to wasm4pm (`NeedsDiscovery`, `NeedsConformanceExecution`, `NeedsObjectCentricQueryExecution`).
+
+---
+
 ## #69 — Modeling Business Processes: A Petri Net-Oriented Approach (van der Aalst, Stahl, 2011)
 
 **Paper:** Modeling Business Processes: A Petri Net-Oriented Approach
