@@ -78,12 +78,8 @@ impl<'a> Project for OcelFlattenProjection<'a> {
         policy: LossPolicy,
     ) -> Result<LossReport<OcelShape, XesShape, Vec<String>>, FlatteningRefusal> {
         // Collect the distinct object types present in the log.
-        let all_types: std::collections::HashSet<&str> = self
-            .log
-            .objects()
-            .iter()
-            .map(|o| o.object_type())
-            .collect();
+        let all_types: std::collections::HashSet<&str> =
+            self.log.objects().iter().map(|o| o.object_type()).collect();
 
         // The chosen case type must actually exist.
         if !all_types.contains(self.case_type) {
@@ -172,9 +168,7 @@ fn main() {
         "  as_str()  = {:?}",
         ProjectionName("ocel-flatten-to-xes:by-case-type").as_str()
     );
-    println!(
-        "  Display   = \"{projection_name}\"\n"
-    );
+    println!("  Display   = \"{projection_name}\"\n");
 
     // -----------------------------------------------------------------------
     // 3. LossPolicy::RefuseLoss — flattening an OCEL with multiple object types
@@ -188,7 +182,10 @@ fn main() {
     // -----------------------------------------------------------------------
 
     println!("[1] LossPolicy::RefuseLoss — must refuse when multiple types exist:");
-    let proj_refuse = OcelFlattenProjection { log: &log, case_type: "order" };
+    let proj_refuse = OcelFlattenProjection {
+        log: &log,
+        case_type: "order",
+    };
     match proj_refuse.project(LossPolicy::RefuseLoss) {
         Err(FlatteningRefusal::FlatteningLoss) => {
             println!("  refused with named law: FlatteningRefusal::FlatteningLoss");
@@ -204,14 +201,20 @@ fn main() {
     // -----------------------------------------------------------------------
 
     println!("[2] LossPolicy::AllowNamedProjection — loss is named but not itemised:");
-    let proj_named = OcelFlattenProjection { log: &log, case_type: "order" };
+    let proj_named = OcelFlattenProjection {
+        log: &log,
+        case_type: "order",
+    };
     let report_named = proj_named
         .project(LossPolicy::AllowNamedProjection)
         .expect("named projection must succeed");
 
     println!("  projection  = {}", report_named.projection);
     println!("  policy      = {}", report_named.policy);
-    println!("  lost count  = {} (populated anyway for full auditability)", report_named.lost.len());
+    println!(
+        "  lost count  = {} (populated anyway for full auditability)",
+        report_named.lost.len()
+    );
     assert!(report_named.policy.is_named());
     assert!(!report_named.is_lossless()); // items were dropped
     println!();
@@ -222,7 +225,10 @@ fn main() {
     // -----------------------------------------------------------------------
 
     println!("[3] LossPolicy::AllowLossWithReport — loss is named AND itemised:");
-    let proj_report = OcelFlattenProjection { log: &log, case_type: "order" };
+    let proj_report = OcelFlattenProjection {
+        log: &log,
+        case_type: "order",
+    };
     let report = proj_report
         .project(LossPolicy::AllowLossWithReport)
         .expect("reporting projection must succeed");
@@ -237,7 +243,10 @@ fn main() {
     // `LossReport::summary` derives a `NamedLoss` for the audit trail.
     let summary: NamedLoss = report.summary("DroppedObjectTypeLinks");
     println!("  summary     = {summary}");
-    assert_eq!(summary.projection().as_str(), "ocel-flatten-to-xes:by-case-type");
+    assert_eq!(
+        summary.projection().as_str(),
+        "ocel-flatten-to-xes:by-case-type"
+    );
     assert_eq!(summary.category(), "DroppedObjectTypeLinks");
     println!();
 
@@ -248,7 +257,10 @@ fn main() {
     // -----------------------------------------------------------------------
 
     println!("[4] NamedLossConst — category baked into the type at compile time:");
-    println!("  DroppedObjectTypeLinks::NAME = {:?}", DroppedObjectTypeLinks::NAME);
+    println!(
+        "  DroppedObjectTypeLinks::NAME = {:?}",
+        DroppedObjectTypeLinks::NAME
+    );
     println!(
         "  Display                      = \"{}\"",
         NamedLossConst::<"DroppedObjectTypeLinks">

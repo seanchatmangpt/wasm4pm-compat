@@ -227,13 +227,17 @@ pub type SimplicityConst<const NUM: u64, const DEN: u64> =
 /// ```
 #[allow(clippy::type_complexity)]
 pub struct QualityProfile<
-    const FN: u64, const FD: u64,
-    const PN: u64, const PD: u64,
-    const EN: u64, const ED: u64,
-    const GN: u64, const GD: u64,
-    const SN: u64, const SD: u64,
->
-where
+    const FN: u64,
+    const FD: u64,
+    const PN: u64,
+    const PD: u64,
+    const EN: u64,
+    const ED: u64,
+    const GN: u64,
+    const GD: u64,
+    const SN: u64,
+    const SD: u64,
+> where
     // DEVELOPER NOTE — if any bound below fails you will see:
     //   "the trait bound `Require<false>: IsTrue` is not satisfied"
     // Each pair (FN/FD, PN/PD, EN/ED, GN/GD, SN/SD) must represent a rational
@@ -265,12 +269,17 @@ where
 }
 
 impl<
-    const FN: u64, const FD: u64,
-    const PN: u64, const PD: u64,
-    const EN: u64, const ED: u64,
-    const GN: u64, const GD: u64,
-    const SN: u64, const SD: u64,
-> QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
+        const FN: u64,
+        const FD: u64,
+        const PN: u64,
+        const PD: u64,
+        const EN: u64,
+        const ED: u64,
+        const GN: u64,
+        const GD: u64,
+        const SN: u64,
+        const SD: u64,
+    > QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
 where
     Require<{ FD > 0 }>: IsTrue,
     Require<{ FN <= FD }>: IsTrue,
@@ -306,12 +315,17 @@ where
 }
 
 impl<
-    const FN: u64, const FD: u64,
-    const PN: u64, const PD: u64,
-    const EN: u64, const ED: u64,
-    const GN: u64, const GD: u64,
-    const SN: u64, const SD: u64,
-> Default for QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
+        const FN: u64,
+        const FD: u64,
+        const PN: u64,
+        const PD: u64,
+        const EN: u64,
+        const ED: u64,
+        const GN: u64,
+        const GD: u64,
+        const SN: u64,
+        const SD: u64,
+    > Default for QualityProfile<FN, FD, PN, PD, EN, ED, GN, GD, SN, SD>
 where
     Require<{ FD > 0 }>: IsTrue,
     Require<{ FN <= FD }>: IsTrue,

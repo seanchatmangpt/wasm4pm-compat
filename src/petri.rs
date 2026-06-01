@@ -241,9 +241,7 @@ pub struct BipartiteArcConst<const DIR: crate::law::ArcDirectionConst, Weight> {
 
 extern crate alloc;
 
-impl<const DIR: crate::law::ArcDirectionConst, Weight: Copy>
-    BipartiteArcConst<DIR, Weight>
-{
+impl<const DIR: crate::law::ArcDirectionConst, Weight: Copy> BipartiteArcConst<DIR, Weight> {
     /// Construct a bipartite arc with the given endpoints and weight.
     ///
     /// ```

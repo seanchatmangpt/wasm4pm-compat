@@ -327,7 +327,12 @@ impl ReceiptEnvelope {
         if replay_hint.0.is_empty() {
             return Err(ReceiptRefusal::MissingReplayHint);
         }
-        Ok(Self { subject, witness, digest, replay_hint })
+        Ok(Self {
+            subject,
+            witness,
+            digest,
+            replay_hint,
+        })
     }
 }
 
@@ -625,7 +630,10 @@ impl ReceiptChain {
                 return Err(ReceiptRefusal::BrokenChainLink(i));
             }
         }
-        Ok(Self { chain_id: chain_id.into(), links })
+        Ok(Self {
+            chain_id: chain_id.into(),
+            links,
+        })
     }
 
     /// The number of provenance links in this chain.
@@ -808,7 +816,10 @@ impl GraduationReceipt {
     /// ```
     #[must_use]
     pub fn new(envelope: ReceiptEnvelope, reason_tag: &'static str) -> Self {
-        Self { envelope, reason_tag }
+        Self {
+            envelope,
+            reason_tag,
+        }
     }
 
     /// Whether both the receipt envelope is well-shaped and the reason tag is
@@ -1057,7 +1068,10 @@ impl<const N: usize> ReceiptChainConst<N> {
                 return Err(ReceiptRefusal::BrokenChainLink(i));
             }
         }
-        Ok(Self { chain_id: chain_id.into(), links })
+        Ok(Self {
+            chain_id: chain_id.into(),
+            links,
+        })
     }
 
     /// The compile-time arity of this chain.

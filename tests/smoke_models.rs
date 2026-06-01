@@ -15,9 +15,8 @@ use wasm4pm_compat::declare::{
 };
 use wasm4pm_compat::ocpq::{ObjectScope, OcpqQuery, OcpqRefusal, Predicate, PredicateKind};
 use wasm4pm_compat::powl::{
-    AcyclicPartialOrder, OrderEdge, Powl, PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind,
-    PowlRefusal, RefusedProjection, assert_acyclic, assert_tree_projectable,
-    ProcessTreeProjectable,
+    assert_acyclic, assert_tree_projectable, AcyclicPartialOrder, OrderEdge, Powl, PowlChoiceNode,
+    PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal, ProcessTreeProjectable, RefusedProjection,
 };
 use wasm4pm_compat::prediction::{PredictionProblem, PredictionRefusal, PredictionTarget};
 use wasm4pm_compat::process_tree::{
@@ -90,7 +89,10 @@ fn smoke_powl_tree_projectable_gate() {
 #[test]
 fn smoke_powl_refusal_arity_and_loop_body_variants() {
     // InvalidChoiceArity carries declared and required_min.
-    let r = PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 };
+    let r = PowlRefusal::InvalidChoiceArity {
+        declared: 1,
+        required_min: 2,
+    };
     let s = format!("{}", r);
     assert!(s.contains("InvalidChoiceArity"), "display: {s}");
     assert!(s.contains("declared=1"), "display: {s}");
@@ -234,8 +236,7 @@ fn smoke_oc_declare_constraint_synchronized() {
         Activity::new("deliver"),
         DeclareScope::SynchronizedObjectScope(vec!["order".into(), "delivery".into()]),
     );
-    let oc =
-        OcDeclareConstraint::synchronized(inner, vec!["order".into(), "delivery".into()]);
+    let oc = OcDeclareConstraint::synchronized(inner, vec!["order".into(), "delivery".into()]);
     assert!(oc.is_synchronized());
     assert!(oc.validate().is_ok());
 }
@@ -246,7 +247,9 @@ fn smoke_oc_declare_refusal_display() {
     assert!(e.to_string().contains("EmptyObjectTypeList"));
 
     let s = OcDeclareRefusal::SynchronizationRequiresMultipleTypes;
-    assert!(s.to_string().contains("SynchronizationRequiresMultipleTypes"));
+    assert!(s
+        .to_string()
+        .contains("SynchronizationRequiresMultipleTypes"));
 
     let m = OcDeclareRefusal::ScopeMismatch;
     assert!(m.to_string().contains("ScopeMismatch"));

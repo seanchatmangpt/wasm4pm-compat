@@ -92,21 +92,28 @@ fn build_petri_net() -> PetriNet {
 
     let initial = Marking::new([("source".to_string(), 1)]);
 
-    let net = PetriNet::new(
-        [source, sink],
-        [approve],
-        [arc_in, arc_out],
-        initial,
-    );
+    let net = PetriNet::new([source, sink], [approve], [arc_in, arc_out], initial);
 
-    println!("  Places       : {:?}", net.places().iter().map(Place::id).collect::<Vec<_>>());
-    println!("  Transitions  : {:?}", net.transitions().iter().map(Transition::id).collect::<Vec<_>>());
+    println!(
+        "  Places       : {:?}",
+        net.places().iter().map(Place::id).collect::<Vec<_>>()
+    );
+    println!(
+        "  Transitions  : {:?}",
+        net.transitions()
+            .iter()
+            .map(Transition::id)
+            .collect::<Vec<_>>()
+    );
     println!("  Arc count    : {}", net.arcs().len());
-    println!("  Initial mark : tokens on source = {}", net.initial_marking().tokens_on("source"));
+    println!(
+        "  Initial mark : tokens on source = {}",
+        net.initial_marking().tokens_on("source")
+    );
 
     match net.validate() {
         Ok(()) => println!("  Structural validation: OK"),
-        Err(e)  => println!("  Structural validation: REFUSED — {e}"),
+        Err(e) => println!("  Structural validation: REFUSED — {e}"),
     }
     println!();
 
@@ -131,7 +138,7 @@ fn demonstrate_wfnet_typestate(net: PetriNet) {
 
     match unknown_wf.validate() {
         Ok(()) => println!("  WfNet<SoundnessUnknown> — structural validation: OK"),
-        Err(e)  => println!("  WfNet<SoundnessUnknown> — refused: {e}"),
+        Err(e) => println!("  WfNet<SoundnessUnknown> — refused: {e}"),
     }
 
     // claim_sound() is a type-level re-tag: Unknown → Claimed.

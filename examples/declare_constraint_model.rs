@@ -107,7 +107,10 @@ fn main() {
         no_cancel.template.arity()
     );
     println!("  activation = {:?}", no_cancel.activation);
-    println!("  target     = {:?}  (always None for unary)", no_cancel.target);
+    println!(
+        "  target     = {:?}  (always None for unary)",
+        no_cancel.target
+    );
     println!("  is_negative? {}", no_cancel.template.is_negative());
     println!();
 
@@ -121,15 +124,10 @@ fn main() {
         approve.clone(),
         DeclareScope::MultiObjectScope(vec!["order".into(), "customer".into()]),
     );
-    let oc_response = OcDeclareConstraint::new(
-        inner_response,
-        vec!["order".into(), "customer".into()],
-    );
+    let oc_response =
+        OcDeclareConstraint::new(inner_response, vec!["order".into(), "customer".into()]);
     println!("OcDeclareConstraint (non-synchronized, multi-object):");
-    println!(
-        "  template      = {:?}",
-        oc_response.constraint.template
-    );
+    println!("  template      = {:?}", oc_response.constraint.template);
     println!("  object_types  = {:?}", oc_response.object_types);
     println!("  synchronized  = {}", oc_response.is_synchronized());
     println!("  validate()    = {:?}", oc_response.validate());
@@ -188,11 +186,7 @@ fn main() {
 
     println!("Composed model ({} constraints):", model.len());
     for (i, c) in model.iter().enumerate() {
-        let target_label = c
-            .target
-            .as_ref()
-            .map(|t| t.0.as_str())
-            .unwrap_or("—");
+        let target_label = c.target.as_ref().map(|t| t.0.as_str()).unwrap_or("—");
         println!(
             "  [{i}] {:?}({}, {target_label})  negative={} chain={}",
             c.template,
@@ -218,5 +212,7 @@ fn main() {
         println!("  {}", r);
     }
 
-    println!("\nDone. All constraint shapes are structure-only; graduate to wasm4pm for evaluation.");
+    println!(
+        "\nDone. All constraint shapes are structure-only; graduate to wasm4pm for evaluation."
+    );
 }

@@ -116,7 +116,10 @@ pub struct MultiPerspectiveEvidence<T, Perspectives> {
 impl<T, Perspectives> MultiPerspectiveEvidence<T, Perspectives> {
     /// Wrap a value with the given perspective combination marker.
     pub fn new(inner: T) -> Self {
-        Self { inner, _perspectives: PhantomData }
+        Self {
+            inner,
+            _perspectives: PhantomData,
+        }
     }
 }
 

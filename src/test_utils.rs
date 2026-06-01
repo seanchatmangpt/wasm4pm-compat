@@ -20,7 +20,7 @@
 pub mod builders {
     use crate::evidence::{Evidence, RawOcelEvidence};
     use crate::loss::{LossPolicy, ProjectionName};
-    use crate::receipt::{Digest, ReplayHint, ReceiptEnvelope};
+    use crate::receipt::{Digest, ReceiptEnvelope, ReplayHint};
     use crate::witness::Ocel20;
 
     /// Build a minimal valid [`RawOcelEvidence<String>`] for testing.

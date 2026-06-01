@@ -74,7 +74,10 @@ impl<From, To> CausalLink<From, To> {
     /// let _link: CausalLink<PlaceOrder, ConfirmOrder> = CausalLink::new();
     /// ```
     pub fn new() -> Self {
-        Self { _from: PhantomData, _to: PhantomData }
+        Self {
+            _from: PhantomData,
+            _to: PhantomData,
+        }
     }
 }
 
@@ -201,6 +204,9 @@ impl<T> CausallyOrderedEvidence<T> {
     /// assert_eq!(ev.inner, 42);
     /// ```
     pub fn new(inner: T) -> Self {
-        Self { inner, _witness: PhantomData }
+        Self {
+            inner,
+            _witness: PhantomData,
+        }
     }
 }

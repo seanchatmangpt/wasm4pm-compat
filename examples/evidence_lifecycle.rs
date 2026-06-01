@@ -9,7 +9,7 @@
 
 #![allow(dead_code)]
 
-use wasm4pm_compat::admission::{Admit, Admission, Refusal};
+use wasm4pm_compat::admission::{Admission, Admit, Refusal};
 use wasm4pm_compat::evidence::Evidence;
 use wasm4pm_compat::state::{Admitted, Parsed, Raw, Receipted, Refused};
 use wasm4pm_compat::witness::Ocel20;
@@ -135,14 +135,13 @@ fn main() {
     let fresh_raw: Evidence<String, Raw, Ocel20> =
         Evidence::raw("ocel-log: {events: [{id: e1, type: place_order}]}".to_string());
 
-    let admitted: Evidence<String, Admitted, Ocel20> =
-        match OcelLogAdmit::admit(fresh_raw) {
-            Ok(admission) => admission.into_evidence(),
-            Err(refusal) => {
-                eprintln!("Unexpected refusal: {}", refusal.reason);
-                return;
-            }
-        };
+    let admitted: Evidence<String, Admitted, Ocel20> = match OcelLogAdmit::admit(fresh_raw) {
+        Ok(admission) => admission.into_evidence(),
+        Err(refusal) => {
+            eprintln!("Unexpected refusal: {}", refusal.reason);
+            return;
+        }
+    };
 
     println!("Stage 3a — Admitted  (Raw → [Admit gate] → Admitted)");
     println!("  type: Evidence<String, Admitted, Ocel20>");

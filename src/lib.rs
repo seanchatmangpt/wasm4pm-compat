@@ -162,8 +162,12 @@ pub mod admission;
 pub mod bpmn;
 /// Causal net structural shapes (Heuristics Miner output — Weijters & Ribeiro 2011).
 pub mod causal_net;
+/// Causal consistency law: CausalChain, CausalLink, CausalConsistency, CausallyOrderedEvidence.
+pub mod causality;
 /// Conformance verdict shape (structure only — no checking engine).
 pub mod conformance;
+/// Cross-log correlation law: CorrelationKey, CorrelatedLog, CorrelationSchema shapes.
+pub mod correlation;
 /// Declare constraint shape.
 pub mod declare;
 /// Directly-follows graph (DFG) shape.
@@ -204,16 +208,12 @@ pub mod process_cube;
 pub mod process_tree;
 /// Receipt shape: provenance-bearing evidence envelope.
 pub mod receipt;
-/// Causal consistency law: CausalChain, CausalLink, CausalConsistency, CausallyOrderedEvidence.
-pub mod causality;
-/// Cross-log correlation law: CorrelationKey, CorrelatedLog, CorrelationSchema shapes.
-pub mod correlation;
+/// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
+pub mod state;
 /// Streaming evidence context law: online vs. offline collection markers and EventWindow.
 pub mod streaming;
 /// Temporal ordering and profile law surfaces.
 pub mod temporal;
-/// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
-pub mod state;
 /// Witness markers and witness families (type-level proof carriers).
 pub mod witness;
 /// XES interchange shape.
@@ -256,14 +256,14 @@ pub mod nightly_foundry;
 // These re-exports let users write `wasm4pm_compat::EventId` instead of
 // `wasm4pm_compat::ids::EventId`. They do not replace the submodule paths.
 
-pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
-pub use crate::evidence::Evidence;
-pub use crate::loss::{LossPolicy, ProjectionName};
-pub use crate::receipt::ReceiptEnvelope;
-pub use crate::ocel::OcelLog;
-pub use crate::xes::XesLog;
-pub use crate::eventlog::{Event, EventLog, Trace};
-pub use crate::petri::{PetriNet, WfNet, WfNetConst};
 pub use crate::admission::{Admission, Admit, Refusal};
+pub use crate::eventlog::{Event, EventLog, Trace};
+pub use crate::evidence::Evidence;
+pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
+pub use crate::loss::{LossPolicy, ProjectionName};
+pub use crate::ocel::OcelLog;
+pub use crate::petri::{PetriNet, WfNet, WfNetConst};
+pub use crate::receipt::ReceiptEnvelope;
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
 pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
+pub use crate::xes::XesLog;

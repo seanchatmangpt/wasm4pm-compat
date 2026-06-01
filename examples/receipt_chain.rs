@@ -29,8 +29,8 @@ fn main() {
     // ReceiptRefusal if any is empty, rather than a generic error.
 
     let step_0 = ReceiptEnvelope::try_from_parts(
-        "ocel-log-v1",           // subject: what is being receipted
-        "ocel20-admission",      // witness: the admission law this was judged by
+        "ocel-log-v1",                      // subject: what is being receipted
+        "ocel20-admission",                 // witness: the admission law this was judged by
         Digest::new("blake3:a1b2c3d4e5f6"), // digest: carried, not computed
         ReplayHint::new("rerun:ocel20-admission#ocel-log-v1"), // replay hint
     )
@@ -38,13 +38,22 @@ fn main() {
 
     println!("step 0: {step_0}");
     // subject contributes identity — what artefact this receipt is about
-    println!("  subject     = {} (identifies the artefact)", step_0.subject);
+    println!(
+        "  subject     = {} (identifies the artefact)",
+        step_0.subject
+    );
     // witness names the structural law the receipt is judged against
     println!("  witness     = {} (names the law)", step_0.witness);
     // digest is a carried content fingerprint — never computed by this module
-    println!("  digest      = {} (carried content fingerprint)", step_0.digest);
+    println!(
+        "  digest      = {} (carried content fingerprint)",
+        step_0.digest
+    );
     // replay_hint is an opaque recipe for re-grounding the claim in wasm4pm
-    println!("  replay_hint = {} (re-grounding recipe)", step_0.replay_hint);
+    println!(
+        "  replay_hint = {} (re-grounding recipe)",
+        step_0.replay_hint
+    );
 
     // ── Step 2: ReceiptVerdict — shape-check outcome ──────────────────────────
     //
@@ -59,7 +68,7 @@ fn main() {
     // Demonstrate a refused verdict — MissingSubject is the first named law
     // violated when the subject field is empty.
     let refused = ReceiptEnvelope::try_from_parts(
-        "",                // empty subject → MissingSubject refusal
+        "", // empty subject → MissingSubject refusal
         "ocel20-admission",
         Digest::new("blake3:xyz"),
         ReplayHint::new("rerun:plan#bad"),
@@ -75,8 +84,8 @@ fn main() {
     // BrokenChainLink(index) — never a generic error.
 
     let step_1 = ReceiptEnvelope::new(
-        "ocel-log-v1-admitted",     // subject: the admitted artefact after stage 1
-        "wf-net-soundness",         // witness: well-formedness law for the Petri net
+        "ocel-log-v1-admitted", // subject: the admitted artefact after stage 1
+        "wf-net-soundness",     // witness: well-formedness law for the Petri net
         Digest::new("blake3:b2c3d4e5f6a1"),
         ReplayHint::new("rerun:wf-net-soundness#ocel-log-v1-admitted"),
     );
@@ -89,7 +98,9 @@ fn main() {
     .expect("chain must accept a well-shaped root");
 
     // Extend the chain with the second manufacturing stage receipt.
-    chain.extend_with(step_1).expect("step 1 must extend the chain");
+    chain
+        .extend_with(step_1)
+        .expect("step 1 must extend the chain");
 
     println!("\nchain: {chain}");
     println!("  root tip: {}", chain.root());
@@ -140,8 +151,8 @@ fn main() {
     // minting, verification, and replay.
 
     let graduation_envelope = ReceiptEnvelope::new(
-        "ocel-log-v1-admitted",   // subject: the value crossing the boundary
-        "wasm4pm-bridge",         // witness: the bridge law for boundary crossing
+        "ocel-log-v1-admitted", // subject: the value crossing the boundary
+        "wasm4pm-bridge",       // witness: the bridge law for boundary crossing
         Digest::new("blake3:graduate-d4e5f6a1b2c3"),
         ReplayHint::new("wasm4pm://intake/ocel-log-v1-admitted"),
     );
@@ -153,8 +164,14 @@ fn main() {
     );
 
     println!("\ngraduation receipt: {graduation}");
-    println!("  reason_tag: {} (why it must cross the boundary)", graduation.reason_tag);
-    println!("  envelope well-shaped: {}", graduation.envelope.is_well_shaped());
+    println!(
+        "  reason_tag: {} (why it must cross the boundary)",
+        graduation.reason_tag
+    );
+    println!(
+        "  envelope well-shaped: {}",
+        graduation.envelope.is_well_shaped()
+    );
     println!("  graduation well-shaped: {}", graduation.is_well_shaped());
     assert!(graduation.is_well_shaped());
 
@@ -163,8 +180,7 @@ fn main() {
     // Evaluate the whole chain's shape as a ReceiptVerdict.  A chain is
     // well-shaped when it is non-empty and every link passes its shape check.
 
-    let chain_verdict =
-        ReceiptVerdict::from_shape_check(chain.well_shaped(), None);
+    let chain_verdict = ReceiptVerdict::from_shape_check(chain.well_shaped(), None);
     println!("\nchain verdict: {chain_verdict}");
     assert!(chain_verdict.is_admitted());
     assert!(chain_verdict.refusal().is_none());

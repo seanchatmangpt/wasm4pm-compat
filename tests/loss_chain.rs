@@ -109,7 +109,10 @@ fn loss_report_summary_produces_named_loss() {
         vec!["item"],
     );
     let summary = report.summary("DroppedObjectTypeLinks");
-    assert_eq!(summary.projection().as_str(), "ocel-flatten-to-xes:by-order");
+    assert_eq!(
+        summary.projection().as_str(),
+        "ocel-flatten-to-xes:by-order"
+    );
     assert_eq!(summary.category(), "DroppedObjectTypeLinks");
     assert_eq!(
         summary.to_string(),
@@ -267,6 +270,12 @@ fn multi_step_chain_ocel_to_xes_to_dfg() {
     chain.push(report2.summary("FlattenedTimestamps"));
 
     assert_eq!(chain.len(), 2);
-    assert_eq!(chain.steps()[0].projection().as_str(), "ocel-flatten-to-xes:by-order");
-    assert_eq!(chain.steps()[1].projection().as_str(), "xes-to-dfg:aggregate");
+    assert_eq!(
+        chain.steps()[0].projection().as_str(),
+        "ocel-flatten-to-xes:by-order"
+    );
+    assert_eq!(
+        chain.steps()[1].projection().as_str(),
+        "xes-to-dfg:aggregate"
+    );
 }

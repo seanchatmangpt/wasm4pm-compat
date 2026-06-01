@@ -519,8 +519,7 @@ impl XesLog {
             return Err(XesRefusal::NoTraces);
         }
         // Collect declared prefixes for the undeclared-prefix check below.
-        let declared_prefixes: Vec<&str> =
-            self.extensions.iter().map(|x| x.prefix()).collect();
+        let declared_prefixes: Vec<&str> = self.extensions.iter().map(|x| x.prefix()).collect();
 
         for t in &self.traces {
             if t.name().is_empty() {

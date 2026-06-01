@@ -70,19 +70,31 @@ fn demonstrate_dependency_measure() {
 
     // Moderate dependency: CheckStock → ApproveOrder (dm ≈ 0.75).
     let dm_check_approve = DependencyMeasure(0.75);
-    println!("  CheckStock → ApproveOrder  : dm = {:.2}", dm_check_approve.0);
+    println!(
+        "  CheckStock → ApproveOrder  : dm = {:.2}",
+        dm_check_approve.0
+    );
 
     // Weak dependency: CheckStock → ShipOrder (dm ≈ 0.42 — below threshold).
     let dm_check_ship = DependencyMeasure(0.42);
-    println!("  CheckStock → ShipOrder     : dm = {:.2}  (below threshold — arc may be pruned)", dm_check_ship.0);
+    println!(
+        "  CheckStock → ShipOrder     : dm = {:.2}  (below threshold — arc may be pruned)",
+        dm_check_ship.0
+    );
 
     // Certain dependency: ApproveOrder → ShipOrder (dm ≈ 0.98).
     let dm_approve_ship = DependencyMeasure(0.98);
-    println!("  ApproveOrder → ShipOrder   : dm = {:.2}", dm_approve_ship.0);
+    println!(
+        "  ApproveOrder → ShipOrder   : dm = {:.2}",
+        dm_approve_ship.0
+    );
 
     // ShipOrder → ArchiveCase (dm ≈ 0.95).
     let dm_ship_archive = DependencyMeasure(0.95);
-    println!("  ShipOrder → ArchiveCase    : dm = {:.2}", dm_ship_archive.0);
+    println!(
+        "  ShipOrder → ArchiveCase    : dm = {:.2}",
+        dm_ship_archive.0
+    );
 
     println!();
     println!("  Law (Weijters & Ribeiro 2011, §2): dm values are in [0, 1].");

@@ -90,9 +90,13 @@ macro_rules! impl_typed_id {
         impl<K> TypedId for $name<K> {
             type Raw = $raw;
             #[inline]
-            fn raw_value(&self) -> $raw { self.raw }
+            fn raw_value(&self) -> $raw {
+                self.raw
+            }
             #[inline]
-            fn is_zero(&self) -> bool { self.raw == $zero }
+            fn is_zero(&self) -> bool {
+                self.raw == $zero
+            }
         }
     };
 }
@@ -274,14 +278,14 @@ typed_id!(
 
 // ── TypedId sealed-trait implementations ─────────────────────────────────────
 
-impl_typed_id!(EventId,      u64, 0u64);
-impl_typed_id!(ObjectId,     u64, 0u64);
-impl_typed_id!(ActivityId,   u32, 0u32);
-impl_typed_id!(RelationId,   u32, 0u32);
-impl_typed_id!(TraceId,      u64, 0u64);
+impl_typed_id!(EventId, u64, 0u64);
+impl_typed_id!(ObjectId, u64, 0u64);
+impl_typed_id!(ActivityId, u32, 0u32);
+impl_typed_id!(RelationId, u32, 0u32);
+impl_typed_id!(TraceId, u64, 0u64);
 impl_typed_id!(ObjectTypeId, u32, 0u32);
-impl_typed_id!(EventTypeId,  u32, 0u32);
-impl_typed_id!(CaseId,       u64, 0u64);
+impl_typed_id!(EventTypeId, u32, 0u32);
+impl_typed_id!(CaseId, u64, 0u64);
 
 // ── String-backed name types ──────────────────────────────────────────────────
 
@@ -335,7 +339,10 @@ impl<K> ObjectTypeName<K> {
     /// ```
     #[inline]
     pub fn from_static(label: &'static str) -> Self {
-        Self { label: Cow::Borrowed(label), _kind: PhantomData }
+        Self {
+            label: Cow::Borrowed(label),
+            _kind: PhantomData,
+        }
     }
 
     /// Wraps an owned `String` label, allocating on the heap.
@@ -350,7 +357,10 @@ impl<K> ObjectTypeName<K> {
     /// ```
     #[inline]
     pub fn from_owned(label: String) -> Self {
-        Self { label: Cow::Owned(label), _kind: PhantomData }
+        Self {
+            label: Cow::Owned(label),
+            _kind: PhantomData,
+        }
     }
 
     /// Returns the string label.
@@ -371,17 +381,24 @@ impl<K> ObjectTypeName<K> {
 impl<K> Clone for ObjectTypeName<K> {
     #[inline]
     fn clone(&self) -> Self {
-        Self { label: self.label.clone(), _kind: PhantomData }
+        Self {
+            label: self.label.clone(),
+            _kind: PhantomData,
+        }
     }
 }
 impl<K> PartialEq for ObjectTypeName<K> {
     #[inline]
-    fn eq(&self, other: &Self) -> bool { self.label == other.label }
+    fn eq(&self, other: &Self) -> bool {
+        self.label == other.label
+    }
 }
 impl<K> Eq for ObjectTypeName<K> {}
 impl<K> core::hash::Hash for ObjectTypeName<K> {
     #[inline]
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) { self.label.hash(state); }
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.label.hash(state);
+    }
 }
 impl<K> core::fmt::Debug for ObjectTypeName<K> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -456,7 +473,10 @@ impl<K> EventTypeName<K> {
     /// ```
     #[inline]
     pub fn from_static(label: &'static str) -> Self {
-        Self { label: Cow::Borrowed(label), _kind: PhantomData }
+        Self {
+            label: Cow::Borrowed(label),
+            _kind: PhantomData,
+        }
     }
 
     /// Wraps an owned `String` label, allocating on the heap.
@@ -471,7 +491,10 @@ impl<K> EventTypeName<K> {
     /// ```
     #[inline]
     pub fn from_owned(label: String) -> Self {
-        Self { label: Cow::Owned(label), _kind: PhantomData }
+        Self {
+            label: Cow::Owned(label),
+            _kind: PhantomData,
+        }
     }
 
     /// Returns the string label.
@@ -492,17 +515,24 @@ impl<K> EventTypeName<K> {
 impl<K> Clone for EventTypeName<K> {
     #[inline]
     fn clone(&self) -> Self {
-        Self { label: self.label.clone(), _kind: PhantomData }
+        Self {
+            label: self.label.clone(),
+            _kind: PhantomData,
+        }
     }
 }
 impl<K> PartialEq for EventTypeName<K> {
     #[inline]
-    fn eq(&self, other: &Self) -> bool { self.label == other.label }
+    fn eq(&self, other: &Self) -> bool {
+        self.label == other.label
+    }
 }
 impl<K> Eq for EventTypeName<K> {}
 impl<K> core::hash::Hash for EventTypeName<K> {
     #[inline]
-    fn hash<H: core::hash::Hasher>(&self, state: &mut H) { self.label.hash(state); }
+    fn hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.label.hash(state);
+    }
 }
 impl<K> core::fmt::Debug for EventTypeName<K> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -603,19 +633,21 @@ macro_rules! impl_new_from_raw {
         impl<K> NewFromRaw for $name<K> {
             type Raw = $raw;
             #[inline]
-            fn new_from_raw(raw: $raw) -> Self { Self::new(raw) }
+            fn new_from_raw(raw: $raw) -> Self {
+                Self::new(raw)
+            }
         }
     };
 }
 
-impl_new_from_raw!(EventId,      u64);
-impl_new_from_raw!(ObjectId,     u64);
-impl_new_from_raw!(ActivityId,   u32);
-impl_new_from_raw!(RelationId,   u32);
-impl_new_from_raw!(TraceId,      u64);
+impl_new_from_raw!(EventId, u64);
+impl_new_from_raw!(ObjectId, u64);
+impl_new_from_raw!(ActivityId, u32);
+impl_new_from_raw!(RelationId, u32);
+impl_new_from_raw!(TraceId, u64);
 impl_new_from_raw!(ObjectTypeId, u32);
-impl_new_from_raw!(EventTypeId,  u32);
-impl_new_from_raw!(CaseId,       u64);
+impl_new_from_raw!(EventTypeId, u32);
+impl_new_from_raw!(CaseId, u64);
 
 // ── From / Into / AsRef / FromStr for integer-backed id types ────────────────
 
@@ -632,19 +664,25 @@ macro_rules! impl_id_conversions {
         impl<K> From<$raw> for $name<K> {
             /// Wraps a raw primitive as a typed id. Infallible.
             #[inline]
-            fn from(raw: $raw) -> Self { Self::new(raw) }
+            fn from(raw: $raw) -> Self {
+                Self::new(raw)
+            }
         }
 
         impl<K> From<$name<K>> for $raw {
             /// Unwraps the typed id back to its raw primitive. Infallible.
             #[inline]
-            fn from(id: $name<K>) -> $raw { id.raw }
+            fn from(id: $name<K>) -> $raw {
+                id.raw
+            }
         }
 
         impl<K> AsRef<$raw> for $name<K> {
             /// Borrows the underlying raw value without copying.
             #[inline]
-            fn as_ref(&self) -> &$raw { &self.raw }
+            fn as_ref(&self) -> &$raw {
+                &self.raw
+            }
         }
 
         impl<K> core::str::FromStr for $name<K> {
@@ -664,33 +702,39 @@ macro_rules! impl_id_conversions {
     };
 }
 
-impl_id_conversions!(EventId,      u64);
-impl_id_conversions!(ObjectId,     u64);
-impl_id_conversions!(ActivityId,   u32);
-impl_id_conversions!(RelationId,   u32);
-impl_id_conversions!(TraceId,      u64);
+impl_id_conversions!(EventId, u64);
+impl_id_conversions!(ObjectId, u64);
+impl_id_conversions!(ActivityId, u32);
+impl_id_conversions!(RelationId, u32);
+impl_id_conversions!(TraceId, u64);
 impl_id_conversions!(ObjectTypeId, u32);
-impl_id_conversions!(EventTypeId,  u32);
-impl_id_conversions!(CaseId,       u64);
+impl_id_conversions!(EventTypeId, u32);
+impl_id_conversions!(CaseId, u64);
 
 // ── From / AsRef / FromStr for string-backed name types ──────────────────────
 
 impl<K> From<&'static str> for ObjectTypeName<K> {
     /// Wraps a `&'static str` label without allocation. Infallible.
     #[inline]
-    fn from(s: &'static str) -> Self { Self::from_static(s) }
+    fn from(s: &'static str) -> Self {
+        Self::from_static(s)
+    }
 }
 
 impl<K> From<String> for ObjectTypeName<K> {
     /// Wraps an owned `String` label, allocating on the heap. Infallible.
     #[inline]
-    fn from(s: String) -> Self { Self::from_owned(s) }
+    fn from(s: String) -> Self {
+        Self::from_owned(s)
+    }
 }
 
 impl<K> AsRef<str> for ObjectTypeName<K> {
     /// Borrows the string label without allocating.
     #[inline]
-    fn as_ref(&self) -> &str { self.as_str() }
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
 }
 
 impl<K> core::str::FromStr for ObjectTypeName<K> {
@@ -706,19 +750,25 @@ impl<K> core::str::FromStr for ObjectTypeName<K> {
 impl<K> From<&'static str> for EventTypeName<K> {
     /// Wraps a `&'static str` label without allocation. Infallible.
     #[inline]
-    fn from(s: &'static str) -> Self { Self::from_static(s) }
+    fn from(s: &'static str) -> Self {
+        Self::from_static(s)
+    }
 }
 
 impl<K> From<String> for EventTypeName<K> {
     /// Wraps an owned `String` label, allocating on the heap. Infallible.
     #[inline]
-    fn from(s: String) -> Self { Self::from_owned(s) }
+    fn from(s: String) -> Self {
+        Self::from_owned(s)
+    }
 }
 
 impl<K> AsRef<str> for EventTypeName<K> {
     /// Borrows the string label without allocating.
     #[inline]
-    fn as_ref(&self) -> &str { self.as_str() }
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
 }
 
 impl<K> core::str::FromStr for EventTypeName<K> {

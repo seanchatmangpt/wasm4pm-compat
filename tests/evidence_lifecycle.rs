@@ -4,7 +4,7 @@
 //! Verifies that each stage produces a distinct Rust type, and that the refusal
 //! path produces a [`Refusal<R, W>`] carrying a specific named reason.
 
-use wasm4pm_compat::admission::{Admit, Admission, Refusal};
+use wasm4pm_compat::admission::{Admission, Admit, Refusal};
 use wasm4pm_compat::evidence::Evidence;
 use wasm4pm_compat::state::{Admitted, Parsed, Raw, Refused};
 use wasm4pm_compat::witness::Ocel20;
@@ -36,8 +36,7 @@ impl Admit for NonEmptyOcelLog {
 /// The `Raw` type alias and `into_parsed` produce distinct stage types.
 #[test]
 fn raw_and_parsed_are_distinct_types() {
-    let raw: Evidence<String, Raw, Ocel20> =
-        Evidence::raw("ocel-payload".to_owned());
+    let raw: Evidence<String, Raw, Ocel20> = Evidence::raw("ocel-payload".to_owned());
     // `into_parsed` advances the stage — the resulting type is different.
     let parsed: Evidence<String, Parsed, Ocel20> = raw.into_parsed();
     assert_eq!(parsed.value, "ocel-payload");
@@ -46,8 +45,7 @@ fn raw_and_parsed_are_distinct_types() {
 /// The `Admitted` stage is only reachable via an `Admit` implementation.
 #[test]
 fn admitted_stage_only_via_admit_impl() {
-    let raw: Evidence<String, Raw, Ocel20> =
-        Evidence::raw("non-empty-log".to_owned());
+    let raw: Evidence<String, Raw, Ocel20> = Evidence::raw("non-empty-log".to_owned());
     let admission = NonEmptyOcelLog::admit(raw).unwrap();
     let admitted: Evidence<String, Admitted, Ocel20> = admission.into_evidence();
     assert_eq!(admitted.into_inner(), "non-empty-log");

@@ -34,15 +34,15 @@ const _: () = {
     // This const assertion would fail to compile if the size grew.
     assert!(size_of::<Evidence<u64, Raw, Ocel20>>() == size_of::<u64>());
     assert!(size_of::<Evidence<u32, Raw, Ocel20>>() == size_of::<u32>());
-    assert!(size_of::<Evidence<u8,  Raw, Ocel20>>() == size_of::<u8>());
+    assert!(size_of::<Evidence<u8, Raw, Ocel20>>() == size_of::<u8>());
 };
 
 /// Prove `#[repr(transparent)]` id newtypes have the same size as their inner type.
 const _: () = {
     enum Log {}
-    assert!(size_of::<EventId<Log>>()    == size_of::<u64>());
-    assert!(size_of::<ObjectId<Log>>()   == size_of::<u64>());
-    assert!(size_of::<TraceId<Log>>()    == size_of::<u64>());
+    assert!(size_of::<EventId<Log>>() == size_of::<u64>());
+    assert!(size_of::<ObjectId<Log>>() == size_of::<u64>());
+    assert!(size_of::<TraceId<Log>>() == size_of::<u64>());
     assert!(size_of::<ActivityId<Log>>() == size_of::<u32>());
 };
 
@@ -59,23 +59,29 @@ const _: () = {
 
 fn bench_event_id_construction(c: &mut Criterion) {
     enum Log {}
-    c.bench_function("EventId::new (repr transparent, should equal u64::new)", |b| {
-        b.iter(|| {
-            let id = EventId::<Log>::new(black_box(42u64));
-            black_box(id)
-        })
-    });
+    c.bench_function(
+        "EventId::new (repr transparent, should equal u64::new)",
+        |b| {
+            b.iter(|| {
+                let id = EventId::<Log>::new(black_box(42u64));
+                black_box(id)
+            })
+        },
+    );
 }
 
 // ── Benchmark: Evidence<u64, Raw, Ocel20> construction ──────────────────────
 
 fn bench_evidence_raw_construction(c: &mut Criterion) {
-    c.bench_function("Evidence::<u64, Raw, Ocel20>::raw (should equal identity)", |b| {
-        b.iter(|| {
-            let ev = Evidence::<u64, _, Ocel20>::raw(black_box(99u64));
-            black_box(ev.value)
-        })
-    });
+    c.bench_function(
+        "Evidence::<u64, Raw, Ocel20>::raw (should equal identity)",
+        |b| {
+            b.iter(|| {
+                let ev = Evidence::<u64, _, Ocel20>::raw(black_box(99u64));
+                black_box(ev.value)
+            })
+        },
+    );
 }
 
 // ── Benchmark: baseline u64 — the zero-overhead reference ───────────────────

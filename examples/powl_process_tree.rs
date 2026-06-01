@@ -12,13 +12,13 @@
 #![allow(dead_code)]
 
 use wasm4pm_compat::powl::{
-    assert_tree_projectable, AcyclicPartialOrder, Choice, Loop, OrderEdge, PartialOrder,
-    Powl, PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal, ProcessTreeProjectable,
+    assert_tree_projectable, AcyclicPartialOrder, Choice, Loop, OrderEdge, PartialOrder, Powl,
+    PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal, ProcessTreeProjectable,
     TypedPowlLoopNode,
 };
 use wasm4pm_compat::process_tree::{
-    ProcessTree, ProcessTreeNode, ProcessTreeNodeId, ProcessTreeOperator, TypedLoopNode,
-    TypedXorNode, TypedAndNode, TypedSeqNode,
+    ProcessTree, ProcessTreeNode, ProcessTreeNodeId, ProcessTreeOperator, TypedAndNode,
+    TypedLoopNode, TypedSeqNode, TypedXorNode,
 };
 
 fn main() {
@@ -49,7 +49,10 @@ fn demo_process_tree_projectable_gate() {
     // A POWL fragment tagged as tree-projectable passes the structural gate.
     let marker = ProcessTreeProjectable;
     let passed = assert_tree_projectable(marker);
-    assert!(passed, "ProcessTreeProjectable must pass the tree-projectable gate");
+    assert!(
+        passed,
+        "ProcessTreeProjectable must pass the tree-projectable gate"
+    );
 
     // The gate is sealed: ExceedsProcessTree does NOT satisfy TreeProjectable.
     // Uncommenting the next line would fail to compile:
@@ -88,15 +91,23 @@ fn demo_powl_partial_order_witness() {
     // into the collection. Witnessed nodes (e.g. PowlNode<PartialOrder>) are
     // used for type-checked construction, then stored as plain PowlNode.
     let mut model = Powl::new();
-    model.nodes.push(PowlNode::new(node_a, PowlNodeKind::Atom("A".into())));
-    model.nodes.push(PowlNode::new(node_b, PowlNodeKind::Atom("B".into())));
+    model
+        .nodes
+        .push(PowlNode::new(node_a, PowlNodeKind::Atom("A".into())));
+    model
+        .nodes
+        .push(PowlNode::new(node_b, PowlNodeKind::Atom("B".into())));
     // Store the partial-order node id and kind, dropping the witness PhantomData.
     model.nodes.push(PowlNode::new(po_node.id, po_node.kind));
     model.edges.push(edge);
     model.root = Some(PowlNodeId(2));
     assert_eq!(model.node_count(), 3);
 
-    println!("[2] POWL partial order witness: ok (nodes={}, edges={})", model.node_count(), model.edges.len());
+    println!(
+        "[2] POWL partial order witness: ok (nodes={}, edges={})",
+        model.node_count(),
+        model.edges.len()
+    );
 }
 
 // ── POWL choice construction ─────────────────────────────────────────────────
@@ -154,7 +165,10 @@ fn demo_typed_loop_arity() {
     // TypedLoopNode<_, 3> would fail to compile — arity 3 violates `ARITY == 2`.
     // TypedPowlLoopNode<_, 3> likewise does NOT compile.
 
-    println!("[4] Typed loop arity enforcement: ok (loop_node.children={:?})", loop_node.children);
+    println!(
+        "[4] Typed loop arity enforcement: ok (loop_node.children={:?})",
+        loop_node.children
+    );
 }
 
 // ── ProcessOperator: Xor, And, Seq ───────────────────────────────────────────

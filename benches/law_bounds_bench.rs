@@ -17,9 +17,9 @@
 //! cargo bench --bench law_bounds_bench --all-features
 //! ```
 
-use criterion::{criterion_group, criterion_main, black_box, Criterion};
-use wasm4pm_compat::law::{ConditionCell, Between01};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use wasm4pm_compat::conformance::{FitnessConst, PrecisionConst};
+use wasm4pm_compat::law::{Between01, ConditionCell};
 
 // ── ConditionCell construction: 8 bits vs 4 bits ────────────────────────────
 

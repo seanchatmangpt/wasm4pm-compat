@@ -118,7 +118,10 @@ impl<A, B, const SCHEMA: &'static str> CorrelatedLog<A, B, SCHEMA> {
     /// let _merged: CorrelatedLog<LogA, LogB, "by-case"> = CorrelatedLog::new();
     /// ```
     pub fn new() -> Self {
-        Self { _a: PhantomData, _b: PhantomData }
+        Self {
+            _a: PhantomData,
+            _b: PhantomData,
+        }
     }
 
     /// The schema name under which the two source logs were correlated.

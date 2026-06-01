@@ -115,5 +115,7 @@ fn main() {
     // Error: evaluate(Require<{ 3u64 <= 2u64 }>: IsTrue) — the bound
     // `Require<false>: IsTrue` is unsatisfied, so the type does not exist.
     // This turns a range violation into a compile error, not a runtime panic.
-    println!("\n[compile-time law] FitnessConst<3, 2> does not compile: 3/2 > 1 violates Between01");
+    println!(
+        "\n[compile-time law] FitnessConst<3, 2> does not compile: 3/2 > 1 violates Between01"
+    );
 }

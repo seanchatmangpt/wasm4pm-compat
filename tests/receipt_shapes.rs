@@ -28,45 +28,25 @@ fn try_from_parts_accepts_all_four_fields() {
 
 #[test]
 fn try_from_parts_refuses_missing_subject() {
-    let r = ReceiptEnvelope::try_from_parts(
-        "",
-        "w",
-        Digest::new("d"),
-        ReplayHint::new("h"),
-    );
+    let r = ReceiptEnvelope::try_from_parts("", "w", Digest::new("d"), ReplayHint::new("h"));
     assert_eq!(r, Err(ReceiptRefusal::MissingSubject));
 }
 
 #[test]
 fn try_from_parts_refuses_missing_witness() {
-    let r = ReceiptEnvelope::try_from_parts(
-        "s",
-        "",
-        Digest::new("d"),
-        ReplayHint::new("h"),
-    );
+    let r = ReceiptEnvelope::try_from_parts("s", "", Digest::new("d"), ReplayHint::new("h"));
     assert_eq!(r, Err(ReceiptRefusal::MissingWitness));
 }
 
 #[test]
 fn try_from_parts_refuses_missing_digest() {
-    let r = ReceiptEnvelope::try_from_parts(
-        "s",
-        "w",
-        Digest::new(""),
-        ReplayHint::new("h"),
-    );
+    let r = ReceiptEnvelope::try_from_parts("s", "w", Digest::new(""), ReplayHint::new("h"));
     assert_eq!(r, Err(ReceiptRefusal::MissingDigest));
 }
 
 #[test]
 fn try_from_parts_refuses_missing_replay_hint() {
-    let r = ReceiptEnvelope::try_from_parts(
-        "s",
-        "w",
-        Digest::new("d"),
-        ReplayHint::new(""),
-    );
+    let r = ReceiptEnvelope::try_from_parts("s", "w", Digest::new("d"), ReplayHint::new(""));
     assert_eq!(r, Err(ReceiptRefusal::MissingReplayHint));
 }
 
@@ -82,7 +62,10 @@ fn try_from_parts_refuses_subject_before_witness() {
 #[test]
 fn broken_chain_link_display_includes_index() {
     let r = ReceiptRefusal::BrokenChainLink(3);
-    assert!(r.to_string().contains("3"), "expected index in display: {r}");
+    assert!(
+        r.to_string().contains("3"),
+        "expected index in display: {r}"
+    );
 }
 
 #[test]
@@ -99,7 +82,10 @@ fn good_envelope(subj: &str) -> ReceiptEnvelope {
 
 #[test]
 fn receipt_chain_refuses_empty_links() {
-    assert_eq!(ReceiptChain::try_new("run", vec![]), Err(ReceiptRefusal::EmptyChain));
+    assert_eq!(
+        ReceiptChain::try_new("run", vec![]),
+        Err(ReceiptRefusal::EmptyChain)
+    );
 }
 
 #[test]
@@ -173,8 +159,10 @@ fn receipt_chain_extend_with_refuses_broken_link() {
 #[test]
 fn graduation_receipt_is_well_shaped_when_envelope_and_tag_are_present() {
     let env = ReceiptEnvelope::new(
-        "p2p-log", "wasm4pm-bridge",
-        Digest::new("blake3:grad"), ReplayHint::new("wasm4pm://intake/p2p"),
+        "p2p-log",
+        "wasm4pm-bridge",
+        Digest::new("blake3:grad"),
+        ReplayHint::new("wasm4pm://intake/p2p"),
     );
     let gr = GraduationReceipt::new(env, "needs_discovery");
     assert!(gr.is_well_shaped());

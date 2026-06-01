@@ -546,7 +546,11 @@ impl DfgDuration {
     /// ```
     #[must_use]
     pub fn from_ns(ns: i64) -> Option<Self> {
-        if ns < 0 { None } else { Some(DfgDuration(ns)) }
+        if ns < 0 {
+            None
+        } else {
+            Some(DfgDuration(ns))
+        }
     }
 }
 

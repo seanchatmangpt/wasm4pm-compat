@@ -121,7 +121,10 @@ pub struct LifecycledObject<T, const PHASE: ObjectLifecyclePhase> {
 impl<T, const PHASE: ObjectLifecyclePhase> LifecycledObject<T, PHASE> {
     /// Wrap a value in the given lifecycle phase.
     pub fn new(inner: T) -> Self {
-        Self { inner, _state: PhantomData }
+        Self {
+            inner,
+            _state: PhantomData,
+        }
     }
 }
 
@@ -133,38 +136,56 @@ impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Created }> {
     /// This is the only lawful successor to `Created`. Calling `.activate()` on
     /// an already-active object is a compile error.
     pub fn activate(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Active }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 }
 
 impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Active }> {
     /// Record a modification — the object is still participating in events.
     pub fn modify(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Modified }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 
     /// Archive the object without modification.
     pub fn archive(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Archived }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 }
 
 impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Modified }> {
     /// Archive the object after modification.
     pub fn archive(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Archived }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 
     /// Apply another modification.
     pub fn modify(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Modified }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 }
 
 impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Archived }> {
     /// Delete the object (terminal phase).
     pub fn delete(self) -> LifecycledObject<T, { ObjectLifecyclePhase::Deleted }> {
-        LifecycledObject { inner: self.inner, _state: PhantomData }
+        LifecycledObject {
+            inner: self.inner,
+            _state: PhantomData,
+        }
     }
 }
 

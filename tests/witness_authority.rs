@@ -7,12 +7,12 @@
 //! `Witness` trait.
 
 use wasm4pm_compat::witness::{
-    AlignmentPaper, AlphaMiner, DeclareConstraints, DeclareFamily, DivergenceWitness,
-    InductiveMiner, LogSkeleton, Ocel20, ObjectCentricPetriNetPaper, OcPetriNets, OcelAttributeType,
-    OcelEventType, OcelObjectType, OcpqPaper, Pm4pyApiGrammar, PmaxConsumerGrammar, PowlPaper,
-    PredictiveMonitoringFamily, ReceiptFamily, RustTypestateLaw, SeparableWfNetPaper, Wasm4pmBridge,
-    WfNet2Powl, WfNetSoundnessPaper, Witness, WitnessFamily, XesConceptExt, XesLifecycleExt,
-    Xes1849, YawlPaper, WorkflowPatternsPaper, ConvergenceWitness,
+    AlignmentPaper, AlphaMiner, ConvergenceWitness, DeclareConstraints, DeclareFamily,
+    DivergenceWitness, InductiveMiner, LogSkeleton, ObjectCentricPetriNetPaper, OcPetriNets,
+    Ocel20, OcelAttributeType, OcelEventType, OcelObjectType, OcpqPaper, Pm4pyApiGrammar,
+    PmaxConsumerGrammar, PowlPaper, PredictiveMonitoringFamily, ReceiptFamily, RustTypestateLaw,
+    SeparableWfNetPaper, Wasm4pmBridge, WfNet2Powl, WfNetSoundnessPaper, Witness, WitnessFamily,
+    WorkflowPatternsPaper, Xes1849, XesConceptExt, XesLifecycleExt, YawlPaper,
 };
 
 // ── OCEL 2.0 ─────────────────────────────────────────────────────────────────
@@ -81,7 +81,10 @@ fn declare_family_metadata() {
 
 #[test]
 fn predictive_monitoring_family_metadata() {
-    assert_eq!(PredictiveMonitoringFamily::KEY, "predictive-monitoring-family");
+    assert_eq!(
+        PredictiveMonitoringFamily::KEY,
+        "predictive-monitoring-family"
+    );
     assert_eq!(PredictiveMonitoringFamily::FAMILY, WitnessFamily::Paper);
     assert_eq!(PredictiveMonitoringFamily::YEAR, Some(2018));
 }

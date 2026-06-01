@@ -235,7 +235,10 @@ impl<T, Order> TimeAwareEvidence<T, Order> {
     /// ```
     #[inline]
     pub fn new(inner: T) -> Self {
-        Self { inner, order: PhantomData }
+        Self {
+            inner,
+            order: PhantomData,
+        }
     }
 
     /// Consume this wrapper and return the inner value.

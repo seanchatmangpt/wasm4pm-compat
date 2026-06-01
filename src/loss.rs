@@ -143,9 +143,9 @@ impl core::fmt::Display for LossPolicy {
     /// ```
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            LossPolicy::RefuseLoss           => f.write_str("RefuseLoss"),
+            LossPolicy::RefuseLoss => f.write_str("RefuseLoss"),
             LossPolicy::AllowNamedProjection => f.write_str("AllowNamedProjection"),
-            LossPolicy::AllowLossWithReport  => f.write_str("AllowLossWithReport"),
+            LossPolicy::AllowLossWithReport => f.write_str("AllowLossWithReport"),
         }
     }
 }
@@ -312,7 +312,10 @@ impl NamedLoss {
     /// ```
     #[inline]
     pub const fn new(projection: ProjectionName, category: &'static str) -> Self {
-        NamedLoss { projection, category }
+        NamedLoss {
+            projection,
+            category,
+        }
     }
 
     /// Returns the [`ProjectionName`] under which this loss occurred.
@@ -801,7 +804,9 @@ impl Default for LossChain {
 
 impl core::fmt::Debug for LossChain {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("LossChain").field("steps", &self.steps).finish()
+        f.debug_struct("LossChain")
+            .field("steps", &self.steps)
+            .finish()
     }
 }
 

@@ -62,7 +62,9 @@ impl<T, const SIZE: usize> EventWindow<T, SIZE> {
     /// let _window: EventWindow<u8, 128> = EventWindow::new();
     /// ```
     pub fn new() -> Self {
-        Self { _items: PhantomData }
+        Self {
+            _items: PhantomData,
+        }
     }
 }
 
@@ -125,7 +127,10 @@ impl<T> ContextualEvidence<T, OfflineAnalysisContext> {
     /// assert_eq!(ev.inner, 42);
     /// ```
     pub fn offline(inner: T) -> Self {
-        Self { inner, _ctx: PhantomData }
+        Self {
+            inner,
+            _ctx: PhantomData,
+        }
     }
 }
 
@@ -141,7 +146,10 @@ impl<T> ContextualEvidence<T, OnlineMonitoringContext> {
     /// assert_eq!(ev.inner, 42);
     /// ```
     pub fn online(inner: T) -> Self {
-        Self { inner, _ctx: PhantomData }
+        Self {
+            inner,
+            _ctx: PhantomData,
+        }
     }
 }
 

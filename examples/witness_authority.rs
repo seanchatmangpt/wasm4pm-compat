@@ -10,9 +10,7 @@
 #![allow(dead_code)]
 
 use wasm4pm_compat::admission::Admission;
-use wasm4pm_compat::witness::{
-    Ocel20, WfNetSoundnessPaper, Witness, WitnessFamily, Xes1849,
-};
+use wasm4pm_compat::witness::{Ocel20, WfNetSoundnessPaper, Witness, WitnessFamily, Xes1849};
 
 fn print_witness<W: Witness>() {
     println!(
@@ -113,8 +111,17 @@ fn main() {
     // the compiler to reject cross-standard confusion that would otherwise
     // surface only as a runtime mismatch or silent data corruption.
     // -------------------------------------------------------------------------
-    println!("\nsize_of::<Ocel20>()           = {}", core::mem::size_of::<Ocel20>());
-    println!("size_of::<Xes1849>()          = {}", core::mem::size_of::<Xes1849>());
-    println!("size_of::<WfNetSoundnessPaper>() = {}", core::mem::size_of::<WfNetSoundnessPaper>());
+    println!(
+        "\nsize_of::<Ocel20>()           = {}",
+        core::mem::size_of::<Ocel20>()
+    );
+    println!(
+        "size_of::<Xes1849>()          = {}",
+        core::mem::size_of::<Xes1849>()
+    );
+    println!(
+        "size_of::<WfNetSoundnessPaper>() = {}",
+        core::mem::size_of::<WfNetSoundnessPaper>()
+    );
     println!("\nAll witnesses are zero-cost. Authority lives at the type level only.");
 }

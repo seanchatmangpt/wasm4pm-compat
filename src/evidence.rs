@@ -578,8 +578,9 @@ mod state_transition_tests {
     /// Refuse path: Parsed → Refused — value is recoverable for diagnostics.
     #[test]
     fn parsed_to_refused_carries_value() {
-        let refused: Evidence<&str, Refused, Ocel20> =
-            Evidence::<_, _, Ocel20>::raw("malformed").into_parsed().into_refused();
+        let refused: Evidence<&str, Refused, Ocel20> = Evidence::<_, _, Ocel20>::raw("malformed")
+            .into_parsed()
+            .into_refused();
         assert_eq!(refused.as_refused_value(), &"malformed");
         assert_eq!(refused.into_refused_value(), "malformed");
     }
