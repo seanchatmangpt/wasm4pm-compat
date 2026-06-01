@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/case_id_as_activity_id.rs:13:26
+   |
+13 |     requires_activity_id(case);
+   |     -------------------- ^^^^ expected `ActivityId<MyLog>`, found `CaseId<MyLog>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `ActivityId<MyLog>`
+              found struct `CaseId<MyLog>`
+note: function defined here
+  --> tests/ui/compile_fail/case_id_as_activity_id.rs:8:4
+   |
+ 8 | fn requires_activity_id(_id: ActivityId<MyLog>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^ ----------------------

@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/trace_id_as_object_id.rs:13:24
+   |
+13 |     requires_object_id(trace);
+   |     ------------------ ^^^^^ expected `ObjectId<MyLog>`, found `TraceId<MyLog>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `ObjectId<MyLog>`
+              found struct `TraceId<MyLog>`
+note: function defined here
+  --> tests/ui/compile_fail/trace_id_as_object_id.rs:8:4
+   |
+ 8 | fn requires_object_id(_id: ObjectId<MyLog>) {}
+   |    ^^^^^^^^^^^^^^^^^^ --------------------

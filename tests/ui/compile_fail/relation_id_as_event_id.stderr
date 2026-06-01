@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/relation_id_as_event_id.rs:13:23
+   |
+13 |     requires_event_id(rel);
+   |     ----------------- ^^^ expected `EventId<MyLog>`, found `RelationId<MyLog>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `EventId<MyLog>`
+              found struct `RelationId<MyLog>`
+note: function defined here
+  --> tests/ui/compile_fail/relation_id_as_event_id.rs:8:4
+   |
+ 8 | fn requires_event_id(_id: EventId<MyLog>) {}
+   |    ^^^^^^^^^^^^^^^^^ -------------------

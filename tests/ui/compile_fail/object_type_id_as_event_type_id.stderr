@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/object_type_id_as_event_type_id.rs:13:28
+   |
+13 |     requires_event_type_id(ot);
+   |     ---------------------- ^^ expected `EventTypeId<MyLog>`, found `ObjectTypeId<MyLog>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `EventTypeId<MyLog>`
+              found struct `ObjectTypeId<MyLog>`
+note: function defined here
+  --> tests/ui/compile_fail/object_type_id_as_event_type_id.rs:8:4
+   |
+ 8 | fn requires_event_type_id(_id: EventTypeId<MyLog>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ -----------------------
