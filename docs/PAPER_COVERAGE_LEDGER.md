@@ -144,6 +144,9 @@ Papers whose primary formal objects are event logs, event data formats, or objec
 | 48 | Multi-Perspective Process Mining (van der Aalst, 2011) | `ResourcePerspective` and `DataPerspective` as typed extension namespaces on `XesEvent` |
 | 49 | OC-PM: Divergence and Convergence (van der Aalst & Berti, 2020) | `DivergenceWitness` and `ConvergenceWitness` named witness types in `src/witness.rs` |
 | 50 | Directly-Follows Graphs: Mining and Filtering (van der Aalst, 2019) | No gap — DFG structural relation fully covered; filtering execution graduates |
+| 71 | Balanced Multi-Perspective Checking (Mannhardt et al., 2016) | `ResourcePerspective` and `DataPerspective` typed extension namespaces; perspective weight as `Between01` const-generic |
+| 79 | OC Process Mining precursor (van der Aalst, 2013) | No gap — subsumed by OCEL 1.0 (#35) and OCEL 2.0 (#25) |
+| 81 | OCPA Library (Schuster et al., 2023) | No gap — all OCPA structural shapes already typed; execution graduates |
 
 ### LANE_C: Process Model / WF-net / POWL / Conformance / Prediction
 
@@ -158,6 +161,17 @@ Papers whose primary formal objects are process models, structural laws, conform
 | 18 | YAWL: Yet Another Workflow Language | WF-net soundness fully covered; cancellation region and multi-instance types missing |
 | 46 | Business Process Management (Weske, 2012) | `GatewaySemantics<KIND>` const-generic binding gateway structural kind to semantic law |
 | 47 | BPMN 2.0 OMG Specification | No gap — structural metamodel covered by `BpmnElement`/`GatewayKind`/`EventKind` in `src/bpmn.rs` |
+| 68 | Conformance Checking Based on Monitoring Real Behavior (Rozinat & van der Aalst, 2008) | No gap — `FitnessConst`/`PrecisionConst` with `Between01` already typed; execution graduates |
+| 69 | Modeling Business Processes (van der Aalst & Stahl, 2011) | No gap — WF-net soundness and BPMN structural vocabulary fully covered |
+| 70 | Data-Aware Conformance Checking (de Leoni & Mannhardt, 2015) | No gap for metric shapes; data-aware alignment execution graduates |
+| 72 | Process Mining in Conformance Testing (Burattin, 2017) | No gap — all conformance metric shapes already typed; execution survey graduates |
+| 73 | Scalable Process Discovery (Leemans, 2022) | No gap for structural shapes — same as base IM; execution graduates |
+| 74 | Process Mining 2nd ed. (van der Aalst, 2016) | No gap — all structural shapes from 2016 edition already typed across canon modules |
+| 75 | Time-Aware Predictive Monitoring (Polato et al., 2018) | `PredictionHorizon` const-generic param in `src/prediction.rs` |
+| 76 | Predictive PM Methods Survey (Di Francescomarino et al., 2017) | `PrefixLength` const-generic param in `src/prediction.rs` |
+| 77 | Predictive Business Process Monitoring — LSTM (Tax et al., 2017) | No gap for structural shapes; LSTM execution graduates |
+| 78 | BPMN Miner (Conforti et al., 2015) | No gap — BPMN pool/lane/subprocess structural shapes fully covered |
+| 80 | Log Skeletons: Classification Approach (Verbeek, 2019) | No gap for constraint shapes; log skeleton derivation execution graduates |
 
 ### BACKGROUND
 

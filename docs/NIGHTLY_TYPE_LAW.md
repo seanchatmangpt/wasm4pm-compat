@@ -1915,6 +1915,56 @@ the pass fixture, the fail fixture, and the paper source.
 
 ---
 
+## #71 — Balanced Multi-Perspective Checking of Process Conformance (Mannhardt et al., 2016)
+
+**Paper:** Balanced Multi-Perspective Checking of Process Conformance
+**Canon family:** `XES_EVENT_LOG`
+**Verdict:** `PARTIAL_WITH_REASON`
+**Active obligation:** `ResourcePerspective` and `DataPerspective` typed extension namespaces in `src/xes.rs`; perspective weight as `Between01` const-generic in `src/conformance.rs`
+
+**Law-packet notes:**
+
+Mannhardt et al. (2016) define a balanced multi-perspective conformance
+framework: control-flow, data, resource, and time perspectives each contribute
+a weighted cost to the alignment. Each perspective is a named XES extension —
+not a stringly-typed attribute bag. Resource and data perspectives as explicitly
+typed attribute namespaces are absent from `src/xes.rs`; perspective weight as
+a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Time perspective (timestamp) | `src/xes.rs::XesEvent` (timestamp field) | covered |
+| Control-flow perspective (concept:name) | `src/xes.rs::XesEvent` (activity attribute) | covered |
+| Resource perspective (org:resource) | `src/xes.rs` — not yet a typed namespace | **gap** |
+| Data perspective (named attribute map) | `src/xes.rs` — attribute map exists, not perspective-scoped | **gap** |
+| Perspective weight | `src/conformance.rs` — not yet a `Between01` const-generic | **gap** |
+
+**Structural laws this crate partially enforces:**
+
+- `XesEvent` carries a timestamp (time perspective) and an attribute map
+  (data perspective substrate) in `src/xes.rs`.
+- `XesExtension` covers the generic extension declaration law.
+- Resource perspective (`org:resource`, `org:role`, `org:group`) is NOT
+  yet typed as a distinct `ResourcePerspective` namespace.
+- Data perspective attributes are not yet typed as a distinct
+  `DataPerspective` namespace scoped to a named extension declaration.
+
+**Gap requiring future type surface:**
+
+- `ResourcePerspective` as a `PhantomData` extension marker on `XesEvent`
+- `DataPerspective` as a typed attribute namespace with declared extension
+- Perspective weight as a `Between01<NUM, DEN>` const-generic parameter
+  in `src/conformance.rs` to distinguish weighted from unweighted alignment
+
+**What must NOT live in this crate:**
+
+- Multi-perspective alignment execution (per-perspective cost weighting,
+  balanced alignment search — graduates to wasm4pm `NeedsConformanceExecution`)
+- Social network mining from resource perspective
+- Decision mining from data perspective
+
+---
+
 ## #69 — Modeling Business Processes: A Petri Net-Oriented Approach (van der Aalst, Stahl, 2011)
 
 **Paper:** Modeling Business Processes: A Petri Net-Oriented Approach
