@@ -7,141 +7,314 @@ A compile-fail fixture is a **negative receipt**: it proves that the type system
 a structurally invalid construction. The law is sealed at compile time — no runtime check,
 no assertion, no test assertion.
 
-**Current count:** 45 compile-fail fixtures
-**Crown target:** >= 160
-**Gap:** ~115
+**Current count:** 196 compile-fail fixtures
+**Crown target:** >= 160 (already exceeded)
 
 ---
 
 ## Index by Law Family
 
-### Admission / Evidence / State (4 fixtures)
+### Admission / Evidence / State (14 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
 | `admission_raw_state_not_admitted` | Raw evidence cannot be used where Admitted is required — the Admit::admit() path is the only sanctioned transition |
+| `admission_refusal_as_admission` | Refusal<R,W> cannot be passed where Admission<T,W> is required |
+| `evidence_admitted_as_exportable` | Admitted evidence cannot be passed where Exportable is required — state tokens are non-interchangeable |
+| `evidence_double_advance` | Advancing already-admitted evidence is rejected — lifecycle is strictly one-way |
+| `evidence_exportable_as_receipted` | Exportable evidence cannot be passed where Receipted is required |
+| `evidence_parsed_as_admitted` | Parsed evidence cannot be passed where Admitted is required |
+| `evidence_projected_as_admitted` | Projected evidence cannot be passed where Admitted is required |
+| `evidence_raw_as_projected` | Raw evidence cannot be passed where Projected is required |
+| `evidence_raw_as_receipted` | Raw evidence cannot be passed where Receipted is required |
+| `evidence_receipted_as_exportable` | Receipted evidence cannot be passed where Exportable is required |
+| `evidence_refused_as_admitted` | Refused evidence cannot be passed where Admitted is required |
+| `evidence_state_token_not_evidencestate` | A user-defined type cannot implement EvidenceState — the sealed trait prevents forging new states |
+| `evidence_wrong_witness_ocel_as_xes` | Evidence<T, Admitted, Ocel20> cannot be passed where Evidence<T, Admitted, Xes1849> is required |
+| `evidence_wrong_witness_xes_as_ocel` | Evidence<T, Admitted, Xes1849> cannot be passed where Evidence<T, Admitted, Ocel20> is required |
 | `raw_export_as_admitted` | Raw evidence cannot be exported as admitted — lifecycle state is non-forgeable |
-| `compliance_not_outcome_label` | Compliance monitor slot requires an admitted constraint shape, not an outcome label |
-| `compliance_witness_wrong_target` | Compliance witness must target the correct monitored type — cross-witness confusion is rejected |
 
-### BPMN / YAWL (4 fixtures)
+### BPMN / YAWL (8 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `bpmn_pool_as_lane` | A BPMN Pool cannot be substituted for a Lane — structural shape distinction is enforced |
-| `yawl_cancellation_region_rejected` | YAWL cancellation region requires a valid task scope — bare construction is rejected |
-| `yawl_multi_instance_bounds_rejected` | YAWL multi-instance task bounds must satisfy cardinality law — out-of-law values rejected |
-| `yawl_wrong_task_type` | YAWL task type enum variants are non-interchangeable — wrong task type is rejected |
+| `bpmn_gateway_as_event` | BpmnGateway cannot be passed where BpmnEvent is required — structural shape distinction enforced |
+| `bpmn_lane_as_pool` | BpmnLane cannot be passed where BpmnPool is required |
+| `bpmn_pool_as_lane` | BpmnPool cannot be passed where BpmnLane is required — BpmnPoolLaneConfusionLaw |
+| `bpmn_task_as_edge` | BpmnTask cannot be passed where BpmnEdge is required |
+| `yawl_cancellation_region_rejected` | Raw Vec<String> cannot satisfy CancellationRegionExclusionLaw — typed construction required |
+| `yawl_multi_instance_bounds_rejected` | YAWL Definition 1 nofi invariant violated — multi-instance bounds must satisfy cardinality law |
+| `yawl_wrong_task_type` | MultipleInstanceSpecConst and CancellationRegion are structurally distinct — YawlTaskTypeDistinctionLaw |
+| `workflow_pattern_wrong_kind` | PatternNet<ParallelSplit> and PatternNet<ExclusiveChoice> are distinct types — WorkflowPatternDistinctionLaw |
 
-### Declare (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `declare_binary_arity_rejected` | Declare constraint with non-binary arity is rejected — binary arity law is enforced at compile time |
-
-### DFG (2 fixtures)
+### Conformance Metrics / Between01 (18 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `dfg_engine_boundary_rejected` | DFG engine logic (discovery/replay) may not appear in the compat crate — engine boundary enforced |
-| `dfg_wrong_edge_type` | DFG edges must use the correct arc type — wrong edge type is rejected |
+| `conformance_checker_absent` | ConformanceChecker absent — no conformance execution in wasm4pm-compat |
+| `conformance_sync_as_deviation` | SyncMove cannot be passed where LogOnlyMove is required |
+| `conformance_verdict_as_deviation` | ConformanceVerdict cannot be passed where Deviation is required |
+| `f1_num_gt_den` | F1Const<2,1> rejected because NUM > DEN (2/1 > 1) — Between01 bound |
+| `f1_out_of_bounds` | F1Const<NUM,DEN> requires NUM <= DEN |
+| `fitness_as_precision` | FitnessConst cannot be passed where PrecisionConst is required — metric kind law |
+| `fitness_num_gt_den` | FitnessConst<3,2> rejected because NUM > DEN (3/2 > 1) — Between01 bound |
+| `fitness_out_of_bounds_3_2` | FitnessConst<3,2> violates NUM <= DEN — metric bounds law |
+| `generalization_num_gt_den` | GeneralizationConst<8,7> rejected because NUM > DEN — Between01 bound |
+| `generalization_out_of_bounds_8_7` | GeneralizationConst<8,7> violates NUM <= DEN |
+| `generalization_out_of_bounds` | GeneralizationBoundsLaw — scores above 1.0 rejected at compile time |
+| `metric_den_zero` | FitnessConst<1,0> rejected because DEN=0 violates Require<{ DEN > 0 }> |
+| `metric_out_of_bounds` | MetricBoundsLaw — FitnessConst<NUM,DEN> requires NUM <= DEN; metric above 1.0 violates Between01 |
+| `precision_as_f1` | PrecisionConst cannot be passed where F1Const is required |
+| `precision_num_gt_den` | PrecisionConst<5,3> rejected because NUM > DEN (5/3 > 1) |
+| `precision_out_of_bounds` | PrecisionConst<NUM,DEN> requires NUM <= DEN |
+| `simplicity_num_gt_den` | SimplicityConst<10,9> rejected because NUM > DEN (10/9 > 1) |
+| `simplicity_out_of_bounds_10_9` | SimplicityConst<10,9> violates NUM <= DEN |
+| `simplicity_out_of_bounds` | SimplicityBoundsLaw — simplicity scores above 1.0 violate Between01 |
 
-### Engine Creep (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `engine_creep_discovery_absent` | Process discovery logic is absent from this crate — engine creep is rejected at the type boundary |
-
-### Graduation (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `graduation_trait_without_candidate` | GraduationCandidate marker trait requires a valid graduation reason — bare implementation is rejected |
-
-### IDs (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `object_id_as_event_id` | ObjectId and EventId are distinct typed identifiers — substitution is rejected |
-
-### Interop (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `interop_filter_shape_mismatch` | Interop filter shapes must match across bridge boundaries — shape mismatch is rejected |
-
-### Law / ConditionCell (1 fixture)
+### Compliance / Prediction (3 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `need9_condition_cell` | ConditionCell<BITS> requires BITS in [1,8] — a 9-bit cell is rejected by the const bound |
+| `compliance_not_outcome_label` | Compliance monitor slot requires admitted constraint shape, not an outcome label |
+| `compliance_witness_wrong_target` | Compliance witness must target the correct monitored type |
+| `prediction_next_activity_as_drift` | PredictionProblem<NextActivity> cannot be passed where DriftSignal type required |
+| `prediction_outcome_as_remaining_time` | PredictionProblem<OutcomeLabel> cannot be passed where RemainingTime required |
 
-### Loss / Projection (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `loss_project_without_policy` | Lossy projection requires an explicit LossPolicy — projecting without a policy is rejected |
-
-### Conformance (1 fixture)
+### Correlation / Causal / Streaming (3 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `metric_out_of_bounds` | Conformance metrics are bounded to [0,1] via Between01<NUM,DEN> — out-of-range values rejected |
+| `causal_chain_length_mismatch` | CausalChain chains of different lengths are distinct types |
+| `causal_net_input_as_output` | InputBinding<A,B> cannot be passed where OutputBinding required |
+| `correlation_schema_mismatch` | Different CorrelationSchemas produce incompatible logs |
+| `streaming_as_offline` | Online streaming evidence cannot be passed where offline evidence required |
+| `temporal_order_confusion` | Online/Offline context markers are non-interchangeable — TemporalOrder type confusion |
 
-### OCEL (3 fixtures)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `ocel_e2o_missing_link` | OCEL event-to-object relations require a valid link type — missing link is rejected |
-| `ocel_o2o_missing_link` | OCEL object-to-object relations require a valid link type — missing link is rejected |
-| `ocel_to_xes_no_loss_report` | OCEL-to-XES projection must carry a LossReport — silent loss is rejected |
-
-### OCPQ (5 fixtures)
+### Declare (3 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `ocpq_cardinality_overflow` | OCPQ cardinality bounds must not overflow the allowed range — overflow is rejected |
-| `ocpq_cardinality_rejected` | OCPQ cardinality requires a valid event predicate gate — non-predicate is rejected |
-| `ocpq_flattening_rejected` | OCPQ flattening requires cross-object relation predicates — wrong predicate class rejected |
-| `ocpq_missing_scope_rejected` | OCPQ query evaluation requires an admitted query shape — bare scope is rejected |
-| `ocpq_object_type_mixing` | OCPQ object-type predicates must not mix object types — cross-type mixing rejected |
+| `declare_binary_arity_rejected` | DeclareRefusal::InvalidTemplateArity — binary arity law enforced at compile time |
+| `declare_response_as_precedence` | OcDeclareConstraint<Response> cannot be substituted for OcDeclareConstraint<Precedence> |
+| `declare_unary_template_used_as_binary` | Unary DeclareConstraint cannot be passed where binary is required |
 
-### Petri Nets (6 fixtures)
+### DFG (7 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `petri_place_to_place_arc` | Place-to-place arcs are prohibited in Petri nets — bipartite arc law enforced |
-| `petri_transition_to_transition_arc` | Transition-to-transition arcs are prohibited in Petri nets — bipartite arc law enforced |
-| `separable_wfnet_rejected` | Non-separable WF-nets are rejected where separability (Definition 4.1) is required |
-| `wfnet_forged_soundness` | WF-net soundness witness cannot be forged — the non-forgeable witness path is enforced |
-| `wfnet_to_powl_nonseparable` | WF-net to POWL conversion requires a separable WF-net — non-separable source is rejected |
-| `wfnet2powl_precondition_rejected` | WF-net to POWL Theorem 4.3 precondition: only SeparableWfNet satisfies the structural gate |
+| `dfg_duration_as_weight` | DfgDuration cannot be passed where DfgWeight is required |
+| `dfg_engine_boundary_rejected` | DfgRefusal::DiscoveryRequired — Raw DFG evidence cannot cross execution boundary |
+| `dfg_node_as_edge` | DfgNode cannot be passed where DfgEdge is required |
+| `dfg_source_as_target` | DfgSourceMarker cannot satisfy IsDfgTarget |
+| `dfg_target_as_source` | DfgTargetMarker cannot satisfy IsDfgSource |
+| `dfg_weight_as_frequency` | DfgWeight cannot be passed where DfgFrequency is required |
+| `dfg_wrong_edge_type` | DfgFrequency cannot be passed where DfgEdgeTypeConfusionLaw requires distinct edge kind |
 
-### Petri / POWL (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `wfnet2powl_wrong_source` | WF-net to POWL conversion Theorem 4.3: wrong source type (non-separable) is rejected |
-
-### POWL (2 fixtures)
+### Engine Creep (2 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `powl_order_edge_choice_confusion` | POWL partial-order edges and choice edges are non-interchangeable — confusion is rejected |
-| `powl_silent_tree_projection` | Silent POWL tree projection is rejected — projection must carry a LossPolicy |
+| `engine_creep_discovery_absent` | Process discovery execution is absent from wasm4pm-compat — engine creep rejected at type boundary |
+| `process_discovery_engine_absent` | ProcessDiscoveryEngine absent — no discovery execution exists in wasm4pm-compat |
 
-### Process Tree (1 fixture)
-
-| Fixture | Named law sealed |
-|---------|-----------------|
-| `process_tree_bad_loop_arity` | Process tree loop nodes require arity == 2 — non-binary loop arity is rejected at compile time |
-
-### Receipt / Witness (2 fixtures)
+### Export Boundary / Formats (5 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `receipt_envelope_missing_digest` | Receipt envelope without a digest is rejected — digest is mandatory for a valid receipt |
-| `receipt_missing_witness` | Receipt without a witness marker is rejected — witness is mandatory for lawful receipt |
+| `export_boundary_contradicts_witness` | ExportBoundaryConst<true,false> contradicts the boundary covenant |
+| `export_boundary_neither` | ExportBoundaryConst<false, false> satisfies no law |
+| `export_boundary_no_witness` | ExportBoundaryConst<false, true> lacks witness |
+| `formats_envelope_wrong_witness` | FormatEnvelope<Ocel20> cannot be passed where different witness required |
+| `formats_lossless_as_lossy` | FormatExport cannot be passed where LossyFormatExport is required |
+
+### Graduation (4 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `graduation_candidate_as_wasm4pm_bridge` | External type cannot implement interop::GraduationCandidate directly |
+| `graduation_candidate_bypassed` | GraduationCandidate cannot be bypassed — sealed marker required |
+| `graduation_receipt_not_candidate` | GraduationReceipt cannot be passed where GraduationCandidate is required |
+| `graduation_trait_without_candidate` | GraduateToWasm4pm requires a valid GraduationCandidate — bare impl rejected |
+
+### IDs (11 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `activity_id_as_case_id` | ActivityId cannot be passed where CaseId is required — kind-typed ID law |
+| `case_id_as_activity_id` | CaseId cannot be passed where ActivityId is required |
+| `case_id_as_trace_id` | CaseId cannot be passed where TraceId is required |
+| `event_id_as_object_id` | EventId cannot be passed where ObjectId is required |
+| `event_type_id_as_object_type_id` | EventTypeId cannot be passed where ObjectTypeId is required |
+| `ids_object_type_name_as_event_type_id` | ObjectTypeName cannot be passed where EventTypeId is required |
+| `object_id_as_event_id` | ObjectId cannot be passed where EventId is required |
+| `object_type_id_as_event_type_id` | ObjectTypeId cannot be passed where EventTypeId is required |
+| `object_type_id_as_object_id` | ObjectTypeId cannot be passed where ObjectId is required |
+| `object_type_name_as_event_type_name` | ObjectTypeName cannot be passed where EventTypeName is required |
+| `relation_id_as_event_id` | RelationId cannot be passed where EventId is required |
+| `trace_id_as_object_id` | TraceId cannot be passed where ObjectId is required |
+
+### Interop / Filter (2 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `filter_shape_flat_rejected` | FilterShapeConst<false> cannot satisfy RequiresObjectCentric — DimensionShapeMismatch law |
+| `interop_filter_shape_mismatch` | FilterShape applied to incompatible Pm4pyShape — shape mismatch rejected |
+
+### Law / ConditionCell (2 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `condition_cell_10_bits` | ConditionCell<10> violates BITS <= 8 — Need9 law |
+| `need9_condition_cell` | ConditionCell<BITS> requires BITS <= 8 — Need9ConditionCellLaw (9-bit cell rejected) |
+
+### Lifecycle / Object (3 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `lifecycle_wrong_phase_const` | LifecycledObject wrong const phase — phase type mismatch |
+| `object_lifecycle_skip_active` | Created object cannot be passed where Active is required — skip rejected |
+| `object_lifecycle_wrong_transition` | Lifecycle wrong transition order rejected |
+
+### Loss / Projection (8 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `allow_named_missing_projection_name` | AllowNamedProjection path without a ProjectionName in the report |
+| `loss_chain_as_loss_report` | LossChain cannot be passed where LossReport is required |
+| `loss_policy_as_projection_name` | LossPolicy cannot be passed where ProjectionName is required |
+| `loss_project_without_policy` | Lossy transformation that omits LossPolicy is a compile-time defect — Project trait enforces it |
+| `loss_report_is_lossless_bound` | LossReport::is_lossless() only available when Items: IsEmpty |
+| `loss_without_report_on_allow_path` | Project impl returns unit on AllowLossWithReport path — LossReport required |
+| `projection_name_bare_str` | Bare &str rejected at accept_lossy boundary — ProjectionName newtype required |
+| `refuse_loss_path_emitting_report` | RefuseLoss path emitting a LossReport instead of a named reason — must be a refusal, not a report |
+
+### Multi-perspective (1 fixture)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `multi_perspective_missing` | Wrong perspective combination rejected — MultiPerspective evidence context law |
+
+### Nightly Foundry / Petri Matrix (4 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `nightly_petri_prematrix_as_postmatrix` | PreMatrix<P,T> cannot be passed where PostMatrix<P,T> is required |
+| `nightly_powl_atom_as_silent` | TypedNode<{PowlKind::Atom}> cannot be passed where Silent required |
+| `nightly_powl_loop_as_xor` | TypedNode<{PowlKind::Loop}> cannot be passed where Xor required |
+| `nightly_powl_xor_as_partial` | TypedNode<{PowlKind::Xor}> cannot be passed where PartialOrder required |
+
+### OC-Declare (1 fixture)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `oc_declare_scope_mismatch` | OcDeclareRefusal::ScopeMismatch — scope mismatch rejected |
+
+### OCEL (10 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `ocel_attribute_integer_as_float` | OcelAttribute::integer() value cannot be passed where float attribute required |
+| `ocel_e2o_as_o2o` | EventObjectLink cannot be passed where ObjectObjectLink is required |
+| `ocel_e2o_missing_link` | OCEL E2O law — function requiring EventObjectLink-bearing evidence rejects missing link |
+| `ocel_event_as_object` | OcelEvent cannot be passed where OcelObject is required |
+| `ocel_log_as_event_log` | OcelLog cannot be passed where EventLog is required |
+| `ocel_log_as_xes_log` | OcelLog cannot be passed where XesLog is required |
+| `ocel_o2o_as_e2o` | ObjectObjectLink cannot be passed where EventObjectLink is required |
+| `ocel_o2o_missing_link` | ObjectObjectLink and EventObjectLink are distinct types — missing link rejected |
+| `ocel_object_as_event` | OcelObject cannot be passed where OcelEvent is required |
+| `ocel_to_xes_no_loss_report` | OCEL→XES projection must carry a LossReport — silent loss rejected |
+
+### OCPQ (11 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `ocpq_cardinality_bound_inverted` | CardinalityBoundConst<MIN,MAX> requires MIN <= MAX |
+| `ocpq_cardinality_overflow` | Predicate<CardinalityPredicate> overflow rejected — OcpqPredicateWitnessLaw |
+| `ocpq_cardinality_rejected` | OcpqRefusal::InvalidCardinality — non-predicate rejected |
+| `ocpq_child_set_bound_inverted` | ChildSetBoundConst<LABEL,MIN,MAX> requires MIN <= MAX |
+| `ocpq_event_predicate_wrong_kind` | TypedEventPredicate<ActivityEquals> cannot be passed where object predicate required |
+| `ocpq_flattening_rejected` | OcpqRefusal::FlatteningRequired — wrong predicate class rejected |
+| `ocpq_missing_scope_rejected` | OcpqRefusal::MissingObjectScope — bare scope rejected |
+| `ocpq_non_predicate_rejected` | User-defined type cannot satisfy IsOcpqPredicate — sealed predicate law |
+| `ocpq_object_predicate_wrong_kind` | TypedObjectPredicate<AttributeEquals> cannot be passed where event predicate required |
+| `ocpq_object_type_mixing` | OCPQ typed relation rejects wrong object type in constraint scope |
+| `ocpq_relation_predicate_wrong_type` | TypedRelationPredicate<E2O> wrong type — relation predicate law |
+| `ocpq_scope_open_as_closed` | ObjectScopeConst<{Open}> cannot be passed where ClosedScope required |
+
+### Petri Nets (15 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `petri_arc_direction_confusion` | BipartiteArcConst<{PlaceToTransition}> direction cannot be confused with TransitionToPlace |
+| `petri_bipartite_arc_noncopy_weight` | BipartiteArcConst::weight() requires Weight: Copy — BipartiteArcNonCopyWeightLaw |
+| `petri_place_as_transition` | Place cannot be passed where Transition is required — structural law |
+| `petri_place_node_as_transition` | PlaceNodeMarker cannot satisfy IsTransitionNode |
+| `petri_place_to_place_arc` | BipartitePetriArcLaw — P→P arcs are unconstructible (Murata 1989 §2) |
+| `petri_transition_as_place` | Transition cannot be passed where Place is required |
+| `petri_transition_node_as_place` | TransitionNodeMarker cannot satisfy IsPlaceNode |
+| `petri_transition_to_transition_arc` | BipartitePetriArcLaw — T→T arcs are unconstructible (Murata 1989 §2) |
+| `petri_wfnet_as_place` | WfNetConst cannot be passed where Place is required |
+| `separable_wfnet_rejected` | SeparabilityPreconditionLaw — bare WfNetConst does not carry separability marker (Kourani et al. 2026, Definition 4.1) |
+| `wfnet_claimed_as_witnessed` | WfNetConst<{SoundnessState::Claimed}> cannot be passed where SoundnessWitnessed required |
+| `wfnet_forged_soundness` | WfNetSoundnessNonForgeabilityLaw — WfNetConst<Witnessed> cannot be constructed via struct literal |
+| `wfnet_to_powl_nonseparable` | SeparabilityNonForgeabilityLaw — non-separable WF-net cannot project to POWL (Theorem 4.3) |
+| `wfnet_unknown_as_claimed` | WfNetConst<{SoundnessState::Unknown}> cannot be passed where Claimed required |
+| `wfnet2powl_precondition_rejected` | WfNet2PowlPreconditionLaw — plain WfNetConst does not satisfy SeparableWfNet precondition (Theorem 4.3) |
+| `wfnet2powl_wrong_source` | WfNet2PowlSourceLaw — bare PetriNet cannot enter WF-net→POWL gate; requires SeparableWfNet (Theorem 4.3) |
+
+### POWL (12 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `powl_choice_used_as_loop` | PowlChoiceNode cannot be used where PowlLoopNode is required |
+| `powl_exceeds_tree_not_projectable` | ExceedsProcessTree cannot satisfy TreeProjectable |
+| `powl_irreducible_projected` | IrreduciblePowlSilentlyProjected — Irreducible cannot satisfy TreeProjectable |
+| `powl_loop_arity_3` | TypedPowlLoopNode<_,3> violates ARITY == 2 |
+| `powl_node_as_choice_node` | PowlNode cannot be passed where PowlChoiceNode is required |
+| `powl_order_edge_as_choice_edge` | OrderEdge cannot be passed where ChoiceGraphEdge is required |
+| `powl_order_edge_choice_confusion` | ChoiceGraphEdge and OrderEdge are distinct types — non-interchangeable |
+| `powl_partial_order_not_acyclic` | PartialOrder cannot satisfy AcyclicWitness |
+| `powl_process_tree_xor_arity_1` | TypedXorNode<_, 1> violates ARITY >= 2 — ProcessTreeWrongOperatorArity |
+| `powl_refused_projection_as_valid` | RefusedProjectionForwardedAsValid — RefusedProjection cannot satisfy TreeProjectable |
+| `powl_silent_tree_projection` | PowlTreeProjectionLaw — ExceedsProcessTree does not implement TreeProjectable (Kourani 2505.07052 §3) |
+
+### Process Cube (1 fixture)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `process_cube_wrong_dimension_count` | ProcessCube dimension count law — wrong DIMS violates compile-time constraint |
+
+### Process Tree (9 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `process_tree_and_arity_1` | TypedAndNode<_,1> violates ARITY >= 2 |
+| `process_tree_bad_and_arity` | ProcessTreeAndArityLaw — parallel composition of one child is degenerate (Leemans 2013) |
+| `process_tree_bad_loop_arity` | ProcessTreeLoopArityLaw — loop requires ARITY == 2 exactly (Leemans 2013 inductive miner) |
+| `process_tree_bad_seq_arity` | ProcessTreeSeqArityLaw — sequence over single element is degenerate (Leemans 2013) |
+| `process_tree_bad_xor_arity` | ProcessTreeXorArityLaw — exclusive choice over single branch is degenerate (Leemans 2013) |
+| `process_tree_loop_arity_1` | TypedLoopNode<_,1> violates ARITY == 2 |
+| `process_tree_loop_arity_3` | TypedLoopNode<_,3> violates ARITY == 2 |
+| `process_tree_or_arity_1` | TypedOrNode<_,1> violates ARITY >= 2 |
+| `process_tree_seq_arity_1` | TypedSeqNode<_,1> violates ARITY >= 2 |
+| `process_tree_xor_arity_1` | TypedXorNode<_,1> violates ARITY >= 2 |
+
+### Receipt / Witness (12 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `receipt_admission_wrong_witness_type` | Admission<T, String> cannot be used where typed witness required |
+| `receipt_chain_as_chain_const` | ReceiptChain (dynamic Vec-backed) cannot be passed where ChainConst required |
+| `receipt_envelope_as_shape` | ReceiptEnvelope cannot be passed where ReceiptShape is required |
+| `receipt_envelope_missing_digest` | ReceiptEnvelope without a digest is rejected — digest is mandatory |
+| `receipt_missing_witness` | ReceiptEnvelope::new requires a typed witness marker |
+| `receipt_replay_hint_wrong_type` | ReceiptShape::new requires a typed ReplayHint — ReplayHint law |
+| `receipt_shape_as_graduation` | ReceiptShape cannot be passed where GraduationReceipt is required |
+| `receipt_verdict_non_receipt_type` | ReceiptVerdict::Refused wraps ReceiptRefusal — non-receipt type rejected |
+| `receipt_wrong_witness_marker` | Evidence<T, Receipted, Ocel20> cannot be used where different witness marker required |
+| `strict_claim_no_fixture` | Strict export boundary without round-trip fixture is rejected — StrictClaim requires evidence |
+| `strict_export_no_round_trip` | StrictExportWithoutRoundTrip — ExportBoundaryConst<true,false> rejected |
+| `strict_no_witness_marker` | StrictWithoutWitnessMarker — ReceiptBuilder requires W: Witness |
 
 ### Refusal (1 fixture)
 
@@ -149,29 +322,41 @@ no assertion, no test assertion.
 |---------|-----------------|
 | `refusal_without_named_law` | Refusal must carry a specific named law reason type — bare InvalidInput is rejected |
 
-### Strict / Formats (1 fixture)
+### EventLog / XES (11 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `strict_claim_no_fixture` | Strict export boundary without a fixture witness is rejected — StrictClaim requires evidence |
+| `eventlog_event_as_trace` | Event cannot be passed where Trace is required |
+| `eventlog_trace_as_eventlog` | Trace cannot be passed where EventLog is required |
+| `event_window_size_mismatch` | Different EventWindow sizes are different types — const size mismatch rejected |
+| `xes_event_as_trace` | XesEvent cannot be passed where XesTrace is required |
+| `xes_log_as_ocel_log` | XesLog cannot be passed where OcelLog is required |
+| `xes_not_object_centric` | XesLog cannot be substituted for object-centric log — case-centric distinctness law |
+| `xes_to_oced_loss_report_rejected` | XES→OCED export without mandatory LossReport rejected |
+| `xes_to_oced_without_loss_policy` | XES-to-OCED projection without named LossPolicy rejected |
+| `xes_to_oced_without_projection_name` | XES→OCED projection without ProjectionName — bare &str rejected |
+| `xes_trace_as_log` | XesTrace cannot be passed where XesLog is required |
+| `xes_undeclared_extension_prefix_rejected` | UndeclaredExtensionPrefix — XES extension prefixes must be declared before use |
 
-### XES (4 fixtures)
+### Witness Confusion (6 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
-| `xes_not_object_centric` | XES logs are case-centric, not object-centric — object-centric usage of XES types is rejected |
-| `xes_to_oced_loss_report_rejected` | XES-to-OCED projection loss report must match the declared type — mismatch is rejected |
-| `xes_to_oced_without_loss_policy` | XES-to-OCED projection requires an explicit LossPolicy — projecting without policy is rejected |
-| `xes_undeclared_extension_prefix_rejected` | XES extension prefixes must be declared before use — undeclared prefix is rejected |
+| `witness_declare_as_ocpq` | Evidence<T, Admitted, DeclareFamily> cannot be used where OCPQ witness required |
+| `witness_ocel_as_powl` | Evidence<T, Admitted, Ocel20> cannot be used where POWL witness required |
+| `witness_pm4py_as_pmax` | Evidence<T, Admitted, Pm4pyApiGrammar> cannot be used where Pmax witness required |
+| `witness_receipt_as_wasm4pm_bridge` | Evidence<T, Admitted, ReceiptFamily> cannot be used where Wasm4pmBridge witness required |
+| `witness_xes_as_wfnet` | Evidence<T, Admitted, Xes1849> cannot be used where WfNet witness required |
+| `witness_yawl_as_inductive_miner` | Evidence<T, Admitted, YawlPaper> cannot be used where InductiveMiner witness required |
 
 ---
 
 ## .stderr Coverage
 
-Each fixture above must have a corresponding `.stderr` file in `tests/ui/compile_fail/`
-containing the exact expected compiler diagnostic.
+Each fixture above has a corresponding `.stderr` file in `tests/ui/compile_fail/` containing
+the exact expected compiler diagnostic. This parity is enforced by `scripts/audit_trybuild_receipts.sh`.
 
-Crown gate: count of `.stderr` files == 45 (current) and growing to == 160+ (crown target).
+Current: 196 `.stderr` files. Crown Gate 5 requires `.rs count == .stderr count`.
 
 ---
 
@@ -189,7 +374,10 @@ like `test_failure_1.rs` or `invalid_construction.rs`.
 
 ---
 
-## Crown Expansion (115 fixtures needed)
+## Crown Gate Status
 
-See `docs/PAPERLAW_004_FIXTURE_TARGETS.md` for the per-law-family gap analysis.
-Phase 5 of the crown sprint manufactures these fixtures as `fixture-fail` + `stderr` commit pairs.
+Gate 4 of PAPERLAW_CROWN_ALIVE_004 requires >= 160 compile-fail fixtures.
+Current count: 196. Gate 4 is satisfied.
+
+Gate 5 requires `.rs count == .stderr count`.
+Both are 196. Gate 5 is satisfied.
