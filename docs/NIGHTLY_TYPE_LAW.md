@@ -2027,7 +2027,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #81 — OCPA: A Python Library for Object-Centric Process Analysis (Schuster et al., 2023)
+## #81 — OCPA library — graduation boundary (Schuster et al., 2023)
 
 **Paper:** OCPA: A Python Library for Object-Centric Process Analysis
 **Canon family:** `SYSTEMS_API`
