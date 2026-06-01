@@ -107,6 +107,27 @@ impl LossPolicy {
     }
 }
 
+impl core::fmt::Display for LossPolicy {
+    /// Formats as the variant name for diagnostics and log output.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossPolicy;
+    ///
+    /// assert_eq!(format!("{}", LossPolicy::RefuseLoss),          "RefuseLoss");
+    /// assert_eq!(format!("{}", LossPolicy::AllowNamedProjection), "AllowNamedProjection");
+    /// assert_eq!(format!("{}", LossPolicy::AllowLossWithReport),  "AllowLossWithReport");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            LossPolicy::RefuseLoss           => f.write_str("RefuseLoss"),
+            LossPolicy::AllowNamedProjection => f.write_str("AllowNamedProjection"),
+            LossPolicy::AllowLossWithReport  => f.write_str("AllowLossWithReport"),
+        }
+    }
+}
+
 /// The stable name of a projection (e.g. `"ocel-flatten-to-xes:by-order"`).
 ///
 /// A [`ProjectionName`] makes a lossy transformation *recognizable* and
@@ -131,6 +152,40 @@ impl ProjectionName {
     /// ```
     #[inline]
     pub const fn as_str(self) -> &'static str {
+        self.0
+    }
+}
+
+impl From<&'static str> for ProjectionName {
+    /// Constructs a [`ProjectionName`] from a static string literal.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionName;
+    ///
+    /// let name: ProjectionName = "ocel-flatten-to-xes:by-order".into();
+    /// assert_eq!(name.as_str(), "ocel-flatten-to-xes:by-order");
+    /// ```
+    #[inline]
+    fn from(s: &'static str) -> Self {
+        ProjectionName(s)
+    }
+}
+
+impl AsRef<str> for ProjectionName {
+    /// Borrows the underlying static string.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionName;
+    ///
+    /// let name = ProjectionName("ocel-flatten-to-xes:by-order");
+    /// assert_eq!(name.as_ref(), "ocel-flatten-to-xes:by-order");
+    /// ```
+    #[inline]
+    fn as_ref(&self) -> &str {
         self.0
     }
 }
