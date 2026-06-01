@@ -182,6 +182,8 @@ pub mod interop;
 pub mod law;
 /// Loss policy, loss report, and named projection law.
 pub mod loss;
+/// Object lifecycle law: typed phase markers and lawful phase transitions.
+pub mod object_lifecycle;
 /// Object-centric event log (OCEL) shape.
 pub mod ocel;
 /// Object-centric process query (OCPQ) shape.
@@ -194,6 +196,8 @@ pub mod powl;
 pub mod prediction;
 /// Core adoption surface — re-exports the most-needed shapes and laws.
 pub mod prelude;
+/// Process cube dimensional structure (van der Aalst 2013 — multi-perspective comparison).
+pub mod process_cube;
 /// Process tree shape.
 pub mod process_tree;
 /// Receipt shape: provenance-bearing evidence envelope.
