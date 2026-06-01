@@ -400,6 +400,32 @@ mod export_boundary_seal {
 pub trait HasRoundTripFixture: export_boundary_seal::Sealed {}
 impl HasRoundTripFixture for ExportBoundaryConst<true, true> {}
 
+// ── Display for EvidenceMode ─────────────────────────────────────────────────
+
+impl core::fmt::Display for EvidenceMode {
+    /// Returns the human-readable stage name — e.g. `"Raw"`, `"Admitted"`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::law::EvidenceMode;
+    /// assert_eq!(EvidenceMode::Raw.to_string(), "Raw");
+    /// assert_eq!(EvidenceMode::Admitted.to_string(), "Admitted");
+    /// assert_eq!(EvidenceMode::Refused.to_string(), "Refused");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            EvidenceMode::Raw => "Raw",
+            EvidenceMode::Parsed => "Parsed",
+            EvidenceMode::Admitted => "Admitted",
+            EvidenceMode::Refused => "Refused",
+            EvidenceMode::Projected => "Projected",
+            EvidenceMode::Exportable => "Exportable",
+            EvidenceMode::Witnessed => "Witnessed",
+            EvidenceMode::Receipted => "Receipted",
+        };
+        f.write_str(name)
+    }
+}
+
 /// Type-law gate: only export boundaries that declare both a witness and a
 /// round-trip fixture compile through this function.
 ///
