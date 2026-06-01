@@ -1,0 +1,39 @@
++ set -euo pipefail
++ REPO_ROOT=.
++ GEN_ROOT=.
++ PROJ_MANIFESTS_DIR=./ggen/projections
++ ONTOLOGY_DIR=./ggen/ontology
++ QUERIES_DIR=./ggen/queries
++ TEMPLATES_DIR=./ggen/templates
++ EMITTED_DIR=./ggen/emitted
++ AUDITS_DIR=./ggen/audits
++ PASS_COUNT=0
++ FAIL_COUNT=0
++ WARNINGS=0
++ UNRECEIPTED_COUNT=0
++ RED='\033[0;31m'
++ GREEN='\033[0;32m'
++ YELLOW='\033[1;33m'
++ BLUE='\033[0;34m'
++ NC='\033[0m'
++ echo ''
+
++ echo -e '\033[0;34m════════════════════════════════════════════════════════════════\033[0m'
+[0;34m════════════════════════════════════════════════════════════════[0m
++ echo -e '\033[0;34mProjection Receipt Validation Audit\033[0m'
+[0;34mProjection Receipt Validation Audit[0m
++ echo -e '\033[0;34m════════════════════════════════════════════════════════════════\033[0m'
+[0;34m════════════════════════════════════════════════════════════════[0m
++ echo ''
+
++ echo -e '\033[0;34m[Phase 0] Preconditions\033[0m'
+[0;34m[Phase 0] Preconditions[0m
++ echo ''
+
++ [[ -d ./ggen/projections ]]
++ [[ -d ./ggen/ontology ]]
++ [[ -d ./ggen/templates ]]
++ log_pass 'Directories exist and are readable'
++ echo -e '\033[0;32m✓ PASS\033[0m: Directories exist and are readable'
+[0;32m✓ PASS[0m: Directories exist and are readable
++ (( PASS_COUNT++ ))

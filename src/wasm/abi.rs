@@ -14,7 +14,7 @@ pub fn verify_abi_memory_safety(ptr: usize, len: usize, align: usize) -> bool {
     if align == 0 || !align.is_power_of_two() {
         return false;
     }
-    if ptr % align != 0 {
+    if !ptr.is_multiple_of(align) {
         return false;
     }
     // Check overflow

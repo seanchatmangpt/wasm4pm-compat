@@ -1,0 +1,252 @@
+---
+audit_execution_date: "2026-06-01T13:44:23Z"
+execution_context: "All 5 audits executed with context annotations in place"
+repo_root: "/Users/sac/wasm4pm-compat"
+
+audits:
+  - name: "audit-no-dto-flattening"
+    exit_code: 1
+    status: "FAIL"
+    command: "bash ggen/audits/audit-no-dto-flattening.sh ."
+
+    summary:
+      context_annotated_passes: 1
+      allowed_violations: 0
+      blocking_violations: 1
+
+    key_findings:
+      - finding: "Blocking structural DTO flattening violation detected"
+        severity: "CRITICAL"
+        location: "src/wasm/bindings.rs:29"
+        issue: "pub fn get_state_tags() -> Result<JsValue, JsValue> { lacks CONTEXT annotation"
+        context_required: "test_fixture_allowed"
+
+      - finding: "Pass: Test fixture annotation in place"
+        severity: "INFO"
+        location: "tests/graduation.rs:86"
+        issue: null
+        context_required: "test_fixture_allowed"
+
+    action_items:
+      - "Annotate src/wasm/bindings.rs:29 with // CONTEXT: test_fixture_allowed before the pub fn line"
+      - "Re-run: bash ggen/audits/audit-no-dto-flattening.sh"
+
+    report_file: "./emitted/audits/audit-no-dto-flattening-20260601-134423.json"
+
+  - name: "audit-no-tools-in-compat"
+    exit_code: 0
+    status: "PASS (WITH WARNINGS)"
+    command: "bash ggen/audits/audit-no-tools-in-compat.sh ."
+
+    summary:
+      checks_total: 48
+      checks_passed: 47
+      checks_failed: 0
+      checks_warned: 1
+
+    key_findings:
+      - finding: "All forbidden tool exports verified absent"
+        severity: "PASS"
+        scope: "Scanned 8 forbidden functions across direct, async, WASM, and trait-impl vectors"
+        result: "No export of: simulate_replay, compute_alignment, discover_model, execute_ocpq, run_conformance, mint_receipt, benchmark_gate_run"
+
+      - finding: "Graduation bridge properly gated by wasm4pm feature"
+        severity: "PASS"
+        scope: "GraduateToWasm4pm trait and graduation_candidate module isolation verified"
+        result: "Feature gating correct; no cross-boundary leakage detected"
+
+      - finding: "Engine dependency analysis clean"
+        severity: "PASS"
+        scope: "No engine imports (discovery, conformance, replay, OCPQ) found in source"
+        result: "Zero engine function dependencies in core modules"
+
+      - finding: "Warning: Feature configuration contains 'wasm' or 'ts' flags"
+        severity: "WARNING"
+        scope: "Cargo.toml feature set: {default, formats, strict, ts, wasm, wasm4pm}"
+        result: "Additional features detected; verify ts and wasm are properly gated (already confirmed PASS)"
+
+    action_items: []
+
+  - name: "audit-feature-isolation"
+    exit_code: 0
+    status: "PASS"
+    command: "bash ggen/audits/audit-feature-isolation.sh ."
+
+    summary:
+      checks_total: 24
+      violations: 0
+      warnings: 0
+
+    key_findings:
+      - finding: "Default feature (formats) properly isolated"
+        severity: "PASS"
+        detail: "Default feature does not enable specta, tsify, or wasm-bindgen"
+
+      - finding: "Always-on modules are wasm-bindgen and tsify clean"
+        severity: "PASS"
+        detail: "Core modules do not depend on WASM/TypeScript bridge dependencies"
+
+      - finding: "TypeScript feature properly gated"
+        severity: "PASS"
+        detail: "ts module gated in lib.rs; ts feature does not directly enable wasm-bindgen"
+
+      - finding: "WASM feature properly isolated"
+        severity: "PASS"
+        detail: "wasm modules do not import engine-facing modules (discovery, conformance, replay, OCPQ)"
+
+      - finding: "Graduation bridge (wasm4pm) is feature-gated and engine-clean"
+        severity: "PASS"
+        detail: "engine_bridge gated by wasm4pm feature; GraduationCandidate available via always-on interop module"
+
+      - finding: "Feature independence verified"
+        severity: "PASS"
+        detail: "No feature (ts, wasm, formats, strict) implies or enables wasm4pm"
+
+      - finding: "Feature model integrity confirmed"
+        severity: "PASS"
+        detail: "6 features declared; all properly gated in lib.rs; optional dependencies (serde, specta, tsify, wasm-bindgen) declared correctly"
+
+    action_items: []
+
+  - name: "audit-projection-receipts"
+    exit_code: 1
+    status: "FAIL (WITH GAPS)"
+    command: "bash ggen/audits/audit-projection-receipts.sh ."
+
+    summary:
+      checks_passed: 10
+      checks_failed: 0
+      checks_warned: 5
+      unreceipted_projections: 6
+
+    key_findings:
+      - finding: "TypeScript projection manifest exists and receipt path declared"
+        severity: "PASS"
+        manifest: "ts.projection.yaml"
+        template: "ts-projection.rs.tera"
+        receipt_declared: "generated/wasm4pm-compat.receipt.json"
+        output_declared: "generated/wasm4pm-compat"
+        gap: "Source ontology missing: process-intelligence.ttl"
+
+      - finding: "WASM projection manifest exists and receipt path declared"
+        severity: "PASS"
+        manifest: "wasm.projection.yaml"
+        template: "MISSING: wasm-projection.rs.tera"
+        receipt_declared: "generated/wasm4pm-compat.receipt.json"
+        output_declared: "target/wasm32-unknown-unknown/release"
+        gap: "Source ontology missing: process-intelligence.ttl; template missing"
+
+      - finding: "Component Model projection manifest exists"
+        severity: "PASS"
+        manifest: "component.projection.yaml"
+        template: "MISSING: component-model.tera"
+        receipt_declared: "generated/component.receipt.json"
+        output_path: "MISSING in manifest"
+        gap: "Source ontology missing: process-intelligence.ttl; template missing; output_dir not declared"
+
+      - finding: "Output directories not yet generated"
+        severity: "WARNING"
+        detail: "Projection artifacts have not been manufactured; output directories do not exist"
+        outputs: [
+          "generated/wasm4pm-compat (ts projection)",
+          "target/wasm32-unknown-unknown/release (wasm projection)"
+        ]
+
+    action_items:
+      - "Create ggen/ontology/process-intelligence.ttl with full process-intelligence RDF model"
+      - "Create ggen/templates/wasm-projection.rs.tera (WASM binary artifact template)"
+      - "Create ggen/templates/component-model.tera (Component Model template)"
+      - "Add output_dir to component.projection.yaml manifest"
+      - "Ensure all projection queries exist in ggen/queries/ (or are embedded in templates)"
+      - "Run projection manufacture to generate artifacts"
+      - "Commit receipt artifacts to git"
+      - "Re-run audit-projection-receipts.sh to verify receipt closure"
+
+  - name: "audit-gap-decomposition"
+    exit_code: 1
+    status: "FAIL"
+    command: "bash ggen/audits/audit-gap-decomposition.sh ggen/emitted/gap-ledger.yaml"
+
+    summary:
+      total_gaps: 6
+      critical_gaps_unmapped: 6
+      gap_closure_commits_uncited: 0
+      all_commits_classified: true
+
+    key_findings:
+      - gap_id: "GAP_001"
+        severity: "HIGH"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "Gap identified but has zero closure commits in current range"
+
+      - gap_id: "GAP_COMPONENT"
+        severity: "CRITICAL"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "Component Model projection gap has zero closure commits"
+
+      - gap_id: "GAP_LOSS"
+        severity: "HIGH"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "Loss modeling gap has zero closure commits"
+
+      - gap_id: "GAP_PROCESS_TREE"
+        severity: "HIGH"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "Process tree formalization gap has zero closure commits"
+
+      - gap_id: "GAP_TS"
+        severity: "CRITICAL"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "TypeScript binding projection gap has zero closure commits"
+
+      - gap_id: "GAP_WASM"
+        severity: "CRITICAL"
+        manufacture_status: "MANUFACTURED"
+        closure_claims: 0
+        status: "UNMAPPED"
+        finding: "WASM component projection gap has zero closure commits"
+
+    validation_results:
+      rule_3_1_critical_high_gap_closure: "FAIL"
+        - 6 gaps require closure claims
+      rule_3_2_alive_status_cites_gap_id: "PASS (N/A)"
+        - No ALIVE claims made in current range
+      rule_3_3_gap_closure_commits_cited: "PASS"
+        - All GAP_CLOSURE commits (if any) reference gap_id
+      rule_3_4_auxiliary_commits_classified: "PASS"
+        - All commits have explicit classifications
+
+    action_items:
+      - "Create commits that close each of the 6 gaps"
+      - "Reference gap_id in commit message: chore(hardening): [GAP_CLOSURE: GAP_001] <description>"
+      - "Run audit-gap-decomposition.sh to verify closure"
+      - "Once all gaps are closed and verified, mark project as PAPERLAW_ALIVE_004"
+
+exit_summary:
+  total_audits: 5
+  passed: 2
+  passed_with_warnings: 1
+  failed: 2
+
+  critical_blockers:
+    - "audit-no-dto-flattening: 1 blocking violation (src/wasm/bindings.rs:29 missing CONTEXT annotation)"
+    - "audit-gap-decomposition: 6 unmapped critical/HIGH gaps (GAP_001, GAP_COMPONENT, GAP_LOSS, GAP_PROCESS_TREE, GAP_TS, GAP_WASM)"
+
+  high_priority:
+    - "audit-projection-receipts: 6 unreceipted projections (missing ontology, templates, generated artifacts)"
+
+  recommendations:
+    - "Fix src/wasm/bindings.rs:29 annotation immediately"
+    - "Create closure commits for all 6 gaps with proper gap_id references"
+    - "Manufacture projection artifacts and commit receipts to git"
+    - "Re-run all 5 audits to verify remediation"
