@@ -21,9 +21,9 @@ fn main() {
     assert!(!v2.is_perfect());
 
     // Fitness 1.0 WITH deviations is not perfect.
-    use wasm4pm_compat::conformance::{Deviation, LogOnlyMove};
+    use wasm4pm_compat::conformance::Deviation;
     let mut v3 = ConformanceVerdict::new();
     v3.fitness = Fitness::new(1.0);
-    v3.deviations.push(Deviation::<LogOnlyMove>::new(0, "extra"));
+    v3.deviations.push(Deviation::new(0, "extra"));
     assert!(!v3.is_perfect());
 }
