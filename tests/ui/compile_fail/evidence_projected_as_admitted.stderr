@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/evidence_projected_as_admitted.rs:13:5
+   |
+11 |     let projected: Evidence<String, Projected, Ocel20> = todo!();
+   |                                                          ------- any code following this expression is unreachable
+12 |     // This must fail: Projected is not Admitted.
+13 |     requires_admitted(projected);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/evidence_projected_as_admitted.rs:13:23
+   |
+13 |     requires_admitted(projected);
+   |     ----------------- ^^^^^^^^^ expected `Evidence<String, Admitted, Ocel20>`, found `Evidence<String, Projected, Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, Ocel20>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Projected, Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/evidence_projected_as_admitted.rs:8:4
+   |
+ 8 | fn requires_admitted(_: Evidence<String, Admitted, Ocel20>) {}
+   |    ^^^^^^^^^^^^^^^^^ -------------------------------------

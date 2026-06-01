@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/evidence_exportable_as_receipted.rs:13:5
+   |
+11 |     let exportable: Evidence<String, Exportable, Ocel20> = todo!();
+   |                                                            ------- any code following this expression is unreachable
+12 |     // This must fail: Exportable is not Receipted.
+13 |     requires_receipted(exportable);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/evidence_exportable_as_receipted.rs:13:24
+   |
+13 |     requires_receipted(exportable);
+   |     ------------------ ^^^^^^^^^^ expected `Evidence<String, Receipted, Ocel20>`, found `Evidence<String, Exportable, Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Receipted, Ocel20>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Exportable, Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/evidence_exportable_as_receipted.rs:8:4
+   |
+ 8 | fn requires_receipted(_: Evidence<String, Receipted, Ocel20>) {}
+   |    ^^^^^^^^^^^^^^^^^^ --------------------------------------
