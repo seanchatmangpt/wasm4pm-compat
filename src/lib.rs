@@ -79,6 +79,8 @@
 pub mod admission;
 /// BPMN model shape.
 pub mod bpmn;
+/// Causal net structural shapes (Heuristics Miner output — Weijters & Ribeiro 2011).
+pub mod causal_net;
 /// Conformance verdict shape (structure only — no checking engine).
 pub mod conformance;
 /// Declare constraint shape.
