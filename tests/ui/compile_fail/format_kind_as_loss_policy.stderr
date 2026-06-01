@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:27:29
+   |
+27 |     requires_loss_policy(kind);
+   |     -------------------- ^^^^ expected `LossPolicy`, found `FormatKind`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/format_kind_as_loss_policy.rs:23:4
+   |
+23 | fn requires_loss_policy(_policy: LossPolicy) {}
+   |    -------------------- -----

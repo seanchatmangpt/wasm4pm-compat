@@ -1,0 +1,11 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/lossy_format_export_required_not_optional.rs:39:33
+   |
+39 |     accept_lossy_ocel_to_xes(export);
+   |     ----------------------- ^^^^^^ expected `LossyFormatExport`, found `FormatExport`
+   |
+   |
+note: function defined here
+  --> src/formats.rs:1:1
+   |
+   | pub fn accept_lossy_ocel_to_xes(_export: LossyFormatExport) {}

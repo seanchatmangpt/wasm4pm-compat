@@ -1,0 +1,12 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:33:23
+   |
+33 |     accepts_ocel_to_xes(report);
+   |     ------------------- ^^^^^^ expected `LossReport<OcelShape, XesShape, Vec<String>>`, found `LossReport<XesShape, OcelShape, Vec<String>>`
+   |
+   |
+note: function defined here
+  --> tests/ui/compile_fail/loss_report_shape_mismatch_from.rs:23:4
+   |
+23 | fn accepts_ocel_to_xes(_report: LossReport<OcelShape, XesShape, Vec<String>>) {}
+   |    ------------------- --------------------------------------------------

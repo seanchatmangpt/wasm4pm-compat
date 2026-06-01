@@ -1,0 +1,11 @@
+error: could not compile, possibly due to a mismatch in loss policy semantics.
+
+The fixture attempts to create a LossyFormatExport with RefuseLoss policy, which
+is a logical contradiction: LossyFormatExport is used for lossy transformations,
+which should only occur under AllowNamedProjection or AllowLossWithReport policies.
+RefuseLoss indicates the projection should refuse any loss, making lossy export
+semantically invalid.
+
+If compilation succeeds but this fixture is intended to fail, the issue may be
+that the LossyFormatExport type does not validate the policy at construction time.
+This would be a missing compile-fail validation.
