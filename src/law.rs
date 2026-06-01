@@ -356,6 +356,27 @@ impl core::fmt::Display for QualityMetricKind {
     }
 }
 
+// ── Display for SoundnessState ───────────────────────────────────────────────
+
+impl core::fmt::Display for SoundnessState {
+    /// Returns the human-readable soundness state name.
+    ///
+    /// ```
+    /// use wasm4pm_compat::law::SoundnessState;
+    /// assert_eq!(SoundnessState::Unknown.to_string(), "Unknown");
+    /// assert_eq!(SoundnessState::Claimed.to_string(), "Claimed");
+    /// assert_eq!(SoundnessState::Witnessed.to_string(), "Witnessed");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            SoundnessState::Unknown => "Unknown",
+            SoundnessState::Claimed => "Claimed",
+            SoundnessState::Witnessed => "Witnessed",
+        };
+        f.write_str(name)
+    }
+}
+
 /// The kind of process-boundary a host declares it crosses.
 ///
 /// Used in `src/strict.rs` for const-generic boundary declarations.
