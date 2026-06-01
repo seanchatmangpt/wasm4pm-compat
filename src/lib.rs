@@ -236,3 +236,19 @@ pub mod test_utils;
 /// experimental staging module; the main type law lives in [`law`], [`petri`],
 /// [`conformance`], [`process_tree`], [`powl`], [`formats`], and [`strict`].
 pub mod nightly_foundry;
+
+// ── Flat re-exports: most-used types available at the crate root ─────────────
+//
+// These re-exports let users write `wasm4pm_compat::EventId` instead of
+// `wasm4pm_compat::ids::EventId`. They do not replace the submodule paths.
+
+pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
+pub use crate::evidence::Evidence;
+pub use crate::loss::{LossPolicy, ProjectionName};
+pub use crate::receipt::ReceiptEnvelope;
+pub use crate::ocel::OcelLog;
+pub use crate::xes::XesLog;
+pub use crate::eventlog::{Event, EventLog, Trace};
+pub use crate::petri::{PetriNet, WfNet, WfNetConst};
+pub use crate::admission::{Admission, Admit, Refusal};
+pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
