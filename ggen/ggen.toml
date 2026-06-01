@@ -7,8 +7,31 @@ license = "MIT"
 
 [ontology]
 source = "ontology/wasm4pm-compat.ttl"
-additional = ["ontology/papers.ttl"]
+additional = [
+  "ontology/papers.ttl",
+  "ontology/ggen-substrate.ttl",
+  "ontology/audit-machinery.ttl"
+]
 standard_only = false
+
+# ---------------------------------------------------------------------------
+# Ontology Pack: open-ontologies
+# Integrates standard RDF ontologies for OCEL, XES, BPMN, Petri nets, DFG
+# and process-mining vocabularies. Sources: PM4Py, OCEL specification, W3C.
+# ---------------------------------------------------------------------------
+[[ontology.pack]]
+name = "open-ontologies"
+namespace = "https://open-ontologies.github.io/"
+sources = [
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/ocel.ttl",
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/xes.ttl",
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/bpmn.ttl",
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/petri.ttl",
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/dfg.ttl",
+  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/event-model.ttl"
+]
+local_cache = "ontology/.open-ontologies-cache"
+allow_remote_fetch = true
 
 [generation]
 output_dir = ".."
@@ -103,6 +126,27 @@ name = "audit-projection-receipts"
 query = { file = "queries/extract-blocking-audits.rq" }
 template = { file = "templates/audit-projection-receipts.sh.tera" }
 output_file = "audits/audit-projection-receipts.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: open-ontologies-integration
+# Validates and integrates open-ontologies pack with wasm4pm-compat canon.
+# Produces:
+#   1. src/generated/open_ontologies_integration.rs — type bindings
+#   2. ontology/integrated-open-ontologies.ttl — merged ontology
+# Ensures round-trip compatibility with OCEL/XES/BPMN/Petri formats.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "open-ontologies-integration"
+query = { file = "queries/integrate-open-ontologies.rq" }
+template = { file = "templates/open-ontologies-integration.tera" }
+output_file = "src/generated/open_ontologies_integration.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "open-ontologies-merged-ontology"
+query = { file = "queries/construct-integrated-ontology.rq" }
+output_file = "ontology/integrated-open-ontologies.ttl"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
