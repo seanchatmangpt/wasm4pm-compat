@@ -437,3 +437,87 @@ witness_marker!(
     "OC-PM convergence detection (paper #49)",
     None
 );
+witness_marker!(
+    /// Process Cube framework (van der Aalst, 2013).
+    ///
+    /// Names the authority under which a process cube shape — `ProcessCube`,
+    /// `CubeDimension`, `CubeSlice`, `CubeCell`, `CubeProjectionWitness`, or
+    /// `CellComparison` — is admitted or refused. An
+    /// `Admission<T, ProcessCubePaper>` is distinguishable from any OCEL or
+    /// XES witness.
+    ///
+    /// Paper: Process Cubes — Slicing, Dicing, Rolling Up and Drilling Down
+    /// Event Data for Process Mining (van der Aalst, APBC 2013, LNBIP 159).
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when cube computation (sub-log extraction, cross-cell comparison) is
+    /// required.
+    ProcessCubePaper,
+    "process-cube-paper",
+    WitnessFamily::Paper,
+    "Process Cubes (van der Aalst, 2013)",
+    Some(2013)
+);
+witness_marker!(
+    /// Operational view witness — a process cube projection to the operational
+    /// (execution-level) perspective.
+    ///
+    /// The operational view names the projection where the cube is sliced to
+    /// show the actual execution traces for a sub-population. Distinct from
+    /// [`AnalyticalView`] (which names the analytical/model perspective) and
+    /// [`AggregationView`] (which names the aggregated/statistical perspective).
+    ///
+    /// Use this witness when tagging evidence that has been projected to the
+    /// operational level of the process cube — i.e., the evidence is a
+    /// sub-log of concrete traces, not a discovered model or a summary metric.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when the sub-log extraction itself must be executed.
+    OperationalView,
+    "process-cube-operational-view",
+    WitnessFamily::Paper,
+    "Process Cube operational view",
+    Some(2013)
+);
+witness_marker!(
+    /// Analytical view witness — a process cube projection to the analytical
+    /// (model-level) perspective.
+    ///
+    /// The analytical view names the projection where the cube is sliced to
+    /// show the process model (e.g., Petri net, process tree) discovered from
+    /// a sub-population. Distinct from [`OperationalView`] (execution traces)
+    /// and [`AggregationView`] (summary metrics).
+    ///
+    /// Use this witness when tagging evidence that has been projected to the
+    /// analytical level — i.e., the evidence is a discovered process model for
+    /// a cell, not the raw traces or a statistical summary.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when model discovery per cell must be executed.
+    AnalyticalView,
+    "process-cube-analytical-view",
+    WitnessFamily::Paper,
+    "Process Cube analytical view",
+    Some(2013)
+);
+witness_marker!(
+    /// Aggregation view witness — a process cube projection to the aggregated
+    /// (statistical/summary) perspective.
+    ///
+    /// The aggregation view names the projection where the cube is rolled up to
+    /// show summary statistics (e.g., average fitness, variant counts) for a
+    /// sub-population. Distinct from [`OperationalView`] (execution traces) and
+    /// [`AnalyticalView`] (discovered models).
+    ///
+    /// Use this witness when tagging evidence that has been projected to the
+    /// aggregation level — i.e., the evidence is a summary metric or aggregate
+    /// result over a cell, not the raw traces or a process model.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when aggregation computation must be executed.
+    AggregationView,
+    "process-cube-aggregation-view",
+    WitnessFamily::Paper,
+    "Process Cube aggregation view",
+    Some(2013)
+);
