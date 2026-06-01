@@ -764,6 +764,84 @@ pub enum OcelRefusal {
     InvalidObjectChange,
 }
 
+// ── OcelAttributeValue: Display + From conversions ───────────────────────────
+
+impl core::fmt::Display for OcelAttributeValue {
+    /// Human-readable representation of an OCEL attribute value.
+    ///
+    /// - `String(s)` → the string content directly (no quotes)
+    /// - `Integer(n)` → decimal integer
+    /// - `Float(f)` → decimal float
+    /// - `Boolean(b)` → `"true"` or `"false"`
+    /// - `TimestampNs(n)` → `"@<n>ns"` (nanoseconds since Unix epoch)
+    /// - `List([…])` → `"[v1, v2, …]"`
+    /// - `Map({…})` → `"{k1: v1, k2: v2, …}"`
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            OcelAttributeValue::String(s) => f.write_str(s),
+            OcelAttributeValue::Integer(n) => write!(f, "{n}"),
+            OcelAttributeValue::Float(v) => write!(f, "{v}"),
+            OcelAttributeValue::Boolean(b) => write!(f, "{b}"),
+            OcelAttributeValue::TimestampNs(n) => write!(f, "@{n}ns"),
+            OcelAttributeValue::List(items) => {
+                f.write_str("[")?;
+                for (i, item) in items.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{item}")?;
+                }
+                f.write_str("]")
+            }
+            OcelAttributeValue::Map(pairs) => {
+                f.write_str("{")?;
+                for (i, (k, v)) in pairs.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{k}: {v}")?;
+                }
+                f.write_str("}")
+            }
+        }
+    }
+}
+
+impl From<String> for OcelAttributeValue {
+    /// Infallible conversion: `String` → `OcelAttributeValue::String`.
+    fn from(s: String) -> Self {
+        OcelAttributeValue::String(s)
+    }
+}
+
+impl From<&str> for OcelAttributeValue {
+    /// Infallible conversion: `&str` → `OcelAttributeValue::String` (allocates, same as `String::from`).
+    fn from(s: &str) -> Self {
+        OcelAttributeValue::String(s.to_owned())
+    }
+}
+
+impl From<i64> for OcelAttributeValue {
+    /// Infallible conversion: `i64` → `OcelAttributeValue::Integer`.
+    fn from(n: i64) -> Self {
+        OcelAttributeValue::Integer(n)
+    }
+}
+
+impl From<f64> for OcelAttributeValue {
+    /// Infallible conversion: `f64` → `OcelAttributeValue::Float`.
+    fn from(v: f64) -> Self {
+        OcelAttributeValue::Float(v)
+    }
+}
+
+impl From<bool> for OcelAttributeValue {
+    /// Infallible conversion: `bool` → `OcelAttributeValue::Boolean`.
+    fn from(b: bool) -> Self {
+        OcelAttributeValue::Boolean(b)
+    }
+}
+
 impl core::fmt::Display for OcelRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let law = match self {
