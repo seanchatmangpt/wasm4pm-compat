@@ -91,6 +91,11 @@ pub type Require<const OK: bool> = Assert<OK>;
 /// ```
 pub struct ConditionCell<const BITS: usize>
 where
+    // DEVELOPER NOTE — if this bound fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // This means: BITS > 8 violates the *Need9 means split* law (Blue River
+    // Dam covenant). A condition cell may hold at most 8 primary bits.
+    // Fix: split your cell into two ConditionCell<N> values where N ≤ 8 each.
     Require<{ BITS <= 8 }>: IsTrue,
 {
     _private: (),
@@ -98,6 +103,8 @@ where
 
 impl<const BITS: usize> Default for ConditionCell<BITS>
 where
+    // DEVELOPER NOTE — see the struct definition for the human-readable
+    // violation message; this repetition is required by the compiler.
     Require<{ BITS <= 8 }>: IsTrue,
 {
     fn default() -> Self {
@@ -107,6 +114,8 @@ where
 
 impl<const BITS: usize> ConditionCell<BITS>
 where
+    // DEVELOPER NOTE — same as the struct-level bound above; repeated because
+    // Rust requires all where-clauses to be restated on each impl block.
     Require<{ BITS <= 8 }>: IsTrue,
 {
     /// Constructs a `ConditionCell<BITS>` — only possible when `BITS <= 8`.
@@ -148,7 +157,16 @@ where
 /// ```
 pub struct Between01<const NUM: u64, const DEN: u64>
 where
+    // DEVELOPER NOTE — if this bound fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // This means: DEN == 0 — a zero denominator makes the rational undefined.
+    // Fix: choose DEN ≥ 1. A valid metric value requires a non-zero denominator.
     Require<{ DEN > 0 }>: IsTrue,
+    // DEVELOPER NOTE — if this bound fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // This means: NUM > DEN — the rational NUM/DEN exceeds 1.0, which violates
+    // the [0, 1] metric range law for fitness, precision, F1, generalization,
+    // and simplicity. Fix: ensure NUM ≤ DEN (e.g. use 3/4 for 0.75, not 4/3).
     Require<{ NUM <= DEN }>: IsTrue,
 {
     _private: (),
@@ -156,6 +174,8 @@ where
 
 impl<const NUM: u64, const DEN: u64> Default for Between01<NUM, DEN>
 where
+    // DEVELOPER NOTE — see the struct definition for human-readable violation
+    // messages. These bounds are repeated here as required by the compiler.
     Require<{ DEN > 0 }>: IsTrue,
     Require<{ NUM <= DEN }>: IsTrue,
 {
@@ -166,6 +186,7 @@ where
 
 impl<const NUM: u64, const DEN: u64> Between01<NUM, DEN>
 where
+    // DEVELOPER NOTE — same bounds as the struct; repeated per Rust impl rules.
     Require<{ DEN > 0 }>: IsTrue,
     Require<{ NUM <= DEN }>: IsTrue,
 {

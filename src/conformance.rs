@@ -62,7 +62,16 @@ use crate::law::{IsTrue, QualityMetricKind, Require};
 /// ```
 pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
 where
+    // DEVELOPER NOTE — if this bound fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // This means: DEN == 0 — the denominator of a quality metric must be ≥ 1.
+    // Fix: choose DEN ≥ 1. Example: FitnessConst<3,4> means 0.75 fitness.
     Require<{ DEN > 0 }>: IsTrue,
+    // DEVELOPER NOTE — if this bound fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // This means: NUM > DEN — the metric value NUM/DEN exceeds 1.0. Quality
+    // metrics (fitness, precision, F1, generalization, simplicity) are defined
+    // on [0, 1]. Fix: ensure NUM ≤ DEN (e.g. FitnessConst<3,4> not <4,3>).
     Require<{ NUM <= DEN }>: IsTrue,
 {
     _private: (),
@@ -225,6 +234,13 @@ pub struct QualityProfile<
     const SN: u64, const SD: u64,
 >
 where
+    // DEVELOPER NOTE — if any bound below fails you will see:
+    //   "the trait bound `Require<false>: IsTrue` is not satisfied"
+    // Each pair (FN/FD, PN/PD, EN/ED, GN/GD, SN/SD) must represent a rational
+    // in [0,1]: denominator > 0 and numerator ≤ denominator.
+    // The first failing pair names which metric slot is out-of-range:
+    //   FD/FN = fitness, PD/PN = precision, ED/EN = F1,
+    //   GD/GN = generalization, SD/SN = simplicity.
     Require<{ FD > 0 }>: IsTrue,
     Require<{ FN <= FD }>: IsTrue,
     Require<{ PD > 0 }>: IsTrue,
