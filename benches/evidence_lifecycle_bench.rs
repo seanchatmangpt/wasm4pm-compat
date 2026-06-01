@@ -105,7 +105,7 @@ fn bench_evidence_refuse_path(c: &mut Criterion) {
     c.bench_function("Evidence::raw -> .refuse() (fast-reject path)", |b| {
         b.iter(|| {
             let refused = Evidence::<u64, _, Ocel20>::raw(black_box(0u64)).refuse();
-            black_box(refused.as_refused_value())
+            black_box(refused.into_refused_value())
         })
     });
 }
