@@ -85,3 +85,79 @@ pub enum CompatDiagnostic {
     /// discover/conform/replay rather than merely admit and tag.
     MigrationRecommended,
 }
+
+/// Severity level for a compatibility diagnostic.
+///
+/// `Error` means the surface violates a structural law and must be corrected
+/// before the boundary is considered honest. `Warning` means the surface is
+/// questionable but not outright wrong. `Info` is advisory only.
+///
+/// Structure-only; no engine semantics.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum DiagnosticSeverity {
+    /// The surface violates a named structural law; must be corrected.
+    Error,
+    /// The surface is suspect; correction is strongly recommended.
+    Warning,
+    /// Advisory notice; no law violation.
+    Info,
+}
+
+impl core::fmt::Display for DiagnosticSeverity {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            DiagnosticSeverity::Error => f.write_str("Error"),
+            DiagnosticSeverity::Warning => f.write_str("Warning"),
+            DiagnosticSeverity::Info => f.write_str("Info"),
+        }
+    }
+}
+
+impl core::fmt::Display for CompatDiagnostic {
+    /// Formats the diagnostic as `[<severity>] <short description>`.
+    ///
+    /// The severity is inferred from the variant: `MigrationRecommended` is
+    /// `Info`; all other variants represent structural law violations and are
+    /// `Error`.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let (severity, message) = match self {
+            CompatDiagnostic::MissingWitness => (
+                DiagnosticSeverity::Error,
+                "missing witness: admitted/projected surface must name its authority",
+            ),
+            CompatDiagnostic::MissingRoundTripFixture => (
+                DiagnosticSeverity::Error,
+                "missing round-trip fixture: round-trip claim requires an import→export→compare fixture",
+            ),
+            CompatDiagnostic::RawEvidenceExportedAsAdmitted => (
+                DiagnosticSeverity::Error,
+                "raw evidence exported as admitted: route through Admit before export",
+            ),
+            CompatDiagnostic::LossyProjectionWithoutPolicy => (
+                DiagnosticSeverity::Error,
+                "lossy projection without policy: use Project under an explicit LossPolicy",
+            ),
+            CompatDiagnostic::HiddenFlattening => (
+                DiagnosticSeverity::Error,
+                "hidden flattening: emit a LossReport itemising discarded evidence",
+            ),
+            CompatDiagnostic::MissingRefusalPath => (
+                DiagnosticSeverity::Error,
+                "missing refusal path: Admit/Project impl must carry a named Reason type",
+            ),
+            CompatDiagnostic::MissingReceiptShape => (
+                DiagnosticSeverity::Error,
+                "missing receipt shape: provenance-bearing evidence must be wrapped in Receipted",
+            ),
+            CompatDiagnostic::UnreachablePrimitive => (
+                DiagnosticSeverity::Error,
+                "unreachable primitive: connect or remove the orphaned canon type",
+            ),
+            CompatDiagnostic::MigrationRecommended => (
+                DiagnosticSeverity::Info,
+                "migration recommended: surface has outgrown compat — graduate to wasm4pm",
+            ),
+        };
+        write!(f, "[{severity}] {message}")
+    }
+}
