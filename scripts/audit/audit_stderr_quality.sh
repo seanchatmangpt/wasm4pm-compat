@@ -10,10 +10,10 @@ TOTAL=0
 
 for stderr_file in "$FAIL_DIR"/*.stderr; do
   [[ -f "$stderr_file" ]] || continue
-  ((TOTAL++))
+  TOTAL=$((TOTAL + 1))
   if ! grep -q "error\[E" "$stderr_file"; then
     echo "  WARN  no error[E code in: $(basename "$stderr_file")"
-    ((MISSING++))
+    MISSING=$((MISSING + 1))
   fi
 done
 

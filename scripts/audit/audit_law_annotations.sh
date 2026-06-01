@@ -11,12 +11,12 @@ TOTAL=0
 
 for rs_file in "$FAIL_DIR"/*.rs; do
   [[ -f "$rs_file" ]] || continue
-  ((TOTAL++))
+  TOTAL=$((TOTAL + 1))
   if head -5 "$rs_file" | grep -q "Law:"; then
-    ((ANNOTATED++))
+    ANNOTATED=$((ANNOTATED + 1))
   else
     echo "  WARN  no Law: annotation in first 5 lines: $(basename "$rs_file")"
-    ((UNANNOTATED++))
+    UNANNOTATED=$((UNANNOTATED + 1))
   fi
 done
 
