@@ -28,6 +28,40 @@
 use core::marker::PhantomData;
 
 use crate::state::{Admitted, EvidenceState, Exportable, Parsed, Projected, Raw, Receipted};
+use crate::witness::{Ocel20, Xes1849};
+
+// ── Convenience type aliases ──────────────────────────────────────────────────
+
+/// Raw evidence carrying an OCEL 2.0 payload.
+///
+/// Shorthand for `Evidence<T, Raw, Ocel20>`.
+pub type RawOcelEvidence<T> = Evidence<T, Raw, Ocel20>;
+
+/// Admitted evidence carrying an OCEL 2.0 payload.
+///
+/// Shorthand for `Evidence<T, Admitted, Ocel20>`. Reaching this stage requires
+/// an [`crate::admission::Admit`] impl — there is no free `Raw → Admitted`
+/// conversion.
+pub type AdmittedOcelEvidence<T> = Evidence<T, Admitted, Ocel20>;
+
+/// Raw evidence carrying an XES (IEEE 1849-2016) payload.
+///
+/// Shorthand for `Evidence<T, Raw, Xes1849>`.
+pub type RawXesEvidence<T> = Evidence<T, Raw, Xes1849>;
+
+/// Admitted evidence carrying an XES (IEEE 1849-2016) payload.
+///
+/// Shorthand for `Evidence<T, Admitted, Xes1849>`. Reaching this stage requires
+/// an [`crate::admission::Admit`] impl — there is no free `Raw → Admitted`
+/// conversion.
+pub type AdmittedXesEvidence<T> = Evidence<T, Admitted, Xes1849>;
+
+/// Receipted evidence for any witness `W`.
+///
+/// Shorthand for `Evidence<T, Receipted, W>`. `Receipted` is the strongest
+/// lifecycle stage: it records that the value has been wrapped in a receipt
+/// envelope and is ready for hand-off to the `wasm4pm` engine.
+pub type ReceiptedEvidence<T, W> = Evidence<T, Receipted, W>;
 
 /// Const-generic lifecycle mode — mirrors the typestate tokens as an
 /// `adt_const_params`-compatible enum for use in const-generic positions.
