@@ -390,3 +390,50 @@ witness_marker!(
     "WF-net to POWL 2.0 conversion (Kourani, Park & van der Aalst)",
     Some(2026)
 );
+witness_marker!(
+    /// OC-PM divergence detection authority (paper #49).
+    ///
+    /// Names the authority under which a *divergence* pattern in an
+    /// object-centric process model is admitted or refused. Divergence occurs
+    /// when an object type participates in mutually exclusive execution paths
+    /// that cannot be merged without information loss.
+    ///
+    /// Distinct from [`ConvergenceWitness`], which names the *convergence*
+    /// authority (paths that reconverge). Use `DivergenceWitness` when tagging
+    /// an admission, refusal, or evidence value that specifically concerns the
+    /// divergence-detection boundary in OC-PM analysis.
+    ///
+    /// Paper: OC-PM divergence/convergence detection (#49).
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when divergence must be *detected* rather than merely *named*.
+    DivergenceWitness,
+    "oc-pm-divergence",
+    WitnessFamily::Paper,
+    "OC-PM divergence detection (paper #49)",
+    None
+);
+witness_marker!(
+    /// OC-PM convergence detection authority (paper #49).
+    ///
+    /// Names the authority under which a *convergence* pattern in an
+    /// object-centric process model is admitted or refused. Convergence occurs
+    /// when previously divergent execution paths (see [`DivergenceWitness`])
+    /// reconverge at a synchronisation point, potentially requiring a join
+    /// semantics decision.
+    ///
+    /// Distinct from [`DivergenceWitness`], which names the *divergence*
+    /// authority. Use `ConvergenceWitness` when tagging an admission, refusal,
+    /// or evidence value that specifically concerns the convergence-detection
+    /// boundary in OC-PM analysis.
+    ///
+    /// Paper: OC-PM divergence/convergence detection (#49).
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when convergence must be *detected* rather than merely *named*.
+    ConvergenceWitness,
+    "oc-pm-convergence",
+    WitnessFamily::Paper,
+    "OC-PM convergence detection (paper #49)",
+    None
+);
