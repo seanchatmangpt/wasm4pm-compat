@@ -19,11 +19,20 @@ doctest = false
 # Public feature surface is EXACTLY three. No per-format flags.
 # Nightly toolchain required — see rust-toolchain.toml.
 default = ["formats"]
-# import/export contracts, round-trip claims, loss policy surfaces.
+
+# formats: Import/export contracts, round-trip claims, and loss surfaces.
+# Enable this for any code that crosses format boundaries (OCEL↔XES, etc.)
+# This is the default feature — most users should leave it enabled.
 formats = []
-# opt-in boundary judgment: strict admission/refusal declaration surfaces.
+
+# strict: Opt-in boundary judgment with stricter admission/refusal surfaces.
+# Enable for production pipelines that require verified export boundaries.
+# Adds the `strict` module with `ExportBoundaryConst` and related types.
 strict = []
-# graduation bridge traits toward the wasm4pm execution engine.
+
+# wasm4pm: Graduation bridge traits toward the wasm4pm execution engine.
+# Enable when building a wasm4pm adapter that consumes compat types.
+# Adds the `graduation` module exposing the bridge trait surfaces.
 wasm4pm = []
 
 [dependencies]
