@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `ExportBoundaryConst<true, false>: HasRoundTripFixture` is not satisfied
+  --> tests/ui/compile_fail/strict_export_no_round_trip.rs:25:34
+   |
+25 |     strict_export_boundary_check(&ExportBoundaryConst::<true, false>);
+   |     ---------------------------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `HasRoundTripFixture` is not implemented for `ExportBoundaryConst<true, false>`
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `HasRoundTripFixture` is implemented for `ExportBoundaryConst<true, true>`
+  --> src/law.rs
+   |
+   | impl HasRoundTripFixture for ExportBoundaryConst<true, true> {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `strict_export_boundary_check`
+  --> tests/ui/compile_fail/strict_export_no_round_trip.rs:17:36
+   |
+17 | fn strict_export_boundary_check<B: wasm4pm_compat::law::HasRoundTripFixture>(_b: &B) {
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `strict_export_boundary_check`

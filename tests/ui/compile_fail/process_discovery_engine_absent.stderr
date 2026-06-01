@@ -1,0 +1,5 @@
+error[E0599]: no method named `run_process_discovery` found for struct `wasm4pm_compat::PetriNet` in the current scope
+  --> tests/ui/compile_fail/process_discovery_engine_absent.rs:22:17
+   |
+22 |     let _ = net.run_process_discovery();
+   |                 ^^^^^^^^^^^^^^^^^^^^^ method not found in `wasm4pm_compat::PetriNet`

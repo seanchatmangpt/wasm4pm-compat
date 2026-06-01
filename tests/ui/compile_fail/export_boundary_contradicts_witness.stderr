@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/export_boundary_contradicts_witness.rs:26:30
+   |
+26 |     accept_attested_boundary(&ExportBoundaryConst::<true, false>);
+   |     ------------------------ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `true`, found `false`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected reference `&ExportBoundaryConst<true, true>`
+              found reference `&ExportBoundaryConst<true, false>`
+note: function defined here
+  --> tests/ui/compile_fail/export_boundary_contradicts_witness.rs:19:4
+   |
+19 | fn accept_attested_boundary(_: &ExportBoundaryConst<true, true>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^ -----------------------------------

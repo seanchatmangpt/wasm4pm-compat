@@ -1,0 +1,16 @@
+error[E0599]: the associated function or constant `new` exists for struct `ReceiptBuilder<NoWitness>`, but its trait bounds were not satisfied
+  --> tests/ui/compile_fail/strict_no_witness_marker.rs:27:43
+   |
+21 | struct NoWitness;
+   | ---------------- doesn't satisfy `NoWitness: Witness`
+...
+27 |     let _b = ReceiptBuilder::<NoWitness>::new();
+   |                                           ^^^ associated function or constant cannot be called on `ReceiptBuilder<NoWitness>` due to unsatisfied trait bounds
+   |
+   = note: the following trait bounds were not satisfied:
+           `NoWitness: Witness`
+note: the trait `Witness` must be implemented
+  --> src/witness.rs
+   |
+   | pub trait Witness {
+   | ^^^^^^^^^^^^^^^^^

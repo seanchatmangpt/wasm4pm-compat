@@ -1,0 +1,5 @@
+error[E0599]: no method named `compute_alignment` found for struct `wasm4pm_compat::conformance::ConformanceVerdict` in the current scope
+  --> tests/ui/compile_fail/conformance_checker_absent.rs:19:21
+   |
+19 |     let _ = verdict.compute_alignment();
+   |                     ^^^^^^^^^^^^^^^^^ method not found in `wasm4pm_compat::conformance::ConformanceVerdict`
