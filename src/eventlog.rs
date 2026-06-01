@@ -469,3 +469,79 @@ impl core::fmt::Display for EventLogRefusal {
         write!(f, "event-log refused by law: {law}")
     }
 }
+
+// ── Structural bridge conversions ─────────────────────────────────────────────
+
+impl From<crate::ocel::OcelEvent> for Event {
+    /// Converts an [`OcelEvent`](crate::ocel::OcelEvent) to a case-centric [`Event`].
+    ///
+    /// Maps the OCEL event's `activity` to [`Event::activity`] and its
+    /// `timestamp_ns` if present.
+    ///
+    /// **Loss**: all OCEL-specific context — object links (E2O), typed
+    /// attributes, and the event id string — is dropped. This conversion is
+    /// a structural bridge for quick ergonomic interop; when loss must be
+    /// accounted for, use [`crate::loss::Project`] with a named
+    /// [`crate::loss::LossPolicy`] instead.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelEvent;
+    /// use wasm4pm_compat::eventlog::Event;
+    /// let oe = OcelEvent::new("e1", "place_order").at_ns(42);
+    /// let e = Event::from(oe);
+    /// assert_eq!(e.activity(), "place_order");
+    /// assert_eq!(e.timestamp_ns(), Some(42));
+    /// ```
+    fn from(ocel_event: crate::ocel::OcelEvent) -> Self {
+        let mut ev = Event::new(ocel_event.activity().to_owned());
+        if let Some(ts) = ocel_event.timestamp_ns() {
+            ev = ev.at_ns(ts);
+        }
+        ev
+    }
+}
+
+impl From<crate::xes::XesEvent> for Event {
+    /// Converts a [`XesEvent`](crate::xes::XesEvent) to a case-centric [`Event`].
+    ///
+    /// Uses `concept:name` as the activity. Copies `time:timestamp` (as
+    /// nanoseconds if parseable as `i64`), `org:resource`, and
+    /// `lifecycle:transition` to the corresponding [`Event`] fields.
+    ///
+    /// **Loss**: all non-standard XES attributes are dropped. If `concept:name`
+    /// is absent the activity defaults to an empty string (which will be refused
+    /// at [`Trace::validate`] time). For loss-accountable projection use
+    /// [`crate::loss::Project`] with a named [`crate::loss::LossPolicy`].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesEvent;
+    /// use wasm4pm_compat::eventlog::Event;
+    /// let xe = XesEvent::new()
+    ///     .with("concept:name", "approve")
+    ///     .with("org:resource", "alice");
+    /// let e = Event::from(xe);
+    /// assert_eq!(e.activity(), "approve");
+    /// assert_eq!(e.resource(), Some("alice"));
+    /// ```
+    fn from(xes_event: crate::xes::XesEvent) -> Self {
+        let activity = xes_event.concept_name().unwrap_or("").to_owned();
+        let mut ev = Event::new(activity);
+        // time:timestamp — attempt to parse as i64 nanoseconds.
+        if let Some(ts_str) = xes_event.attribute("time:timestamp") {
+            if let Ok(ts) = ts_str.parse::<i64>() {
+                ev = ev.at_ns(ts);
+            }
+        }
+        if let Some(res) = xes_event.attribute("org:resource") {
+            ev = ev.by(res.to_owned());
+        }
+        if let Some(lc) = xes_event.attribute("lifecycle:transition") {
+            ev = ev.with_lifecycle(lc.to_owned());
+        }
+        ev
+    }
+}
