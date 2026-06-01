@@ -740,6 +740,58 @@ impl OcelLog {
     }
 }
 
+// ── IntoIterator for OcelLog ─────────────────────────────────────────────────
+
+impl<'a> IntoIterator for &'a OcelLog {
+    type Item = &'a OcelEvent;
+    type IntoIter = core::slice::Iter<'a, OcelEvent>;
+
+    /// Iterate over the [`OcelEvent`]s of this log.
+    ///
+    /// The idiomatic OCEL iteration surface. Objects, E2O links, and O2O links
+    /// are accessible via [`OcelLog::objects`], [`OcelLog::event_object_links`],
+    /// and [`OcelLog::object_object_links`] respectively.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelLog, OcelObject, OcelEvent, EventObjectLink};
+    /// let log = OcelLog::new(
+    ///     [OcelObject::new("o1", "order")],
+    ///     [OcelEvent::new("e1", "place"), OcelEvent::new("e2", "ship")],
+    ///     [EventObjectLink::new("e1", "o1"), EventObjectLink::new("e2", "o1")],
+    ///     [],
+    ///     [],
+    /// );
+    /// let activities: Vec<&str> = (&log).into_iter().map(|e| e.activity()).collect();
+    /// assert_eq!(activities, ["place", "ship"]);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        self.events.iter()
+    }
+}
+
+impl IntoIterator for OcelLog {
+    type Item = OcelEvent;
+    type IntoIter = std::vec::IntoIter<OcelEvent>;
+
+    /// Consume the log and iterate over its [`OcelEvent`]s by value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelLog, OcelObject, OcelEvent, EventObjectLink};
+    /// let log = OcelLog::new(
+    ///     [OcelObject::new("o1", "order")],
+    ///     [OcelEvent::new("e1", "place")],
+    ///     [EventObjectLink::new("e1", "o1")],
+    ///     [],
+    ///     [],
+    /// );
+    /// let v: Vec<OcelEvent> = log.into_iter().collect();
+    /// assert_eq!(v.len(), 1);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        self.events.into_iter()
+    }
+}
+
 /// The specific, named laws under which OCEL structure is refused.
 ///
 /// Each variant cites a distinct structural law — never a bare "invalid input".

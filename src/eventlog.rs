@@ -361,6 +361,48 @@ impl EventLog {
     }
 }
 
+// ── IntoIterator for EventLog ─────────────────────────────────────────────────
+
+impl<'a> IntoIterator for &'a EventLog {
+    type Item = &'a Trace;
+    type IntoIter = core::slice::Iter<'a, Trace>;
+
+    /// Iterate over the [`Trace`]s of this log.
+    ///
+    /// This makes `EventLog` idiomatic to use in `for` loops and iterator
+    /// chains without a separate `.traces()` call:
+    ///
+    /// ```
+    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
+    /// let log = EventLog::from_traces([
+    ///     Trace::new("c1", [Event::new("a")]),
+    ///     Trace::new("c2", [Event::new("b")]),
+    /// ]);
+    /// let cases: Vec<&str> = (&log).into_iter().map(|t| t.case_id()).collect();
+    /// assert_eq!(cases, ["c1", "c2"]);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        self.traces.iter()
+    }
+}
+
+impl IntoIterator for EventLog {
+    type Item = Trace;
+    type IntoIter = std::vec::IntoIter<Trace>;
+
+    /// Consume the log and iterate over its [`Trace`]s by value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
+    /// let log = EventLog::from_traces([Trace::new("c", [Event::new("a")])]);
+    /// let v: Vec<Trace> = log.into_iter().collect();
+    /// assert_eq!(v.len(), 1);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        self.traces.into_iter()
+    }
+}
+
 /// An append-only, potentially unbounded stream of [`Event`]s.
 ///
 /// An `EventStream` is the online sibling of an [`EventLog`]: events arrive over
