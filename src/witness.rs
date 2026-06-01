@@ -569,3 +569,69 @@ witness_marker!(
     "Temporal profile (AVG/STD per activity-pair — Stertz et al. 2020)",
     Some(2020)
 );
+witness_marker!(
+    /// Control-flow perspective authority (Mannhardt et al., 2016).
+    ///
+    /// Names the authority under which evidence is typed against the
+    /// control-flow perspective in the balanced multi-perspective conformance
+    /// framework. The control-flow perspective covers activity ordering and
+    /// routing. Distinct from [`DataPerspectiveWitness`], [`ResourcePerspectiveWitness`],
+    /// and [`TimePerspectiveWitness`].
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when control-flow alignment cost computation is required.
+    ControlFlowPerspectiveWitness,
+    "cf-perspective",
+    WitnessFamily::Paper,
+    "Control-Flow Perspective (Mannhardt et al. 2016)",
+    Some(2016)
+);
+witness_marker!(
+    /// Data perspective authority (Mannhardt et al., 2016).
+    ///
+    /// Names the authority under which evidence is typed against the data
+    /// perspective in the balanced multi-perspective conformance framework.
+    /// The data perspective covers event and object attribute values. Distinct
+    /// from [`ControlFlowPerspectiveWitness`], [`ResourcePerspectiveWitness`],
+    /// and [`TimePerspectiveWitness`].
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when data-condition guard evaluation is required.
+    DataPerspectiveWitness,
+    "data-perspective",
+    WitnessFamily::Paper,
+    "Data Perspective (Mannhardt et al. 2016)",
+    Some(2016)
+);
+witness_marker!(
+    /// Resource perspective authority (Mannhardt et al., 2016).
+    ///
+    /// Names the authority under which evidence is typed against the resource
+    /// perspective in the balanced multi-perspective conformance framework.
+    /// The resource perspective covers who performs each activity (`org:resource`
+    /// or equivalent). Distinct from the other three perspective witnesses.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when resource-based conformance cost computation is required.
+    ResourcePerspectiveWitness,
+    "resource-perspective",
+    WitnessFamily::Paper,
+    "Resource Perspective (Mannhardt et al. 2016)",
+    Some(2016)
+);
+witness_marker!(
+    /// Time perspective authority (Mannhardt et al., 2016).
+    ///
+    /// Names the authority under which evidence is typed against the temporal
+    /// perspective in the balanced multi-perspective conformance framework.
+    /// The time perspective covers timestamps, durations, and sojourn times.
+    /// Distinct from the other three perspective witnesses.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when temporal conformance checking is required.
+    TimePerspectiveWitness,
+    "time-perspective",
+    WitnessFamily::Paper,
+    "Time Perspective (Mannhardt et al. 2016)",
+    Some(2016)
+);
