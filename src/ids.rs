@@ -578,3 +578,117 @@ impl_new_from_raw!(TraceId,      u64);
 impl_new_from_raw!(ObjectTypeId, u32);
 impl_new_from_raw!(EventTypeId,  u32);
 impl_new_from_raw!(CaseId,       u64);
+
+// ── From / Into / AsRef / FromStr for integer-backed id types ────────────────
+
+/// Expands `From<$raw>`, `Into<$raw>`, `AsRef<$raw>`, and `FromStr` for a
+/// `#[repr(transparent)]` id newtype.
+///
+/// `From` and its reciprocal `Into` are infallible by design — wrapping a raw
+/// integer never fails. `AsRef<$raw>` borrows the interior without copying.
+/// `FromStr` parses the decimal representation of the raw primitive; it is
+/// infallible in the sense that the only failure mode is a malformed integer
+/// string, which is surfaced via `$raw::from_str`.
+macro_rules! impl_id_conversions {
+    ($name:ident, $raw:ty) => {
+        impl<K> From<$raw> for $name<K> {
+            /// Wraps a raw primitive as a typed id. Infallible.
+            #[inline]
+            fn from(raw: $raw) -> Self { Self::new(raw) }
+        }
+
+        impl<K> From<$name<K>> for $raw {
+            /// Unwraps the typed id back to its raw primitive. Infallible.
+            #[inline]
+            fn from(id: $name<K>) -> $raw { id.raw }
+        }
+
+        impl<K> AsRef<$raw> for $name<K> {
+            /// Borrows the underlying raw value without copying.
+            #[inline]
+            fn as_ref(&self) -> &$raw { &self.raw }
+        }
+
+        impl<K> core::str::FromStr for $name<K> {
+            type Err = <$raw as core::str::FromStr>::Err;
+
+            /// Parses the decimal representation of the raw primitive.
+            ///
+            /// # Errors
+            ///
+            /// Returns the same error as `$raw::from_str` when the string is not
+            /// a valid decimal integer.
+            #[inline]
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                s.parse::<$raw>().map(Self::new)
+            }
+        }
+    };
+}
+
+impl_id_conversions!(EventId,      u64);
+impl_id_conversions!(ObjectId,     u64);
+impl_id_conversions!(ActivityId,   u32);
+impl_id_conversions!(RelationId,   u32);
+impl_id_conversions!(TraceId,      u64);
+impl_id_conversions!(ObjectTypeId, u32);
+impl_id_conversions!(EventTypeId,  u32);
+impl_id_conversions!(CaseId,       u64);
+
+// ── From / AsRef / FromStr for string-backed name types ──────────────────────
+
+impl<K> From<&'static str> for ObjectTypeName<K> {
+    /// Wraps a `&'static str` label without allocation. Infallible.
+    #[inline]
+    fn from(s: &'static str) -> Self { Self::from_static(s) }
+}
+
+impl<K> From<String> for ObjectTypeName<K> {
+    /// Wraps an owned `String` label, allocating on the heap. Infallible.
+    #[inline]
+    fn from(s: String) -> Self { Self::from_owned(s) }
+}
+
+impl<K> AsRef<str> for ObjectTypeName<K> {
+    /// Borrows the string label without allocating.
+    #[inline]
+    fn as_ref(&self) -> &str { self.as_str() }
+}
+
+impl<K> core::str::FromStr for ObjectTypeName<K> {
+    type Err = core::convert::Infallible;
+
+    /// Parses any string as an `ObjectTypeName`. Always succeeds.
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::from_owned(s.to_owned()))
+    }
+}
+
+impl<K> From<&'static str> for EventTypeName<K> {
+    /// Wraps a `&'static str` label without allocation. Infallible.
+    #[inline]
+    fn from(s: &'static str) -> Self { Self::from_static(s) }
+}
+
+impl<K> From<String> for EventTypeName<K> {
+    /// Wraps an owned `String` label, allocating on the heap. Infallible.
+    #[inline]
+    fn from(s: String) -> Self { Self::from_owned(s) }
+}
+
+impl<K> AsRef<str> for EventTypeName<K> {
+    /// Borrows the string label without allocating.
+    #[inline]
+    fn as_ref(&self) -> &str { self.as_str() }
+}
+
+impl<K> core::str::FromStr for EventTypeName<K> {
+    type Err = core::convert::Infallible;
+
+    /// Parses any string as an `EventTypeName`. Always succeeds.
+    #[inline]
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::from_owned(s.to_owned()))
+    }
+}
