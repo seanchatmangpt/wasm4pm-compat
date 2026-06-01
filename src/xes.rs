@@ -435,6 +435,8 @@ impl XesTrace {
 /// Structure-only: an admitted `XesLog` is interchange-ready and graduates to
 /// `wasm4pm` for mining (typically after a named projection to
 /// [`crate::eventlog::EventLog`]).
+#[doc(alias = "XES event log")]
+#[doc(alias = "case-centric")]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct XesLog {
     name: String,

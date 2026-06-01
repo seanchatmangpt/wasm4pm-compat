@@ -43,6 +43,8 @@ use core::marker::PhantomData;
 ///
 /// Structure-only label. It states the *rule of engagement* for loss; it does
 /// not itself compute what is lost.
+#[doc(alias = "projection policy")]
+#[doc(alias = "loss")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum LossPolicy {
     /// Loss is not tolerated: a projection that would drop evidence must refuse.

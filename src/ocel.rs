@@ -594,6 +594,8 @@ impl ObjectChange {
 ///
 /// Structure-only: an admitted `OcelLog` is a substrate for object-centric
 /// discovery and conformance, which graduate to `wasm4pm`.
+#[doc(alias = "object-centric event log")]
+#[doc(alias = "OCEL")]
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct OcelLog {
     objects: Vec<OcelObject>,

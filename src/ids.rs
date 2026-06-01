@@ -221,6 +221,8 @@ macro_rules! typed_id {
 
 typed_id!(
     /// Identifies a single event within a log (the atom of process evidence).
+    #[doc(alias = "event identifier")]
+    #[doc(alias = "event id")]
     EventId, u64
 );
 typed_id!(

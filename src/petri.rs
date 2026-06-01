@@ -372,6 +372,8 @@ mod wfnet_seal {
 ///     _seal: todo!(),
 /// };
 /// ```
+#[doc(alias = "workflow net")]
+#[doc(alias = "WF-net")]
 pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
     // Private seal prevents direct struct-literal construction of any
     // WfNetConst variant from outside this module.

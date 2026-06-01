@@ -91,6 +91,8 @@ pub use crate::law::EvidenceMode;
 /// Structure-only carrier. It does not act on `T`; it only positions and labels
 /// it. Graduate to `wasm4pm` when the carried value must be *executed against*
 /// its witness.
+#[doc(alias = "process evidence")]
+#[doc(alias = "evidence carrier")]
 pub struct Evidence<T, State: EvidenceState, W> {
     /// The underlying evidence shape.
     pub value: T,
