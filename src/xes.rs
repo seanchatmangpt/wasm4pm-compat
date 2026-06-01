@@ -42,6 +42,18 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 pub struct CaseCentricMarker;
 
+impl core::fmt::Display for CaseCentricMarker {
+    /// Human-readable label for a case-centric log shape.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::CaseCentricMarker;
+    /// assert_eq!(CaseCentricMarker.to_string(), "case-centric");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str("case-centric")
+    }
+}
+
 /// A declared XES extension (e.g. `concept`, `time`, `lifecycle`, `org`).
 ///
 /// XES attributes are namespaced by extensions. An `XesExtension` records the
@@ -923,6 +935,31 @@ impl core::fmt::Display for XesLifecycleTransition {
     }
 }
 
+impl AsRef<str> for XesLifecycleTransition {
+    /// The `lifecycle:transition` attribute string (e.g. `"complete"`).
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesLifecycleTransition;
+    /// assert_eq!(XesLifecycleTransition::Complete.as_ref(), "complete");
+    /// ```
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl From<XesLifecycleTransition> for &'static str {
+    /// Infallible conversion to the canonical attribute string value.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesLifecycleTransition;
+    /// let s: &'static str = XesLifecycleTransition::Start.into();
+    /// assert_eq!(s, "start");
+    /// ```
+    fn from(t: XesLifecycleTransition) -> &'static str {
+        t.as_str()
+    }
+}
+
 /// The four standard XES extension prefixes defined in IEEE 1849-2016.
 ///
 /// XES defines four standard extensions: `concept`, `time`, `lifecycle`, and
@@ -1008,6 +1045,31 @@ impl XesStandardPrefix {
 impl core::fmt::Display for XesStandardPrefix {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.as_str())
+    }
+}
+
+impl AsRef<str> for XesStandardPrefix {
+    /// The prefix string (e.g. `"concept"`).
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesStandardPrefix;
+    /// assert_eq!(XesStandardPrefix::Concept.as_ref(), "concept");
+    /// ```
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl From<XesStandardPrefix> for &'static str {
+    /// Infallible conversion to the canonical prefix string.
+    ///
+    /// ```
+    /// use wasm4pm_compat::xes::XesStandardPrefix;
+    /// let s: &'static str = XesStandardPrefix::Lifecycle.into();
+    /// assert_eq!(s, "lifecycle");
+    /// ```
+    fn from(p: XesStandardPrefix) -> &'static str {
+        p.as_str()
     }
 }
 
