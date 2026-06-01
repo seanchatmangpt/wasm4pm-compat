@@ -6,8 +6,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected reference `&wasm4pm_compat::ocel::OcelLog`
-              found reference `&wasm4pm_compat::xes::XesLog`
+   = note: expected reference `&wasm4pm_compat::OcelLog`
+              found reference `&wasm4pm_compat::XesLog`
 note: function defined here
   --> tests/ui/compile_fail/xes_not_object_centric.rs:12:4
    |

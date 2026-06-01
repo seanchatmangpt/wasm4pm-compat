@@ -11,7 +11,7 @@ note: function defined here
    |
 17 | fn requires_projection_name(_name: ProjectionName) {}
    |    ^^^^^^^^^^^^^^^^^^^^^^^^ ---------------------
-help: try wrapping the expression in `wasm4pm_compat::loss::ProjectionName`
+help: try wrapping the expression in `wasm4pm_compat::ProjectionName`
    |
-24 |     requires_projection_name(wasm4pm_compat::loss::ProjectionName("ocel-flatten-to-xes:by-order"));
-   |                              +++++++++++++++++++++++++++++++++++++                              +
+24 |     requires_projection_name(wasm4pm_compat::ProjectionName("ocel-flatten-to-xes:by-order"));
+   |                              +++++++++++++++++++++++++++++++                              +

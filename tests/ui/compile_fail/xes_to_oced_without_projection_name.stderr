@@ -11,7 +11,7 @@ note: associated function defined here
    |
    |     pub const fn new(projection: ProjectionName, policy: LossPolicy, lost: Items) -> Self {
    |                  ^^^
-help: try wrapping the expression in `wasm4pm_compat::loss::ProjectionName`
+help: try wrapping the expression in `wasm4pm_compat::ProjectionName`
    |
-28 |         wasm4pm_compat::loss::ProjectionName("xes-lift-to-oced:by-case-type"),
-   |         +++++++++++++++++++++++++++++++++++++                               +
+28 |         wasm4pm_compat::ProjectionName("xes-lift-to-oced:by-case-type"),
+   |         +++++++++++++++++++++++++++++++                               +

@@ -10,13 +10,13 @@ help: the trait `EvidenceState` is not implemented for `MyCustomStage`
  8 | struct MyCustomStage;
    | ^^^^^^^^^^^^^^^^^^^^
    = help: the following other types implement trait `EvidenceState`:
-             wasm4pm_compat::prelude::Admitted
-             wasm4pm_compat::prelude::Exportable
-             wasm4pm_compat::prelude::Parsed
-             wasm4pm_compat::prelude::Projected
-             wasm4pm_compat::prelude::Raw
-             wasm4pm_compat::prelude::Receipted
-             wasm4pm_compat::prelude::Refused
+             wasm4pm_compat::Admitted
+             wasm4pm_compat::Exportable
+             wasm4pm_compat::Parsed
+             wasm4pm_compat::Projected
+             wasm4pm_compat::Raw
+             wasm4pm_compat::Receipted
+             wasm4pm_compat::Refused
 note: required by a bound in `Evidence`
   --> src/evidence.rs
    |
@@ -42,13 +42,13 @@ help: the trait `EvidenceState` is not implemented for `MyCustomStage`
  8 | struct MyCustomStage;
    | ^^^^^^^^^^^^^^^^^^^^
    = help: the following other types implement trait `EvidenceState`:
-             wasm4pm_compat::prelude::Admitted
-             wasm4pm_compat::prelude::Exportable
-             wasm4pm_compat::prelude::Parsed
-             wasm4pm_compat::prelude::Projected
-             wasm4pm_compat::prelude::Raw
-             wasm4pm_compat::prelude::Receipted
-             wasm4pm_compat::prelude::Refused
+             wasm4pm_compat::Admitted
+             wasm4pm_compat::Exportable
+             wasm4pm_compat::Parsed
+             wasm4pm_compat::Projected
+             wasm4pm_compat::Raw
+             wasm4pm_compat::Receipted
+             wasm4pm_compat::Refused
 note: required by a bound in `requires_evidence_state`
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:10:31
    |

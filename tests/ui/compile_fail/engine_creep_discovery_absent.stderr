@@ -1,5 +1,5 @@
-error[E0599]: no method named `discover_process_model` found for struct `wasm4pm_compat::ocel::OcelLog` in the current scope
+error[E0599]: no method named `discover_process_model` found for struct `wasm4pm_compat::OcelLog` in the current scope
   --> tests/ui/compile_fail/engine_creep_discovery_absent.rs:17:17
    |
 17 |     let _ = log.discover_process_model();
-   |                 ^^^^^^^^^^^^^^^^^^^^^^ method not found in `wasm4pm_compat::ocel::OcelLog`
+   |                 ^^^^^^^^^^^^^^^^^^^^^^ method not found in `wasm4pm_compat::OcelLog`

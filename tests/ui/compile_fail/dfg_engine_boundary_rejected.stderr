@@ -1,7 +1,7 @@
-error[E0599]: no method named `into_inner` found for struct `Evidence<Dfg, wasm4pm_compat::prelude::Raw, Pm4pyApiGrammar>` in the current scope
+error[E0599]: no method named `into_inner` found for struct `Evidence<Dfg, wasm4pm_compat::Raw, Pm4pyApiGrammar>` in the current scope
   --> tests/ui/compile_fail/dfg_engine_boundary_rejected.rs:27:35
    |
 27 |     let _discovered_dfg = raw_dfg.into_inner();
-   |                                   ^^^^^^^^^^ method not found in `Evidence<Dfg, wasm4pm_compat::prelude::Raw, Pm4pyApiGrammar>`
+   |                                   ^^^^^^^^^^ method not found in `Evidence<Dfg, wasm4pm_compat::Raw, Pm4pyApiGrammar>`
    |
-   = note: the method was found for `Evidence<T, wasm4pm_compat::prelude::Admitted, W>`
+   = note: the method was found for `Evidence<T, wasm4pm_compat::Admitted, W>`

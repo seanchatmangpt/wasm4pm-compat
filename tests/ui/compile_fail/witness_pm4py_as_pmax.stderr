@@ -17,8 +17,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, PmaxConsumerGrammar>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, Pm4pyApiGrammar>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, PmaxConsumerGrammar>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, Pm4pyApiGrammar>`
 note: function defined here
   --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:8:4
    |

@@ -17,8 +17,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, Xes1849>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, Ocel20>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, Xes1849>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/evidence_wrong_witness_ocel_as_xes.rs:16:4
    |

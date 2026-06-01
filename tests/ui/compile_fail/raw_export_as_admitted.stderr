@@ -1,7 +1,7 @@
-error[E0599]: no method named `into_inner` found for struct `Evidence<u32, wasm4pm_compat::prelude::Raw, Ocel20>` in the current scope
+error[E0599]: no method named `into_inner` found for struct `Evidence<u32, wasm4pm_compat::Raw, Ocel20>` in the current scope
   --> tests/ui/compile_fail/raw_export_as_admitted.rs:10:17
    |
 10 |     let _ = raw.into_inner();
-   |                 ^^^^^^^^^^ method not found in `Evidence<u32, wasm4pm_compat::prelude::Raw, Ocel20>`
+   |                 ^^^^^^^^^^ method not found in `Evidence<u32, wasm4pm_compat::Raw, Ocel20>`
    |
-   = note: the method was found for `Evidence<T, wasm4pm_compat::prelude::Admitted, W>`
+   = note: the method was found for `Evidence<T, wasm4pm_compat::Admitted, W>`
