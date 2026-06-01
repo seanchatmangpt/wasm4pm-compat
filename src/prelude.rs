@@ -26,3 +26,8 @@ pub use crate::loss::{LossPolicy, LossReport, ProjectionName};
 pub use crate::eventlog::{Event, EventLog, Trace};
 
 pub use crate::ocel::OcelLog;
+
+pub use crate::object_lifecycle::{
+    ActiveObject, ArchivedObject, CreatedObject, DeletedObject, ModifiedObject,
+    ObjectLifecyclePhase,
+};
