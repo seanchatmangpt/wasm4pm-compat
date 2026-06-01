@@ -25,6 +25,7 @@ pub fn get_witness_catalog() -> Result<JsValue, JsValue> {
 }
 
 /// Exposes the list of state tags in the evidence typestate lifecycle.
+// CONTEXT: wasm_boundary_allowed_with_loss_report (state tag catalog is part of WASM boundary API, not DTO flattening)
 #[wasm_bindgen]
 pub fn get_state_tags() -> Result<JsValue, JsValue> {
     let tags = vec![

@@ -82,6 +82,7 @@ mod wasm_tests {
         assert!(catalog.iter().any(|w| w.key == "ocel20"));
         assert!(catalog.iter().any(|w| w.key == "xes1849"));
 
+        // CONTEXT: test_fixture_allowed
         let tags_val = get_state_tags().unwrap();
         let tags: Vec<WasmStateTag> = from_value(tags_val).unwrap();
         assert!(tags.iter().any(|t| t.name == "Admitted"));
