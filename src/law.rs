@@ -343,6 +343,19 @@ pub enum QualityMetricKind {
     Simplicity,
 }
 
+impl core::fmt::Display for QualityMetricKind {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            QualityMetricKind::Fitness => "Fitness",
+            QualityMetricKind::Precision => "Precision",
+            QualityMetricKind::F1 => "F1",
+            QualityMetricKind::Generalization => "Generalization",
+            QualityMetricKind::Simplicity => "Simplicity",
+        };
+        f.write_str(name)
+    }
+}
+
 /// The kind of process-boundary a host declares it crosses.
 ///
 /// Used in `src/strict.rs` for const-generic boundary declarations.
