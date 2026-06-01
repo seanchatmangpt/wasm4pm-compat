@@ -1,3 +1,4 @@
+// Law: ArcDirectionEnumLaw — ArcDirection has exactly two variants (PlaceToTransition, TransitionToPlace); both are Copy, Eq, and Hash; they are mutually distinguishable
 // COMPILE-PASS: ArcDirection — the two arc direction variants are constructible
 // and distinguishable. Both are Copy, Eq, and Hash.
 use wasm4pm_compat::petri::{ArcDirection, Arc};

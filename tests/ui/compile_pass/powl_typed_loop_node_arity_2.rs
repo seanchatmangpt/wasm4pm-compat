@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: PowlLoopArityTwoLaw — TypedPowlLoopNode<_,2> satisfies Require<{ARITY==2}>: IsTrue; proves the POWL loop law is open at arity 2 (Kourani et al. 2026 §3)
 
 // COMPILE-PASS: TypedPowlLoopNode<_, 2> — POWL loop arity law.
 //

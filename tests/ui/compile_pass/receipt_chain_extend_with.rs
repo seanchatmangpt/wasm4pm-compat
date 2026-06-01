@@ -1,3 +1,4 @@
+// Law: ReceiptChainExtendWithLaw — ReceiptChain::extend_with appends a well-shaped ReceiptEnvelope link; chain length increases by one and the new link is the tip
 // COMPILE-PASS: ReceiptChain::extend_with — proves a well-shaped link extends the chain
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChain, ReceiptEnvelope, ReplayHint};

@@ -1,3 +1,4 @@
+// Law: XesExtensionPrefixWitnessLaw — XesExtensionPrefixWitness is constructible as a const; four standard witnesses are accessible via standard_witnesses(); is_standard() identifies standard prefixes
 // COMPILE-PASS: xes-extension-prefix-witness — proves XesExtensionPrefixWitness
 // is constructible as a const, exposes prefix() and is_standard(), and that the
 // four standard witnesses are accessible via standard_witnesses().

@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeAndArityLaw — TypedAndNode requires ARITY >= 2; both binary (2) and n-ary (4) AND nodes satisfy the compile-time bound (Leemans 2013)
 
 // COMPILE-PASS: TypedAndNode arity law — arity >= 2 is lawful.
 // Paper: Leemans (2013) inductive miner — ∧ (parallel / and) operator.

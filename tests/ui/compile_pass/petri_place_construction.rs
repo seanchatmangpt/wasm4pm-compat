@@ -1,3 +1,4 @@
+// Law: PlaceConstructionLaw — Place is constructible with an id and id() accessor returns the value; structure-only with no token dynamics
 // COMPILE-PASS: Place — the named place node is constructible and its id is
 // accessible. Structure-only: no token dynamics.
 use wasm4pm_compat::petri::Place;

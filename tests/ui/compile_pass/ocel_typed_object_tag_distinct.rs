@@ -1,3 +1,4 @@
+// Law: TypedObjectTagDistinctLaw — OrderTag and ItemTag are non-interchangeable ObjectTypeTag phantom types; TypedObject<OrderTag> and TypedObject<ItemTag> are distinct types
 // COMPILE-PASS: TypedObject tag distinctness — OrderTag and ItemTag are non-interchangeable phantom types.
 use wasm4pm_compat::ocel::{TypedObject, ObjectTypeTag};
 

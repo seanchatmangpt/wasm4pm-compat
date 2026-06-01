@@ -1,3 +1,4 @@
+// Law: ReceiptChainIterLaw — ReceiptChain::iter yields all links in order from root to tip; the chain is traversable without consuming it
 // COMPILE-PASS: ReceiptChain::iter — proves iteration over chain links
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChain, ReceiptEnvelope, ReplayHint};

@@ -1,3 +1,4 @@
+// Law: WellShapedTraitLaw — all receipt types (ReceiptShape, ReceiptEnvelope, ReceiptChain, GraduationReceipt) satisfy the WellShaped bound; well_shaped() is a uniform shape-check surface
 // COMPILE-PASS: WellShaped trait — proves all receipt types satisfy WellShaped bound
 
 use wasm4pm_compat::receipt::{

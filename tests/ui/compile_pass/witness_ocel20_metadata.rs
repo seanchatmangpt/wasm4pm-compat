@@ -1,3 +1,4 @@
+// Law: Ocel20WitnessMetadataLaw — Ocel20 implements Witness with KEY="ocel-2.0", TITLE="OCEL 2.0", YEAR=Some(2023), FAMILY=Standard; metadata is stable and machine-readable
 // COMPILE-PASS: Ocel20 witness metadata — proves Witness trait constants for Ocel20
 
 use wasm4pm_compat::witness::{Ocel20, Witness, WitnessFamily};

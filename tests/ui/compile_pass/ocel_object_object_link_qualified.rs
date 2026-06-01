@@ -1,3 +1,4 @@
+// Law: ObjectObjectLinkQualifiedLaw — relationship-qualified O2O links carry the qualifier as a first-class field; ObjectObjectLink preserves qualifier through the OCEL 2.0 type system
 // COMPILE-PASS: ObjectObjectLink with qualifier — relationship-qualified O2O links carry the qualifier through the type system.
 use wasm4pm_compat::ocel::ObjectObjectLink;
 

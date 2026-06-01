@@ -1,3 +1,4 @@
+// Law: ReceiptChainTryNewLaw — ReceiptChain::try_new constructs a valid single-link chain; the chain_id and the single well-shaped link are both accessible
 // COMPILE-PASS: ReceiptChain::try_new — proves a valid single-link chain constructs
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChain, ReceiptEnvelope, ReplayHint};

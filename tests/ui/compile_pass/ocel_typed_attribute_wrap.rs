@@ -1,3 +1,4 @@
+// Law: TypedAttributePhantomTagLaw — TypedAttribute<Tag> uses AttributeTypeTag phantom to prevent attribute-domain confusion at compile time; distinct tags are non-interchangeable
 // COMPILE-PASS: TypedAttribute — attribute-domain phantom tag prevents domain confusion at compile time.
 use wasm4pm_compat::ocel::{OcelAttribute, TypedAttribute, AttributeTypeTag};
 

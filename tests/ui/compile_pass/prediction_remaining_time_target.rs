@@ -1,3 +1,4 @@
+// Law: RemainingTimeTargetLaw — PredictionProblem<RemainingTime> is lawfully constructible; RemainingTime is a distinct prediction target witness from NextActivity and RiskScore
 // COMPILE-PASS: RemainingTime target law — proves PredictionProblem<RemainingTime> is lawfully constructible
 // with the RemainingTime witness and PredictionTarget::RemainingTime variant.
 

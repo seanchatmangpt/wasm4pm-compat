@@ -1,3 +1,4 @@
+// Law: InitialFinalMarkingPairLaw — a valid InitialFinalMarkingPair has non-overlapping initial and final markings; structural validation passes for well-formed pairs
 // COMPILE-PASS: InitialFinalMarkingPair — a valid pair with non-overlapping
 // initial and final markings validates successfully. Structure-only.
 use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking};

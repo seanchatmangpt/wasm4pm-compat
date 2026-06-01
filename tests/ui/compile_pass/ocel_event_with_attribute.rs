@@ -1,3 +1,4 @@
+// Law: OcelEventBuilderLaw — OcelEvent builder attaches typed attributes and nanosecond timestamps; structure-only, no engine logic
 // COMPILE-PASS: OcelEvent builder — with_attribute and at_ns attach attributes and timestamps to events.
 use wasm4pm_compat::ocel::{OcelEvent, OcelAttribute, OcelAttributeValue};
 

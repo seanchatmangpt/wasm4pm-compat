@@ -1,3 +1,4 @@
+// Law: PetriRefusalNamedVariantsLaw — all PetriRefusal variants cite a distinct structural law and implement Display; no bare error strings are present
 // COMPILE-PASS: PetriRefusal — all named law variants are constructible and
 // Display-formattable. Each variant cites a distinct structural law.
 use wasm4pm_compat::petri::PetriRefusal;

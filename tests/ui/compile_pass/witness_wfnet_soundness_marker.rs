@@ -1,3 +1,4 @@
+// Law: WfNetSoundnessPaperMarkerLaw — WfNetSoundnessPaper implements Witness with FAMILY=Paper; it is non-interchangeable with Ocel20 (Standard) and Xes1849 (Standard) at the type level
 // COMPILE-PASS: WfNetSoundnessPaper witness marker — proves WfNetSoundnessPaper
 // is a distinct named law that implements Witness with correct metadata, and that
 // it belongs to WitnessFamily::Paper (not Standard), making it distinguishable

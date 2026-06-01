@@ -1,3 +1,4 @@
+// Law: ArcWeightBuilderLaw — Arc::with_weight() sets the arc multiplicity via builder pattern; the weight is structurally recorded, not dynamically fired
 // COMPILE-PASS: Arc::with_weight — builder-style weight setting compiles and
 // produces the expected arc multiplicity. Structure-only.
 use wasm4pm_compat::petri::Arc;

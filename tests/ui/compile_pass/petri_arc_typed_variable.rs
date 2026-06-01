@@ -1,3 +1,4 @@
+// Law: ArcTypedVariableLaw — Arc::typed carries an object-type label and a variable flag; the arc is structure-only with no token dynamics
 // COMPILE-PASS: Arc::typed — an OC-Petri-net arc typed by object type with the
 // variable flag is constructible and queryable. Structure-only.
 use wasm4pm_compat::petri::Arc;

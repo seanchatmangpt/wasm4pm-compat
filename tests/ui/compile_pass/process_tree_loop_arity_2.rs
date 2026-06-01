@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeLoopArityTwoLaw — TypedLoopNode<_,2> satisfies Require<{ARITY==2}>: IsTrue; arity 2 is the only lawful loop count (Leemans 2013 inductive miner)
 
 // COMPILE-PASS: Process tree loop arity law — arity 2 is the lawful count.
 // Paper: Leemans (2013) inductive miner — loop has exactly 2 children:

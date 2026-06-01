@@ -1,3 +1,4 @@
+// Law: OcelAttributeValueIntegerLaw — OcelAttributeValue::Integer is a first-class OCEL 2.0 attribute variant; integer-valued attributes are constructible and accessible
 // COMPILE-PASS: OcelAttributeValue::Integer — integer-valued OCEL attributes are lawfully constructed.
 use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
 

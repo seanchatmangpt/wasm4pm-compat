@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: WorkflowPatternConstParamLaw — WorkflowPattern is a ConstParamTy; named patterns as const-generic params produce distinct type-level claims (Russell, van der Aalst & ter Hofstede 2016)
 
 // COMPILE-PASS: WorkflowPattern ConstParamTy — named pattern as const generic
 // param is a distinct type-level claim.

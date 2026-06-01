@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeXorNaryArityLaw — TypedXorNode<_,4> satisfies Require<{ARITY>=2}>: IsTrue; exclusive-choice is n-ary and not restricted to binary (Leemans 2013)
 
 // COMPILE-PASS: TypedXorNode n-ary (4 branches) — arity >= 2 allows arbitrarily
 // many branches. Proves the XOR law is not restricted to binary.

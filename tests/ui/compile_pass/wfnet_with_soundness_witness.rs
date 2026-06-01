@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: WfNetSoundnessStatesLaw — Unknown and Claimed WfNetConst states are publicly constructible; Witnessed state requires witness_soundness(proof) via the petri module
 
 // COMPILE-PASS: WF-net soundness — Unknown and Claimed states are constructible.
 // Witnessed state is reachable only via witness_soundness(proof) — not tested here

@@ -1,3 +1,4 @@
+// Law: RiskScoreTargetLaw — PredictionProblem<RiskScore> is lawfully constructible; RiskScore is a distinct prediction target witness from NextActivity and RemainingTime
 // COMPILE-PASS: Risk target law — proves PredictionProblem<RiskScore> is lawfully constructible
 // with the RiskScore witness and PredictionTarget::Risk variant.
 

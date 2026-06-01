@@ -1,3 +1,4 @@
+// Law: TypedEventTagDistinctLaw — PlaceOrderTag and ShipTag are non-interchangeable EventTypeTag phantom types; TypedEvent<PlaceOrderTag> and TypedEvent<ShipTag> are distinct types
 // COMPILE-PASS: TypedEvent tag distinctness — PlaceOrderTag and ShipTag are non-interchangeable phantom types.
 use wasm4pm_compat::ocel::{TypedEvent, EventTypeTag};
 

@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: WfNetQueryTraitLaw — WfNetQuery provides a uniform query surface returning the SoundnessState as a runtime value from any WfNetConst variant
 
 // COMPILE-PASS: WfNetQuery — the shared query surface returns the soundness
 // state as a runtime value from any WfNetConst variant.

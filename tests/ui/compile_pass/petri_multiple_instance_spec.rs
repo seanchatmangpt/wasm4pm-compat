@@ -1,3 +1,4 @@
+// Law: MultipleInstanceSpecValidationLaw — MultipleInstanceSpec validates 1 <= min <= max at runtime; structural law for YAWL nofi four-tuple is enforced
 // COMPILE-PASS: MultipleInstanceSpec — the YAWL nofi four-tuple is constructible
 // and validates the 1 ≤ min ≤ max structural law. Structure-only.
 use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind};

@@ -1,3 +1,4 @@
+// Law: MissingFinalMarkingErrorLaw — MissingFinalMarkingError is a first-class named law; it converts to PetriRefusal::MissingFinalMarking and implements Display
 // COMPILE-PASS: MissingFinalMarkingError — the first-class error type for the
 // missing-final-marking law is constructible, Display-formattable, and converts
 // to PetriRefusal::MissingFinalMarking via From.

@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeSeqNaryArityLaw — TypedSeqNode<_,6> satisfies Require<{ARITY>=2}>: IsTrue; sequence is n-ary and not restricted to binary (Leemans 2013)
 
 // COMPILE-PASS: TypedSeqNode n-ary (6 steps) — arity >= 2 allows arbitrarily
 // long sequences. Proves the SEQ law is not restricted to binary.

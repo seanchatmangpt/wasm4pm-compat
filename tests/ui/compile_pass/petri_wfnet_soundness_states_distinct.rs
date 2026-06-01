@@ -1,3 +1,4 @@
+// Law: WfNetSoundnessStatesDistinctLaw — SoundnessUnknown, SoundnessClaimed, and SoundnessWitnessed produce three mutually distinct WfNet<S> types; no cross-assignment is possible
 // COMPILE-PASS: SoundnessUnknown, SoundnessClaimed, SoundnessWitnessed are
 // mutually distinct types — WfNet<Unknown>, WfNet<Claimed>, WfNet<Witnessed>
 // are three separate types that cannot be confused at the type level.

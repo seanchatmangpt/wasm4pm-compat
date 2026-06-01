@@ -1,3 +1,4 @@
+// Law: XesLifecycleExtWitnessLaw — XesLifecycleExt is an uninhabited witness with FAMILY=Standard and KEY="xes-lifecycle-extension"; non-interchangeable with Xes1849 and XesConceptExt
 // COMPILE-PASS: xes-lifecycle-ext-witness — proves XesLifecycleExt witness marker
 // is an uninhabited enum tagged with WitnessFamily::Standard, with KEY
 // "xes-lifecycle-extension", and is distinguishable at the type level from

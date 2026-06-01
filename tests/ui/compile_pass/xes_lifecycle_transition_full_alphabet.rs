@@ -1,3 +1,4 @@
+// Law: XesLifecycleTransitionFullAlphabetLaw — XesLifecycleTransition names the full IEEE 1849-2016 standard alphabet (14 variants); as_str()/parse() round-trip and is_terminal() is correct
 // COMPILE-PASS: xes-lifecycle-transition-full-alphabet — proves XesLifecycleTransition
 // names the full IEEE 1849-2016 standard alphabet (14 variants), that as_str()
 // is consistent with parse(), and that is_terminal() identifies the terminal states.

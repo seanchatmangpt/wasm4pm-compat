@@ -1,3 +1,4 @@
+// Law: RustTypestateLawWitnessMetadataLaw — RustTypestateLaw implements Witness with KEY="rust-typestate-law", YEAR=None, FAMILY=RustLaw; distinct from Paper and Standard families
 // COMPILE-PASS: RustTypestateLaw witness metadata — proves Witness trait constants
 
 use wasm4pm_compat::witness::{RustTypestateLaw, Witness, WitnessFamily};

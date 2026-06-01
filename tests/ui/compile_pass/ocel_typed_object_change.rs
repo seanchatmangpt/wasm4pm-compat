@@ -1,3 +1,4 @@
+// Law: TypedObjectChangeLaw — TypedObjectChange carries OcelAttributeValue (not a raw string) as the attribute value; typed change records are structurally sound
 // COMPILE-PASS: TypedObjectChange — typed attribute changes carry OcelAttributeValue instead of a raw string.
 use wasm4pm_compat::ocel::{TypedObjectChange, OcelAttributeValue};
 

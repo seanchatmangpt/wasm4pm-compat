@@ -1,3 +1,4 @@
+// Law: EventObjectLinkQualifiedLaw — role-qualified E2O links carry the qualifier as a first-class field; EventObjectLink preserves qualifier through the OCEL 2.0 type system
 // COMPILE-PASS: EventObjectLink with qualifier — role-qualified E2O links carry the qualifier through the type system.
 use wasm4pm_compat::ocel::EventObjectLink;
 

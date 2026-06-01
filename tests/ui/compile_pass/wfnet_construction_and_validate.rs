@@ -1,3 +1,4 @@
+// Law: WfNetConstructionValidationLaw — a structurally valid WfNet (initial + final marking, arcs referencing declared nodes) passes structural validation; structure-only
 // COMPILE-PASS: WfNet — a structurally valid WF-net (initial + final marking,
 // arcs reference declared nodes) passes structural validation. Structure-only.
 use wasm4pm_compat::petri::{WfNet, PetriNet, Place, Transition, Arc, Marking};

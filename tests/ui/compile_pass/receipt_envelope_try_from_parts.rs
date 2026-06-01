@@ -1,3 +1,4 @@
+// Law: ReceiptEnvelopeTryFromPartsLaw — ReceiptEnvelope::try_from_parts returns a named ReceiptRefusal for each missing required field; structural completeness is enforced at construction
 // COMPILE-PASS: ReceiptEnvelope::try_from_parts — proves named refusal for each missing field
 
 use wasm4pm_compat::receipt::{Digest, ReceiptEnvelope, ReceiptRefusal, ReplayHint};

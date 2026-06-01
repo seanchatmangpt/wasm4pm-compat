@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SeparableWfNetDeclareLaw — SeparableWfNet::declare_separable wraps any WfNetConst and produces a separable marker; the net field is accessible (Kourani, Park & van der Aalst 2026 Definition 4.1)
 
 // COMPILE-PASS: SeparableWfNet::declare_separable — a WfNetConst in any
 // soundness state can be wrapped as separable. The net field is accessible.

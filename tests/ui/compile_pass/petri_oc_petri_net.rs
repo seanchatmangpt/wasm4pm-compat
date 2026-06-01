@@ -1,3 +1,4 @@
+// Law: ObjectCentricPetriNetLaw — ObjectCentricPetriNet validates when all arc object types are declared; typed arcs carry object-type labels as first-class structure
 // COMPILE-PASS: ObjectCentricPetriNet — an OC-Petri-net with typed arcs
 // validates when all arc object types are declared. Structure-only.
 use wasm4pm_compat::petri::{ObjectCentricPetriNet, PetriNet, Place, Transition, Arc, Marking};

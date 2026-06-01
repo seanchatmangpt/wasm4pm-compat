@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: MultipleInstanceSpecConstBoundsLaw — MultipleInstanceSpecConst<MIN,MAX> requires MIN <= MAX at compile time; lawful bounds (1 <= 4) compile and prove the constraint is open
 
 // COMPILE-PASS: MultipleInstanceSpecConst — the YAWL nofi bounds 1 ≤ MIN ≤ MAX
 // are enforced at compile time. Lawful values construct; this fixture proves the

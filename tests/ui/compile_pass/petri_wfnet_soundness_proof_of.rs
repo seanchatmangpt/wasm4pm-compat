@@ -1,3 +1,4 @@
+// Law: WfNetSoundnessProofOfLaw — WfNetSoundnessProofOf<Net> is a public phantom-typed proof carrier; only constructible inside petri or via wasm4pm bridge
 // COMPILE-PASS: WfNetSoundnessProofOf — the phantom-typed proof carrier
 // compiles as a type-level annotation. Only constructible inside petri or
 // via the wasm4pm bridge; this fixture proves it is a valid public type.

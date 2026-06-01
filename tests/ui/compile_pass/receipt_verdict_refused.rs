@@ -1,3 +1,4 @@
+// Law: ReceiptVerdictRefusedLaw — an ill-shaped ReceiptEnvelope (empty subject) produces ReceiptVerdict::Refused with a named ReceiptRefusal variant; bare strings are forbidden
 // COMPILE-PASS: ReceiptVerdict::Refused — proves shape-check produces a named refusal law
 
 use wasm4pm_compat::receipt::{Digest, ReceiptEnvelope, ReceiptRefusal, ReceiptVerdict, ReplayHint};

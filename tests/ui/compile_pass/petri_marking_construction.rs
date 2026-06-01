@@ -1,3 +1,4 @@
+// Law: MarkingConstructionLaw — Marking is constructible as empty or with token assignments; tokens_on() returns 0 for absent places; structure-only with no token dynamics
 // COMPILE-PASS: Marking — empty and non-empty markings are constructible.
 // tokens_on() returns 0 for absent places. Structure-only: no token dynamics.
 use wasm4pm_compat::petri::Marking;

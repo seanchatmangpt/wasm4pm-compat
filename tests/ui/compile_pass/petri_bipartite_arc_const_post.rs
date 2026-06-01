@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: BipartiteArcConstPostIncidenceLaw — BipartiteArcConst<TransitionToPlace> is a distinct type from BipartiteArcConst<PlaceToTransition>; post-incidence arcs are typed at compile time
 
 // COMPILE-PASS: BipartiteArcConst<TransitionToPlace> — the post-incidence arc
 // direction is a distinct type from PlaceToTransition at compile time.

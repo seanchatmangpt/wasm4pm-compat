@@ -1,3 +1,4 @@
+// Law: DanglingEventObjectLinkLaw — OcelRefusal::DanglingEventObjectLink is the named refusal for an E2O link pointing to an undeclared object; it is a specific named law, not a catch-all
 // COMPILE-PASS: DanglingEventObjectLink — OcelRefusal variant is constructible and
 // pattern-matchable as a named refusal reason on an OCEL boundary.
 //

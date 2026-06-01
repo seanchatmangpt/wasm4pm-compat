@@ -1,3 +1,4 @@
+// Law: OcelToXesNamedProjectionLaw — an OCEL→XES projection under AllowNamedProjection requires a LossReport; the projection name and report are both structurally required
 // COMPILE-PASS: Loss accounting law — OCEL→XES projection with named projection + loss report.
 // AllowNamedProjection path: the projection name and report are both present.
 use wasm4pm_compat::formats::{FormatExport, FormatKind};

@@ -1,3 +1,4 @@
+// Law: XesCaseCentricMarkerLaw — CaseCentricMarker is a zero-sized uninhabited type usable as PhantomData tag; it makes the case-centric vs. object-centric boundary unrepresentable
 // COMPILE-PASS: xes-case-centric-marker — proves CaseCentricMarker is zero-sized
 // and can be used as a PhantomData tag on a struct that wraps XesLog, making
 // the case-centric vs. object-centric boundary unrepresentable at the type level.

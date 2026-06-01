@@ -1,3 +1,4 @@
+// Law: OcelAttributeValueMapLaw — OcelAttributeValue::Map is a first-class OCEL 2.0 attribute variant; key-value map attributes are constructible and structurally sound
 // COMPILE-PASS: OcelAttributeValue::Map — map-valued OCEL attributes are lawfully constructed.
 use wasm4pm_compat::ocel::OcelAttributeValue;
 

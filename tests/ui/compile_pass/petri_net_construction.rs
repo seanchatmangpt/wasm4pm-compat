@@ -1,3 +1,4 @@
+// Law: PetriNetConstructionLaw — a structurally valid PetriNet (places, transitions, arcs, marking) validates successfully; structure-only with no firing semantics
 // COMPILE-PASS: PetriNet — a structurally valid Petri net (places, transitions,
 // arcs, marking) validates successfully. Structure-only.
 use wasm4pm_compat::petri::{PetriNet, Place, Transition, Arc, Marking};

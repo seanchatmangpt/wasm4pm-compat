@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeSeqArityLaw — TypedSeqNode requires ARITY >= 2; both binary (2) and 5-step sequences satisfy the compile-time bound (Leemans 2013)
 
 // COMPILE-PASS: TypedSeqNode arity law — arity >= 2 is lawful.
 // Paper: Leemans (2013) inductive miner — → (sequence) operator.

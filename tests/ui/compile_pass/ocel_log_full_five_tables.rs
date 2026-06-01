@@ -1,3 +1,4 @@
+// Law: OcelLogFiveTablesLaw — OcelLog is constructible with all five OCEL 2.0 tables (objects, events, E2O links, O2O links, object changes); all validate cleanly
 // COMPILE-PASS: OcelLog five-table construction — all five constituent tables are populated and validate cleanly.
 use wasm4pm_compat::ocel::{
     OcelLog, OcelObject, OcelEvent, EventObjectLink, ObjectObjectLink, ObjectChange,

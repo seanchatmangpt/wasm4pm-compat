@@ -1,3 +1,4 @@
+// Law: MissingFinalMarkingRefusalLaw — PetriRefusal::MissingFinalMarking is the named refusal for a WfNet with an empty final marking; it is pattern-matchable as a named law, not a bare error
 // COMPILE-PASS: MissingFinalMarking — PetriRefusal variant is constructible and
 // pattern-matchable as a named refusal reason on a WF-net boundary.
 //

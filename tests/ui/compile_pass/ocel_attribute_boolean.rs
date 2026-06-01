@@ -1,3 +1,4 @@
+// Law: OcelAttributeValueBooleanLaw — OcelAttributeValue::Boolean is a first-class OCEL 2.0 attribute variant; boolean-valued attributes are constructible and accessible
 // COMPILE-PASS: OcelAttributeValue::Boolean — boolean-valued OCEL attributes are lawfully constructed.
 use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
 

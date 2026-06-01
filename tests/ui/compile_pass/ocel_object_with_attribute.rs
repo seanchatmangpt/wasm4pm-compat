@@ -1,3 +1,4 @@
+// Law: OcelObjectBuilderLaw — OcelObject builder attaches typed attributes via with_attribute; structure-only, no engine logic
 // COMPILE-PASS: OcelObject builder — with_attribute attaches typed attributes to objects.
 use wasm4pm_compat::ocel::{OcelObject, OcelAttribute, OcelAttributeValue};
 

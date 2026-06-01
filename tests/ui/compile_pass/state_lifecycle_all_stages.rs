@@ -1,3 +1,4 @@
+// Law: StateLifecycleAllStagesLaw — all seven lifecycle stage tokens (Raw, Parsed, Admitted, Refused, Projected, Exportable, Receipted) are zero-sized uninhabited enums that compile as PhantomData tags
 // COMPILE-PASS: All state lifecycle stage tokens — proves all seven lifecycle stage enums compile
 
 use core::marker::PhantomData;

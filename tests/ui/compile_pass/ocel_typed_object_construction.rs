@@ -1,3 +1,4 @@
+// Law: TypedObjectConstructionLaw — TypedObject<Tag> uses ObjectTypeTag phantom to enforce object-type distinction at compile time; type is non-forgeable
 // COMPILE-PASS: TypedObject typed construction — ObjectTypeTag phantom enforces type distinction at compile time.
 use wasm4pm_compat::ocel::{OcelObject, TypedObject, ObjectTypeTag};
 

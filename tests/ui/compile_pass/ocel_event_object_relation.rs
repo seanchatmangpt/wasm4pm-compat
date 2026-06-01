@@ -1,3 +1,4 @@
+// Law: OcelE2ORelationLaw — event→object links are a first-class structural element of OcelLog (OCEL 2.0 §3); missing E2O links are a structural refusal, not a runtime error
 // COMPILE-PASS: OCEL E2O relation — event→object links are a first-class part of OcelLog.
 use wasm4pm_compat::ocel::{Object, OcelEvent, EventObjectLink, OcelLog};
 

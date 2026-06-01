@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeAndNaryArityLaw — TypedAndNode<_,3> satisfies Require<{ARITY>=2}>: IsTrue; AND is n-ary and not restricted to binary (Leemans 2013)
 
 // COMPILE-PASS: TypedAndNode n-ary (3 branches) — arity >= 2 allows arbitrarily
 // many parallel branches. Proves the AND law is not restricted to binary.

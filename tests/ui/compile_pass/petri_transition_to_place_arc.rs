@@ -1,3 +1,4 @@
+// Law: BipartitePetriArcPostIncidenceLaw — TransitionToPlaceArc is the lawful T→P post-incidence direction; it implements IsValidArc and compiles through the arc gate
 // COMPILE-PASS: Bipartite arc law — T→P arc is the lawful post-incidence direction.
 use wasm4pm_compat::petri::{TransitionToPlaceArc, IsValidArc};
 

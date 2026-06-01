@@ -1,3 +1,4 @@
+// Law: WitnessNonInterchangeableLaw — Admission<T,Ocel20> and Admission<T,Xes1849> are distinct types; the phantom witness parameter prevents silent cross-authority substitution
 // COMPILE-PASS: Witness non-interchangeable at type level — proves Ocel20 evidence ≠ Xes1849 evidence
 
 use wasm4pm_compat::admission::Admission;

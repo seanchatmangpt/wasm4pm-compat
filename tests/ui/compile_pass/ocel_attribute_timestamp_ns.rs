@@ -1,3 +1,4 @@
+// Law: OcelAttributeValueTimestampNsLaw — OcelAttributeValue::TimestampNs stores nanosecond-precision timestamps since Unix epoch as i64; OCEL 2.0 temporal attribute law
 // COMPILE-PASS: OcelAttributeValue::TimestampNs — timestamp attributes store nanoseconds since Unix epoch.
 use wasm4pm_compat::ocel::{OcelAttribute, OcelAttributeValue};
 

@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: BipartiteArcConstPreIncidenceLaw — BipartiteArcConst<PlaceToTransition> encodes the pre-incidence arc direction as a const-generic parameter; it is distinct from the post-incidence direction
 
 // COMPILE-PASS: BipartiteArcConst<PlaceToTransition> — the pre-incidence arc
 // direction is encoded as a const-generic parameter, producing a distinct type

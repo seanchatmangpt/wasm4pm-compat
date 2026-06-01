@@ -1,3 +1,4 @@
+// Law: PlaceNodeMarkerLaw — PlaceNodeMarker is a zero-sized marker that satisfies IsPlaceNode sealed trait; distinct from TransitionNodeMarker
 // COMPILE-PASS: PlaceNodeMarker — zero-sized place-kind marker compiles and
 // satisfies the IsPlaceNode sealed trait bound.
 use wasm4pm_compat::petri::{PlaceNodeMarker, IsPlaceNode};

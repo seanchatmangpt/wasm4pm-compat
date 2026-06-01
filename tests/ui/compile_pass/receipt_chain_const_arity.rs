@@ -1,3 +1,4 @@
+// Law: ReceiptChainConstArityLaw — ReceiptChainConst<N> encodes chain arity in the type; a 2-link chain is a different type from a 1-link chain (Blue River Dam covenant)
 // COMPILE-PASS: ReceiptChainConst<N> — proves const-generic arity chain constructs with type-level N
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChainConst, ReceiptEnvelope, ReplayHint};

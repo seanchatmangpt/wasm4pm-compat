@@ -1,3 +1,4 @@
+// Law: TransitionNodeMarkerLaw — TransitionNodeMarker is a zero-sized marker that satisfies IsTransitionNode sealed trait; distinct from PlaceNodeMarker
 // COMPILE-PASS: TransitionNodeMarker — zero-sized transition-kind marker compiles
 // and satisfies the IsTransitionNode sealed trait bound.
 use wasm4pm_compat::petri::{TransitionNodeMarker, IsTransitionNode};

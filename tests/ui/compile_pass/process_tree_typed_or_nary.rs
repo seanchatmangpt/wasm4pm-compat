@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeOrNaryArityLaw — TypedOrNode<_,5> satisfies Require<{ARITY>=2}>: IsTrue; inclusive-OR is n-ary and not restricted to binary
 
 // COMPILE-PASS: TypedOrNode n-ary (5 branches) — arity >= 2 allows arbitrarily
 // many inclusive-OR branches.

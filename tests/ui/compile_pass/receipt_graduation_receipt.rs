@@ -1,3 +1,4 @@
+// Law: GraduationReceiptLaw — GraduationReceipt carries a ReceiptEnvelope as the boundary crossing record; it is structure-only and never executes a replay
 // COMPILE-PASS: GraduationReceipt — proves graduation boundary crossing receipt constructs
 
 use wasm4pm_compat::receipt::{Digest, GraduationReceipt, ReceiptEnvelope, ReplayHint};

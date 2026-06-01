@@ -1,3 +1,4 @@
+// Law: WfNetClaimSoundChainLaw — WfNet::claim_sound produces WfNet<Claimed> and attest_witnessed produces WfNet<Witnessed>; both transitions are type-level re-tags producing distinct types
 // COMPILE-PASS: WfNet::claim_sound — Unknown → Claimed is a type-level re-tag.
 // WfNet::attest_witnessed — Claimed → Witnessed is a type-level re-tag.
 // Both transitions compile and produce distinct types.

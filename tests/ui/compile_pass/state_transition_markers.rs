@@ -1,3 +1,4 @@
+// Law: StateTransitionMarkersLaw — all state transition markers (RawToParsed, ParsedToAdmitted, ParsedToRefused, AdmittedToProjected, AdmittedToExportable) construct and are mutually distinct
 // COMPILE-PASS: State transition markers — proves all transition marker types construct and are distinct
 
 use wasm4pm_compat::state::{

@@ -1,3 +1,4 @@
+// Law: XesLifecycleTransitionTypedAccessorLaw — XesEvent::lifecycle_transition() returns typed XesLifecycleTransition for standard values and None for non-standard; lifecycle_transition_raw() preserves verbatim
 // COMPILE-PASS: xes-lifecycle-transition-typed-accessor — proves XesEvent::lifecycle_transition()
 // returns a typed XesLifecycleTransition for standard alphabet values, and None
 // for non-standard values; lifecycle_transition_raw() preserves the verbatim string.

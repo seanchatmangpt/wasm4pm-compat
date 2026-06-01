@@ -1,3 +1,4 @@
+// Law: InstanceCreationKindLaw — InstanceCreationKind has exactly two YAWL nofi variants (Static, Dynamic); both are Copy and mutually distinguishable
 // COMPILE-PASS: InstanceCreationKind — the Static and Dynamic variants of the
 // YAWL nofi creation kind are constructible, Copy, and distinguishable.
 use wasm4pm_compat::petri::InstanceCreationKind;

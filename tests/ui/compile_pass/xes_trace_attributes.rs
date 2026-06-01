@@ -1,3 +1,4 @@
+// Law: XesTraceAttributeShapeLaw — XesTrace carries standard namespaced attributes (concept:name, time:timestamp, org:resource) accessible via typed helpers; structure-only
 // COMPILE-PASS: xes-trace-attribute-shape law — proves that XesTrace carries
 // an ordered sequence of XesEvents, each with namespaced attributes accessible
 // by key, and that standard keys (concept:name, time:timestamp, org:resource)

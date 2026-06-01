@@ -1,3 +1,4 @@
+// Law: OcelDimsShapeLaw — OcelDims exposes object_types and activities as publicly accessible fields; dimension query is structure-only, no engine
 // COMPILE-PASS: OcelDims struct shape — object_types and activities fields are publicly accessible.
 use wasm4pm_compat::ocel::{OcelDims, OcelLog, OcelObject, OcelEvent, EventObjectLink};
 

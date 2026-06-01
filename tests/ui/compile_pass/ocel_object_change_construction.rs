@@ -1,3 +1,4 @@
+// Law: ObjectChangeConstructionLaw — ObjectChange is constructible with object_id, attribute, and value; optional timestamp is preserved; structure-only, no engine
 // COMPILE-PASS: ObjectChange construction — attribute-change records are lawfully constructed with optional timestamp.
 use wasm4pm_compat::ocel::ObjectChange;
 

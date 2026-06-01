@@ -1,3 +1,4 @@
+// Law: XesTraceAttributesShapeLaw — XesTraceAttributes is a separate type from XesEvent attributes; it has builder syntax, concept_name(), get(), all(), len(), and is_empty() accessors
 // COMPILE-PASS: xes-trace-attributes-shape — proves XesTraceAttributes is a
 // separate type from XesEvent attributes, can be built with builder syntax,
 // exposes concept_name(), get(), all(), len(), is_empty() accessors.

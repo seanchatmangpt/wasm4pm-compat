@@ -1,3 +1,4 @@
+// Law: XesDeclaredExtensionLawTypeLaw — XesDeclaredExtensionLaw names the IEEE 1849-2016 §5.2 declared-extension prefix law as a type-level constant with stable NAME and REFUSAL_VARIANT
 // COMPILE-PASS: xes-declared-extension-law-type — proves XesDeclaredExtensionLaw
 // names the IEEE 1849-2016 §5.2 declared-extension prefix law as a type-level
 // constant, exposes NAME, REFUSAL_VARIANT, governs(), and description().

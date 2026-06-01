@@ -1,3 +1,4 @@
+// Law: PowlPaperWitnessMetadataLaw — PowlPaper implements Witness with KEY="powl-paper", YEAR=Some(2023), FAMILY=Paper; distinct from Standard and ApiGrammar families
 // COMPILE-PASS: PowlPaper witness metadata — proves Witness trait constants for POWL paper
 
 use wasm4pm_compat::witness::{PowlPaper, Witness, WitnessFamily};

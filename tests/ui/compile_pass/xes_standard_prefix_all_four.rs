@@ -1,3 +1,4 @@
+// Law: XesStandardPrefixAllFourLaw — XesStandardPrefix names all four IEEE 1849-2016 standard prefixes (concept, time, lifecycle, org); as_str()/parse() round-trip and all() returns exactly four
 // COMPILE-PASS: xes-standard-prefix-all-four — proves XesStandardPrefix names
 // all four IEEE 1849-2016 standard prefixes (concept, time, lifecycle, org),
 // that as_str() returns the canonical string, parse() round-trips correctly,

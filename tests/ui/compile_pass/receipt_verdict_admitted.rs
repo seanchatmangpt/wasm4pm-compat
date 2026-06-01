@@ -1,3 +1,4 @@
+// Law: ReceiptVerdictAdmittedLaw — a well-shaped ReceiptEnvelope (non-empty subject, witness, digest, hint) produces ReceiptVerdict::Admitted via from_shape_check
 // COMPILE-PASS: ReceiptVerdict::Admitted — proves shape-check produces Admitted for a well-shaped envelope
 
 use wasm4pm_compat::receipt::{Digest, ReceiptEnvelope, ReceiptVerdict, ReplayHint};

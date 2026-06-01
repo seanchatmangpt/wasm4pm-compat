@@ -1,3 +1,4 @@
+// Law: ReceiptChainConstWellShapedLaw — ReceiptChainConst<N> satisfies WellShaped bound; the const-arity chain passes a uniform shape-check surface
 // COMPILE-PASS: ReceiptChainConst WellShaped — proves WellShaped impl on const-generic chain
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChainConst, ReceiptEnvelope, ReplayHint, WellShaped};

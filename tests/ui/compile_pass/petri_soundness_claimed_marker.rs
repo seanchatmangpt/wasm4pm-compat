@@ -1,3 +1,4 @@
+// Law: SoundnessClaimedMarkerLaw — SoundnessClaimed is a zero-sized uninhabited marker; distinct from SoundnessUnknown and SoundnessWitnessed at the type level
 // COMPILE-PASS: SoundnessClaimed — the uninhabited enum marker compiles as a
 // PhantomData type parameter, distinct from SoundnessUnknown and SoundnessWitnessed.
 use core::marker::PhantomData;

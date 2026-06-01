@@ -1,3 +1,4 @@
+// Law: ReceiptChainRootTipLaw — ReceiptChain::root() returns the first link and tip() returns the last; provenance trail endpoints are directly accessible
 // COMPILE-PASS: ReceiptChain root and tip — proves root() and tip() access the correct ends
 
 use wasm4pm_compat::receipt::{Digest, ReceiptChain, ReceiptEnvelope, ReplayHint};

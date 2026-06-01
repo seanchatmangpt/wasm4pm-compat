@@ -1,3 +1,4 @@
+// Law: WitnessFamilyVariantsLaw — all WitnessFamily variants (Standard, Paper, ApiGrammar, RustLaw, InternalBridge) are constructible; the closed set is exhaustive
 // COMPILE-PASS: WitnessFamily variants — proves all witness family enum variants construct
 
 use wasm4pm_compat::witness::WitnessFamily;

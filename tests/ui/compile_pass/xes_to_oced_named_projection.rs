@@ -1,3 +1,4 @@
+// Law: XesToOcedProjectionNamedLaw — XesToOcedProjection carries a stable PROJECTION_NAME and LossReport<XesShape,OcedShape> is well-typed; the XES→OCED lifting projection is named and lossy
 // COMPILE-PASS: xes-to-oced-projection-named law
 // Paper: "Object-Centric Analysis of XES Event Logs: Integrating OCED Modeling
 //         with SPARQL Queries"

@@ -1,3 +1,4 @@
+// Law: TypedEventConstructionLaw — TypedEvent<Tag> uses EventTypeTag phantom to enforce activity-type distinction at compile time; type is non-forgeable
 // COMPILE-PASS: TypedEvent typed construction — EventTypeTag phantom enforces activity-type distinction at compile time.
 use wasm4pm_compat::ocel::{OcelEvent, TypedEvent, EventTypeTag};
 

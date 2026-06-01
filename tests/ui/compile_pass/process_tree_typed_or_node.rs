@@ -1,5 +1,6 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
+// Law: ProcessTreeOrArityLaw — TypedOrNode requires ARITY >= 2; both binary (2) and ternary (3) OR nodes satisfy the compile-time bound
 
 // COMPILE-PASS: TypedOrNode arity law — arity >= 2 is lawful.
 // OR (inclusive choice) requires at least 2 branches.

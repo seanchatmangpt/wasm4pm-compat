@@ -1,5 +1,6 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
+// Law: SeparableWfNetMarkerLaw — SeparableWfNet is the type-level receipt of separability (Definition 4.1); it wraps any WfNetConst and carries the soundness state forward
 
 // COMPILE-PASS: SeparableWfNet marker — a separability claim can be attached
 // to a WfNetConst, and SeparableWfNet carries the soundness state forward.
