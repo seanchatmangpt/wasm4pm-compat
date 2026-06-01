@@ -55,6 +55,26 @@ pub enum LossPolicy {
     AllowLossWithReport,
 }
 
+impl Default for LossPolicy {
+    /// The safest default: refuse all loss.
+    ///
+    /// Callers that do not explicitly select a policy receive
+    /// [`LossPolicy::RefuseLoss`], preventing silent structure loss. Use a
+    /// builder or explicit enum variant when loss is intentional.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::LossPolicy;
+    /// assert_eq!(LossPolicy::default(), LossPolicy::RefuseLoss);
+    /// assert!(LossPolicy::default().is_refusing());
+    /// ```
+    #[inline]
+    fn default() -> Self {
+        LossPolicy::RefuseLoss
+    }
+}
+
 impl LossPolicy {
     /// Returns `true` when this policy requires refusing any loss.
     ///
@@ -152,6 +172,40 @@ impl ProjectionName {
     /// ```
     #[inline]
     pub const fn as_str(self) -> &'static str {
+        self.0
+    }
+
+    /// Consumes `self` and returns the underlying `&'static str`.
+    ///
+    /// Identical to [`as_str`](Self::as_str) (since `&'static str` is `Copy`);
+    /// provided for newtype-wrapper ergonomics.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionName;
+    /// let n = ProjectionName("p");
+    /// assert_eq!(n.into_inner(), "p");
+    /// ```
+    #[inline]
+    pub const fn into_inner(self) -> &'static str {
+        self.0
+    }
+
+    /// Borrows the underlying `&'static str`.
+    ///
+    /// Identical to [`as_str`](Self::as_str); provided for newtype-wrapper
+    /// ergonomics so callers can use `as_inner()` uniformly.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::loss::ProjectionName;
+    /// let n = ProjectionName("p");
+    /// assert_eq!(n.as_inner(), "p");
+    /// ```
+    #[inline]
+    pub const fn as_inner(&self) -> &'static str {
         self.0
     }
 }
