@@ -202,6 +202,8 @@ pub mod process_cube;
 pub mod process_tree;
 /// Receipt shape: provenance-bearing evidence envelope.
 pub mod receipt;
+/// Temporal ordering and profile law surfaces.
+pub mod temporal;
 /// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
 pub mod state;
 /// Witness markers and witness families (type-level proof carriers).
