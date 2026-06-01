@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/oc_declare_scope_mismatch.rs:36:33
+   |
+36 |     admit_oc_declare_constraint(refused);
+   |     --------------------------- ^^^^^^^ expected `OcDeclareConstraint`, found `OcDeclareRefusal`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/oc_declare_scope_mismatch.rs:27:4
+   |
+27 | fn admit_oc_declare_constraint(_c: OcDeclareConstraint) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ -----------------------
