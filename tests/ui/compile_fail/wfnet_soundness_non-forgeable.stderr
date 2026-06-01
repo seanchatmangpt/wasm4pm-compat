@@ -1,0 +1,25 @@
+warning: unreachable expression
+  --> tests/ui/compile_fail/wfnet_soundness_non-forgeable.rs:21:62
+   |
+21 |       let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
+   |  ______________________________________________________________^
+22 | |         _seal: todo!(),
+   | |                ------- any code following this expression is unreachable
+23 | |     };
+   | |_____^ unreachable expression
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0451]: field `_seal` of struct `WfNetConst` is private
+  --> tests/ui/compile_fail/wfnet_soundness_non-forgeable.rs:22:9
+   |
+21 |     let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
+   |                                                              ---------- in this type
+22 |         _seal: todo!(),
+   |         ^^^^^ private field
+
+error: type `petri::wfnet_seal::WfNetSeal` is private
+  --> tests/ui/compile_fail/wfnet_soundness_non-forgeable.rs:22:16
+   |
+22 |         _seal: todo!(),
+   |                ^^^^^^^ private type
