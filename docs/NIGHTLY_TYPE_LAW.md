@@ -1912,3 +1912,164 @@ the pass fixture, the fail fixture, and the paper source.
 | `process-tree-operator-law` | `process_tree::ProcessTreeOperator` (closed enum) | `compile_pass/process_tree_operator_node_shape.rs` | — | Leemans (2013) |
 | `powl-choice-graph-connectivity-law` | `powl::PowlNodeKind::ChoiceGraph` / `PowlRefusal::ChoiceGraphDisconnected` | `compile_pass/powl_choice_graph.rs` | — | Kourani et al. (2026) Def. 3.6 |
 | `choice-graph-edge-distinctness` | `powl::ChoiceGraphEdge` vs `powl::OrderEdge` | `compile_pass/powl_choice_graph.rs` | `compile_fail/powl_order_edge_choice_confusion.rs` | Kourani et al. (2026) Def. 3.6 |
+
+---
+
+## #69 — Modeling Business Processes: A Petri Net-Oriented Approach (van der Aalst, Stahl, 2011)
+
+**Paper:** Modeling Business Processes: A Petri Net-Oriented Approach
+**Canon family:** `WF_NET_SOUNDNESS`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Van der Aalst & Stahl (2011) provide the canonical Petri-net-oriented BPM
+textbook: WF-net soundness criterion (option completeness, proper completion,
+no dead transitions), free-choice net subclass, and BPMN structural mapping
+to WF-nets. The `WfNetConst<SOUNDNESS>` with non-forgeable `WfNetSoundnessWitness`
+and `WfNetSoundnessPaper` witness in `src/witness.rs` are the structural
+receipts. BPMN shapes in `src/bpmn.rs` implement the BPMN structural vocabulary.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| WF-net (source/sink place, initial/final marking) | `src/petri.rs::WfNetConst<SOUNDNESS>` | `wfnet_forged_soundness` compile-fail |
+| Soundness witness (non-forgeable) | `src/petri.rs::WfNetSoundnessWitness` | constructor is `pub(crate)` |
+| Soundness paper witness marker | `src/witness.rs::WfNetSoundnessPaper` | — |
+| BPMN structural vocabulary | `src/bpmn.rs::BpmnElement`, `GatewayKind`, `EventKind` | structural type distinctions |
+| Bipartite arc law | `src/petri.rs::PlaceToTransitionArc` / `TransitionToPlaceArc` | `petri_place_to_place_arc` compile-fail |
+
+**Structural laws this crate enforces:**
+
+- `WfNetConst<true>` (sound) cannot be forged — the `WfNetSoundnessWitness`
+  constructor is `pub(crate)`. The `wfnet_forged_soundness` compile-fail
+  fixture seals this from the van der Aalst & Stahl (2011) soundness criterion.
+- `WfNetSoundnessPaper` in `src/witness.rs` is the named receipt that a
+  `WfNetConst<SOUNDNESS>` derives its soundness claim from the van der Aalst
+  & Stahl (2011) criterion (option completeness, proper completion, no dead
+  transitions), not from an ad-hoc boolean flag.
+- `BpmnElement`/`GatewayKind`/`EventKind` in `src/bpmn.rs` are the structural
+  BPMN vocabulary that van der Aalst & Stahl (2011) map to WF-nets.
+
+**What must NOT live in this crate:**
+
+- WF-net soundness verification algorithm execution (WOFLAN reduction)
+- BPMN-to-WF-net transformation execution (structural reduction algorithm)
+- Free-choice net soundness checking execution (polynomial-time algorithm)
+
+---
+
+## #74 — Process Mining: Data Science in Action, 2nd ed. (van der Aalst, 2016)
+
+**Paper:** Process Mining: Data Science in Action (2nd edition)
+**Canon family:** `PETRI_NETS`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+The 2nd edition of the Process Mining textbook (van der Aalst 2016) is the
+canonical survey of the entire process-evidence canon. It extends the 1st
+edition (#37, 2011) with OCEL-predecessor shapes and OC-DFG. All structural
+shapes from the 2016 edition are covered across the canon modules.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Flat event log (XES) | `src/xes.rs::XesLog`, `XesTrace`, `XesEvent` | `xes_not_object_centric` compile-fail |
+| Object-centric log (OCEL precursor) | `src/ocel.rs::OcelLog`, `OcelEvent`, `OcelObject`, `EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| Petri net / WF-net | `src/petri.rs::WfNetConst<SOUNDNESS>` | `wfnet_forged_soundness` compile-fail |
+| Process tree | `src/process_tree.rs::ProcessTree`, `TypedLoopNode<ARITY>` | `process_tree_bad_loop_arity` compile-fail |
+| Declare constraints | `src/declare.rs::DeclareConstraint`, `DeclareTemplate` | `declare_binary_arity_rejected` compile-fail |
+| Conformance metrics | `src/conformance.rs::Metric<KIND, NUM, DEN>` with `Between01` | `metric_out_of_bounds` compile-fail |
+| DFG / OC-DFG | `src/dfg.rs::Dfg`, `DfgNode`, `DfgEdge`, `DfgWeight` | `dfg_engine_boundary_rejected` compile-fail |
+
+**Structural laws this crate enforces:**
+
+- The entire process-evidence canon surveyed in this crate derives its
+  type-law lineage from this book. Every canon module (`eventlog`, `petri`,
+  `process_tree`, `declare`, `conformance`, `dfg`, `xes`, `ocel`) traces to
+  van der Aalst (2016) as the authoritative structural source.
+- OCEL-predecessor shapes (object-centric event data model) are covered by
+  `src/ocel.rs` which implements the formalized OCEL 1.0 and 2.0 specs.
+
+**What must NOT live in this crate:**
+
+- Discovery algorithm execution (Alpha Miner, Inductive Miner, Heuristics Miner)
+- Conformance checking execution (token replay, alignment)
+- Performance analysis computation
+- Prediction model training or inference
+
+---
+
+## #78 — BPMN Miner (Conforti, Dumas, Garcia-Banuelos, La Rosa, 2015)
+
+**Paper:** BPMN Miner: Recovering BPMN Process Models with Subprocesses
+**Canon family:** `WORKFLOW_PATTERNS_BPMN`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Conforti et al. (2015) present BPMN Miner — a tool that discovers BPMN
+models with subprocesses from event logs. The output shapes (`BpmnElement`,
+`BpmnSubprocess`, `GatewayKind`, pool, lane) are the structural vocabulary
+already typed in `src/bpmn.rs`. BPMN discovery execution graduates to wasm4pm.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| BPMN element (task, gateway, event) | `src/bpmn.rs::BpmnElement` | — |
+| Gateway kind (XOR/AND/OR) | `src/bpmn.rs::GatewayKind` | structural type distinction |
+| Subprocess boundary | `src/bpmn.rs::BpmnSubprocess` | — |
+| Pool / Lane | `src/bpmn.rs::Pool` / `src/bpmn.rs::Lane` | `bpmn_pool_as_lane` compile-fail |
+| Event kind (Start/Intermediate/End) | `src/bpmn.rs::EventKind` | structural type distinction |
+
+**Structural laws this crate enforces:**
+
+- `Pool` and `Lane` are distinct newtypes — `bpmn_pool_as_lane` compile-fail
+  fixture seals the pool-as-lane confusion from the BPMN structural vocabulary.
+- `GatewayKind` (XOR/AND/OR) and `EventKind` (Start/Intermediate/End) are
+  closed enums — each is a named structural law, not a free string.
+- `BpmnSubprocess` is a first-class structural type: a subprocess boundary
+  is not an annotation on a generic task node.
+
+**What must NOT live in this crate:**
+
+- BPMN discovery execution (subprocess boundary detection, hierarchical decomposition)
+- BPMN simulation or process execution engine
+- BPMN 2.0 XML serialization/deserialization
+
+---
+
+## #79 — Object-Centric Process Mining: Dealing with Divergence and Convergence (van der Aalst, 2013)
+
+**Paper:** Object-Centric Process Mining: Dealing with Divergence and Convergence (2013 precursor)
+**Canon family:** `OCEL_OBJECT_CENTRIC`
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Van der Aalst (2013) is the historical root of the OCEL structural canon —
+it introduces the object-centric event data model and the divergence/convergence
+problem before the OCEL 1.0 standard was formalized. The structural shapes
+defined in this precursor are directly implemented by `src/ocel.rs`, and the
+formalized successors are OCEL 1.0 (#35) and OCEL 2.0 (#25).
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Object-centric event log precursor | `src/ocel.rs::OcelLog` | — |
+| Event-to-object link precursor | `src/ocel.rs::EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| Divergence/convergence structural fix | `src/ocel.rs::OcelLog` + `EventObjectLink` | `ocel_e2o_missing_link` compile-fail |
+| OCEL 1.0 formalized successor | `src/ocel.rs` (OCEL 1.0 subset) | see #35 |
+| OCEL 2.0 formalized successor | `src/ocel.rs` (OCEL 2.0 full) | see #25 |
+
+**Structural laws this crate enforces:**
+
+- The object-centric event data model introduced in van der Aalst (2013) is
+  the structural predecessor of OCEL. The same structural laws enforced by
+  the OCEL 1.0 (#35) and OCEL 2.0 (#25) entries apply here.
+- `EventObjectLink` resolves divergence and convergence by construction —
+  each event explicitly names the objects it relates to, eliminating the
+  ambiguity that causes duplication or merging in flat logs.
+
+**What must NOT live in this crate:**
+
+- Divergence/convergence detection algorithms
+- Object-centric process discovery execution
+- OCEL extraction from relational databases
