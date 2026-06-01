@@ -1,5 +1,9 @@
 # wasm4pm-compat
 
+![nightly-only](https://img.shields.io/badge/toolchain-nightly--only-orange)
+![no-unsafe](https://img.shields.io/badge/unsafe-forbid%28unsafe__code%29-red)
+![structure-only](https://img.shields.io/badge/scope-structure--only-blue)
+
 > **Nightly Rust required. Applications conform upward to future type law.**
 
 > *Start with compatibility. Graduate to execution.*
@@ -45,6 +49,178 @@ not the other way around.
 
 - **Not** a place where loss is silent. Lossy projection always requires a
   named projection **plus** a loss policy, a loss report, and a refusal path.
+
+---
+
+## Key Concepts
+
+### Evidence lifecycle
+
+The central invariant is a typed, one-way lifecycle enforced by the type system:
+
+```text
+Raw ──parse──▶ Parsed ──admit──▶ Admitted ──▶ {Projected | Exportable | Receipted}
+  │                                  ▲
+  └────────────── refuse ────────────┴──▶ Refused  (terminal; carries a named law)
+```
+
+`Evidence<T, State, W>` is the universal carrier. `State` and `W` are
+`PhantomData` tags — zero-cost at runtime. `Evidence<T, Raw, W>` and
+`Evidence<T, Admitted, W>` are **different types**. A function demanding
+admitted evidence cannot be called with raw evidence.
+
+### Witness markers
+
+A witness (e.g. `Ocel20`, `Xes1849`, `WfNetSoundnessPaper`) is a zero-sized
+empty enum that names *which authority* a piece of evidence answers to.
+`Admission<T, Ocel20>` and `Admission<T, Xes1849>` are different types — the
+type system prevents silent confusion between standards.
+
+### LossPolicy
+
+Lossy projection requires a `LossPolicy` decided **before** any loss occurs:
+
+| Variant | Meaning |
+|---|---|
+| `RefuseLoss` | Loss is not tolerated; projection must refuse |
+| `AllowNamedProjection` | Loss is permitted under a named `ProjectionName` |
+| `AllowLossWithReport` | Loss is permitted and a `LossReport` enumerating dropped items is required |
+
+### ALIVE gate
+
+`cargo test --test ui_tests -- --ignored` runs trybuild fixtures:
+
+- **compile-fail fixtures** — each must fail for the *intended named law*, not
+  accidentally. A fixture that fails for the wrong reason is not a valid
+  type-law receipt.
+- **compile-pass fixtures** — each must compile successfully, proving the lawful
+  path is open.
+
+The ALIVE gate is the certification that the type law is structurally sound.
+
+---
+
+## Quick Example
+
+The full `Raw → Admitted` path, using the `Admit` trait:
+
+```rust,ignore
+use wasm4pm_compat::admission::{Admit, Admission, Refusal};
+use wasm4pm_compat::evidence::Evidence;
+use wasm4pm_compat::state::Raw;
+use wasm4pm_compat::witness::Ocel20;
+
+/// Admit a bool that represents "has at least one object link".
+enum LinkedOcel {}
+
+impl Admit for LinkedOcel {
+    type Raw = bool;
+    type Admitted = bool;
+    type Reason = &'static str;
+    type Witness = Ocel20;
+
+    fn admit(
+        raw: Evidence<bool, Raw, Ocel20>,
+    ) -> Result<Admission<bool, Ocel20>, Refusal<&'static str, Ocel20>> {
+        if raw.value {
+            Ok(Admission::new(true))
+        } else {
+            Err(Refusal::new("DanglingEventObjectLink"))
+        }
+    }
+}
+
+// Raw evidence enters at the boundary.
+let raw: Evidence<bool, Raw, Ocel20> = Evidence::raw(true);
+
+// The only way to reach Admitted is through Admit::admit.
+let admitted = LinkedOcel::admit(raw).unwrap().into_evidence();
+
+// Admitted evidence can now proceed to Projected, Exportable, or Receipted.
+let exportable = admitted.into_exportable();
+assert_eq!(exportable.value, true);
+```
+
+For runnable examples, see the `examples/` directory.
+
+---
+
+## What's In The Box
+
+Always-on modules (the canon — present with `--no-default-features`):
+
+| Module | What it provides |
+|---|---|
+| `law` | Compile-time law kernel: `Assert`/`IsTrue`/`Require` bounds, `ConditionCell<BITS>`, `Between01<NUM,DEN>`, `ConstParamTy` enum set |
+| `evidence` | `Evidence<T, State, W>` — the universal lifecycle carrier |
+| `state` | Lifecycle stage tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, `Exportable`, `Receipted` |
+| `witness` | `Witness` trait and all named authority markers (`Ocel20`, `Xes1849`, `WfNetSoundnessPaper`, …) |
+| `admission` | `Admit` trait, `Admission<T,W>`, `Refusal<R,W>` — the only `Raw → Admitted` path |
+| `loss` | `Project` trait, `LossPolicy`, `LossReport`, `ProjectionName`, `NamedLoss` |
+| `eventlog` | `Event`, `Trace`, `EventLog`, `EventStream` — case-centric shapes with builder APIs |
+| `ocel` | `OcelLog`, `OcelEvent`, `Object`, `EventObjectLink`, `ObjectObjectLink`, `ObjectChange` |
+| `xes` | XES interchange shape |
+| `bpmn` | BPMN model shape |
+| `petri` | Petri net and WF-net shapes, `WfNetConst<SOUNDNESS>` |
+| `powl` | POWL shape, `TreeProjectable` sealed trait |
+| `process_tree` | Process tree shape, `TypedLoopNode<ARITY>` with compile-time arity law |
+| `declare` | Declare and OC-Declare constraint shapes |
+| `ocpq` | Object-centric process query shape |
+| `dfg` | Directly-follows graph (DFG) shape |
+| `conformance` | Conformance verdict shape, `Metric<KIND, NUM, DEN>` with `Between01` bounds |
+| `prediction` | Prediction problem shape |
+| `receipt` | Receipt-shaped provenance envelope |
+| `ids` | Zero-cost `#[repr(transparent)]` identifier wrappers |
+| `diagnostic` | Named diagnostic codes for all boundary violations |
+| `interop` | Import/export/round-trip plumbing traits, `Pm4pyShape` |
+| `causal_net` | Causal net structural shape (Heuristics Miner output) |
+| `prelude` | Re-exports of the most-needed shapes and laws |
+| `nightly_foundry` | Always-on staging area: `petri_law`, `powl_law`, `evidence_law`, `token_law` |
+
+Feature-gated modules:
+
+| Module | Feature | What it adds |
+|---|---|---|
+| `formats` | `formats` (default on) | `ImportFormat`, `ExportFormat`, `FormatExport`, `FormatKind`, `RoundTripClaim`, `LossyFormatExport` |
+| `strict` | `strict` | `ProcessBoundary`, `StrictCheck`, `StrictViolation`, `ExportBoundaryConst<HAS_WITNESS, HAS_ROUND_TRIP>` |
+| `graduation` | `wasm4pm` | `GraduateToWasm4pm`, `GraduationCandidate`, `GraduationReason` |
+
+---
+
+## Not In The Box
+
+These capabilities belong in `wasm4pm`, not here:
+
+| Capability | Why it graduates |
+|---|---|
+| Process discovery (Alpha, Inductive, Heuristic miners) | Requires log replay and causal matrix computation |
+| Conformance checking (alignments, token replay) | Requires model + log execution |
+| Performance/variant mining | Requires aggregation over full event data |
+| Log-model fitness/precision scores | Engine computation over the admitted log |
+| WF-net soundness verification | Reachability analysis — engine work |
+| POWL language-equivalence proof | Tree projection and language containment |
+| OCPQ query execution | Object graph traversal |
+| Predictive monitoring | ML inference over event sequences |
+
+The graduation path: admit your evidence here, then hand the `GraduationCandidate`
+(via the `wasm4pm` feature's bridge traits) to the engine.
+
+---
+
+## Test Surfaces
+
+| Surface | Purpose | Command | Cadence |
+|---|---|---|---|
+| Unit + integration tests | Fast behavior checks | `cargo test --all-features --tests` | Sub-second after first build; run every change |
+| ALIVE gate (trybuild) | Type-law receipts — compile-fail and compile-pass fixtures | `cargo test --test ui_tests -- --ignored` | Explicit opt-in; ~4 min cold |
+| Documentation audit | Verify every public doctest compiles | `cargo test --doc --all-features` | Explicit opt-in; slow on nightly |
+
+**Rule:** Doctests teach usage. Trybuild proves law.
+
+Doctests are disabled in the default test run (`doctest = false` in `Cargo.toml`).
+Every doctest touching `generic_const_exprs` or `adt_const_params` types triggers
+a separate nightly `rustc` invocation — 200+ such invocations make `cargo test`
+take minutes. Doc examples are still rendered by `cargo doc`.
 
 ---
 
@@ -111,7 +287,15 @@ let log = EventLog::from_traces([trace]);
 assert_eq!(log.trace_count(), 1);
 ```
 
-See `examples/` for runnable adoption walkthroughs.
+Runnable examples in `examples/`:
+
+| Example | Feature | What it demonstrates |
+|---|---|---|
+| `basic_eventlog` | (none) | Build `Event`/`Trace`/`EventLog` with builder API, validate structure, use `EventStream` |
+| `basic_ocel` | (none) | Build `OcelLog` with E2O and O2O links, object changes, validate structural integrity |
+| `ocel_to_xes_projection` | `formats` | Full OCEL → XES loss-covenant flow: `ProjectionName`, `LossPolicy`, `LossReport`, named refusal |
+| `strict_boundary_claim` | `strict` | Declare a `ProcessBoundary`, run `StrictCheck`, observe named `StrictViolation` law codes |
+| `graduation_candidate` | `wasm4pm` | Implement `GraduateToWasm4pm`, produce a `GraduationCandidate`, verify grounded/ungrounded |
 
 ---
 
@@ -132,8 +316,6 @@ cargo test --test ui_tests -- --ignored
 # Documentation audit (explicit opt-in).
 cargo test --doc --all-features
 ```
-
-Doctests are disabled in the default test run (`doctest = false`). This crate is nightly-first: every doctest touching `generic_const_exprs` or `adt_const_params` types becomes a separate nightly `rustc` invocation — 200+ such invocations would make `cargo test` take minutes. The doc examples are still rendered by `cargo doc`.
 
 ---
 
