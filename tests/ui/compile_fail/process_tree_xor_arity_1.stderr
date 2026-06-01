@@ -1,0 +1,67 @@
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/process_tree_xor_arity_1.rs:9:12
+  |
+9 |     let _: TypedXorNode<[(); 1], 1> = TypedXorNode::new([()]);
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `TypedXorNode`
+ --> src/process_tree.rs
+  |
+  | pub struct TypedXorNode<Children, const ARITY: usize>
+  |            ------------ required by a bound in this struct
+  | where
+  |     Require<{ ARITY >= 2 }>: IsTrue,
+  |                              ^^^^^^ required by this bound in `TypedXorNode`
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/process_tree_xor_arity_1.rs:9:39
+  |
+9 |     let _: TypedXorNode<[(); 1], 1> = TypedXorNode::new([()]);
+  |                                       ^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `TypedXorNode`
+ --> src/process_tree.rs
+  |
+  | pub struct TypedXorNode<Children, const ARITY: usize>
+  |            ------------ required by a bound in this struct
+  | where
+  |     Require<{ ARITY >= 2 }>: IsTrue,
+  |                              ^^^^^^ required by this bound in `TypedXorNode`
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/process_tree_xor_arity_1.rs:9:39
+  |
+9 |     let _: TypedXorNode<[(); 1], 1> = TypedXorNode::new([()]);
+  |                                       ^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `TypedXorNode::<Children, ARITY>::new`
+ --> src/process_tree.rs
+  |
+  |     Require<{ ARITY >= 2 }>: IsTrue,
+  |                              ^^^^^^ required by this bound in `TypedXorNode::<Children, ARITY>::new`
+...
+  |     pub fn new(children: Children) -> Self {
+  |            --- required by a bound in this associated function
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/process_tree_xor_arity_1.rs:9:39
+  |
+9 |     let _: TypedXorNode<[(); 1], 1> = TypedXorNode::new([()]);
+  |                                       ^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `TypedXorNode`
+ --> src/process_tree.rs
+  |
+  | pub struct TypedXorNode<Children, const ARITY: usize>
+  |            ------------ required by a bound in this struct
+  | where
+  |     Require<{ ARITY >= 2 }>: IsTrue,
+  |                              ^^^^^^ required by this bound in `TypedXorNode`

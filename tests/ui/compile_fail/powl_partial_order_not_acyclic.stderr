@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `wasm4pm_compat::powl::PartialOrder: AcyclicWitness` is not satisfied
+ --> tests/ui/compile_fail/powl_partial_order_not_acyclic.rs:8:20
+  |
+8 |     assert_acyclic(PartialOrder);
+  |     -------------- ^^^^^^^^^^^^ the trait `AcyclicWitness` is not implemented for `wasm4pm_compat::powl::PartialOrder`
+  |     |
+  |     required by a bound introduced by this call
+  |
+help: the trait `AcyclicWitness` is implemented for `AcyclicPartialOrder`
+ --> src/powl.rs
+  |
+  | impl AcyclicWitness for AcyclicPartialOrder {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `assert_acyclic`
+ --> src/powl.rs
+  |
+  | pub fn assert_acyclic<W: AcyclicWitness>(_marker: W) -> bool {
+  |                          ^^^^^^^^^^^^^^ required by this bound in `assert_acyclic`
