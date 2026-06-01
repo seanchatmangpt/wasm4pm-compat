@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/graduation_receipt_not_candidate.rs:20:23
+   |
+20 |     requires_envelope(receipt);
+   |     ----------------- ^^^^^^^ expected `ReceiptEnvelope`, found `GraduationReceipt`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/graduation_receipt_not_candidate.rs:9:4
+   |
+ 9 | fn requires_envelope(_e: ReceiptEnvelope) {}
+   |    ^^^^^^^^^^^^^^^^^ -------------------
