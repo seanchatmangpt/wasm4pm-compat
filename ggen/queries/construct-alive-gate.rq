@@ -1,0 +1,18 @@
+# SPARQL Query: Construct ALIVE Gate Verification Graph
+# Purpose: Build the full ALIVE gate graph linking source modules to their type laws and trybuild fixtures
+# Usage: ggen query construct-alive-gate.rq --format turtle
+
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
+PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
+
+CONSTRUCT {
+  ?module  compat:hasLaw     ?law .
+  ?law     compat:hasFixture ?fixture .
+}
+WHERE {
+  ?module a compat:SourceModule .
+  ?law    a compat:CompileFailLaw .
+  ?fixture  compat:enforcesLaw ?law .
+}
