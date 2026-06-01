@@ -1,0 +1,18 @@
+error[E0391]: cycle detected when computing revealed normalized predicates of `wasm4pm_compat::object_lifecycle::LifecycledObject::<T, wasm4pm_compat::::object_lifecycle::{impl#2}::{constant#0}>::{constant#0}`
+  --> src/object_lifecycle.rs
+   |
+   | impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Created }> {
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: ...which requires computing normalized predicates of `wasm4pm_compat::object_lifecycle::LifecycledObject::<T, wasm4pm_compat::::object_lifecycle::{impl#2}::{constant#0}>::{constant#0}`...
+  --> src/object_lifecycle.rs
+   |
+   | impl<T> LifecycledObject<T, { ObjectLifecyclePhase::Created }> {
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: ...which again requires computing revealed normalized predicates of `wasm4pm_compat::object_lifecycle::LifecycledObject::<T, wasm4pm_compat::::object_lifecycle::{impl#2}::{constant#0}>::{constant#0}`, completing the cycle
+note: cycle used when type-checking `main`
+  --> tests/ui/compile_fail/object_lifecycle_wrong_transition.rs:10:1
+   |
+10 | fn main() {
+   | ^^^^^^^^^
+   = note: see https://rustc-dev-guide.rust-lang.org/overview.html#queries and https://rustc-dev-guide.rust-lang.org/query.html for more information
