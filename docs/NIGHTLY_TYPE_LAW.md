@@ -103,6 +103,11 @@ without `.stderr` is not a valid type-law receipt.
 | `process-tree-loop-arity-law` — `TypedLoopNode<Children, ARITY>` enforces `ARITY == 2` via `Require<{ ARITY == 2 }>: IsTrue`; a loop node with arity 3 does not compile | `process_tree::TypedLoopNode<Children, ARITY>` | `compile_pass/process_tree_loop_arity_2.rs` | `compile_fail/process_tree_bad_loop_arity.rs` | `process_tree_bad_loop_arity.stderr` |
 | `process-tree-operator-law` — `ProcessTreeOperator` is a closed enum of five structural operators; an operator node without a declared kind is structurally ill-formed | `process_tree::ProcessTreeOperator` | `compile_pass/process_tree_operator_node_shape.rs` | — | — |
 | `powl-choice-graph-connectivity-law` — a `ChoiceGraph` node whose edges leave any node disconnected from the path start-to-end is refused as `PowlRefusal::ChoiceGraphDisconnected`; the connectivity law is named, not a bare runtime error | `powl::PowlNodeKind::ChoiceGraph` / `powl::PowlRefusal::ChoiceGraphDisconnected` | `compile_pass/powl_choice_graph.rs` | — | — |
+| `cube-dimension-distinct-type-law` — `CubeDimension<"resource">` and `CubeDimension<"time">` are distinct types; a function expecting one cannot receive the other | `process_cube::CubeDimension<const NAME: &'static str>` (const-generic struct) | `compile_pass/process_cube_shape.rs` | — | — |
+| `cube-cell-dimension-count-law` — `CubeCell<2>` and `CubeCell<3>` are distinct types; a cross-cell comparison requires both cells to have the same `DIMS` const generic | `process_cube::CubeCell<const DIMS: usize>` | `compile_pass/process_cube_shape.rs` | — | — |
+| `cube-projection-witness-arity-law` — `CubeProjectionWitness<FROM_DIMS, TO_DIMS>` records the arity reduction; FROM and TO are distinct const params and cannot be confused | `process_cube::CubeProjectionWitness<const FROM_DIMS: usize, const TO_DIMS: usize>` | `compile_pass/process_cube_shape.rs` | — | — |
+| `cube-dimension-kind-closed-law` — `CubeDimensionKind` is a closed enum of six standard analytical axes; adding ad-hoc dimension kinds without modifying the enum is a structural defect | `process_cube::CubeDimensionKind` (closed enum: Activity/Resource/Time/DataAttribute/ObjectType/CaseAttribute) | `compile_pass/process_cube_shape.rs` | — | — |
+| `cube-cell-comparison-homogeneity-law` — `CellComparison<DIMS>` requires both cells to be `CubeCell<DIMS>`; comparing cells indexed by different dimension counts is structurally ill-formed | `process_cube::CellComparison<const DIM_COUNT: usize>` | `compile_pass/process_cube_shape.rs` | — | — |
 
 ---
 
@@ -2195,3 +2200,64 @@ formalized successors are OCEL 1.0 (#35) and OCEL 2.0 (#25).
 - Divergence/convergence detection algorithms
 - Object-centric process discovery execution
 - OCEL extraction from relational databases
+
+---
+
+## #82 — Process Cubes: Slicing, Dicing, Rolling Up and Drilling Down Event Data for Process Mining (van der Aalst, 2013)
+
+**Paper:** Process Cubes: Slicing, Dicing, Rolling Up and Drilling Down Event Data for Process Mining
+**Authors:** Wil M.P. van der Aalst
+**Venue:** 1st Asia Pacific Conference on Business Process Management, LNBIP 159 (2013)
+**Canon family:** `OCEL_OBJECT_CENTRIC` (multi-perspective event data comparison)
+**Verdict:** `COVERED_BY_TYPE`
+
+**Law-packet notes:**
+
+Van der Aalst (2013) introduces the process cube as a multi-dimensional
+framework for comparing process behavior across different slices of an event
+log. The paper defines:
+
+1. **Cube dimensions** — named analytical axes (activity, resource, time,
+   data attribute, object type, case attribute) along which an event log can
+   be partitioned.
+2. **Slices** — sub-logs obtained by fixing the value of one dimension. A
+   slice is identified by a (dimension, value) pair.
+3. **Cells** — sub-logs at the intersection of multiple slice constraints;
+   indexed by a conjunction of (dimension, value) pairs.
+4. **Cube operations** — slicing (fix one dimension), dicing (fix multiple),
+   rolling up (aggregate along a dimension), drilling down (disaggregate).
+   These are engine concerns that graduate to `wasm4pm`.
+5. **Cross-cell comparison** — comparing the process model discovered from
+   one cell with that discovered from another; an engine concern.
+
+| Paper formal object | Rust surface | Enforcing law |
+|---|---|---|
+| Cube dimension (named axis) | `process_cube::CubeDimension<const NAME: &'static str>` | `cube-dimension-distinct-type-law` |
+| Slice (dimension + value) | `process_cube::CubeSlice<D, V>` | structural type |
+| Cell (dimension intersection) | `process_cube::CubeCell<const DIMS: usize>` | `cube-cell-dimension-count-law` |
+| Projection witness (arity reduction) | `process_cube::CubeProjectionWitness<FROM, TO>` | `cube-projection-witness-arity-law` |
+| Dimension kind vocabulary | `process_cube::CubeDimensionKind` | `cube-dimension-kind-closed-law` |
+| Cross-cell comparison shape | `process_cube::CellComparison<DIMS>` | `cube-cell-comparison-homogeneity-law` |
+| Cube metamodel | `process_cube::ProcessCube<Log, DIMENSIONS>` | structural type |
+| Paper authority witness | `witness::ProcessCubePaper` | `witness::Witness` trait |
+
+**Structural laws this crate enforces:**
+
+- `CubeDimension<"resource">` and `CubeDimension<"time">` are distinct types.
+  Passing the wrong dimension name to a function expecting a specific axis is
+  a compile-time error, not a runtime panic.
+- `CubeCell<2>` and `CubeCell<3>` are distinct types. A `CellComparison<2>`
+  cannot hold a `CubeCell<3>` — dimension-count homogeneity is enforced at
+  the type level.
+- `CubeProjectionWitness<FROM, TO>` records the arity reduction as compile-time
+  const params; the engine cannot silently drop or gain dimensions without
+  producing a new type.
+- `CubeDimensionKind` is a closed enum. Ad-hoc dimension strings are not lawful.
+
+**What must NOT live in this crate:**
+
+- Sub-log extraction (slicing and dicing algorithms)
+- Model discovery per cell
+- Cross-cell conformance distance computation
+- Roll-up and drill-down aggregation logic
+- Any algorithm operating on the cube at runtime
