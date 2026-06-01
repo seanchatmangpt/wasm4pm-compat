@@ -1,0 +1,88 @@
+This is BibTeX, Version 0.99d (TeX Live 2024)
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: main.aux
+The style file: biblatex.bst
+A level-1 auxiliary file: chapters/ch00_abstract.aux
+A level-1 auxiliary file: chapters/ch01_introduction.aux
+A level-1 auxiliary file: chapters/ch02_background.aux
+A level-1 auxiliary file: chapters/ch03_typelawarch.aux
+A level-1 auxiliary file: chapters/ch04_manufacturing.aux
+A level-1 auxiliary file: chapters/ch05_processcanon.aux
+A level-1 auxiliary file: chapters/ch06_crown.aux
+A level-1 auxiliary file: chapters/ch07_evaluation.aux
+A level-1 auxiliary file: chapters/ch08_conclusion.aux
+A level-1 auxiliary file: chapters/ch09_process_intelligence.aux
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=200001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: main-blx.bib
+Database file #2: bibliography.bib
+Warning--I didn't find a database entry for "gunther2014xes"
+Warning--I didn't find a database entry for "augusto2019split"
+Warning--I didn't find a database entry for "buijs2014quality"
+Warning--I didn't find a database entry for "verbeek2010prom"
+Warning--I didn't find a database entry for "ghahfarokhi2021ocel"
+Warning--I didn't find a database entry for "aalst2020ocpm"
+Warning--I didn't find a database entry for "matsakis2014rust"
+Warning--I didn't find a database entry for "coq2022"
+Warning--I didn't find a database entry for "norell2009agda"
+Warning--I didn't find a database entry for "brady2013idris"
+Warning--I didn't find a database entry for "vazou2014liquidhaskell"
+Warning--I didn't find a database entry for "berti2023ocel20"
+Biblatex version: 3.19
+Reallocated wiz_functions (elt_size=4) to 9000 items from 6000.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+You've used 22 entries,
+            6399 wiz_defined-function locations,
+            1367 strings with 13528 characters,
+and the built_in function-call counts, 213468 in all, are:
+= -- 18586
+> -- 2302
+< -- 613
++ -- 5035
+- -- 871
+* -- 17051
+:= -- 24505
+add.period$ -- 0
+call.type$ -- 22
+change.case$ -- 282
+chr.to.int$ -- 42
+cite$ -- 42
+duplicate$ -- 18108
+empty$ -- 19602
+format.name$ -- 1429
+if$ -- 43778
+int.to.chr$ -- 0
+int.to.str$ -- 56
+missing$ -- 0
+newline$ -- 750
+num.names$ -- 978
+pop$ -- 7656
+preamble$ -- 1
+purify$ -- 389
+quote$ -- 0
+skip$ -- 3892
+stack$ -- 0
+substring$ -- 39635
+swap$ -- 3294
+text.length$ -- 584
+text.prefix$ -- 21
+top$ -- 1
+type$ -- 734
+warning$ -- 0
+while$ -- 2480
+width$ -- 0
+write$ -- 729
+(There were 12 warnings)

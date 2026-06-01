@@ -216,6 +216,8 @@ pub mod streaming;
 pub mod temporal;
 /// Witness markers and witness families (type-level proof carriers).
 pub mod witness;
+/// Typestate-based parallel workflow tracking.
+pub mod workflow;
 /// XES interchange shape.
 pub mod xes;
 
@@ -266,4 +268,7 @@ pub use crate::petri::{PetriNet, WfNet, WfNetConst};
 pub use crate::receipt::ReceiptEnvelope;
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
 pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
+pub use crate::workflow::{
+    BranchToken, ParallelWorkflow, Pending, Running, Completed, Canceled, CompletedWorkflow, JoinPoint
+};
 pub use crate::xes::XesLog;

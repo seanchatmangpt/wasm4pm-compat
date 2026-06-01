@@ -91,6 +91,31 @@ compat:GraduationBoundary
     rdfs:label "GraduationBoundary" ;
     rdfs:comment "A named boundary where wasm4pm-compat structure ends and wasm4pm engine logic begins. Corresponds to GraduationReason enum variants in src/graduation.rs." .
 
+compat:GraduationSurface
+    a rdfs:Class ;
+    rdfs:label "GraduationSurface" ;
+    rdfs:comment "A wasm4pm module surface where compat structure graduates to engine logic. Named graduation surfaces (mining, conformance, replay, lifecycle) render Evidence carriers and witness markers." .
+
+compat:MiningAuthority
+    a rdfs:Class ;
+    rdfs:label "MiningAuthority" ;
+    rdfs:comment "Process discovery graduation surface in wasm4pm. Handles discovery algorithms, variant analysis, and trace abstraction." .
+
+compat:ConformanceAuthority
+    a rdfs:Class ;
+    rdfs:label "ConformanceAuthority" ;
+    rdfs:comment "Conformance checking graduation surface in wasm4pm. Handles fitness calculation, model-to-log alignment, and declarative checking." .
+
+compat:ReplayAuthority
+    a rdfs:Class ;
+    rdfs:label "ReplayAuthority" ;
+    rdfs:comment "Token replay and simulation graduation surface in wasm4pm. Handles step-wise execution, path finding, and execution profiling." .
+
+compat:LifecycleAuthority
+    a rdfs:Class ;
+    rdfs:label "LifecycleAuthority" ;
+    rdfs:comment "Object-centric lifecycle graduation surface in wasm4pm. Handles object lifecycle tracking, state transitions, and artifact provenance." .
+
 # ============================================================================
 # PROPERTIES
 # ============================================================================
@@ -184,6 +209,24 @@ compat:graduationReason
     a rdf:Property ;
     rdfs:label "graduationReason" ;
     rdfs:comment "The named GraduationReason variant explaining why this surface graduates to wasm4pm." ;
+    rdfs:range xsd:string .
+
+compat:graduatesTo
+    a rdf:Property ;
+    rdfs:label "graduatesTo" ;
+    rdfs:comment "The wasm4pm module surface this authority graduates to (mining, conformance, replay, or lifecycle)." ;
+    rdfs:range xsd:string .
+
+compat:requiresWitness
+    a rdf:Property ;
+    rdfs:label "requiresWitness" ;
+    rdfs:comment "The witness marker that must be admitted against this graduation surface." ;
+    rdfs:range compat:WitnessMarker .
+
+compat:evidenceCarrier
+    a rdf:Property ;
+    rdfs:label "evidenceCarrier" ;
+    rdfs:comment "The Evidence<T, State, Witness> carrier type rendered by this graduation surface." ;
     rdfs:range xsd:string .
 
 compat:coveringModule
@@ -706,6 +749,46 @@ compat:TimePerspectiveWitness
     compat:witnessYear 2016 ;
     compat:witnessFamily compat:Paper ;
     compat:description "Time perspective authority (Mannhardt et al., 2016). Covers timestamps, durations, and sojourn times in the balanced multi-perspective conformance framework." .
+
+compat:MiningWitness
+    a compat:WitnessMarker ;
+    rdfs:label "MiningWitness" ;
+    compat:rustType "MiningWitness" ;
+    compat:sourceFile "src/witness.rs" ;
+    compat:witnessKey "wasm4pm-mining" ;
+    compat:witnessTitle "wasm4pm Mining Authority" ;
+    compat:witnessFamily compat:InternalBridge ;
+    compat:description "wasm4pm mining authority witness. Bridge marker for process discovery algorithms (inductive, heuristic, alpha mining, variant analysis, trace abstraction)." .
+
+compat:ConformanceWitness
+    a compat:WitnessMarker ;
+    rdfs:label "ConformanceWitness" ;
+    compat:rustType "ConformanceWitness" ;
+    compat:sourceFile "src/witness.rs" ;
+    compat:witnessKey "wasm4pm-conformance" ;
+    compat:witnessTitle "wasm4pm Conformance Authority" ;
+    compat:witnessFamily compat:InternalBridge ;
+    compat:description "wasm4pm conformance authority witness. Bridge marker for model-to-log alignment, fitness calculation, and conformance checking." .
+
+compat:ReplayWitness
+    a compat:WitnessMarker ;
+    rdfs:label "ReplayWitness" ;
+    compat:rustType "ReplayWitness" ;
+    compat:sourceFile "src/witness.rs" ;
+    compat:witnessKey "wasm4pm-replay" ;
+    compat:witnessTitle "wasm4pm Replay Authority" ;
+    compat:witnessFamily compat:InternalBridge ;
+    compat:description "wasm4pm replay authority witness. Bridge marker for token-based replay, simulation, and path finding." .
+
+compat:LifecycleWitness
+    a compat:WitnessMarker ;
+    rdfs:label "LifecycleWitness" ;
+    compat:rustType "LifecycleWitness" ;
+    compat:sourceFile "src/witness.rs" ;
+    compat:witnessKey "wasm4pm-lifecycle" ;
+    compat:witnessTitle "wasm4pm Lifecycle Authority" ;
+    compat:witnessFamily compat:InternalBridge ;
+    compat:description "wasm4pm lifecycle authority witness. Bridge marker for object-centric lifecycle tracking, state transitions, and artifact provenance." .
 
 # ============================================================================
 # EVIDENCE STATE INSTANCES (from src/state.rs — 7 canonical stages)
@@ -1367,6 +1450,50 @@ compat:GradRebuildingProcessMiningLocally
     rdfs:label "RebuildingProcessMiningLocally" ;
     compat:rustType "GraduationReason::RebuildingProcessMiningLocally" ;
     compat:description "Consumer is rebuilding process mining logic inside the compat layer — the clearest signal to graduate the entire surface to wasm4pm." .
+
+# ============================================================================
+# WASM4PM GRADUATION SURFACES
+# ============================================================================
+
+compat:mining_authority
+    a compat:GraduationSurface ;
+    a compat:MiningAuthority ;
+    rdfs:label "Mining Authority" ;
+    compat:rustType "MiningAuthority" ;
+    compat:graduatesTo "wasm4pm::mining" ;
+    compat:requiresWitness compat:MiningWitness ;
+    compat:evidenceCarrier "Evidence<T, Admitted|Projected, MiningWitness>" ;
+    compat:description "Process discovery graduation surface. Handles inductive mining, heuristic mining, alpha mining, variant analysis, and trace abstraction." .
+
+compat:conformance_authority
+    a compat:GraduationSurface ;
+    a compat:ConformanceAuthority ;
+    rdfs:label "Conformance Authority" ;
+    compat:rustType "ConformanceAuthority" ;
+    compat:graduatesTo "wasm4pm::conformance" ;
+    compat:requiresWitness compat:ConformanceWitness ;
+    compat:evidenceCarrier "Evidence<T, Admitted|Projected, ConformanceWitness>" ;
+    compat:description "Conformance checking graduation surface. Handles model-to-log alignment, fitness calculation, precision/recall/generalization metrics, and declarative constraint checking." .
+
+compat:replay_authority
+    a compat:GraduationSurface ;
+    a compat:ReplayAuthority ;
+    rdfs:label "Replay Authority" ;
+    compat:rustType "ReplayAuthority" ;
+    compat:graduatesTo "wasm4pm::replay" ;
+    compat:requiresWitness compat:ReplayWitness ;
+    compat:evidenceCarrier "Evidence<T, Admitted|Projected, ReplayWitness>" ;
+    compat:description "Token replay and simulation graduation surface. Handles token-based replay, parallel path execution, path finding, and execution profiling." .
+
+compat:lifecycle_authority
+    a compat:GraduationSurface ;
+    a compat:LifecycleAuthority ;
+    rdfs:label "Lifecycle Authority" ;
+    compat:rustType "LifecycleAuthority" ;
+    compat:graduatesTo "wasm4pm::lifecycle" ;
+    compat:requiresWitness compat:LifecycleWitness ;
+    compat:evidenceCarrier "Evidence<T, Admitted|Projected, LifecycleWitness>" ;
+    compat:description "Object-centric lifecycle graduation surface. Handles OCEL object tracking, state machine execution, artifact provenance, and object lifecycle states." .
 
 # ============================================================================
 # END OF ONTOLOGY

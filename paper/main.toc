@@ -1,0 +1,179 @@
+\contentsline {chapter}{Abstract}{1}{chapter*.2}%
+\contentsline {chapter}{\numberline {1}Introduction}{3}{chapter.1}%
+\contentsline {section}{\numberline {1.1}The Verification Gap in Process Mining Implementations}{3}{section.1.1}%
+\contentsline {section}{\numberline {1.2}The Central Claim: Type Law as Compile-Time Proof Obligation}{3}{section.1.2}%
+\contentsline {section}{\numberline {1.3}The Manufacturing Doctrine}{4}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Contributions}{5}{section.1.4}%
+\contentsline {section}{\numberline {1.5}A Motivating Example}{5}{section.1.5}%
+\contentsline {section}{\numberline {1.6}Paper Structure}{6}{section.1.6}%
+\contentsline {chapter}{\numberline {2}Background}{9}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Process Mining}{9}{section.2.1}%
+\contentsline {paragraph}{Event logs and traces.}{9}{section*.3}%
+\contentsline {paragraph}{The PM lifecycle.}{10}{section*.4}%
+\contentsline {paragraph}{XES vs OCEL~2.0.}{10}{section*.5}%
+\contentsline {section}{\numberline {2.2}Object-Centric Process Mining}{10}{section.2.2}%
+\contentsline {paragraph}{The \texttt {wasm4pm-compat} representation.}{11}{section*.6}%
+\contentsline {section}{\numberline {2.3}The Rust Type System}{11}{section.2.3}%
+\contentsline {paragraph}{Ownership and the borrow checker.}{12}{section*.7}%
+\contentsline {paragraph}{The trait system.}{12}{section*.8}%
+\contentsline {paragraph}{Const generics and \texttt {PhantomData}.}{12}{section*.9}%
+\contentsline {paragraph}{Nightly features.}{12}{section*.10}%
+\contentsline {paragraph}{The Assert/IsTrue pattern.}{12}{section*.11}%
+\contentsline {section}{\numberline {2.4}Verification in Type Systems}{13}{section.2.4}%
+\contentsline {paragraph}{Dependent types.}{13}{section*.12}%
+\contentsline {paragraph}{Liquid types.}{13}{section*.13}%
+\contentsline {paragraph}{GADTs.}{13}{section*.14}%
+\contentsline {paragraph}{The gap in process mining implementations.}{14}{section*.15}%
+\contentsline {paragraph}{How nightly Rust fills the gap.}{14}{section*.16}%
+\contentsline {section}{\numberline {2.5}trybuild and Type-Law Receipts}{14}{section.2.5}%
+\contentsline {paragraph}{How trybuild works.}{14}{section*.17}%
+\contentsline {paragraph}{The .stderr receipt protocol.}{14}{section*.18}%
+\contentsline {paragraph}{Why compile-fail fixtures are stronger evidence than unit tests.}{15}{section*.19}%
+\contentsline {paragraph}{The ALIVE gate.}{15}{section*.20}%
+\contentsline {chapter}{\numberline {3}The Type-Law Architecture}{17}{chapter.3}%
+\contentsline {section}{\numberline {3.1}The Evidence Lifecycle}{17}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}The One-Way Door}{17}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}PhantomData Encoding}{18}{subsection.3.1.2}%
+\contentsline {subsection}{\numberline {3.1.3}Compile-Time Proof That Cross-State Substitution Is a Type Error}{18}{subsection.3.1.3}%
+\contentsline {subsection}{\numberline {3.1.4}Full Lifecycle Walk-Through}{19}{subsection.3.1.4}%
+\contentsline {section}{\numberline {3.2}The Witness Marker System}{19}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Authority Labels as Uninhabited Types}{19}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}The Sealed Witness Pattern}{20}{subsection.3.2.2}%
+\contentsline {subsection}{\numberline {3.2.3}Why \texttt {Admission<T, Ocel20>} and \texttt {Admission<T, Xes1849>} Are Genuinely Distinct}{21}{subsection.3.2.3}%
+\contentsline {section}{\numberline {3.3}Const-Generic Law Machinery}{21}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}The Assert/IsTrue/Require Pattern}{21}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Between01 for Metric Bounds}{22}{subsection.3.3.2}%
+\contentsline {subsection}{\numberline {3.3.3}ConditionCell and the Need-9 Law}{23}{subsection.3.3.3}%
+\contentsline {section}{\numberline {3.4}Non-Forgeability via Sealed Constructors}{23}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}The WfNetConst Private Seal}{23}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}The Dual-Net Lesson}{24}{subsection.3.4.2}%
+\contentsline {section}{\numberline {3.5}The LossPolicy Chain}{24}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Three Variants}{24}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}ProjectionName as a Semantic Newtype}{25}{subsection.3.5.2}%
+\contentsline {subsection}{\numberline {3.5.3}LossReport Documentation}{25}{subsection.3.5.3}%
+\contentsline {subsection}{\numberline {3.5.4}The Type-Level Guarantee That Silent Projection Is Impossible}{26}{subsection.3.5.4}%
+\contentsline {subsection}{\numberline {3.5.5}Algorithm: The Lawful Lossy Projection Protocol}{27}{subsection.3.5.5}%
+\contentsline {section}{\numberline {3.6}The Three-Layer Summary}{27}{section.3.6}%
+\contentsline {chapter}{\numberline {4}The Manufacturing Doctrine}{29}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Commits as Receipts}{29}{section.4.1}%
+\contentsline {section}{\numberline {4.2}The ALIVE Gate}{30}{section.4.2}%
+\contentsline {section}{\numberline {4.3}The PARTIAL Checkpoint Pattern}{32}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Anti-Regression Audit Mesh}{32}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Velocity and Scale}{33}{section.4.5}%
+\contentsline {section}{\numberline {4.6}Paper as Law}{35}{section.4.6}%
+\contentsline {chapter}{\numberline {5}Process Mining Canon as Type Law}{39}{chapter.5}%
+\contentsline {section}{\numberline {5.1}OCEL 2.0 Formal Objects}{39}{section.5.1}%
+\contentsline {subsection}{\numberline {5.1.1}The OCEL 2.0 Metamodel}{39}{subsection.5.1.1}%
+\contentsline {subsection}{\numberline {5.1.2}Zero-Cost Encoding of the Metamodel}{39}{subsection.5.1.2}%
+\contentsline {subsection}{\numberline {5.1.3}OcelDims: Dimensional Schema Law}{41}{subsection.5.1.3}%
+\contentsline {section}{\numberline {5.2}XES and Case-Centric Evidence}{42}{section.5.2}%
+\contentsline {subsection}{\numberline {5.2.1}The CaseCentricMarker Boundary Type}{42}{subsection.5.2.1}%
+\contentsline {subsection}{\numberline {5.2.2}XES Extension Prefix Law}{42}{subsection.5.2.2}%
+\contentsline {subsection}{\numberline {5.2.3}Compile-Fail Receipt: XesLog Cannot Substitute for OcelLog}{43}{subsection.5.2.3}%
+\contentsline {section}{\numberline {5.3}Petri Net Bipartite Arc Law}{43}{section.5.3}%
+\contentsline {subsection}{\numberline {5.3.1}Bipartite Law as a Sealed Trait}{44}{subsection.5.3.1}%
+\contentsline {section}{\numberline {5.4}WF-Net Soundness}{45}{section.5.4}%
+\contentsline {section}{\numberline {5.5}POWL Projection Law}{46}{section.5.5}%
+\contentsline {subsection}{\numberline {5.5.1}The Sealed Assertion Pattern}{46}{subsection.5.5.1}%
+\contentsline {subsection}{\numberline {5.5.2}Acyclic Partial Order Witness}{47}{subsection.5.5.2}%
+\contentsline {section}{\numberline {5.6}Conformance Metrics}{47}{section.5.6}%
+\contentsline {subsection}{\numberline {5.6.1}The Metric Type}{48}{subsection.5.6.1}%
+\contentsline {subsection}{\numberline {5.6.2}The Metric Lattice}{48}{subsection.5.6.2}%
+\contentsline {section}{\numberline {5.7}New Modules: Process Cube, Temporal, Object Lifecycle}{49}{section.5.7}%
+\contentsline {subsection}{\numberline {5.7.1}Process Cube (van der Aalst 2013)}{49}{subsection.5.7.1}%
+\contentsline {subsection}{\numberline {5.7.2}Temporal Ordering Law}{50}{subsection.5.7.2}%
+\contentsline {subsection}{\numberline {5.7.3}Object Lifecycle Const-Generic Phase Transitions}{51}{subsection.5.7.3}%
+\contentsline {subsection}{\numberline {5.7.4}The E0391 Type Alias Fix}{52}{subsection.5.7.4}%
+\contentsline {section}{\numberline {5.8}The Process Canon Surface Summary}{52}{section.5.8}%
+\contentsline {chapter}{\numberline {6}\texttt {PAPERLAW\_CROWN\_ALIVE\_004}: Empirical Results}{55}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Milestone Progression}{55}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Gate Verification}{56}{section.6.2}%
+\contentsline {section}{\numberline {6.3}The 37-Module Architecture}{57}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Paper Coverage Analysis}{59}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Fixture Quality Analysis}{60}{section.6.5}%
+\contentsline {subsection}{\numberline {6.5.1}Law annotation coverage}{61}{subsection.6.5.1}%
+\contentsline {subsection}{\numberline {6.5.2}Predominant error codes}{61}{subsection.6.5.2}%
+\contentsline {subsection}{\numberline {6.5.3}Law family distribution}{61}{subsection.6.5.3}%
+\contentsline {section}{\numberline {6.6}Zero-Cost Verification}{61}{section.6.6}%
+\contentsline {subsection}{\numberline {6.6.1}Size invariants}{61}{subsection.6.6.1}%
+\contentsline {subsection}{\numberline {6.6.2}Runtime benchmarks}{63}{subsection.6.6.2}%
+\contentsline {section}{\numberline {6.7}Manufacturing Velocity}{63}{section.6.7}%
+\contentsline {subsection}{\numberline {6.7.1}Cumulative commit progression}{63}{subsection.6.7.1}%
+\contentsline {subsection}{\numberline {6.7.2}Phase breakdown}{63}{subsection.6.7.2}%
+\contentsline {subsection}{\numberline {6.7.3}Comparison with prior milestones}{64}{subsection.6.7.3}%
+\contentsline {section}{\numberline {6.8}Summary}{64}{section.6.8}%
+\contentsline {chapter}{\numberline {7}Multi-Agent Adversarial Evaluation}{67}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Evaluation Methodology}{67}{section.7.1}%
+\contentsline {subsection}{\numberline {7.1.1}Agent Roles}{67}{subsection.7.1.1}%
+\contentsline {subsection}{\numberline {7.1.2}Agent Scorecard}{68}{subsection.7.1.2}%
+\contentsline {section}{\numberline {7.2}Type System Defects Found}{68}{section.7.2}%
+\contentsline {subsection}{\numberline {7.2.1}WfNet Split-Brain Non-Forgeability}{68}{subsection.7.2.1}%
+\contentsline {paragraph}{Corrective action.}{69}{section*.21}%
+\contentsline {subsection}{\numberline {7.2.2}Missing Cross-Witness Confusion Fixtures}{69}{subsection.7.2.2}%
+\contentsline {section}{\numberline {7.3}Domain Coverage Gaps}{69}{section.7.3}%
+\contentsline {subsection}{\numberline {7.3.1}CausalNet and CausalBinding Misclassification}{69}{subsection.7.3.1}%
+\contentsline {subsection}{\numberline {7.3.2}Stochastic Petri Net Structural Types}{70}{subsection.7.3.2}%
+\contentsline {subsection}{\numberline {7.3.3}PerformanceMetric with Time Units}{70}{subsection.7.3.3}%
+\contentsline {section}{\numberline {7.4}Manufacturing Quality Findings}{70}{section.7.4}%
+\contentsline {subsection}{\numberline {7.4.1}Fixture Annotation Deficit}{70}{subsection.7.4.1}%
+\contentsline {paragraph}{Annotation remediation campaign.}{71}{section*.22}%
+\contentsline {subsection}{\numberline {7.4.2}Receipt Integrity: Absence-Proof vs.\ Type-Law Fixtures}{71}{subsection.7.4.2}%
+\contentsline {section}{\numberline {7.5}Adversarial Red Team Findings}{71}{section.7.5}%
+\contentsline {subsection}{\numberline {7.5.1}Paper \#49 Confirmed Inflation}{71}{subsection.7.5.1}%
+\contentsline {subsection}{\numberline {7.5.2}E0425 Fixtures: Three Replaced}{72}{subsection.7.5.2}%
+\contentsline {subsection}{\numberline {7.5.3}What Held Under Adversarial Scrutiny}{72}{subsection.7.5.3}%
+\contentsline {section}{\numberline {7.6}Synthesis Verdict}{73}{section.7.6}%
+\contentsline {subsection}{\numberline {7.6.1}Composite Score}{73}{subsection.7.6.1}%
+\contentsline {subsection}{\numberline {7.6.2}Crown Readiness: 3/10 $\to $ 10/10}{74}{subsection.7.6.2}%
+\contentsline {subsection}{\numberline {7.6.3}Critical Path Execution}{74}{subsection.7.6.3}%
+\contentsline {subsection}{\numberline {7.6.4}The PARTIAL $\to $ ALIVE\_004 Transition}{74}{subsection.7.6.4}%
+\contentsline {chapter}{\numberline {8}Conclusion: Formal Foundations and Future Directions}{77}{chapter.8}%
+\contentsline {section}{\numberline {8.1}The Evidence Lifecycle as a Partial Order}{77}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Witness Markers as a Free Monoid}{78}{section.8.2}%
+\contentsline {section}{\numberline {8.3}The Between01 Lattice and Conformance Arithmetic}{78}{section.8.3}%
+\contentsline {subsection}{\numberline {8.3.1}Metric Aggregation over Trace Sets}{79}{subsection.8.3.1}%
+\contentsline {subsection}{\numberline {8.3.2}Precision via the Escaping-Edges Estimator}{79}{subsection.8.3.2}%
+\contentsline {subsection}{\numberline {8.3.3}The Rank Theorem for Block-Structured Nets}{80}{subsection.8.3.3}%
+\contentsline {section}{\numberline {8.4}Algorithm: The ALIVE Certification Protocol}{80}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Loss-Policy Algebra}{81}{section.8.5}%
+\contentsline {subsection}{\numberline {8.5.1}Loss Report as a Signed Measure}{82}{subsection.8.5.1}%
+\contentsline {section}{\numberline {8.6}Algorithm: Admission Gate}{82}{section.8.6}%
+\contentsline {subsection}{\numberline {8.6.1}Complexity of the Admission Gate}{83}{subsection.8.6.1}%
+\contentsline {section}{\numberline {8.7}The Graduation Map as a Functor}{83}{section.8.7}%
+\contentsline {section}{\numberline {8.8}Algorithm: Receipt-Bearing Commit Validation}{84}{section.8.8}%
+\contentsline {section}{\numberline {8.9}Differential Analysis of Certification State}{84}{section.8.9}%
+\contentsline {section}{\numberline {8.10}Summary of Contributions}{85}{section.8.10}%
+\contentsline {paragraph}{Structural results.}{85}{section*.23}%
+\contentsline {paragraph}{Algorithmic results.}{85}{section*.24}%
+\contentsline {paragraph}{Categorical result.}{85}{section*.25}%
+\contentsline {section}{\numberline {8.11}The Doctrine, Unchanged}{85}{section.8.11}%
+\contentsline {chapter}{\numberline {9}Process Intelligence: A Full-Lifecycle Autonomic Framework}{87}{chapter.9}%
+\contentsline {section}{\numberline {9.1}The Prime Thesis}{87}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Fundamental Objects}{87}{section.9.2}%
+\contentsline {subsection}{\numberline {9.2.1}Core Manufacturing Equations}{88}{subsection.9.2.1}%
+\contentsline {section}{\numberline {9.3}The Lifecycle Calculus}{89}{section.9.3}%
+\contentsline {subsection}{\numberline {9.3.1}The Blue River Dam Rule}{89}{subsection.9.3.1}%
+\contentsline {section}{\numberline {9.4}Autonomic Knowledge Actuation}{90}{section.9.4}%
+\contentsline {section}{\numberline {9.5}Public Standards as Manufacturing Feedstock}{90}{section.9.5}%
+\contentsline {section}{\numberline {9.6}Reverse Porter Five Algebra}{91}{section.9.6}%
+\contentsline {section}{\numberline {9.7}The PM4Py Oracle Formulation}{91}{section.9.7}%
+\contentsline {section}{\numberline {9.8}Six Manufacturing Algorithms}{92}{section.9.8}%
+\contentsline {subsection}{\numberline {9.8.1}Algorithm 1: Paper-to-Law Manufacturing}{92}{subsection.9.8.1}%
+\contentsline {subsection}{\numberline {9.8.2}Algorithm 2: Admissible Process Evidence}{93}{subsection.9.8.2}%
+\contentsline {subsection}{\numberline {9.8.3}Algorithm 3: Receipt-Bearing Execution}{94}{subsection.9.8.3}%
+\contentsline {subsection}{\numberline {9.8.4}Algorithm 4: M\&A Deck Manufacturing}{95}{subsection.9.8.4}%
+\contentsline {subsection}{\numberline {9.8.5}Algorithm 5: Decommissioning}{96}{subsection.9.8.5}%
+\contentsline {subsection}{\numberline {9.8.6}Algorithm 6: Board Claim Reliability}{96}{subsection.9.8.6}%
+\contentsline {section}{\numberline {9.9}The Algebra of Board Reliance}{97}{section.9.9}%
+\contentsline {section}{\numberline {9.10}Combinatorial Maximalism}{97}{section.9.10}%
+\contentsline {subsection}{\numberline {9.10.1}Takt Equation}{97}{subsection.9.10.1}%
+\contentsline {section}{\numberline {9.11}The Blue River Dam Operating Equation}{98}{section.9.11}%
+\contentsline {section}{\numberline {9.12}Chapter Summary}{98}{section.9.12}%
+\contentsline {paragraph}{Lifecycle calculus.}{98}{section*.26}%
+\contentsline {paragraph}{Autonomic actuation.}{98}{section*.27}%
+\contentsline {paragraph}{Reverse Porter authority.}{99}{section*.28}%
+\contentsline {paragraph}{PM4Py oracle.}{99}{section*.29}%
+\contentsline {paragraph}{Six algorithms.}{99}{section*.30}%
+\contentsline {paragraph}{Board reliability algebra.}{99}{section*.31}%
+\contentsline {paragraph}{Operating equation.}{99}{section*.32}%
+\contentsline {chapter}{References}{101}{chapter*.33}%

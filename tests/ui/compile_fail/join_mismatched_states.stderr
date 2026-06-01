@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/join_mismatched_states.rs:18:46
+   |
+18 |     let _completed = JoinPoint::join_success(wf);
+   |                      ----------------------- ^^ expected `ParallelWorkflow<_, _, Completed, ...>`, found `ParallelWorkflow<TaskA, TaskB, ..., ...>`
+   |                      |
+   |                      arguments to this function are incorrect
+   |
+   = note: expected struct `ParallelWorkflow<_, _, Completed, Completed>`
+              found struct `ParallelWorkflow<TaskA, TaskB, Completed, Running>`
+note: associated function defined here
+  --> src/workflow.rs
+   |
+   |     pub fn join_success<A, B>(
+   |            ^^^^^^^^^^^^

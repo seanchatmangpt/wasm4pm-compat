@@ -97,6 +97,57 @@ template = { file = "templates/graduation-boundary-map.tera" }
 output_file = "docs/GRADUATION_BOUNDARIES_GENERATED.md"
 mode = "Overwrite"
 
+# ---------------------------------------------------------------------------
+# Rule: wasm4pm-mining-module
+# Extracts mining authority definitions and renders the wasm4pm mining module
+# src/mining/mod.rs with Evidence<T, State, Witness> carriers and mining
+# witness markers injected.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "wasm4pm-mining-module"
+query = { file = "queries/extract-mining-authority.rq" }
+template = { file = "templates/wasm4pm-mining.tera" }
+output_file = "../wasm4pm/src/mining/mod.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: wasm4pm-conformance-module
+# Extracts conformance authority definitions and renders the wasm4pm
+# conformance module src/conformance/mod.rs with Evidence carriers and
+# conformance witness markers.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "wasm4pm-conformance-module"
+query = { file = "queries/extract-conformance-authority.rq" }
+template = { file = "templates/wasm4pm-conformance.tera" }
+output_file = "../wasm4pm/src/conformance/mod.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: wasm4pm-replay-module
+# Extracts replay authority definitions and renders the wasm4pm replay module
+# src/replay/mod.rs with Evidence carriers and replay witness markers.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "wasm4pm-replay-module"
+query = { file = "queries/extract-replay-authority.rq" }
+template = { file = "templates/wasm4pm-replay.tera" }
+output_file = "../wasm4pm/src/replay/mod.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: wasm4pm-lifecycle-module
+# Extracts lifecycle authority definitions and renders the wasm4pm lifecycle
+# module src/lifecycle/mod.rs with Evidence carriers and lifecycle witness
+# markers.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "wasm4pm-lifecycle-module"
+query = { file = "queries/extract-lifecycle-authority.rq" }
+template = { file = "templates/wasm4pm-lifecycle.tera" }
+output_file = "../wasm4pm/src/lifecycle/mod.rs"
+mode = "Overwrite"
+
 [sync]
 enabled = true
 on_change = "manual"

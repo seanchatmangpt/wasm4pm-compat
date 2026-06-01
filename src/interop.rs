@@ -692,3 +692,37 @@ impl RequiresObjectCentric for FilterShapeConst<true> {}
 /// assert_filter_oc_compatible(&FilterShapeConst::<true>);
 /// ```
 pub fn assert_filter_oc_compatible<F: RequiresObjectCentric>(_: &F) {}
+
+impl crate::loss::Project for OcelToXesProjection {
+    type From = OcelShape;
+    type To = XesShape;
+    type Lost = Vec<String>;
+    type Reason = crate::ocel::OcelRefusal;
+
+    fn project(
+        self,
+        policy: crate::loss::LossPolicy,
+    ) -> Result<crate::loss::LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
+        if policy == crate::loss::LossPolicy::RefuseLoss {
+            return Err(crate::ocel::OcelRefusal::FlatteningLoss);
+        }
+        Ok(crate::loss::LossReport::new(self.projection_name(), policy, Vec::new()))
+    }
+}
+
+impl crate::loss::Project for XesToOcedProjection {
+    type From = XesShape;
+    type To = OcedShape;
+    type Lost = Vec<String>;
+    type Reason = crate::xes::XesRefusal;
+
+    fn project(
+        self,
+        policy: crate::loss::LossPolicy,
+    ) -> Result<crate::loss::LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
+        if policy == crate::loss::LossPolicy::RefuseLoss {
+            return Err(crate::xes::XesRefusal::LiftingLoss);
+        }
+        Ok(crate::loss::LossReport::new(self.projection_name(), policy, Vec::new()))
+    }
+}

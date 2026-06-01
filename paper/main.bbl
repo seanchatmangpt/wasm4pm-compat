@@ -1,0 +1,775 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{nyt/global//global/global}
+  \entry{aalst1997verification}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AWMPvd1}
+    \strng{fullhash}{AWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{booktitle}{Application and Theory of Petri Nets}
+    \verb{doi}
+    \verb 10.1007/3-540-63139-9_48
+    \endverb
+    \field{pages}{407\bibrangedash 426}
+    \field{series}{LNCS}
+    \field{title}{Verification of Workflow Nets}
+    \field{volume}{1248}
+    \field{year}{1997}
+  \endentry
+
+  \entry{vanderaalst1998application}{article}{}
+    \name{author}{1}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AWMPvd1}
+    \strng{fullhash}{AWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.1142/S0218126698000043
+    \endverb
+    \field{number}{1}
+    \field{pages}{21\bibrangedash 66}
+    \field{title}{The Application of {Petri} Nets to Workflow Management}
+    \field{volume}{8}
+    \field{journaltitle}{Journal of Circuits, Systems, and Computers}
+    \field{year}{1998}
+  \endentry
+
+  \entry{vanderaalst1998workflow}{article}{}
+    \name{author}{1}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AWMPvd1}
+    \strng{fullhash}{AWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.1142/S0218126698000043
+    \endverb
+    \field{number}{1}
+    \field{pages}{21\bibrangedash 66}
+    \field{title}{The Application of Petri Nets to Workflow Management}
+    \field{volume}{8}
+    \field{journaltitle}{Journal of Circuits, Systems, and Computers}
+    \field{year}{1998}
+  \endentry
+
+  \entry{vanderaalst2013processcubes}{article}{}
+    \name{author}{1}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AWMPvd1}
+    \strng{fullhash}{AWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{booktitle}{Asia Pacific Business Process Management}
+    \verb{doi}
+    \verb 10.1007/978-3-319-02922-1_1
+    \endverb
+    \field{pages}{1\bibrangedash 22}
+    \field{series}{LNBIP}
+    \field{title}{Process Cubes: Slicing, Dicing, Rolling Up and Drilling Down
+  Event Data for Process Mining}
+    \field{volume}{159}
+    \field{year}{2013}
+  \endentry
+
+  \entry{vanderaalst2016process}{book}{}
+    \name{author}{1}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \strng{namehash}{AWMPvd1}
+    \strng{fullhash}{AWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.1007/978-3-662-49851-4
+    \endverb
+    \field{edition}{2nd}
+    \field{title}{Process Mining: Data Science in Action}
+    \list{location}{1}{%
+      {Berlin, Heidelberg}%
+    }
+    \field{year}{2016}
+  \endentry
+
+  \entry{vanderaalst2004workflow}{article}{}
+    \name{author}{3}{}{%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+      {{hash=WAJMM}{%
+         family={Weijters},
+         familyi={W\bibinitperiod},
+         given={A.\bibnamedelima J. M.\bibnamedelima M.},
+         giveni={A\bibinitperiod\bibinitdelim J\bibinitperiod\bibinitdelim
+  M\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=ML}{%
+         family={Maruster},
+         familyi={M\bibinitperiod},
+         given={Laura},
+         giveni={L\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AWMPvdWAJMMML1}
+    \strng{fullhash}{AWMPvdWAJMMML1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.1109/TKDE.2004.47
+    \endverb
+    \field{number}{9}
+    \field{pages}{1128\bibrangedash 1142}
+    \field{title}{Workflow Mining: Discovering Process Models from Event Logs}
+    \field{volume}{16}
+    \field{journaltitle}{IEEE Transactions on Knowledge and Data Engineering}
+    \field{year}{2004}
+  \endentry
+
+  \entry{adriansyah2011conformance}{thesis}{}
+    \name{author}{1}{}{%
+      {{hash=AA}{%
+         family={Adriansyah},
+         familyi={A\bibinitperiod},
+         given={Arya},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AA1}
+    \strng{fullhash}{AA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{title}{Aligning Observed and Modelled Behaviour}
+    \verb{url}
+    \verb https://research.tue.nl/en/publications/aligning-observed-and-modelle
+    \verb d-behaviour
+    \endverb
+    \list{institution}{1}{%
+      {Eindhoven University of Technology}%
+    }
+    \field{type}{phdthesis}
+    \field{year}{2011}
+  \endentry
+
+  \entry{adriansyah2015measuring}{inproceedings}{}
+    \name{author}{5}{}{%
+      {{hash=AA}{%
+         family={Adriansyah},
+         familyi={A\bibinitperiod},
+         given={Arya},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=MGJ}{%
+         family={Munoz-Gama},
+         familyi={M\bibinithyphendelim G\bibinitperiod},
+         given={Jorge},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=CJ}{%
+         family={Carmona},
+         familyi={C\bibinitperiod},
+         given={Josep},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=vDBF}{%
+         prefix={van},
+         prefixi={v\bibinitperiod},
+         family={Dongen},
+         familyi={D\bibinitperiod},
+         given={Boudewijn\bibnamedelima F.},
+         giveni={B\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AA+1}
+    \strng{fullhash}{AAMGJCJDBFvAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.1007/s10257-014-0234-7
+    \endverb
+    \field{number}{1}
+    \field{pages}{37\bibrangedash 67}
+    \field{title}{Measuring Precision of Modeled Behavior}
+    \field{volume}{13}
+    \field{journaltitle}{Information Systems and e-Business Management}
+    \field{year}{2015}
+  \endentry
+
+  \entry{berti2019pm4py}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=BA}{%
+         family={Berti},
+         familyi={B\bibinitperiod},
+         given={Alessandro},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=vZSJ}{%
+         prefix={van},
+         prefixi={v\bibinitperiod},
+         family={Zelst},
+         familyi={Z\bibinitperiod},
+         given={Sebastiaan\bibnamedelima J.},
+         giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BAZSJvAWMPvd1}
+    \strng{fullhash}{BAZSJvAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{booktitle}{Proceedings of the BPM Demo Track}
+    \field{pages}{1\bibrangedash 5}
+    \field{title}{{PM4Py}: A Process Mining Library for {Python}}
+    \verb{url}
+    \verb http://ceur-ws.org/Vol-2420/paper1.pdf
+    \endverb
+    \field{volume}{2420}
+    \field{year}{2019}
+  \endentry
+
+  \entry{ocel20_2023}{article}{}
+    \name{author}{4}{}{%
+      {{hash=BA}{%
+         family={Berti},
+         familyi={B\bibinitperiod},
+         given={Alessandro},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=GAF}{%
+         family={Ghahfarokhi},
+         familyi={G\bibinitperiod},
+         given={Anahita\bibnamedelima Farhang},
+         giveni={A\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+      {{hash=PG}{%
+         family={Park},
+         familyi={P\bibinitperiod},
+         given={Gyunam},
+         giveni={G\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BA+1}
+    \strng{fullhash}{BAGAFPGAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \field{title}{{OCEL} 2.0 Specification}
+    \verb{url}
+    \verb https://arxiv.org/abs/2307.06049
+    \endverb
+    \field{volume}{arXiv:2307.06049}
+    \field{journaltitle}{arXiv preprint}
+    \field{year}{2023}
+  \endentry
+
+  \entry{carmona2018conformance}{book}{}
+    \name{author}{4}{}{%
+      {{hash=CJ}{%
+         family={Carmona},
+         familyi={C\bibinitperiod},
+         given={Josep},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=vDB}{%
+         prefix={van},
+         prefixi={v\bibinitperiod},
+         family={Dongen},
+         familyi={D\bibinitperiod},
+         given={Boudewijn},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=SA}{%
+         family={Solti},
+         familyi={S\bibinitperiod},
+         given={Andreas},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=WM}{%
+         family={Weidlich},
+         familyi={W\bibinitperiod},
+         given={Matthias},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \strng{namehash}{CJ+1}
+    \strng{fullhash}{CJDBvSAWM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \verb{doi}
+    \verb 10.1007/978-3-319-99414-7
+    \endverb
+    \field{title}{Conformance Checking: Relating Processes and Models}
+    \list{location}{1}{%
+      {Cham}%
+    }
+    \field{year}{2018}
+  \endentry
+
+  \entry{ieee2016xes}{report}{}
+    \name{author}{1}{}{%
+      {{hash=I}{%
+         family={{IEEE Task Force on Process Mining}},
+         familyi={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{I1}
+    \strng{fullhash}{I1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{I}
+    \field{sortinithash}{I}
+    \field{number}{IEEE Std 1849-2016}
+    \field{title}{{IEEE Standard for eXtensible Event Stream (XES) for
+  Achieving Interoperability in Event Logs and Event Streams}}
+    \list{institution}{1}{%
+      {IEEE}%
+    }
+    \field{type}{techreport}
+    \field{year}{2016}
+  \endentry
+
+  \entry{kourani2024powl}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=KH}{%
+         family={Kourani},
+         familyi={K\bibinitperiod},
+         given={Humam},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KHAWMPvd1}
+    \strng{fullhash}{KHAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{booktitle}{Proceedings of the 22nd International Conference on
+  Business Process Management (BPM)}
+    \verb{doi}
+    \verb 10.1007/978-3-031-61057-8_3
+    \endverb
+    \field{pages}{36\bibrangedash 54}
+    \field{title}{{POWL}: Partially Ordered Workflow Language}
+    \field{year}{2024}
+  \endentry
+
+  \entry{leemans2013discovering}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=LSJJ}{%
+         family={Leemans},
+         familyi={L\bibinitperiod},
+         given={Sander J.\bibnamedelima J.},
+         giveni={S\bibinitperiod\bibinitdelim J\bibinitperiod\bibinitdelim
+  J\bibinitperiod},
+      }}%
+      {{hash=FD}{%
+         family={Fahland},
+         familyi={F\bibinitperiod},
+         given={Dirk},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LSJJFDAWMPvd1}
+    \strng{fullhash}{LSJJFDAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{booktitle}{Proceedings of the 34th International Conference on
+  Applications and Theory of Petri Nets and Concurrency (PETRI NETS)}
+    \verb{doi}
+    \verb 10.1007/978-3-642-38697-8_17
+    \endverb
+    \field{pages}{311\bibrangedash 329}
+    \field{title}{Discovering Block-Structured Process Models from Event Logs
+  — A Constructive Approach}
+    \field{year}{2013}
+  \endentry
+
+  \entry{munozgama2010conformance}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=MGJ}{%
+         family={Mu{\~n}oz-Gama},
+         familyi={M\bibinithyphendelim G\bibinitperiod},
+         given={Jorge},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=CJ}{%
+         family={Carmona},
+         familyi={C\bibinitperiod},
+         given={Josep},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MGJCJ1}
+    \strng{fullhash}{MGJCJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{booktitle}{Business Process Management (BPM)}
+    \verb{doi}
+    \verb 10.1007/978-3-642-15618-2_16
+    \endverb
+    \field{pages}{211\bibrangedash 226}
+    \field{series}{LNCS}
+    \field{title}{A Fresh Look at Precision in Process Conformance}
+    \field{volume}{6336}
+    \field{year}{2010}
+  \endentry
+
+  \entry{murata1989petri}{article}{}
+    \name{author}{1}{}{%
+      {{hash=MT}{%
+         family={Murata},
+         familyi={M\bibinitperiod},
+         given={Tadao},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MT1}
+    \strng{fullhash}{MT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \verb{doi}
+    \verb 10.1109/5.24143
+    \endverb
+    \field{number}{4}
+    \field{pages}{541\bibrangedash 580}
+    \field{title}{Petri Nets: Properties, Analysis and Applications}
+    \field{volume}{77}
+    \field{journaltitle}{Proceedings of the IEEE}
+    \field{year}{1989}
+  \endentry
+
+  \entry{peytonjones2006gadts}{inproceedings}{}
+    \name{author}{4}{}{%
+      {{hash=PJS}{%
+         family={Peyton\bibnamedelima Jones},
+         familyi={P\bibinitperiod\bibinitdelim J\bibinitperiod},
+         given={Simon},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=VD}{%
+         family={Vytiniotis},
+         familyi={V\bibinitperiod},
+         given={Dimitrios},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=WS}{%
+         family={Weirich},
+         familyi={W\bibinitperiod},
+         given={Stephanie},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=WG}{%
+         family={Washburn},
+         familyi={W\bibinitperiod},
+         given={Geoffrey},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{PJS+1}
+    \strng{fullhash}{PJSVDWSWG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{booktitle}{Proceedings of the 11th ACM SIGPLAN International
+  Conference on Functional Programming (ICFP)}
+    \verb{doi}
+    \verb 10.1145/1159803.1159811
+    \endverb
+    \field{pages}{50\bibrangedash 61}
+    \field{title}{Simple Unification-Based Type Inference for {GADTs}}
+    \field{year}{2006}
+  \endentry
+
+  \entry{rondon2008liquid}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=RPM}{%
+         family={Rondon},
+         familyi={R\bibinitperiod},
+         given={Patrick\bibnamedelima M.},
+         giveni={P\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=KM}{%
+         family={Kawaguci},
+         familyi={K\bibinitperiod},
+         given={Ming},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=JR}{%
+         family={Jhala},
+         familyi={J\bibinitperiod},
+         given={Ranjit},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RPMKMJR1}
+    \strng{fullhash}{RPMKMJR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{booktitle}{Proceedings of the 29th ACM SIGPLAN Conference on
+  Programming Language Design and Implementation (PLDI)}
+    \verb{doi}
+    \verb 10.1145/1375581.1375602
+    \endverb
+    \field{pages}{159\bibrangedash 169}
+    \field{title}{Liquid Types}
+    \field{year}{2008}
+  \endentry
+
+  \entry{rozinat2008conformance}{inproceedings}{}
+    \name{author}{2}{}{%
+      {{hash=RA}{%
+         family={Rozinat},
+         familyi={R\bibinitperiod},
+         given={Anne},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RAAWMPvd1}
+    \strng{fullhash}{RAAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \verb{doi}
+    \verb 10.1016/j.is.2007.07.001
+    \endverb
+    \field{number}{1}
+    \field{pages}{64\bibrangedash 95}
+    \field{title}{Conformance Checking of Processes Based on Monitoring Real
+  Behavior}
+    \field{volume}{33}
+    \field{journaltitle}{Information Systems}
+    \field{year}{2008}
+  \endentry
+
+  \entry{tolnay2019trybuild}{misc}{}
+    \name{author}{1}{}{%
+      {{hash=TD}{%
+         family={Tolnay},
+         familyi={T\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{TD1}
+    \strng{fullhash}{TD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{note}{crates.io: trybuild}
+    \field{title}{trybuild: Test harness for ui tests of compiler diagnostics}
+    \verb{url}
+    \verb https://github.com/dtolnay/trybuild
+    \endverb
+    \field{year}{2019}
+  \endentry
+
+  \entry{verbeek2010xes}{article}{}
+    \name{author}{4}{}{%
+      {{hash=VHMW}{%
+         family={Verbeek},
+         familyi={V\bibinitperiod},
+         given={H.\bibnamedelima M.\bibnamedelima W.},
+         giveni={H\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  W\bibinitperiod},
+      }}%
+      {{hash=BJCAM}{%
+         family={Buijs},
+         familyi={B\bibinitperiod},
+         given={J.\bibnamedelima C. A.\bibnamedelima M.},
+         giveni={J\bibinitperiod\bibinitdelim C\bibinitperiod\bibinitdelim
+  A\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=vDBF}{%
+         prefix={van},
+         prefixi={v\bibinitperiod},
+         family={Dongen},
+         familyi={D\bibinitperiod},
+         given={B.\bibnamedelima F.},
+         giveni={B\bibinitperiod\bibinitdelim F\bibinitperiod},
+      }}%
+      {{hash=vdAWMP}{%
+         prefix={van\bibnamedelima der},
+         prefixi={v\bibinitperiod\bibinitdelim d\bibinitperiod},
+         family={Aalst},
+         familyi={A\bibinitperiod},
+         given={Wil M.\bibnamedelima P.},
+         giveni={W\bibinitperiod\bibinitdelim M\bibinitperiod\bibinitdelim
+  P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{VHMW+1}
+    \strng{fullhash}{VHMWBJCAMDBFvAWMPvd1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \field{booktitle}{Information Systems Evolution}
+    \verb{doi}
+    \verb 10.1007/978-3-642-17722-4_5
+    \endverb
+    \field{pages}{60\bibrangedash 75}
+    \field{series}{LNBIP}
+    \field{title}{XES, XESame, and ProM 6}
+    \field{volume}{72}
+    \field{year}{2010}
+  \endentry
+\enddatalist
+\endinput

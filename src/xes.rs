@@ -1110,6 +1110,9 @@ pub enum XesRefusal {
     InvalidLifecycleTransition,
     /// A namespaced attribute key references an undeclared extension prefix.
     UndeclaredExtensionPrefix,
+    /// Lifting to an object-centric model would lose the single-case assumption;
+    /// requires a named projection with loss policy and report.
+    LiftingLoss,
 }
 
 impl core::fmt::Display for XesRefusal {
@@ -1124,6 +1127,7 @@ impl core::fmt::Display for XesRefusal {
             XesRefusal::InvalidTimestamp => "InvalidTimestamp",
             XesRefusal::InvalidLifecycleTransition => "InvalidLifecycleTransition",
             XesRefusal::UndeclaredExtensionPrefix => "UndeclaredExtensionPrefix",
+            XesRefusal::LiftingLoss => "LiftingLoss",
         };
         write!(f, "XES refused by law: {law}")
     }

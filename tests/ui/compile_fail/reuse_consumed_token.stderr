@@ -1,0 +1,17 @@
+error[E0382]: use of moved value: `wf`
+  --> tests/ui/compile_fail/reuse_consumed_token.rs:18:16
+   |
+11 |     let wf = ParallelWorkflow {
+   |         -- move occurs because `wf` has type `ParallelWorkflow<TaskA, TaskB, Running, Running>`, which does not implement the `Copy` trait
+...
+16 |     let _wf2 = wf.complete_a();
+   |                   ------------ `wf` moved due to this method call
+17 |     // ERROR: use of moved value: `wf`
+18 |     let _wf3 = wf.complete_a();
+   |                ^^ value used here after move
+   |
+note: `ParallelWorkflow::<A, B, Running, SB>::complete_a` takes ownership of the receiver `self`, which moves `wf`
+  --> src/workflow.rs
+   |
+   |     pub fn complete_a(self) -> ParallelWorkflow<A, B, Completed, SB> {
+   |                       ^^^^

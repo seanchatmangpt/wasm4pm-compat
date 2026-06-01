@@ -1,0 +1,15 @@
+error[E0599]: no method named `complete_b` found for struct `ParallelWorkflow<TaskA, TaskB, Completed, Canceled>` in the current scope
+  --> tests/ui/compile_fail/complete_cancelled_branch.rs:17:18
+   |
+17 |     let _wf = wf.complete_b();
+   |                  ^^^^^^^^^^ method not found in `ParallelWorkflow<TaskA, TaskB, Completed, Canceled>`
+   |
+note: there's an earlier shadowed binding `wf` of type `ParallelWorkflow<TaskA, TaskB, Running, Running>` that has method `complete_b` available
+  --> tests/ui/compile_fail/complete_cancelled_branch.rs:11:9
+   |
+11 |     let wf = ParallelWorkflow {
+   |         ^^ `wf` of type `ParallelWorkflow<TaskA, TaskB, Running, Running>` that has method `complete_b` defined earlier here
+...
+15 |     let wf = wf.cancel_b_from_a();
+   |         -- earlier `wf` shadowed here with type `ParallelWorkflow<TaskA, TaskB, Completed, Canceled>`
+   = note: the method was found for `ParallelWorkflow<A, B, SA, Running>`
