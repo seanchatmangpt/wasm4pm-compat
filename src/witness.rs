@@ -521,3 +521,51 @@ witness_marker!(
     "Process Cube aggregation view",
     Some(2013)
 );
+witness_marker!(
+    /// Time-aware evidence authority — temporal ordering has been established.
+    ///
+    /// Names the authority under which evidence has been enriched with temporal
+    /// ordering context. An `Admission<T, TimeAwareWitness>` is distinguishable
+    /// from an `Admission<T, TemporalProfileWitness>` — both carry temporal
+    /// context but at different levels: `TimeAwareWitness` marks that ordering
+    /// relations between events have been derived, while [`TemporalProfileWitness`]
+    /// marks that a full temporal profile (AVG/STD per activity-pair) has been
+    /// computed.
+    ///
+    /// Use this witness when tagging evidence that has had its event-pair temporal
+    /// ordering established but not yet profiled.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when temporal ordering derivation must be executed.
+    TimeAwareWitness,
+    "time-aware-witness",
+    WitnessFamily::Paper,
+    "Time-aware evidence (temporal ordering established)",
+    Some(2020)
+);
+witness_marker!(
+    /// Temporal profile authority — full temporal profile has been computed.
+    ///
+    /// Names the authority under which a temporal profile (the statistical
+    /// distribution of observed time distances between pairs of activities) has
+    /// been computed and attached to the evidence. Distinct from
+    /// [`TimeAwareWitness`] (which marks that ordering relations have been
+    /// derived but not profiled).
+    ///
+    /// An `Admission<T, TemporalProfileWitness>` is distinguishable from
+    /// `Admission<T, TimeAwareWitness>` — a temporal profile is a richer object
+    /// than a bare ordering relation.
+    ///
+    /// Grounded in: Stertz, Rinderle-Ma & Rinderle (2020) *Temporal Profile
+    /// Conformance Checking*; see also van der Aalst (2013) Process Cubes for
+    /// the time dimension as a cube axis.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when temporal profile derivation or zeta-value conformance checking must
+    /// be executed.
+    TemporalProfileWitness,
+    "temporal-profile-witness",
+    WitnessFamily::Paper,
+    "Temporal profile (AVG/STD per activity-pair — Stertz et al. 2020)",
+    Some(2020)
+);
