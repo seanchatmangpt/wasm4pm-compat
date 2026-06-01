@@ -1,0 +1,118 @@
+[project]
+name = "wasm4pm-compat"
+version = "0.1.0"
+description = "Post-handcoding substrate framework: type law renders everything"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ontology/wasm4pm-compat.ttl"
+additional = ["ontology/papers.ttl"]
+standard_only = false
+
+[generation]
+output_dir = ".."
+
+# ---------------------------------------------------------------------------
+# Rule: witness-markers
+# Extracts all WitnessMarker instances and renders the generated witnesses
+# module src/generated/witnesses.rs.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "witness-markers"
+query = { file = "queries/extract-witnesses.rq" }
+template = { file = "templates/witness-marker.tera" }
+output_file = "src/generated/witnesses.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: compile-fail-fixtures
+# Extracts CompileFailLaw instances and renders one trybuild compile-fail
+# fixture per law into tests/ui/compile_fail/.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "compile-fail-fixtures"
+query = { file = "queries/extract-compile-fail-laws.rq" }
+template = { file = "templates/compile-fail-fixture.tera" }
+output_file = "tests/ui/compile_fail/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: compile-pass-fixtures
+# Extracts CompilePassSurface instances and renders trybuild compile-pass
+# fixtures into tests/ui/compile_pass/.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "compile-pass-fixtures"
+query = { file = "queries/extract-process-forms.rq" }
+template = { file = "templates/compile-pass-fixture.tera" }
+output_file = "tests/ui/compile_pass/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-scripts
+# Extracts SourceModule instances and renders per-module audit shell scripts
+# into scripts/audit/.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-scripts"
+query = { file = "queries/extract-source-modules.rq" }
+template = { file = "templates/audit-script.tera" }
+output_file = "scripts/audit/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: module-docs
+# Extracts SourceModule instances and renders per-module doc pages into
+# docs/generated/.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "module-docs"
+query = { file = "queries/extract-source-modules.rq" }
+template = { file = "templates/module-docs.tera" }
+output_file = "docs/generated/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: paper-ledger
+# Extracts PaperCoverage records and renders a single Markdown ledger at
+# docs/PAPER_COVERAGE_LEDGER_GENERATED.md.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "paper-ledger"
+query = { file = "queries/extract-paper-coverage.rq" }
+template = { file = "templates/paper-ledger-row.tera" }
+output_file = "docs/PAPER_COVERAGE_LEDGER_GENERATED.md"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: graduation-map
+# Extracts GraduationBoundary instances and renders the graduation boundary
+# map at docs/GRADUATION_BOUNDARIES_GENERATED.md.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "graduation-map"
+query = { file = "queries/extract-graduation-candidates.rq" }
+template = { file = "templates/graduation-boundary-map.tera" }
+output_file = "docs/GRADUATION_BOUNDARIES_GENERATED.md"
+mode = "Overwrite"
+
+[sync]
+enabled = true
+on_change = "manual"
+validate_after = true
+conflict_mode = "fail"
+
+[rdf]
+formats = ["turtle"]
+default_format = "turtle"
+strict_validation = false
+
+[templates]
+enable_caching = true
+auto_reload = true
+
+[output]
+formatting = "default"
+line_length = 100
+indent = 4

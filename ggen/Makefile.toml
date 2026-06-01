@@ -1,0 +1,97 @@
+# wasm4pm-compat ggen substrate tasks
+# Run these from the repository root: cargo make <task>
+
+[config]
+default_to_workspace = false
+
+# ---------------------------------------------------------------------------
+# ggen-validate: parse and validate ggen/ggen.toml against the schema
+# ---------------------------------------------------------------------------
+[tasks.ggen-validate]
+description = "Validate ggen/ggen.toml — parse config and ontology, report errors"
+command = "ggen"
+args = ["validate", "ggen/ggen.toml"]
+
+# ---------------------------------------------------------------------------
+# ggen-sync: regenerate all artifacts from the ontology
+# ---------------------------------------------------------------------------
+[tasks.ggen-sync]
+description = "Regenerate all artifacts (witnesses, fixtures, audit scripts, docs) from ontology"
+command = "ggen"
+args = ["sync", "--config", "ggen/ggen.toml"]
+
+# ---------------------------------------------------------------------------
+# ggen-dry-run: preview what would be generated without writing files
+# ---------------------------------------------------------------------------
+[tasks.ggen-dry-run]
+description = "Preview ggen-sync output without writing any files"
+command = "ggen"
+args = ["sync", "--dry-run", "--config", "ggen/ggen.toml"]
+
+# ---------------------------------------------------------------------------
+# ggen-add-witness: interactive witness-marker template generator
+# ---------------------------------------------------------------------------
+[tasks.ggen-add-witness]
+description = "Interactively generate a new witness marker from the Tera template"
+command = "ggen"
+args = ["template", "generate", "ggen/templates/witness-marker.tera"]
+
+# ---------------------------------------------------------------------------
+# ggen-add-fixture: interactive compile-fail fixture generator
+# ---------------------------------------------------------------------------
+[tasks.ggen-add-fixture]
+description = "Interactively generate a new compile-fail fixture from the Tera template"
+command = "ggen"
+args = ["template", "generate", "ggen/templates/compile-fail-fixture.tera"]
+
+# ---------------------------------------------------------------------------
+# substrate-status: show ontology triple count, template/query/file counts,
+# and timestamp of last generated output
+# ---------------------------------------------------------------------------
+[tasks.substrate-status]
+description = "Show substrate health: triple count, template count, query count, last generated"
+script_runner = "@shell"
+script = '''
+#!/bin/bash
+set -euo pipefail
+
+echo ""
+echo "=== wasm4pm-compat ggen substrate status ==="
+echo ""
+
+# Ontology triple count via python3 rdflib (preferred) or rapper fallback
+if python3 -c "import rdflib" 2>/dev/null; then
+    COUNT=$(python3 -c "
+import rdflib
+g = rdflib.Graph()
+g.parse('ggen/ontology/wasm4pm-compat.ttl', format='turtle')
+g.parse('ggen/ontology/papers.ttl', format='turtle')
+print(len(g))
+" 2>/dev/null || echo "error")
+    echo "  Ontology triples (both files): ${COUNT}"
+elif command -v rapper >/dev/null 2>&1; then
+    COUNT=$(rapper -i turtle ggen/ontology/wasm4pm-compat.ttl 2>&1 | grep -oE '[0-9]+ triples' | head -1 || echo "unknown")
+    echo "  Ontology triples (wasm4pm-compat.ttl): ${COUNT}"
+else
+    echo "  Ontology triples: (install rdflib or rapper to count)"
+fi
+
+echo "  Templates:        $(ls ggen/templates/*.tera 2>/dev/null | wc -l | tr -d ' ')"
+echo "  Queries:          $(ls ggen/queries/*.rq    2>/dev/null | wc -l | tr -d ' ')"
+echo "  Ontology files:   $(ls ggen/ontology/*.ttl  2>/dev/null | wc -l | tr -d ' ')"
+
+# Last generated — look for newest file under docs/generated or src/generated
+LAST=$(find . \( -path ./target -prune \) -o \
+    \( \( -path '*/docs/generated/*' -o -path '*/src/generated/*' \) \
+       -newer ggen/ggen.toml -print \) 2>/dev/null \
+  | sort | tail -1)
+if [ -n "${LAST}" ]; then
+    echo "  Last generated:   ${LAST}"
+else
+    echo "  Last generated:   (none newer than ggen/ggen.toml — run cargo make ggen-sync)"
+fi
+
+echo ""
+echo "  Run 'cargo make ggen-sync' to regenerate all artifacts."
+echo ""
+'''
