@@ -1,0 +1,225 @@
+---
+ledger_name: Non-Projectable Type Surface
+description: Types that cannot/should-not cross language boundaries; sealed or internal machinery
+extraction_date: 2026-06-01
+crate: wasm4pm-compat
+
+# Sealed trait implementations — cannot be projected because trait is sealed
+sealed_trait_types:
+  EvidenceState_implementations:
+    trait: "EvidenceState (sealed trait in state module)"
+    sealed_marker: "private::Sealed supertrait"
+    implementations:
+      - Raw
+      - Parsed
+      - Admitted
+      - Refused
+      - Projected
+      - Exportable
+      - Receipted
+    reason: "Implements sealed EvidenceState trait; only these 7 are valid lifecycle stages"
+    why_non_projectable: "The typestate invariant depends on exhaustiveness. Exposing these across language boundaries would allow downstream crates to forge a custom 8th stage, breaking the admission contract."
+    graduation_path: "Witness the typestate transition at the Rust boundary; translate the result (not the stage marker) to TS."
+    example: "Don't export Evidence<T, Raw, W>. Instead, export T after it has been transitioned to Admitted via Evidence<T, Admitted, W>."
+
+  Witness_implementations:
+    trait: "Witness (trait in witness module)"
+    not_sealed: "But implementations are empty enums (uninhabited, zero-cost)"
+    why_non_projectable: "Witness markers are empty enums designed to disappear at the type level. Exposing them to TS would be exposing phantom types. The *information* from the witness (KEY, TITLE, YEAR, FAMILY) can be exported as strings, but not the marker itself."
+    implementations_count: 41
+    examples:
+      - Ocel20 (uninhabited enum)
+      - Xes1849 (uninhabited enum)
+      - WfNetSoundnessPaper (uninhabited enum)
+    graduation_path: "At the boundary, extract witness metadata (Witness::KEY, Witness::TITLE) as strings and pass those to TS."
+    example: "Don't export Witness<Ocel20> type. Export witness_key: string = 'ocel-2.0' and witness_family: string = 'Standard'."
+
+  Sealed_law_traits:
+    trait_names:
+      - "LossyFormatExport (sealed: enforces loss accounting)"
+      - "TreeProjectable (sealed: determines POWL→ProcessTree projectability)"
+      - "FollowsRelation (sealed: enforces DFG edge semantics)"
+      - "ReceiptCarrier (sealed: receipt structure enforcement)"
+      - "OcelValidator (sealed: OCEL structural validity)"
+      - "OcelRoundTripClaim (sealed: lossless export assertion)"
+      - "GraduateToWasm4pm (sealed: graduation protocol)"
+    why_non_projectable: "Sealed traits use phantom-type techniques to enforce compile-time contracts. The trait implementations themselves are empty marker types with zero runtime content. Exporting them across language boundaries would expose the internal sealing mechanism, defeating its purpose."
+    graduation_path: "Implement the sealed trait inside Rust; project the *result* (a transformed value or a boolean verdict) to TS, not the trait itself."
+
+# PhantomData-carrying types — internal type-level machinery
+phantom_data_types:
+  Evidence_PhantomData:
+    type_name: "Evidence<T, State: EvidenceState, W>"
+    phantom_fields:
+      - "state: PhantomData<State>"
+      - "witness: PhantomData<W>"
+    actual_data: "value: T"
+    why_non_projectable: "PhantomData<State> and PhantomData<W> are zero-sized type-level tags that exist only to track lifecycle and authority at compile time. They have no runtime representation. Exposing them to TS would require fabricating a representation for something that doesn't exist at runtime."
+    projection_strategy: "Project only T; the State and W information is used to validate that T is in the correct lifecycle stage before projection. The witness identity is exported as metadata (witness_key, witness_family), not as a phantom marker."
+    example: "Evidence<OcelLog, Admitted, Ocel20> projects to { ocel_log: WasmOcelLog, witness_key: 'ocel-2.0', witness_family: 'Standard' }"
+
+  Admission_PhantomData:
+    type_name: "Admission<T, W>"
+    phantom_fields:
+      - "witness: PhantomData<W>"
+    actual_data: "value: T"
+    why_non_projectable: "W is a zero-sized witness marker carried only at the type level. It has no runtime content."
+    projection_strategy: "Project only T; infer witness from context or extract via Witness trait const metadata."
+
+  Refusal_PhantomData:
+    type_name: "Refusal<R, W>"
+    phantom_fields:
+      - "witness: PhantomData<W>"
+    actual_data: "reason: R"
+    why_non_projectable: "W is a zero-sized witness marker."
+    projection_strategy: "Project R (the reason) and witness key as separate fields."
+
+  StateTransition_markers:
+    type_names:
+      - RawToParsed
+      - ParsedToAdmitted
+      - ParsedToRefused
+      - AdmittedToProjected
+      - AdmittedToExportable
+      - AdmittedToReceipted
+      - ProjectedToExportable
+      - ExportableToReceipted
+    actual_content: "Empty structs (zero-sized)"
+    why_non_projectable: "These are type-level proofs of specific transitions. They are used as generic arguments to type-safe builder methods. They have no runtime meaning and exist only to guide the Rust type checker."
+    projection_strategy: "Don't project the markers. Project the *outcome* of the transition (the transformed value). The transition itself is validated inside Rust before crossing the boundary."
+
+# const_trait_impl and adt_const_params machinery
+const_generic_machinery:
+  ConditionCell:
+    type_sig: "struct ConditionCell<BITS: u16>"
+    declared_in: "law.rs"
+    uses: "generic_const_exprs and adt_const_params"
+    why_non_projectable: "ConditionCell is a compile-time assertion cell. It is parameterized by a const generic BITS value that represents a bit-width constraint checked at compile time. The actual runtime representation is empty (zero-sized). Exposing this to WASM would require fabricating a BITS parameter at runtime from a value that was purely compile-time."
+    example: "ConditionCell<32> at compile-time asserts BITS == 32; at runtime it's unit type ()"
+
+  Between01:
+    type_sig: "struct Between01<NUM: u16, DEN: u16>"
+    declared_in: "law.rs"
+    uses: "adt_const_params"
+    why_non_projectable: "Between01 is a const-generic bounded type enforcing a rational bound [0,1] at compile-time. The const parameters NUM and DEN are checked at compile-time to ensure 0 <= NUM <= DEN and DEN != 0. At runtime it's zero-sized. Exporting it to WASM would require the WASM side to somehow prove NUM and DEN satisfy the constraint — impossible without a full theorem prover on the WASM side."
+    example: "Between01<3, 10> asserts at compile-time that 0.3 is in [0,1]; WASM side only sees 3 and 10, not the proof."
+    projection_strategy: "Project as a tuple (u16, u16) — the numerator and denominator — and document that the constraint is *trusted* to have been checked by Rust."
+
+  EvidenceMode:
+    type_sig: "enum EvidenceMode { Raw, Parsed, Admitted, Refused, Projected, Exportable, Receipted }"
+    declared_in: "law.rs"
+    uses: "adt_const_params"
+    why_non_projectable: "EvidenceMode mirrors the typestate tokens as an adt_const_params enum. It is used only in const-generic positions to make compile-time assertions. Exporting it to TS would be redundant — it encodes the same information as the typestate tokens, which are not projectable."
+    projection_strategy: "Don't project EvidenceMode. Project the actual lifecycle stage as a string (e.g., 'Admitted') via witness metadata."
+
+  Metric_const_generics:
+    type_sig: "struct Metric<KIND, NUM, DEN> where KIND: ConstParamTy, NUM: u16, DEN: u16"
+    declared_in: "conformance.rs"
+    parameters:
+      - KIND: "An enum naming the kind of metric (Fitness, Precision, Generalization, Simplicity)"
+      - NUM: "Numerator of the rational value"
+      - DEN: "Denominator of the rational value"
+    why_non_projectable: "KIND is constrained by ConstParamTy, an unstable trait. NUM and DEN are bounds-checked at compile-time. Exporting Metric<Fitness, 7, 10> to WASM requires the WASM side to somehow encode and validate the const parameters."
+    projection_strategy: "Project as { kind: string ('Fitness'), numerator: u32, denominator: u32 }. The string encoding of KIND is available via const metadata."
+    example: "Metric<Fitness, 7, 10> projects to { kind: 'Fitness', numerator: 7, denominator: 10 }"
+
+# min_specialization machinery
+specialization_types:
+  nightly_foundry_petri_law:
+    declared_in: "nightly_foundry.rs"
+    uses: "min_specialization"
+    why_non_projectable: "Specialization is used to narrow type law for specific Petri net subclasses. The narrowed types exist only at compile-time to provide more-specific implementations. They have no WASM-facing meaning."
+    projection_strategy: "Project the underlying Petri net (places, transitions, arcs, markings), not the specialization marker."
+
+# portable_simd machinery
+simd_types:
+  nightly_foundry_token_law:
+    declared_in: "nightly_foundry.rs"
+    uses: "portable_simd"
+    why_non_projectable: "SIMD token operations are a compile-time type law surface. They are used to derive bit-level token movement proofs. WASM doesn't have a standard SIMD interface that matches Rust's simd<T> types."
+    projection_strategy: "Project the token markings (vectors of u32/u64 counts), not the SIMD type law itself."
+
+# Internal machinery — pub(crate) constructors
+pub_crate_only_constructors:
+  Evidence_sealed:
+    type: "Evidence<T, Admitted, W>"
+    constructor: "pub(crate) fn sealed(value: T) -> Self"
+    why_non_projectable: "The only path to Admitted evidence is through Admit::admit. The sealed() constructor is intentionally hidden (pub(crate)) to prevent Raw evidence from being illegally coerced to Admitted without going through the admission gate."
+    projection_strategy: "Admitted evidence is projected *only after* successful admission. The constructor is internal; the value is projected via evidence.into_inner()."
+
+  Witness_trait_cannot_impl:
+    type: "All 41 witness markers (e.g., Ocel20, Xes1849)"
+    reason: "Witness markers are empty enums; they cannot be instantiated. The Witness trait is implemented once per marker at declaration."
+    why_non_projectable: "A downstream crate cannot fabricate a new Witness implementation. The markers themselves cannot be instantiated (they are uninhabited enums)."
+    projection_strategy: "Use Witness::KEY, Witness::TITLE, etc. (const associated functions) to extract metadata, not the marker instance itself."
+
+# Generic / Parameterized types that cannot project naively
+generic_unprojectables:
+  Evidence_generic:
+    type_sig: "Evidence<T, State: EvidenceState, W>"
+    why_non_projectable: "T is unconstrained; State is a sealed typestate token; W is a witness marker. At the ABI boundary, Evidence must be monomorphized with a concrete (T, State, W) triple. You cannot export 'Evidence<T, State, W>' as a generic type to WASM."
+    projection_strategy: "Specialize to concrete types: Evidence<OcelLog, Admitted, Ocel20>, Evidence<PetriNet, Admitted, WfNetSoundnessPaper>. Each concrete specialization is projectable as a distinct type."
+    example: "Evidence<OcelLog, Admitted, Ocel20> → struct WasmAdmittedOcelLog { ocel_log: WasmOcelLog, witness_key: string }"
+
+  LossReport_generic:
+    type_sig: "struct LossReport<From, To, Items>"
+    why_non_projectable: "From, To, and Items are unconstrained generics. LossReport must be monomorphized to be projectable."
+    projection_strategy: "Specialize: LossReport<OcelLog, XesLog, EventCount> → struct WasmLossReportOcelToXes { event_count_lost: u32, ... }"
+
+# Module-level non-projectable structures
+module_level_machinery:
+  nightly_foundry_module:
+    status: "Always-on staging module with experimental law surfaces"
+    contains:
+      - petri_law (generic_const_exprs surface)
+      - powl_law (generic_const_exprs surface)
+      - evidence_law (const_trait_impl surface)
+      - token_law (portable_simd surface)
+    why_non_projectable: "The entire nightly_foundry module is type-law machinery using unstable compiler features. It exists to define proof surfaces and is not meant to be exported as public types. The main law lives in public modules (law.rs, petri.rs, conformance.rs, etc.)."
+    graduation_path: "Implement the law surfaces inside Rust; project only the domain types (PetriNet, ProcessTree) that *use* the laws, not the laws themselves."
+
+  private_module_tree:
+    path: "src/private/"
+    contents: "(if it exists) internal sealing trait implementations"
+    why_non_projectable: "Anything private or module-internal by design."
+    projection_strategy: "Only public types cross the boundary."
+
+# Summary table
+summary_categories:
+  by_reason:
+    sealed_trait_impls:
+      count: "7 (EvidenceState) + 40+ (Witness implementations)"
+      projection_strategy: "Don't project. Project the *outcome* of having the trait impl."
+      example: "An Admitted value is not a Raw value; project the Admitted version of the value."
+
+    phantom_data_tags:
+      count: "All types using PhantomData<State>, PhantomData<W>, etc."
+      projection_strategy: "Don't project PhantomData. Project the actual data (T) and export witness/state info as metadata."
+      example: "Admission<T, Ocel20> → export T and witness_key='ocel-2.0'"
+
+    const_generic_machinery:
+      count: "ConditionCell, Between01, EvidenceMode, Metric, ConstParamTy"
+      projection_strategy: "Project the constrained *values* (numerator, denominator, metric_kind), not the const-generic wrapper."
+      example: "Metric<Fitness, 7, 10> → { kind: 'Fitness', num: 7, den: 10 }"
+
+    specialization_markers:
+      count: "All types in nightly_foundry using min_specialization"
+      projection_strategy: "Project the underlying domain type, not the specialization wrapper."
+
+    simd_type_laws:
+      count: "All types in nightly_foundry using portable_simd"
+      projection_strategy: "Project the token counts/vectors, not the SIMD machinery."
+
+    uninhabited_markers:
+      count: "All witness markers (empty enums)"
+      projection_strategy: "Project witness identity via const metadata (KEY, TITLE, YEAR, FAMILY), not the enum itself."
+
+    internal_constructors:
+      count: "Evidence::sealed(), private Admit implementations, sealed Witness impls"
+      projection_strategy: "Use the public constructor (Evidence::raw) and Admit trait boundary. Don't try to bypass the admission gate."
+
+non_projectable_boundary_rule: |
+  If a type is parameterized by a sealed trait, a const generic, or a PhantomData tag,
+  it is non-projectable in its parameterized form. Specialize/monomorphize it in Rust,
+  then project only the specialized concrete type. The machinery that *creates* the
+  specialization lives inside Rust; only the domain types it produces cross the boundary.

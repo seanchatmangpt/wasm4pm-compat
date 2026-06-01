@@ -1,0 +1,828 @@
+/// WIT Surface Generator for wasm4pm-compat Component Model
+///
+/// Purpose: Emit the complete WebAssembly Component Interface (WIT) surface
+/// that documents the type-law boundary between compat and wasm4pm engine.
+///
+/// Template: wasm4pm-compat.wit.ggen
+/// Engine: Tera (with conditional feature gating)
+/// Input: component.projection.yaml + wit-surface-ledger.yaml + graduation-surface-ledger.yaml
+/// Output:
+///   - ggen/wit/compat.wit (base: admission only)
+///   - ggen/wit/compat-formats.wit (formats feature: +loss)
+///   - ggen/wit/compat-strict.wit (strict feature: +strict)
+///   - ggen/wit/compat-wasm4pm.wit (wasm4pm feature: +graduation)
+///   - ggen/wit/compat-all.wit (all features combined)
+///   - ggen/wit/engine.wit (engine world, feature=wasm4pm)
+///
+/// Law: Every WIT interface must reflect the type-law surface defined in src/
+/// No execution logic leaks from Rust into WIT; WIT describes structure and contracts only.
+
+{%- set PROJECT = "wasm4pm-compat" -%}
+{%- set VERSION = "1.0.0" -%}
+{%- set NAMESPACE = "wasm4pm:compat" -%}
+{%- set ENGINE_NAMESPACE = "wasm4pm:engine" -%}
+
+// ============================================================================
+// PART 1: SHARED TYPE DEFINITIONS (types.wit)
+// Always emitted; imported by all compat variants
+// ============================================================================
+
+/// shared/types.wit
+/// Type-only interface: all event logs, refusal encoding, metrics, boundaries
+
+interface types@{{ VERSION }} {
+  // ──────────────────────────────────────────────────────────────────────
+  // Primitive identifier types (zero-cost, string-backed)
+  // ──────────────────────────────────────────────────────────────────────
+
+  /// Unique event identifier (UUID or traced event ID)
+  type event-id = string;
+
+  /// Unique object identifier (process object, resource, actor ID)
+  type object-id = string;
+
+  /// Unique trace identifier (process instance or case ID)
+  type trace-id = string;
+
+  /// Nanosecond-precision Unix timestamp
+  type timestamp-ns = u64;
+
+  /// Witness authority identifier (e.g., "ocel-2.0", "xes-1849", "declare-3")
+  /// One of: ocel20, xes1849, bpmn20, petri00, powl00, declare3, yawl20, etc.
+  type witness-id = string;
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Lifecycle State Enum
+  // ──────────────────────────────────────────────────────────────────────
+
+  /// One-way lifecycle progression for typed evidence.
+  /// Never backward; always forward.
+  enum lifecycle-state {
+    /// Pre-parse: raw, unvalidated input
+    raw,
+    /// Syntactically valid: format grammar satisfied
+    parsed,
+    /// Structurally sound: admitted by type-law rules
+    admitted,
+    /// Admission failed: carries named law
+    refused,
+    /// Lossy transformation applied: project() emitted LossReport
+    projected,
+    /// Ready for external format: export() will succeed
+    exportable,
+    /// Proof/hash generated: receipt() computed
+    receipted,
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Witness Family Classification
+  // ──────────────────────────────────────────────────────────────────────
+
+  /// Authority family that governs a witness.
+  /// Used to classify ~41 witness markers.
+  enum witness-family {
+    /// ISO/IEEE standard (OCEL 2.0, XES 1.0, YAWL 2.0, BPMN 2.0)
+    standard,
+    /// Academic paper (Petri nets, POWL, Inductive Miner, Declare, etc.)
+    paper,
+    /// API grammar (e.g., W3C Activity Streams)
+    api-grammar,
+    /// Rust type law (const-generic bounds, typestate)
+    rust-law,
+    /// Graduation bridge marker (wasm4pm-bridge)
+    internal-bridge,
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Core Record Types
+  // ──────────────────────────────────────────────────────────────────────
+
+  /// Single event in a trace or log.
+  /// Maps to src/eventlog.rs::Event
+  record event {
+    id: event-id,
+    activity: string,
+    timestamp: timestamp-ns,
+    attributes: list<tuple<string, string>>,
+  }
+
+  /// Grouped trace: sequence of events with a case/instance ID.
+  /// Maps to src/eventlog.rs::Trace
+  record trace {
+    id: trace-id,
+    events: list<event>,
+    attributes: list<tuple<string, string>>,
+  }
+
+  /// Metadata for event log (resource name, logging system, creator).
+  /// Maps to src/eventlog.rs::EventLogMetadata
+  record event-log-metadata {
+    version: string,
+    creator: string,
+    created: timestamp-ns,
+    resource-name: string,
+  }
+
+  /// EventLog: unordered sequence of events, optionally grouped into traces.
+  /// Maps to src/eventlog.rs::EventLog
+  record event-log {
+    events: list<event>,
+    traces: list<trace>,
+    metadata: event-log-metadata,
+  }
+
+  /// Object-centric event (activity + timestamp + object reference).
+  /// Maps to src/ocel.rs::OcelEvent
+  record ocel-event {
+    id: event-id,
+    activity: string,
+    timestamp: timestamp-ns,
+    omap: list<object-id>,  // Object map: set of objects touched by this event
+    vmap: list<tuple<string, string>>,  // Value map: event-level attributes
+  }
+
+  /// Object definition (type + state).
+  /// Maps to src/ocel.rs::OcelObject
+  record ocel-object {
+    id: object-id,
+    type: string,
+    ovmap: list<tuple<string, string>>,  // Object value map: object attributes
+  }
+
+  /// Event-to-Object link (qualification qualifier; may be read, write, create, etc.)
+  /// Maps to src/ocel.rs::EventToObjectLink
+  record event-to-object-link {
+    event-id: event-id,
+    object-id: object-id,
+    qualifier: option<string>,  // e.g., "read", "write", "create"
+  }
+
+  /// Object-to-Object link (relationship; e.g., parent-child, part-of)
+  /// Maps to src/ocel.rs::ObjectToObjectLink
+  record object-to-object-link {
+    source-id: object-id,
+    target-id: object-id,
+    type: string,  // e.g., "parent-of", "part-of"
+  }
+
+  /// Object state change (snapshot of object attributes at a point in time)
+  /// Maps to src/ocel.rs::ObjectChange
+  record object-change {
+    timestamp: timestamp-ns,
+    object-id: object-id,
+    change-type: string,  // e.g., "creation", "update", "deletion"
+    values: list<tuple<string, string>>,
+  }
+
+  /// Object-Centric Event Log: fully attributed events, objects, links, changes
+  /// Maps to src/ocel.rs::OcelLog
+  record ocel-log {
+    events: list<ocel-event>,
+    objects: list<ocel-object>,
+    e2o-links: list<event-to-object-link>,
+    o2o-links: list<object-to-object-link>,
+    object-changes: list<object-change>,
+  }
+
+  /// XES trace: case-centric sequence of events with attributes.
+  /// Maps to src/xes.rs::XesTrace
+  record xes-trace {
+    attributes: list<tuple<string, string>>,
+    events: list<event>,
+  }
+
+  /// XES log metadata (XES version, producer, etc.)
+  /// Maps to src/xes.rs::XesMetadata
+  record xes-metadata {
+    version: string,
+    producer: string,
+    created: timestamp-ns,
+  }
+
+  /// Case-centric event log (XES 1.0 format).
+  /// Maps to src/xes.rs::XesLog
+  record xes-log {
+    traces: list<xes-trace>,
+    metadata: xes-metadata,
+  }
+
+  /// Single item lost in a lossy transformation (granular loss catalog).
+  /// Maps to src/loss.rs::LossItem
+  record loss-item {
+    item-type: string,  // e.g., "object-type", "attribute", "link"
+    source-id: option<string>,
+    target-id: option<string>,
+    description: string,
+  }
+
+  /// Audit trail for lossy transformation: what was lost, why, how much.
+  /// Maps to src/loss.rs::LossReport
+  record loss-report {
+    from-format: string,
+    to-format: string,
+    items-lost: list<loss-item>,
+    summary: string,
+  }
+
+  /// Loss policy declaration: how much loss to allow.
+  /// Maps to src/loss.rs::LossPolicy
+  variant loss-policy {
+    /// Reject any loss: transformation fails if data loss would occur
+    refuse-loss,
+    /// Allow loss if named: project() emits LossReport with named items
+    allow-named-projection(record { name: string }),
+    /// Allow loss unconditionally: always emit report; accept outcome
+    allow-loss-with-report,
+  }
+
+  /// Process boundary declaration (discovery, conformance, replay context)
+  /// Maps to src/strict.rs::ProcessBoundary
+  record process-boundary {
+    kind: string,  // "discovery", "conformance", "replay", etc.
+    name: string,  // Diagnostic name
+    has-witness: bool,  // Witness marker provided
+    has-round-trip: bool,  // Bidirectional transformation attested
+  }
+
+  /// Witness metadata extracted from Witness trait.
+  /// Maps to src/witness.rs::Witness (KEY, FAMILY, TITLE, YEAR)
+  record witness-info {
+    key: string,  // e.g., "ocel-2.0"
+    family: string,  // "standard" | "paper" | "api-grammar" | "rust-law" | "internal-bridge"
+    title: string,  // e.g., "OCEL 2.0"
+    year: option<u16>,  // Publication year if available
+  }
+
+  /// Bounded metric (numerator/denominator in [0, 1]).
+  /// Maps to src/conformance.rs::Metric and src/law.rs::Between01
+  record metric {
+    kind: string,  // e.g., "fitness", "precision", "generalization", "simplicity"
+    numerator: u64,  // Scaled integer (avoid f64 rounding)
+    denominator: u64,  // Must be > 0; numerator <= denominator
+    notes: string,  // Human-readable interpretation
+  }
+
+  // ──────────────────────────────────────────────────────────────────────
+  // Refusal Type: Named Laws (Zero-Cost Error Encoding)
+  // ──────────────────────────────────────────────────────────────────────
+
+  /// Every refusal must carry a specific named law.
+  /// No bare strings; no generic "InvalidInput".
+  /// Maps to src/admission.rs refusal enums.
+  variant refusal-reason {
+    /// Event references an object that is not declared.
+    /// Law: Structural integrity of E2O links
+    dangling-event-object-link(record {
+      event-id: event-id,
+      object-id: object-id,
+      object-type: string,
+    }),
+
+    /// Petri net has reachable states without final token placement.
+    /// Law: Petri net soundness (Murata, van der Aalst)
+    missing-final-marking(record {
+      place-id: string,
+      state-id: string,
+    }),
+
+    /// Petri net violates bipartite arc constraint or is disconnected.
+    /// Law: Petri net structural soundness
+    invalid-petri-structure(record {
+      violation: string,  // "bipartite-violation", "disconnected", etc.
+      element-id: string,
+    }),
+
+    /// Object lifecycle contains circular temporal or causal dependency.
+    /// Law: Causal consistency (no cycles)
+    circular-dependency(record {
+      cycle: list<string>,  // Sequence of IDs forming the cycle
+    }),
+
+    /// Process model grew beyond declared boundary without loss accounting.
+    /// Law: Boundary closure (Graham & van der Aalst)
+    hidden-process-mining-growth(record {
+      discovered-elements: u32,
+      boundary-elements: u32,
+    }),
+
+    /// Lossy transformation attempted without matching loss policy.
+    /// Law: Loss covenant (every projection requires explicit policy)
+    invalid-loss-policy(record {
+      transformation: string,  // e.g., "ocel-to-xes"
+      policy-required: string,  // "refuse", "allow-named", "allow-with-report"
+    }),
+
+    /// Evidence witness does not match expected witness for operation.
+    /// Law: Witness authority consistency
+    witness-mismatch(record {
+      expected: witness-id,
+      found: witness-id,
+    }),
+  }
+}
+
+{%- if true %} // compat interface always present
+// ============================================================================
+// PART 2: ADMISSION INTERFACE (admission.wit)
+// Always emitted; core type-law boundary
+// ============================================================================
+
+interface admission@{{ VERSION }} {
+  use types.{event-log, ocel-log, xes-log, refusal-reason, witness-id};
+
+  /// Parse and admit a raw event log.
+  ///
+  /// Contract:
+  /// - Input: Raw, unvalidated event log
+  /// - Output on success: Admitted event log (witness tagged as string)
+  /// - Output on failure: Named law refusal (refusal-reason variant)
+  /// - No execution logic; structure validation only
+  /// - Witness inferred from format detection or explicitly provided
+  ///
+  /// Rust: src/admission.rs::AdmitEventLog
+  admit-event-log: func(raw: event-log) -> result<event-log, refusal-reason>;
+
+  /// Parse and admit a raw OCEL log.
+  ///
+  /// Contract:
+  /// - Input: Raw OCEL log
+  /// - Validates: E2O links, object declarations, causal order
+  /// - Output on success: Admitted OCEL log
+  /// - Output on failure: Named law refusal (e.g., dangling-event-object-link)
+  /// - Witness tag: always "ocel-2.0" (explicit standard)
+  ///
+  /// Rust: src/admission.rs::AdmitOcelLog
+  admit-ocel-log: func(raw: ocel-log) -> result<ocel-log, refusal-reason>;
+
+  /// Parse and admit a raw XES log.
+  ///
+  /// Contract:
+  /// - Input: Raw XES log
+  /// - Validates: Attribute types, trace/event structure, XES schema
+  /// - Output on success: Admitted XES log
+  /// - Output on failure: Named law refusal
+  /// - Witness tag: always "xes-1849" (explicit standard)
+  ///
+  /// Rust: src/admission.rs::AdmitXesLog
+  admit-xes-log: func(raw: xes-log) -> result<xes-log, refusal-reason>;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("formats") %} // formats feature enabled
+// ============================================================================
+// PART 3: LOSS INTERFACE (loss.wit)
+// Emitted when formats feature enabled
+// ============================================================================
+
+interface loss@{{ VERSION }} {
+  use types.{ocel-log, xes-log, loss-report, loss-policy, refusal-reason};
+
+  /// Record type for projection output (XES + audit trail).
+  record project-ocel-to-xes-result {
+    xes-log: xes-log,
+    report: loss-report,
+  }
+
+  /// Record type for projection output (DFG + audit trail).
+  record project-xes-to-dfg-result {
+    dfg: dfg-model,
+    report: loss-report,
+  }
+
+  /// Dummy DFG model (structure defined in engine world).
+  /// Here: minimal definition for loss interface.
+  record dfg-model {
+    activities: list<string>,
+    edges: list<record { from: string, to: string, count: u32 }>,
+  }
+
+  /// Lossy transformation: OCEL → XES with loss accounting.
+  ///
+  /// Contract:
+  /// - Input: Admitted OCEL log, loss policy
+  /// - Policy modes:
+  ///   1. refuse-loss: Reject if any data loss (error on mismatch)
+  ///   2. allow-named-projection: Allow loss, name it, emit LossReport
+  ///   3. allow-loss-with-report: Unconditional loss acceptance + report
+  /// - Output on success: XES log + mandatory loss report
+  /// - Output on failure: refusal-reason (invalid-loss-policy)
+  /// - Law: Every non-trivial projection must emit LossReport
+  ///
+  /// Rust: src/loss.rs::Project::ocel_to_xes()
+  project-ocel-to-xes: func(
+    admitted: ocel-log,
+    policy: loss-policy
+  ) -> result<project-ocel-to-xes-result, refusal-reason>;
+
+  /// Lossy transformation: XES → directly-follows graph.
+  ///
+  /// Contract: Similar to project-ocel-to-xes
+  /// Law: Graph mining always loses attribute detail; loss report mandatory
+  ///
+  /// Rust: src/loss.rs::Project::xes_to_dfg()
+  project-xes-to-dfg: func(
+    admitted: xes-log,
+    policy: loss-policy
+  ) -> result<project-xes-to-dfg-result, refusal-reason>;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("strict") %} // strict feature enabled
+// ============================================================================
+// PART 4: STRICT BOUNDARY INTERFACE (strict.wit)
+// Emitted when strict feature enabled
+// ============================================================================
+
+interface strict@{{ VERSION }} {
+  use types.{process-boundary};
+
+  /// Strict boundary judgment: declares violation diagnostics.
+  variant strict-violation {
+    /// Process boundary lacks witness marker (authority not declared).
+    missing-witness-marker(string),
+    /// Lossy operations not documented with LossPolicy.
+    missing-loss-policy(string),
+    /// Bidirectional transformation (round-trip) not attested.
+    missing-round-trip(string),
+    /// Process model grew beyond boundary without loss accounting.
+    hidden-process-mining-growth(string),
+  }
+
+  /// Attest process boundary judgment (loss policy + round-trip + witness).
+  ///
+  /// Contract:
+  /// - Input: Declared process boundary
+  /// - Checks:
+  ///   1. Has witness marker (or fail with missing-witness-marker)
+  ///   2. Has loss policy (or fail with missing-loss-policy)
+  ///   3. Has round-trip definition (or fail with missing-round-trip)
+  /// - Output on success: true (all checks pass)
+  /// - Output on failure: strict-violation variant with diagnostic
+  ///
+  /// Rust: src/strict.rs::StrictCheck::verify()
+  check-strict-boundary: func(
+    boundary: process-boundary
+  ) -> result<bool, strict-violation>;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("wasm4pm") %} // wasm4pm feature enabled
+// ============================================================================
+// PART 5: GRADUATION INTERFACE (graduation.wit)
+// Emitted when wasm4pm feature enabled
+// ============================================================================
+
+interface graduation@{{ VERSION }} {
+  use types.{event-log, refusal-reason};
+
+  /// Graduation candidate: evidence ready (or not) to cross into wasm4pm engine.
+  record graduation-candidate {
+    /// "discovery" | "conformance" | "replay" | "ocel-lifecycle" | "petri-soundness"
+    kind: string,
+    /// true → engine can execute; false → missing context
+    is-grounded: bool,
+    /// Why ungrounded, if applicable (e.g., "missing-loss-policy")
+    reason: option<string>,
+  }
+
+  /// Bridge from type law (compat) to execution engine (wasm4pm).
+  ///
+  /// Contract:
+  /// - Input: Fully admitted evidence (Evidence<T, Admitted, W>)
+  /// - Output: Graduation candidate (grounded or not)
+  /// - Grounded: true → Engine can execute discovery/replay/conformance
+  /// - Ungrounded: false → Missing required annotations; engine will reject
+  ///
+  /// Law: Compat enforces structure. Engine enforces semantics.
+  /// Both must pass; graduation gates the boundary.
+  ///
+  /// Rust: src/engine_bridge.rs::GraduateToWasm4pm::graduate()
+  graduate-to-wasm4pm: func(
+    admitted: event-log
+  ) -> result<graduation-candidate, refusal-reason>;
+}
+
+// ============================================================================
+// PART 6: WITNESS METADATA INTERFACE (witness-metadata.wit)
+// Emitted when wasm4pm feature enabled (graduation requires witness registry)
+// ============================================================================
+
+interface witness-metadata@{{ VERSION }} {
+  use types.{witness-id, witness-info};
+
+  /// Query witness metadata by key.
+  ///
+  /// Contract:
+  /// - Input: Witness key (e.g., "ocel-2.0", "xes-1849", "wf-net-soundness-paper")
+  /// - Output: WitnessInfo struct OR null if not found
+  /// - Registry: ~41 witnesses (static, immutable)
+  /// - No execution logic; pure lookup
+  ///
+  /// Rust: src/witness.rs::Witness (const metadata)
+  get-witness-info: func(key: witness-id) -> option<witness-info>;
+
+  /// List all registered witnesses.
+  ///
+  /// Output: All ~41 witnesses with their metadata
+  ///
+  /// Rust: src/witness.rs witness registry
+  list-all-witnesses: func() -> list<witness-info>;
+}
+{%- endif %}
+
+// ============================================================================
+// PART 7: COMPAT WORLD DEFINITIONS
+// ============================================================================
+
+{%- if not FEATURES.contains("formats") and not FEATURES.contains("strict") and not FEATURES.contains("wasm4pm") %}
+/// Base compat world: admission only
+world compat@{{ VERSION }} {
+  export types;
+  export admission;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("formats") and not FEATURES.contains("strict") and not FEATURES.contains("wasm4pm") %}
+/// Compat world with loss (formats feature)
+world compat-formats@{{ VERSION }} {
+  export types;
+  export admission;
+  export loss;
+}
+{%- endif %}
+
+{%- if not FEATURES.contains("formats") and FEATURES.contains("strict") and not FEATURES.contains("wasm4pm") %}
+/// Compat world with strict boundary (strict feature)
+world compat-strict@{{ VERSION }} {
+  export types;
+  export admission;
+  export strict;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("wasm4pm") and not FEATURES.contains("formats") and not FEATURES.contains("strict") %}
+/// Compat world with graduation (wasm4pm feature)
+world compat-wasm4pm@{{ VERSION }} {
+  export types;
+  export admission;
+  export graduation;
+  export witness-metadata;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("formats") and FEATURES.contains("strict") and FEATURES.contains("wasm4pm") %}
+/// Compat world with all features
+world compat-all@{{ VERSION }} {
+  export types;
+  export admission;
+  export loss;
+  export strict;
+  export graduation;
+  export witness-metadata;
+}
+{%- endif %}
+
+{%- if FEATURES.contains("wasm4pm") %}
+// ============================================================================
+// PART 8: ENGINE WORLD IMPORTS (engine.wit)
+// Emitted when wasm4pm feature enabled
+// ============================================================================
+
+/// Execution engine world: discovery, replay, conformance, receipts
+/// Imported by compat component; represents the wasm4pm execution boundary
+world engine@{{ VERSION }} {
+  import discovery;
+  import replay;
+  import conformance;
+  import ocpq;
+  import receipts;
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Engine Discovery Interface
+// ──────────────────────────────────────────────────────────────────────
+
+interface discovery@{{ VERSION }} {
+  use types.{event-log};
+
+  /// DFG model (directly-follows graph).
+  record dfg-model {
+    activities: list<string>,
+    edges: list<record { from: string, to: string, count: u32 }>,
+  }
+
+  /// Petri net model (places, transitions, arcs, initial marking).
+  record petri-net {
+    places: list<string>,
+    transitions: list<string>,
+    arcs: list<record { from: string, to: string }>,
+    initial-marking: list<record { place-id: string, tokens: u32 }>,
+  }
+
+  /// BPMN model (flows, gateways, events).
+  record bpmn-model {
+    flows: list<string>,
+    gateways: list<string>,
+    events: list<string>,
+  }
+
+  /// Discover directly-follows graph from admitted event log.
+  ///
+  /// Algorithm: Event sequence order
+  /// Output: DFG (nodes=activities, edges=directly-follows, weight=count)
+  ///
+  /// Rust: wasm4pm::discovery::discover_dfg()
+  discover-dfg: func(admitted: event-log) -> result<dfg-model, string>;
+
+  /// Discover Petri net from admitted event log.
+  ///
+  /// Algorithm: Alpha algorithm, Inductive Miner, or IM[d]
+  /// Methods: "alpha" | "inductive" | "inductive-dfg"
+  /// Output: Petri net (places, transitions, arcs)
+  ///
+  /// Rust: wasm4pm::discovery::discover_petri()
+  discover-petri: func(
+    admitted: event-log,
+    method: string
+  ) -> result<petri-net, string>;
+
+  /// Discover BPMN model from process tree (inductive miner output).
+  ///
+  /// Algorithm: Process tree → BPMN conversion
+  /// Output: BPMN diagram (flows, gateways, events)
+  ///
+  /// Rust: wasm4pm::discovery::discover_bpmn()
+  discover-bpmn: func(admitted: event-log) -> result<bpmn-model, string>;
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Engine Replay Interface
+// ──────────────────────────────────────────────────────────────────────
+
+interface replay@{{ VERSION }} {
+  use types.{event-log};
+  use discovery.{petri-net};
+
+  /// Fitness record: move-on-log and move-on-model costs.
+  record replay-result {
+    fitness: f64,  // Computed as 1 - (cost / optimal)
+    moves-on-log: u32,  // Events not matched by model
+    moves-on-model: u32,  // Model transitions not matched by events
+  }
+
+  /// Alignment record: optimal alignment and cost.
+  record alignment-result {
+    cost: u32,  // Total cost (A* search)
+    alignment: list<string>,  // Alignment steps (e.g., "event", "skip", "tau")
+  }
+
+  /// Replay trace on Petri net and compute fitness.
+  ///
+  /// Algorithm: Token replay with move-on-log and move-on-model cost
+  /// Fitness formula: 1 - (cost / optimal)
+  /// Output: Fitness + move costs
+  ///
+  /// Rust: wasm4pm::replay::replay_on_petri()
+  replay-on-petri: func(
+    admitted: event-log,
+    model: petri-net
+  ) -> result<replay-result, string>;
+
+  /// Compute optimal alignment between trace and Petri net.
+  ///
+  /// Algorithm: A* search for minimal-cost alignment
+  /// Output: Alignment steps and total cost
+  ///
+  /// Rust: wasm4pm::replay::align_on_petri()
+  align-on-petri: func(
+    admitted: event-log,
+    model: petri-net
+  ) -> result<alignment-result, string>;
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Engine Conformance Interface
+// ──────────────────────────────────────────────────────────────────────
+
+interface conformance@{{ VERSION }} {
+  use types.{event-log, metric};
+  use discovery.{petri-net, bpmn-model, dfg-model};
+
+  /// Unified process model type (can be DFG, Petri, or BPMN).
+  variant process-model {
+    dfg(dfg-model),
+    petri(petri-net),
+    bpmn(bpmn-model),
+  }
+
+  /// Compute fitness, precision, generalization, simplicity metrics.
+  ///
+  /// Metrics:
+  /// - fitness: Trace replayability on model
+  /// - precision: Model does not allow unobserved behavior
+  /// - generalization: Model captures all observed sequences
+  /// - simplicity: Structural parsimony (nodes + edges)
+  ///
+  /// Output: List of 4 metric records (all bounded in [0,1])
+  ///
+  /// Rust: wasm4pm::conformance::check_conformance()
+  check-conformance: func(
+    admitted: event-log,
+    model: process-model
+  ) -> result<list<metric>, string>;
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Engine OCPQ Interface (Object-Centric Process Query)
+// ──────────────────────────────────────────────────────────────────────
+
+interface ocpq@{{ VERSION }} {
+  use types.{ocel-log, event-id, object-id};
+
+  /// Object lifecycle event: which events touched this object.
+  record object-lifecycle-event {
+    event-id: event-id,
+    timestamp: u64,
+    activity: string,
+  }
+
+  /// Retrieve event sequence for a single object (OCEL context).
+  ///
+  /// Contract:
+  /// - Input: Admitted OCEL log, object identifier
+  /// - Output: Chronologically ordered events touching that object
+  /// - No events → object has no lifecycle (structural error)
+  ///
+  /// Rust: wasm4pm::ocpq::query_object_lifecycle()
+  query-object-lifecycle: func(
+    admitted: ocel-log,
+    object-id: object-id
+  ) -> result<list<object-lifecycle-event>, string>;
+
+  /// Find objects related through shared events or object-object links.
+  ///
+  /// Contract:
+  /// - Input: Admitted OCEL log, object identifier
+  /// - Output: List of object IDs related to input object
+  /// - Relatedness: shared events OR direct O2O link
+  ///
+  /// Rust: wasm4pm::ocpq::query_object_relations()
+  query-object-relations: func(
+    admitted: ocel-log,
+    object-id: object-id
+  ) -> result<list<object-id>, string>;
+}
+
+// ──────────────────────────────────────────────────────────────────────
+// Engine Receipts Interface
+// ──────────────────────────────────────────────────────────────────────
+
+interface receipts@{{ VERSION }} {
+  use types.{event-log};
+
+  /// Hash or cryptographic proof of evidence.
+  ///
+  /// Output: Hex-encoded receipt (SHA-256 or Merkle proof)
+  /// No replay logic; pure hash computation
+  ///
+  /// Rust: wasm4pm::receipts::generate_receipt()
+  generate-receipt: func(admitted: event-log) -> result<string, string>;
+
+  /// Validate receipt against evidence.
+  ///
+  /// Algorithm: Cryptographic or structural verification
+  /// Output: true if receipt matches; false otherwise
+  /// Law: Receipt is immutable once generated
+  ///
+  /// Rust: wasm4pm::receipts::verify_receipt()
+  verify-receipt: func(
+    admitted: event-log,
+    receipt: string
+  ) -> result<bool, string>;
+}
+{%- endif %}
+
+// ============================================================================
+// AUDIT & RECEIPT
+// ============================================================================
+
+/// Receipt of WIT generation
+///
+/// Tool: Tera (wasm4pm-compat.wit.ggen template)
+/// Input: component.projection.yaml + wit-surface-ledger.yaml + graduation-surface-ledger.yaml
+/// Target: wasm32-wasip1-component (MVP)
+/// Feature-gated:
+///   - base (no flags): types + admission
+///   - formats: +loss
+///   - strict: +strict
+///   - wasm4pm: +graduation + witness-metadata + engine
+/// Output files:
+///   - ggen/wit/compat.wit (base)
+///   - ggen/wit/compat-formats.wit (formats)
+///   - ggen/wit/compat-strict.wit (strict)
+///   - ggen/wit/compat-wasm4pm.wit (wasm4pm)
+///   - ggen/wit/compat-all.wit (all)
+///   - ggen/wit/engine.wit (wasm4pm)
+///
+/// Law version: component-boundary-law v{{ VERSION }}
+/// Timestamp: 2026-06-01

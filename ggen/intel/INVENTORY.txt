@@ -1,0 +1,437 @@
+================================================================================
+                    ECOSYSTEM CENSUS — INVENTORY
+                    wasm4pm-compat Projection Manufacturing
+================================================================================
+
+Total Ecosystem Sources Catalogued: 51
+Census Date: 2026-06-01
+Authority: Sean Chatman (xpointsh@gmail.com)
+Scope: Type-law kernel, TypeScript/WASM projection, process-evidence graduation
+
+================================================================================
+SECTION I: RUST TOOLCHAIN (4 sources)
+================================================================================
+
+1. rustc (Nightly Compiler)
+   Version: 1.97.0-nightly (cb40c25f6 2026-05-04)
+   Source: https://github.com/rust-lang/rust
+   Role: Compile type law to executable; nightly feature enforcement
+   Features: generic_const_exprs, adt_const_params, const_trait_impl, 
+             min_specialization, portable_simd
+   Projection Impact: All doctests depend on nightly; compile-fail fixtures 
+                      tied to nightly syntax
+
+2. Cargo (Nightly Build System)
+   Version: 1.97.0-nightly (4f9b52075 2026-05-01)
+   Source: https://github.com/rust-lang/cargo
+   Role: Feature flag resolution; dependency management; test orchestration
+   Key Commands: cargo metadata, cargo test --tests, cargo test --ui_tests,
+                 cargo doc
+   Projection Impact: Feature matrix defines projection surfaces
+
+3. rustfmt (Code Formatter)
+   Config: rustfmt.toml
+   Role: Enforce consistent formatting on type-law code
+
+4. clippy (Linter)
+   Config: clippy.toml
+   Role: Detect zero-cost type idiom violations; enforce safe code
+
+================================================================================
+SECTION II: FEATURE ENGINEERING (2 sources)
+================================================================================
+
+5. Cargo Feature System (Core)
+   Source: https://doc.rust-lang.org/cargo/reference/features.html
+   Features Declared:
+     • formats (default: yes) — Import/export contracts, loss surfaces
+     • strict (default: no) — Opt-in boundary judgment
+     • wasm4pm (default: no) — Graduation bridge
+     • ts (default: no) — TypeScript projection
+     • wasm (default: no) — WASM ABI boundary
+   Invariant: Exactly 3 public user features; no per-format flags
+   Projection Impact: Feature matrix = projection surface (ts, wasm)
+
+6. Cargo.lock (Dependency Lock)
+   Size: 22664 bytes
+   Role: Pin specta 1.0.5, tsify 0.4.5, wasm-bindgen 0.2.92, serde 1.0
+   Projection Impact: Locks transitive dep versions; affects reproducibility
+
+================================================================================
+SECTION III: TYPE INTROSPECTION & TYPESCRIPT (6 sources)
+================================================================================
+
+7. specta (Type Introspection)
+   Version: 1.0.5
+   Source: https://github.com/oscartbeaumont/specta
+   Role: Extract Rust type schema → TypeScript definitions
+   Feature: ts, wasm
+   Projection Targets: src/ts/law_projection.rs, pkg/wasm4pm_compat.d.ts
+   Derives: #[derive(specta::Type)] on witness, state, Evidence
+
+8. tsify (WASM TypeScript Bridge)
+   Version: 0.4.5
+   Source: https://github.com/madonohue/tsify
+   Role: .d.ts generation from WASM types
+   Feature: ts, wasm
+   Projection Targets: src/wasm/bindings.rs, pkg/wasm4pm_compat.d.ts
+
+9. wasm-bindgen (Rust-WASM FFI)
+   Version: 0.2.92
+   Source: https://github.com/rustwasm/wasm-bindgen
+   Role: ABI boundary; JS/TS bindings generation
+   Feature: ts, wasm
+   Crate Type: cdylib, rlib
+   Projection Targets: src/wasm/abi.rs, pkg/*.wasm, pkg/*.d.ts
+
+10. serde (Serialization Framework)
+    Version: 1.0
+    Source: https://github.com/serde-rs/serde
+    Role: Trait-based serialization (format-agnostic)
+    Feature: ts, wasm
+    Derives: #[derive(serde::Serialize, serde::Deserialize)]
+
+11. serde-wasm-bindgen (WASM Serialization Bridge)
+    Version: 0.6
+    Source: https://github.com/rustwasm/serde-wasm-bindgen
+    Role: Optimized Rust → WASM → JavaScript marshaling
+    Feature: wasm
+
+12. serde_json (JSON Codec, dev-only)
+    Version: 1.0
+    Source: https://github.com/serde-rs/json
+    Role: Test oracle for Evidence serialization; OCEL/XES payloads
+    Type: dev-dependency
+
+================================================================================
+SECTION IV: PROCESS-EVIDENCE DATA MODELS (10 sources)
+================================================================================
+
+13. OCEL 2.0 (Object-Centric Event Logs)
+    Version: 2.0
+    Source: https://ocel-standard.github.io/
+    Witness: Ocel20
+    Module: src/ocel.rs
+    Types: OcelLog, OcelEvent, Object, EventObjectLink, ObjectObjectLink, ObjectChange
+    Projection: witness marker, refusal codes, ALIVE fixtures
+
+14. XES 1.849 (eXtensible Event Stream)
+    Version: 1.849
+    Source: http://www.xes-standard.org/
+    Witness: Xes1849
+    Module: src/xes.rs
+    Types: XesLog, XesEvent, XesTrace, XesAttribute
+    Projection: loss-aware projection (OCEL → XES flattening)
+
+15. BPMN 2.0 (Business Process Model and Notation)
+    Version: 2.0 (OMG)
+    Source: https://www.bpmn.org/
+    Witness: Bpmn20
+    Module: src/bpmn.rs
+    Types: BpmnProcess, BpmnTask, BpmnSequenceFlow, BpmnGateway
+
+16. Petri Nets & WF-Nets
+    Version: ISO/IEC 15909 (PNML)
+    Source: http://www.pnml.org/
+    Witness: WfNetSoundnessPaper
+    Module: src/petri.rs
+    Types: PetriNet, Place, Transition, Arc, WfNet, WfNetConst<SOUNDNESS>
+    Type Law: const_generic<SOUNDNESS: bool>, specialization witness
+    Projection: nightly_foundry.rs → petri_law
+
+17. POWL (Partially-Ordered Workflow Language)
+    Version: Current spec
+    Source: https://tinyurl.com/powl-spec (van der Aalst et al.)
+    Module: src/powl.rs
+    Types: PowlNode, PowlSequence, PowlChoice, PowlParallel, PowlLoop
+    Type Law: TreeProjectable sealed trait, const_generic<ARITY>
+    Projection: nightly_foundry.rs → powl_law
+
+18. Process Trees
+    Version: Leemans, van der Aalst, Bichler (2013)
+    Module: src/process_tree.rs
+    Types: ProcessTree, TreeNode, TypedLoopNode<ARITY>
+    Type Law: const_generic<ARITY>, arity law enforcement
+
+19. Declare Constraints
+    Version: Pesic & van der Aalst (2007+)
+    Module: src/declare.rs
+    Types: DeclareConstraint, DeclareTemplate, DeclareTrace
+    Variant: OC-Declare (object-centric)
+
+20. Directly-Follows Graphs (DFG)
+    Version: van der Aalst & Medeiros (2005+)
+    Module: src/dfg.rs
+    Types: DfgNode, DfgEdge, DfgFrequency
+    Role: Lightweight discovery output
+
+21. Causal Nets (C-nets)
+    Version: Weijters & van der Aalst (2003+)
+    Module: src/causal_net.rs
+    Types: CausalNet, CausalActivity, CausalBinding
+    Role: Heuristics Miner output
+
+22. Conformance Verdicts (Metrics)
+    Version: van der Aalst & de Medeiros (2005+)
+    Module: src/conformance.rs
+    Types: ConformanceVerdict, Metric<KIND, NUM, DEN>
+    Type Law: Between01<NUM, DEN> const bounds
+    Projection: nightly_foundry.rs → token_law (metric bounds)
+
+================================================================================
+SECTION V: GRADUATION TARGETS (NOT IN COMPAT) (2 sources)
+================================================================================
+
+23. pm4py (Python Process Mining)
+    Version: Latest
+    Source: https://github.com/pm-py/pm4py-core
+    Role: Reference conformance engine; test oracle
+    Integration: src/engine_bridge.rs (NOT imported)
+    Not Implemented: Discovery, conformance checking, token replay
+
+24. wasm4pm (Execution Engine)
+    Repository: https://github.com/wasm4pm
+    Role: Graduation target for admitted Evidence
+    Bridge: src/engine_bridge.rs (GraduateToWasm4pm trait)
+    Types: GraduateToWasm4pm, GraduationCandidate, GraduationReason
+
+================================================================================
+SECTION VI: WASM & PORTABILITY (5 sources)
+================================================================================
+
+25. wasm-pack (WASM Packaging)
+    Version: 1.x
+    Source: https://github.com/rustwasm/wasm-pack
+    Role: Compile Rust → npm package (Node.js + browser)
+    Output: pkg/ directory (package.json, *.wasm, *.d.ts)
+
+26. WASM Component Model (W3C Proposal)
+    Version: 0.1+ (draft)
+    Source: https://github.com/WebAssembly/component-model
+    Status: NOT YET IMPLEMENTED
+    Future Role: Portable WASM interface; graduation bridge
+    Planned: src/component_model.rs
+
+27. WIT (WebAssembly Interface Types)
+    Version: 0.1+ (part of Component Model)
+    Source: https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md
+    Status: NOT YET IMPLEMENTED
+    Future Role: Express Evidence<T, State, W> as portable WIT types
+    Planned: wit/*.wit files
+
+28. wit-bindgen (WIT → Rust Code Generator)
+    Version: Latest
+    Source: https://github.com/bytecodealliance/wit-bindgen
+    Status: NOT YET INTEGRATED
+    Future Integration: build.rs
+
+29. Wasmtime (WASM Runtime)
+    Version: Latest
+    Source: https://github.com/bytecodealliance/wasmtime
+    Role: Standalone WASM runtime; Component Model host
+    Future: Run wasm4pm-compat + engine as portable component
+
+================================================================================
+SECTION VII: DOCUMENTATION & INTROSPECTION (6 sources)
+================================================================================
+
+30. rustdoc (Documentation Generator)
+    Source: Built into rustc
+    Commands: cargo doc --no-deps --open, cargo test --doc --all-features
+    Role: Render API docs; validate doctests
+    Validation Gate: cargo test --doc --all-features
+
+31. CLAUDE.md (Project Configuration)
+    Location: /Users/sac/wasm4pm-compat/CLAUDE.md
+    Size: 10785 bytes
+    Role: Project-specific instructions, architecture, test surfaces
+
+32. README.md (Public API Overview)
+    Location: /Users/sac/wasm4pm-compat/README.md
+    Size: 6536 bytes
+    Role: What the crate is/is not, quick start, feature model
+
+33. NIGHTLY_TYPE_LAW.md (Type-Law Specification)
+    Location: /Users/sac/wasm4pm-compat/NIGHTLY_TYPE_LAW.md
+    Size: 8472 bytes
+    Role: Detailed type-law kernel, const-generic bounds, specialization
+
+34. Cargo.toml (Manifest)
+    Location: /Users/sac/wasm4pm-compat/Cargo.toml
+    Size: 1995 bytes
+    Role: Feature declarations, dependency versions, metadata
+
+35. Cargo.lock (Dependency Freeze)
+    Location: /Users/sac/wasm4pm-compat/Cargo.lock
+    Size: 22664 bytes
+    Role: Transitive dependency version lock
+
+================================================================================
+SECTION VIII: TEST & VALIDATION (4 sources)
+================================================================================
+
+36. trybuild (Compile-Fail/Pass Fixture Testing)
+    Crate: https://github.com/dtolnay/trybuild
+    Command: cargo test --test ui_tests -- --ignored
+    Role: ALIVE type-law certification gate
+    Fixtures: 196 compile-fail + 406 compile-pass in tests/ui/
+    Impact: PR merge blocked if ALIVE gate fails
+
+37. criterion (Performance Benchmarking)
+    Version: 0.5
+    Source: https://github.com/bheisler/criterion.rs
+    Command: cargo bench
+    Benchmarks: zero_cost_types, law_bounds_bench, evidence_lifecycle_bench, id_operations_bench
+    Role: Validate PhantomData/newtype zero-cost abstractions
+
+38. Unit/Integration Tests
+    Command: cargo test --tests
+    Cadence: Every change (sub-second after first build)
+    Role: Fast behavior verification
+
+39. Doctest Audit
+    Command: cargo test --doc --all-features
+    Cadence: Explicit opt-in (slow on nightly)
+    Role: Public API example validation
+
+================================================================================
+SECTION IX: EXTERNAL STANDARDS & REFERENCES (4 sources)
+================================================================================
+
+40. W3C WebAssembly Specification
+    Source: https://webassembly.github.io/spec/core/
+    Role: WASM semantics, ABI, memory model
+
+41. Rust 2021 Edition
+    Source: https://doc.rust-lang.org/edition-guide/rust-2021/
+    Role: Language semantics, trait coherence, specialization rules
+
+42. JSON Schema
+    Source: https://json-schema.org/
+    Role: Validate OCEL/XES/BPMN JSON shapes
+
+43. XML/XSD (Schema Definition)
+    Source: W3C XML / XSD specifications
+    Role: Validate OCEL/XES/BPMN XML shapes
+
+================================================================================
+SECTION X: CI/CD & BUILD ORCHESTRATION (3 sources)
+================================================================================
+
+44. Makefile.toml (cargo-make)
+    Location: /Users/sac/wasm4pm-compat/Makefile.toml
+    Size: 4165 bytes
+    Source: https://github.com/sagiegurari/cargo-make
+    Role: Cross-platform task orchestration, feature matrix testing
+
+45. GitHub Actions (CI/CD Pipeline)
+    Location: .github/workflows/*.yml
+    Role: Automated test on push/PR, ALIVE gate gating, regression detection
+
+46. rustup (Toolchain Manager)
+    Source: https://rustup.rs/
+    Config: rust-toolchain.toml
+    Role: Pin nightly toolchain, manage WASM targets
+
+================================================================================
+SECTION XI: CODE GENERATION & PROJECTION ORCHESTRATION (1 source)
+================================================================================
+
+47. ggen (Code Generation Orchestrator)
+    Location: /Users/sac/wasm4pm-compat/ggen/
+    Subdirectories:
+      • ggen.toml (6548 bytes) — generation manifests
+      • Makefile.toml (4165 bytes) — generation tasks
+      • templates/ — code generation templates
+        - src/ts/law_projection.rs (specta types)
+        - src/wasm/bindings.rs (wasm-bindgen types)
+        - tests/ui/*/Cargo.toml (fixture boilerplate)
+      • ontology/ — semantic knowledge base (RDF/OWL)
+      • queries/ — SPARQL introspection queries
+      • intel/ — ecosystem intelligence census (this directory)
+
+    Role: Synchronize TypeScript/WASM projections; semantic validation
+    Generated Outputs: src/ts/law_projection.rs, src/wasm/bindings.rs
+
+================================================================================
+SUMMARY: ECOSYSTEM SOURCES BY CATEGORY
+================================================================================
+
+Rust Toolchain:                    4 sources
+Feature Engineering:               2 sources
+Type Introspection & TS:           6 sources
+Process-Evidence Data Models:     10 sources
+Graduation Targets:                2 sources
+WASM & Portability:                5 sources
+Documentation & Introspection:     6 sources
+Testing & Validation:              4 sources
+External Standards & References:   4 sources
+CI/CD & Build Orchestration:       3 sources
+Code Generation & Projection:      1 source (ggen)
+─────────────────────────────────────────────
+TOTAL:                            51 sources
+
+================================================================================
+KEY ECOSYSTEM INVARIANTS
+================================================================================
+
+1. Feature Model
+   • Exactly 3 public user features: formats, strict, wasm4pm
+   • No per-format flags (all data models always-on)
+   • Additional features (ts, wasm) are internal projection gates
+
+2. Nightly-First
+   • No stable Rust support; applications conform upward to type law
+   • Required features: generic_const_exprs, adt_const_params, const_trait_impl,
+                        min_specialization, portable_simd
+
+3. Type-Law-First
+   • Every ecosystem component (OCEL, XES, BPMN, Petri, POWL, etc.) has a witness marker
+   • Witness markers are zero-sized PhantomData tags
+   • State tokens (Raw, Parsed, Admitted, etc.) are lifecycle enforcement
+
+4. Zero Runtime Dependencies
+   • All ecosystem components are compile-time or opt-in feature-gated
+   • TypeScript/WASM machinery removed at compile time for non-ts/wasm builds
+
+5. Structure-Only Scope
+   • No discovery, conformance checking, token replay, alignment
+   • All execution engines graduate to wasm4pm
+   • This crate is admission + projection layer only
+
+================================================================================
+FUTURE PROJECTIONS & GAPS
+================================================================================
+
+1. Component Model / WIT Integration
+   Status: Not yet implemented
+   Planned: src/component_model.rs, wit/*.wit, build.rs wit-bindgen integration
+   Impact: Enables portable WASM execution (Wasmtime, browser, cloud, edge)
+
+2. Automated Ontology → Code Generation
+   Status: Infrastructure present (ggen/ontology/, ggen/queries/)
+   Missing: Integration pipeline (ontology SPARQL → source code artifacts)
+   Impact: Semantic validation at compile time
+
+3. ML-based Performance Regression Detection
+   Status: Benchmarks exist (criterion)
+   Missing: Statistical analysis + historical trend tracking
+   Impact: Early detection of zero-cost abstraction violations
+
+================================================================================
+AUTHORITY & VERSIONING
+================================================================================
+
+Census Authority: Sean Chatman (xpointsh@gmail.com)
+Census Date: 2026-06-01
+Census Version: 1.0
+Census Scope: wasm4pm-compat projection manufacturing ecosystem
+Document Locations:
+  • /Users/sac/wasm4pm-compat/ggen/intel/ecosystem-census.md (985 lines)
+  • /Users/sac/wasm4pm-compat/ggen/intel/ecosystem-source-index.yaml (919 lines)
+  • /Users/sac/wasm4pm-compat/ggen/intel/README.md (usage guide)
+  • /Users/sac/wasm4pm-compat/ggen/intel/INVENTORY.txt (this file)
+
+================================================================================
+END OF INVENTORY
+================================================================================

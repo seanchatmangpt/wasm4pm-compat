@@ -1,0 +1,280 @@
+# Optional Dependency Law
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+#
+# When is each optional dependency ALLOWED, FORBIDDEN, or REQUIRED?
+# This governs feature decisions and refusal gates.
+
+dependency_law:
+  serde:
+    crate: serde ^1.0
+    declared_features: ["derive"]
+
+    allowed_when:
+      - ts feature is enabled
+      - wasm feature is enabled
+      - Both ts and wasm are enabled simultaneously
+      - A dependent explicitly passes --features serde (future expansion point)
+
+    forbidden_when:
+      - serde is imported into formats.rs (check: not found ✓)
+      - serde is imported into engine_bridge.rs (check: not found ✓)
+      - serde is imported into strict.rs (check: not found ✓)
+      - Any import tries to serialize Evidence or Admission directly without
+        going through ts or wasm projections (check: not found ✓)
+
+    required_when:
+      - ts is enabled (via dep:serde in [features.ts])
+      - wasm is enabled (via dep:serde in [features.wasm])
+
+    law_statement: >
+      serde is allowed only as a marshaling medium for TypeScript and WASM
+      projections. It provides serialization/deserialization for:
+      - EvidenceTs<T, State, Witness> (TypeScript projection)
+      - AdmissionTs<T, Witness> (TypeScript projection)
+      - RefusalTs<R, Witness> (TypeScript projection)
+      - LossPolicyTs (TypeScript projection)
+      - All WasmBoundary types (WASM projection)
+
+      serde must NEVER be used to convert raw Evidence into a different Evidence type.
+      It must NEVER be used to skip the Admitted state in a deserialization path.
+      serde is a boundary crossing layer only; it preserves type invariants.
+
+    refusal_rule:
+      - If a future feature tries to use serde to deserialize Evidence<T, Raw, W>
+        and bypass Admit::admit, that feature must be rejected under
+        "tool-smuggling-into-compat" rule.
+
+    evidence_of_compliance:
+      - ts/export.rs uses specta to export TypeScript, not serde directly
+      - ts/law_projection.rs uses #[derive(Serialize, Deserialize)] only on
+        TypeScript projection types (EvidenceTs, not Evidence)
+      - wasm/boundary.rs uses #[tsify(into_wasm_abi, from_wasm_abi)] for
+        ABI-safe types, not raw Evidence
+      - formats.rs contains no serde imports
+      - engine_bridge.rs contains no serde imports
+
+  specta:
+    crate: specta ^1.0.5
+    declared_features: []
+
+    allowed_when:
+      - ts feature is enabled (for TypeScript code generation)
+      - wasm feature is enabled (for TypeScript code generation on WASM boundary)
+
+    forbidden_when:
+      - specta is used to generate code that would leak internal type structure
+        (check: not found ✓ — all outputs are explicitly branded projections)
+      - specta is used to generate code for unwitnessed or untyped evidence
+        (check: not found ✓ — all outputs carry witness/state markers)
+
+    required_when:
+      - ts is enabled (via dep:specta in [features.ts])
+      - wasm is enabled (via dep:specta in [features.wasm])
+
+    law_statement: >
+      specta generates TypeScript type definitions from Rust types. It is the
+      compile-time bridge that ensures TypeScript types match Rust types exactly.
+      It is allowed to generate:
+      - EvidenceTs<T, State, Witness> (with generic parameters preserved)
+      - AdmissionTs<T, Witness> (with generic parameters preserved)
+      - RefusalTs<R, Witness> (with generic parameters preserved)
+      - All WasmBoundary types
+
+      specta must NEVER be used to generate TypeScript for the untyped or unwitnessed
+      internal representation. It must NEVER collapse generics to strings.
+      Every generated TypeScript type must carry type parameters or discriminants
+      that prevent two Evidence types from being confused at runtime.
+
+    refusal_rule:
+      - If a feature tries to use specta to generate untyped TypeScript (e.g., all
+        Evidence types collapsed to Evidence<any, any, any>), that feature must be
+        rejected under "tool-smuggling-into-compat" rule.
+
+    evidence_of_compliance:
+      - ts/export.rs passes EvidenceTs<T: Type, State: Type, Witness: Type> to specta
+        (preserves generics)
+      - ts/law_projection.rs derives #[derive(Type, Tsify)] on branded types only
+      - All outputs in export_ts_bindings() are tagged (OcelBrand, XesBrand, WfNetBrand)
+      - No internal types (Event, Trace, OcelLog) are directly exported to TypeScript
+
+  tsify:
+    crate: tsify ^0.4.5
+    declared_features: ["js"]
+
+    allowed_when:
+      - ts feature is enabled (for TypeScript binding generation)
+      - wasm feature is enabled (for WASM JavaScript ABI)
+
+    forbidden_when:
+      - tsify is used to generate ABI for unwitnessed or unadmitted evidence
+        (check: not found ✓ — all Wasm* types are explicitly projected)
+      - tsify is used to generate JavaScript code that bypasses Admit::admit
+        (check: not found ✓ — WasmAdmissionResult is structure-only)
+
+    required_when:
+      - ts is enabled (via dep:tsify in [features.ts])
+      - wasm is enabled (via dep:tsify in [features.wasm])
+
+    law_statement: >
+      tsify derives JavaScript serialization code and TypeScript interfaces
+      simultaneously. It is the bridge between Rust types and JavaScript runtime.
+      It is allowed to generate:
+      - JavaScript bindings for ts/export.rs public functions
+      - WASM ABI marshaling for all Wasm* types (WasmWitness, WasmStateTag, etc.)
+      - TypeScript interfaces paired with each generated binding
+
+      tsify must NEVER generate code that loses type information. It must NEVER
+      convert typed structs to generic objects at the ABI boundary.
+      Every JavaScript function must have a corresponding TypeScript interface.
+
+    refusal_rule:
+      - If a feature tries to use tsify to generate untyped JavaScript (e.g.,
+        accept any JSON and deserialize without validation), that feature must be
+        rejected under "tool-smuggling-into-compat" rule.
+
+    evidence_of_compliance:
+      - wasm/bindings.rs uses #[wasm_bindgen] with explicit return types
+      - Each function returns Result<JsValue, JsValue> and converts with serde_wasm_bindgen
+      - wasm/boundary.rs types derive #[tsify(into_wasm_abi, from_wasm_abi)] explicitly
+      - ts/law_projection.rs uses #[derive(Type, Tsify)] on all exported types
+
+  wasm-bindgen:
+    crate: wasm-bindgen ^0.2.92
+    declared_features: []
+
+    allowed_when:
+      - ts feature is enabled (for WASM JavaScript bindings)
+      - wasm feature is enabled (for WASM boundary projection and ABI)
+
+    forbidden_when:
+      - wasm-bindgen is used to pass untyped JavaScript values into Rust without
+        validation (check: not found ✓ — all boundary types are explicitly marshaled)
+      - wasm-bindgen is used to export functions that bypass type law
+        (check: not found ✓ — all #[wasm_bindgen] functions in wasm/bindings.rs
+        are structure-only: catalog, state_tags, validation preconditions)
+
+    required_when:
+      - ts is enabled (via dep:wasm-bindgen in [features.ts])
+      - wasm is enabled (via dep:wasm-bindgen in [features.wasm])
+
+    law_statement: >
+      wasm-bindgen is the JavaScript ↔ Rust FFI layer. It provides #[wasm_bindgen]
+      macros that make Rust functions callable from JavaScript and JavaScript
+      objects accessible from Rust.
+
+      It is allowed to export:
+      - Structure-only functions (get_witness_catalog, get_state_tags, etc.)
+      - Serialization/deserialization helpers (to_value, from_value)
+      - Validation preconditions (all return structure-only WasmAdmissionResult)
+      - Type projection surfaces (EvidenceTs, AdmissionTs, etc.)
+
+      wasm-bindgen must NEVER export functions that execute process-mining logic.
+      It must NEVER export unvalidated raw Evidence.
+      It must NEVER export functions that discover models, check conformance, or
+      replay logs. Those are graduation boundaries (engine_bridge module).
+
+    refusal_rule:
+      - If a feature tries to use wasm-bindgen to export discovery/conformance/replay
+        functions, that feature must be rejected under "tool-smuggling-into-compat" rule.
+
+    evidence_of_compliance:
+      - wasm/bindings.rs exports: get_witness_catalog, get_state_tags, validate_admission_preconditions
+      - All exports return structure-only types or Result<JsValue, JsValue>
+      - No wasm_bindgen imports from discovery/conformance/replay crates
+      - No process-mining execution logic is exposed at the boundary
+
+  serde-wasm-bindgen:
+    crate: serde-wasm-bindgen ^0.6
+    declared_features: []
+
+    allowed_when:
+      - wasm feature is enabled (for high-performance marshaling across WASM boundary)
+
+    forbidden_when:
+      - serde-wasm-bindgen is used to serialize/deserialize Evidence directly without
+        going through a projection (check: not found ✓)
+      - serde-wasm-bindgen is used to skip the Admitted state
+        (check: not found ✓)
+
+    required_when:
+      - wasm is enabled (via dep:serde-wasm-bindgen in [features.wasm])
+
+    law_statement: >
+      serde-wasm-bindgen is a performance optimization layer. It marshals serde types
+      across the Rust ↔ JavaScript boundary more efficiently than generic wasm-bindgen
+      JsValue conversion.
+
+      It is allowed to marshal:
+      - All Wasm* types (WasmWitness, WasmStateTag, WasmAdmissionResult, etc.)
+      - TypeScript projection types (EvidenceTs, AdmissionTs, RefusalTs, etc.)
+      - Any serde-serializable structure that has been through the type-law boundary
+
+      serde-wasm-bindgen must NEVER be used to convert untyped JSON directly to
+      Evidence or Admission without validation.
+      It must preserve all type information in the marshaling process.
+
+    refusal_rule:
+      - If a feature tries to use serde-wasm-bindgen to accept raw JSON and
+        deserialize to Evidence without Admit::admit, that feature must be rejected
+        under "tool-smuggling-into-compat" rule.
+
+    evidence_of_compliance:
+      - wasm/bindings.rs uses serde_wasm_bindgen::to_value only on Wasm* types
+      - No Evidence or Admission types are directly serialized at the boundary
+      - All inputs are wrapped in explicit projection types before marshaling
+
+feature_decision_tree:
+  "Should I add a new feature that gates a new optional dependency?"
+    step_1_dependency_check:
+      question: "Does the dependency contain discovery, conformance, replay, or OCPQ logic?"
+      if_yes: "REFUSE. Use wasm4pm feature and engine_bridge module instead."
+      if_no: "Continue to step 2"
+
+    step_2_use_case_analysis:
+      question: "What capability does the new dependency unlock?"
+      if_serialization: "Evaluate as serde-like (allowed if boundary is preserved)"
+      if_code_generation: "Evaluate as specta-like (allowed if types are preserved)"
+      if_abi_or_ffi: "Evaluate as wasm-bindgen-like (allowed if untyped values are rejected)"
+      if_anything_else: "Likely outside compat scope; consider if graduation is needed"
+
+    step_3_boundary_law:
+      question: "Can I write the law invariants for this dependency?"
+      if_yes_comprehensive: "Proceed with feature gating and refusal rule"
+      if_no_or_incomplete: "REFUSE. The feature is not lawful enough for compat."
+
+    step_4_smuggling_check:
+      question: "Does this dependency import any engine or execution logic?"
+      if_yes_any_engine: "REFUSE under tool-smuggling-into-compat rule"
+      if_no: "Feature is approvable"
+
+  Adding_a_future_feature (example):
+    example_proposal: "Add thiserror feature for better error Display"
+    step_1: "thiserror has no discovery/conformance/replay logic → PASS"
+    step_2: "thiserror improves error formatting → serialization-adjacent → evaluate"
+    step_3: "Can I write law invariants? Yes: thiserror must not change admission/refusal semantics"
+    step_4: "Does thiserror import engines? No → PASS"
+    conclusion: "Feature is approvable, but may be unnecessary (Refusal is already first-class)"
+
+refusal_gate_summary:
+  tool_smuggling_into_compat:
+    rule_id: "tool-smuggling-into-compat"
+    enforcement: "UNCONDITIONAL"
+    scope: "All optional dependencies, all features"
+    trigger: >
+      Any optional dependency that attempts to import discovery, replay, conformance,
+      or OCPQ engine modules (pm4py, wasm4pm engine, custom Heuristics Miner, Inductive,
+      Alpha Miner, any conformance checker, any replay engine, any OCPQ executor).
+    refusal: >
+      REFUSE. wasm4pm-compat is structure-only. Process-mining execution logic must
+      graduate to wasm4pm via engine_bridge::GraduationCandidate and GraduationReason.
+      Smuggling execution into compat violates the central invariant.
+    exception: "None. The rule is absolute."
+
+  current_audit_status:
+    serde: "✓ COMPLIANT (no engine logic)"
+    specta: "✓ COMPLIANT (code generation only)"
+    tsify: "✓ COMPLIANT (ABI bridge only)"
+    wasm_bindgen: "✓ COMPLIANT (FFI infrastructure only)"
+    serde_wasm_bindgen: "✓ COMPLIANT (marshaling optimization only)"
+    overall: "✓ ALL OPTIONAL DEPENDENCIES PASS REFUSAL GATE"

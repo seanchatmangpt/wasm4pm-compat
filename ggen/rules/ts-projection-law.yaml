@@ -1,0 +1,635 @@
+# TypeScript Projection Law
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+# Authority: Specta + Type-Law Doctrine
+
+---
+
+law_metadata:
+  name: "TypeScript Projection Law"
+  codename: "ts-projection-law"
+  version: "1.0.0"
+  applies_to: "ts.projection.yaml"
+  tool: "specta"
+  authority: "Type-law doctrine; zero-cost abstraction"
+  enforcement: "Compile-time (via specta derives)"
+
+---
+
+central_principle: |
+  TypeScript projection is a type-level translation from Rust's branded generics to
+  TypeScript's structural types. It enforces exactly three laws:
+
+  LAW 1: No PhantomData at the boundary.
+    Witness W and State S are zero-sized compile-time markers.
+    They MUST NOT appear in TypeScript types. Extract metadata instead.
+
+  LAW 2: All Domain Shapes Are Serializable.
+    Every exported type must be Serialize + Deserialize.
+    Specta walks the serde attribute tree to validate.
+
+  LAW 3: Branded Generics Become Concrete Wrappers.
+    Evidence<T, State, W> is branded by two phantom types.
+    Projection creates concrete types: RawEvidence<T>, AdmittedEvidence<T>, etc.
+    Each is a newtype wrapping T; the state is encoded in the type name or a tagged enum.
+
+---
+
+law_1_no_phantom_at_boundary:
+
+  rule_1_1_witness_markers_forbidden:
+    violation: "Exporting witness marker enum (Ocel20, Xes1849, etc.) to TypeScript"
+    consequence: |
+      Witness markers are empty enums with no runtime representation.
+      A TypeScript type cannot represent them.
+      The phantom W parameter must be dropped.
+    enforcement: |
+      REFUSE: Witness<W> in Evidence<T, *, W> → drop W
+      EXPORT INSTEAD: WitnessMetadata { key: string, family: string, ... }
+    test_fixture: |
+      // FORBIDDEN
+      export type Evidence<T, State, W> = {
+        value: T;
+        // witness: W;  // ERROR: W is PhantomData
+      };
+
+      // CORRECT
+      export type AdmittedEvidence<T> = {
+        value: T;
+        // Witness is metadata, not a type parameter
+      };
+
+      export type WitnessMetadata = {
+        key: string;           // "ocel-2.0"
+        title: string;         // "OCEL 2.0"
+        family: WitnessFamily; // Standard | Paper | ...
+        year?: number;         // 2020
+      };
+
+  rule_1_2_state_tokens_forbidden:
+    violation: "Exporting state tokens (Raw, Parsed, Admitted, Refused) as type parameters"
+    consequence: |
+      Raw, Parsed, Admitted, etc. are zero-sized empty enums.
+      They have no runtime value.
+      TypeScript cannot express them as type parameters.
+    enforcement: |
+      REFUSE: Evidence<T, State, W> where State is a phantom type
+      ENCODE STATE IN RETURN TYPE: Use discriminated unions instead
+    test_fixture: |
+      // FORBIDDEN
+      export type Evidence<T, State> = {
+        value: T;
+        state: State;  // ERROR: State is PhantomData
+      };
+
+      // CORRECT
+      export type EvidenceStage<T> =
+        | { stage: "raw"; value: T }
+        | { stage: "parsed"; value: T }
+        | { stage: "admitted"; value: T }
+        | { stage: "refused"; reason: string };
+
+  rule_1_3_zero_sized_fields_hidden:
+    violation: "Exporting zero-sized fields or type-only markers"
+    consequence: |
+      Specta will not serialize zero-sized types.
+      They will appear as {} in TypeScript.
+      Remove them from the export or wrap with serializable metadata.
+    enforcement: |
+      Auto-skip: #[serde(skip)] on all PhantomData fields
+      Validate: Specta type-walks ensure no zero-sized types appear in final schema
+    test_fixture: |
+      // RUST
+      #[derive(Serialize, Type)]
+      struct EvidenceWithPhantom<T, W> {
+        value: T,
+        #[serde(skip)]
+        phantom_witness: std::marker::PhantomData<W>,  // Hidden; won't appear in .d.ts
+      }
+
+      // GENERATED TYPESCRIPT
+      export type Evidence<T> = {
+        value: T;
+        // phantom_witness is NOT exported (zero-sized)
+      };
+
+---
+
+law_2_all_exported_types_serializable:
+
+  rule_2_1_serde_derive_required:
+    violation: "Exporting type without Serialize + Deserialize derives"
+    consequence: |
+      specta cannot walk the type to generate TypeScript.
+      Specta will error at compile-time.
+    enforcement: |
+      REQUIRE: #[derive(Serialize, Deserialize, Type)]
+      VERIFY: cargo check --features ts must pass
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Type)]  // Missing Serialize, Deserialize
+      pub struct Event {
+        activity: String,
+        timestamp: u64,
+      }
+      // ERROR: specta cannot generate Type impl without serde
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct Event {
+        activity: String,
+        timestamp: u64,
+      }
+
+  rule_2_2_nested_types_must_serialize:
+    violation: "Exporting type with non-serializable field (e.g., Arc<T> without Serialize)"
+    consequence: |
+      Specta walks the entire type tree.
+      If any nested type is not Serialize, specta::Type fails to derive.
+    enforcement: |
+      REQUIRE: All field types must be Serialize + Deserialize
+      VALIDATE: cargo build --features ts --all-features
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct LogContainer {
+        events: Vec<Event>,
+        lock: std::sync::Mutex<State>,  // ERROR: Mutex is not Serialize
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct LogContainer {
+        events: Vec<Event>,
+        metadata: String,  // String is Serialize
+      }
+
+  rule_2_3_serde_attributes_honored:
+    violation: "Using serde attribute that specta does not support"
+    consequence: |
+      Specta honors common serde attrs (#[serde(skip)], #[serde(rename)], etc.).
+      Custom serializers without Type impl will fail.
+    enforcement: |
+      SUPPORT: #[serde(skip)], #[serde(rename)], #[serde(skip_serializing_if)], etc.
+      FORBID: #[serde(with = "custom_serializer")] unless custom_serializer implements Type
+    test_fixture: |
+      // GOOD: specta-compatible serde attrs
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct Event {
+        activity: String,
+        #[serde(skip)]
+        internal_state: u32,  // Skipped in serde AND in TypeScript
+        #[serde(rename = "ts")]
+        timestamp: u64,  // Renamed in both serde and TypeScript
+      }
+
+      // GENERATED TYPESCRIPT
+      export type Event = {
+        activity: string;
+        // internal_state omitted (skipped)
+        ts: bigint;  // Renamed from timestamp
+      };
+
+---
+
+law_3_branded_generics_become_concrete_wrappers:
+
+  rule_3_1_evidence_unwrapping:
+    violation: "Exporting generic Evidence<T, State, W> directly"
+    consequence: |
+      wasm-bindgen and Specta forbid generic types on exported items.
+      Evidence must be "unwrapped" → concrete wrappers.
+    enforcement: |
+      REFUSE: Evidence<T, State, W> as exported type
+      REQUIRE: One newtype per state:
+        - RawEvidence<T> { value: T }
+        - ParsedEvidence<T> { value: T }
+        - AdmittedEvidence<T> { value: T }
+        - RefusedEvidence { reason: String }
+        - ProjectedEvidence<T> { value: T }
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Serialize, Type)]
+      pub struct Evidence<T, State, W> {
+        value: T,
+        // state: PhantomData<State>,
+        // witness: PhantomData<W>,
+      }
+      // ERROR: Generic types not allowed on exported items
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct AdmittedEvidence<T> {
+        pub value: T,
+      }
+
+  rule_3_2_state_encoded_in_type_name:
+    violation: "Generic State parameter at TypeScript boundary"
+    consequence: |
+      State is part of the Rust type but invisible in TypeScript.
+      Create concrete newtypes; encode state in the type's name or a parent enum.
+    enforcement: |
+      PATTERN 1: Separate concrete types (RawEvidence, AdmittedEvidence, etc.)
+      PATTERN 2: Single enum type with state variant:
+        export type Evidence<T> =
+          | { stage: "raw"; value: T }
+          | { stage: "admitted"; value: T }
+          | { stage: "refused"; reason: string }
+    test_fixture: |
+      // PATTERN 1: Concrete newtypes (recommended)
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct RawEvidence<T> { pub value: T }
+
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct AdmittedEvidence<T> { pub value: T }
+
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct RefusedEvidence { pub reason: String }
+
+      // GENERATED TYPESCRIPT
+      export type RawEvidence<T> = { value: T };
+      export type AdmittedEvidence<T> = { value: T };
+      export type RefusedEvidence = { reason: string };
+
+      // PATTERN 2: Single enum variant (alternative)
+      #[derive(Serialize, Deserialize, Type)]
+      #[serde(tag = "stage")]
+      pub enum EvidenceStage<T> {
+        #[serde(rename = "raw")]
+        Raw { value: T },
+        #[serde(rename = "admitted")]
+        Admitted { value: T },
+        #[serde(rename = "refused")]
+        Refused { reason: String },
+      }
+
+      // GENERATED TYPESCRIPT
+      export type EvidenceStage<T> =
+        | { stage: "raw"; value: T }
+        | { stage: "admitted"; value: T }
+        | { stage: "refused"; reason: string };
+
+  rule_3_3_admission_wrapping:
+    violation: "Exporting generic Admission<T, W>"
+    consequence: |
+      Admission carries witness W as PhantomData; T must be serializable.
+      Create concrete wrappers or single-envelope types.
+    enforcement: |
+      PATTERN 1: Concrete newtypes per major type:
+        - AdmittedEventLog { value: EventLog }
+        - AdmittedOcelLog { value: OcelLog, witness_key: string }
+      PATTERN 2: Generic Admission<T> (drop W, add witness as string field):
+        export type Admission<T> = { value: T; witness_key: string }
+    test_fixture: |
+      // PATTERN 1: Concrete per-type (recommended)
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct AdmittedEventLog {
+        pub value: EventLog,
+      }
+
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct AdmittedOcelLog {
+        pub value: OcelLog,
+        pub witness_key: String,  // witness metadata extracted as string
+      }
+
+      // PATTERN 2: Generic with witness_key
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct AdmissionSnapshot<T> {
+        pub value: T,
+        pub witness_key: String,
+      }
+
+      // GENERATED TYPESCRIPT
+      export type Admission<T> = {
+        value: T;
+        witness_key: string;
+      };
+
+  rule_3_4_refusal_wrapping:
+    violation: "Exporting generic Refusal<R, W>"
+    consequence: |
+      Refusal carries witness W as PhantomData; R is the reason type.
+      Reason type R must be a concrete enum (never generic).
+    enforcement: |
+      REQUIRE: R is a concrete refusal enum (EventLogRefusal, OcelRefusal, etc.)
+      PATTERN: Create concrete wrapper:
+        pub struct RefusalSnapshot {
+          pub reason: String,  // serialized refusal enum
+          pub witness_key: String,
+        }
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Serialize, Type)]
+      pub struct Refusal<R, W> {
+        reason: R,
+        // witness: PhantomData<W>,
+      }
+      // ERROR: Cannot export generic Refusal; also W is phantom
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub enum EventLogRefusal {
+        DanglingEventObjectLink { event_id: String, object_id: String },
+        InvalidEventType { activity: String },
+        MissingTimestamp { event_index: u32 },
+      }
+
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct RefusalSnapshot {
+        pub reason: EventLogRefusal,  // Concrete reason enum
+        pub witness_key: String,       // Witness as string
+      }
+
+      // GENERATED TYPESCRIPT
+      export type EventLogRefusal =
+        | { DanglingEventObjectLink: { event_id: string; object_id: string } }
+        | { InvalidEventType: { activity: string } }
+        | { MissingTimestamp: { event_index: number } };
+
+      export type Refusal = {
+        reason: EventLogRefusal;
+        witness_key: string;
+      };
+
+---
+
+law_4_witness_metadata_projection:
+
+  rule_4_1_witness_markers_not_exported:
+    violation: "Exporting empty witness enums (Ocel20, Xes1849, etc.)"
+    consequence: |
+      Witness markers are phantom type tags.
+      They have no data; TypeScript cannot represent them.
+    enforcement: |
+      FORBID: enum Ocel20 {} in TypeScript exports
+      EXPORT INSTEAD: struct WitnessMetadata with Witness::KEY, FAMILY, TITLE, YEAR
+    test_fixture: |
+      // FORBIDDEN
+      export enum Ocel20 {}  // Empty enum; no values
+
+      // CORRECT
+      export type WitnessMetadata = {
+        key: string;              // "ocel-2.0"
+        family: "Standard" | "Paper" | "ApiGrammar" | "RustLaw" | "InternalBridge";
+        title: string;            // "OCEL 2.0"
+        year?: number;            // 2020
+      };
+
+      export const OCEL20: WitnessMetadata = {
+        key: "ocel-2.0",
+        family: "Standard",
+        title: "OCEL 2.0",
+        year: 2020,
+      };
+
+  rule_4_2_witness_family_enum:
+    violation: "Exporting Witness trait as abstract type"
+    consequence: |
+      Witness trait is not an enum; it's a marker trait with const metadata.
+      Export WitnessFamily enum and a metadata struct instead.
+    enforcement: |
+      EXPORT: WitnessFamily enum with variants (Standard, Paper, ApiGrammar, RustLaw, InternalBridge)
+      EXPORT: WitnessMetadata struct with key, family, title, year fields
+      EXPORT: Static witness registry (HashMap<string, WitnessMetadata> or function)
+    test_fixture: |
+      // RUST
+      #[derive(Serialize, Deserialize, Type, Clone, Copy)]
+      pub enum WitnessFamily {
+        Standard,
+        Paper,
+        ApiGrammar,
+        RustLaw,
+        InternalBridge,
+      }
+
+      #[derive(Serialize, Deserialize, Type, Clone)]
+      pub struct WitnessMetadata {
+        pub key: String,
+        pub family: WitnessFamily,
+        pub title: String,
+        pub year: Option<u16>,
+      }
+
+      // Witness registry (static, immutable)
+      pub fn get_witness(key: &str) -> Option<WitnessMetadata> {
+        match key {
+          "ocel-2.0" => Some(WitnessMetadata {
+            key: "ocel-2.0".into(),
+            family: WitnessFamily::Standard,
+            title: "OCEL 2.0".into(),
+            year: Some(2020),
+          }),
+          // ... other witnesses ...
+          _ => None,
+        }
+      }
+
+      // GENERATED TYPESCRIPT
+      export type WitnessFamily = "Standard" | "Paper" | "ApiGrammar" | "RustLaw" | "InternalBridge";
+
+      export type WitnessMetadata = {
+        key: string;
+        family: WitnessFamily;
+        title: string;
+        year?: number;
+      };
+
+      export function getWitness(key: string): WitnessMetadata | null { /* ... */ }
+
+---
+
+law_5_loss_accounting_serialization:
+
+  rule_5_1_loss_report_mandatory:
+    violation: "Exporting lossy operation without LossReport"
+    consequence: |
+      Loss must be auditable. Every lossy projection must return LossReport.
+      The report documents what was lost, why, and by how much.
+    enforcement: |
+      REQUIRE: Result<(ProjectedOutput, LossReport), Refusal>
+      NOT: Result<ProjectedOutput, Refusal> (silent loss forbidden)
+    test_fixture: |
+      // FORBIDDEN
+      pub fn project_ocel_to_xes(
+        log: &OcelLog,
+      ) -> Result<XesLog, ProjectionRefusal> {
+        // Silent loss of object-centric structure
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct ProjectionOutcome {
+        pub xes_log: XesLog,
+        pub loss_report: LossReport,
+      }
+
+      pub fn project_ocel_to_xes(
+        log: &OcelLog,
+        policy: LossPolicy,
+      ) -> Result<ProjectionOutcome, ProjectionRefusal> {
+        // LossReport documents all structure loss
+      }
+
+  rule_5_2_loss_policy_concrete:
+    violation: "Exporting generic LossPolicy<T>"
+    consequence: |
+      LossPolicy must be concrete; no type parameters.
+      All variants must be serializable enums (RefuseLoss, AllowNamed, AllowWithReport).
+    enforcement: |
+      REQUIRE: enum LossPolicy with concrete variants
+      VALIDATE: All variants are Serialize + Deserialize
+    test_fixture: |
+      #[derive(Serialize, Deserialize, Type)]
+      #[serde(tag = "kind")]
+      pub enum LossPolicy {
+        #[serde(rename = "RefuseLoss")]
+        RefuseLoss,
+        #[serde(rename = "AllowNamed")]
+        AllowNamed {
+          name: String,
+        },
+        #[serde(rename = "AllowWithReport")]
+        AllowWithReport,
+      }
+
+      // GENERATED TYPESCRIPT
+      export type LossPolicy =
+        | { kind: "RefuseLoss" }
+        | { kind: "AllowNamed"; name: string }
+        | { kind: "AllowWithReport" };
+
+---
+
+law_6_refusal_typing:
+
+  rule_6_1_named_refusal_enums:
+    violation: "Exporting refusal as bare String instead of typed enum"
+    consequence: |
+      Bare strings lose semantic information.
+      TypeScript cannot distinguish DanglingEventObjectLink from InvalidEventType.
+      Refusal reason types MUST be concrete enums with variants.
+    enforcement: |
+      REQUIRE: Concrete enum types: EventLogRefusal, OcelRefusal, XesRefusal, etc.
+      REQUIRE: Each variant names a specific law
+      VALIDATE: All variants carry enough context to diagnose the failure
+    test_fixture: |
+      // FORBIDDEN
+      pub fn admit_ocel_log(log: &OcelLog) -> Result<OcelLog, String> {
+        Err("Invalid OCEL".to_string())  // Loss of semantic information
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub enum OcelRefusal {
+        DanglingEventObjectLink {
+          event_id: String,
+          object_id: String,
+          object_type: String,
+        },
+        InvalidObjectType {
+          object_type: String,
+        },
+        MissingEventType {
+          activity: String,
+        },
+        InvalidAttributeValue {
+          key: String,
+          expected_type: String,
+        },
+      }
+
+      pub fn admit_ocel_log(log: &OcelLog) -> Result<OcelLog, OcelRefusal> {
+        // Return specific variant
+      }
+
+      // GENERATED TYPESCRIPT
+      export type OcelRefusal =
+        | {
+            DanglingEventObjectLink: {
+              event_id: string;
+              object_id: string;
+              object_type: string;
+            };
+          }
+        | { InvalidObjectType: { object_type: string } }
+        | { MissingEventType: { activity: string } }
+        | {
+            InvalidAttributeValue: {
+              key: string;
+              expected_type: string;
+            };
+          };
+
+  rule_6_2_witness_in_refusal:
+    violation: "Exporting refusal without witness information"
+    consequence: |
+      A refusal is issued under a specific witness authority.
+      The witness must be recorded with the refusal for audit.
+    enforcement: |
+      PATTERN: Wrapper struct that carries both reason and witness:
+        pub struct RefusalSnapshot {
+          pub reason: ConcreteRefusalEnum,
+          pub witness_key: String,
+        }
+    test_fixture: |
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct RefusalSnapshot {
+        pub reason: OcelRefusal,  // Typed reason enum
+        pub witness_key: String,   // e.g., "ocel-2.0"
+      }
+
+---
+
+law_7_complete_type_walk:
+
+  rule_7_1_specta_visits_all_types:
+    violation: "Hiding types from specta; type-walking is incomplete"
+    consequence: |
+      Specta walks the entire type tree to generate TypeScript.
+      If a type is hidden (e.g., in a module with pub(crate)), it won't appear in .d.ts.
+      The TypeScript projection becomes incomplete.
+    enforcement: |
+      REQUIRE: All exported types are pub (not pub(crate))
+      REQUIRE: specta::Type is derived on all exported structs/enums
+      VALIDATE: cargo test --features ts generates complete .d.ts
+    test_fixture: |
+      // FORBIDDEN
+      pub(crate) struct InternalEvent {
+        // Hidden from specta
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Type)]
+      pub struct Event {
+        activity: String,
+        timestamp: u64,
+      }
+
+---
+
+quality_gates:
+
+  gate_1_specta_derives:
+    test: "cargo build --features ts"
+    pass_criteria: "All specta::Type derives succeed; no type-walk errors"
+
+  gate_2_no_phantom_export:
+    test: "Audit generated .d.ts for PhantomData, Raw, Parsed, Admitted type params"
+    pass_criteria: "Zero occurrences of phantom markers"
+
+  gate_3_complete_type_coverage:
+    test: "Count types in allowed_modules vs. types in generated .d.ts"
+    pass_criteria: "100% of allowed types present in .d.ts"
+
+  gate_4_serde_roundtrip:
+    test: "cargo test --features ts --doc (all doctests serialize/deserialize)"
+    pass_criteria: "All roundtrip tests pass"
+
+  gate_5_typescript_syntax:
+    test: "tsc --strict --noEmit generated/wasm4pm-compat.d.ts"
+    pass_criteria: "No TypeScript compilation errors"
+
+---
+
+end_of_law: "✅ TS PROJECTION LAW COMPLETE"

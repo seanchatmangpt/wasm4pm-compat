@@ -1,0 +1,669 @@
+# Component Model Projection Manifest
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+
+---
+
+projection_metadata:
+  name: "wasm4pm-compat Component Model Projection"
+  alias: "component.projection"
+  version: "1.0.0"
+  source: "wasm4pm-compat"
+  source_lang: "Rust (nightly)"
+  target: "WebAssembly Component Model (wasm32-wasip1-component)"
+  tool: "wit-bindgen + wit-parser"
+  spec_version: "1.0 (MVP)"
+  feature_gate: "component (new; future feature flag)"
+  stability: "ALPHA (reserved for component model adoption)"
+  purpose: "Type-law surface for component linking: structured admission boundaries, loss covenants, graduation bridges, engine world contracts"
+
+---
+
+component_model_principle:
+  philosophy: "Components are black boxes with type-safe boundaries; witnessing is runtime metadata in WIT"
+  world_split: |
+    compat.world (export): Admission gates, loss accounting, strict boundary, graduation
+    engine.world (import): Discovery, replay, conformance, OCPQ, receipts
+    Linking: compat instance → engine instance (at component link time)
+  refusal_encoding: "Named variant enum (DanglingEventObjectLink, InvalidLossPolicy, etc.)"
+  witness_encoding: "String tag in returned records (witness-id: 'ocel-2.0')"
+  state_encoding: "Lifecycle state as enum variant in return types (admitted, refused, projected, etc.)"
+
+---
+
+compat_wit_exports:
+
+  interfaces:
+
+    types_interface:
+      name: "wasm4pm:compat/types@1.0.0"
+      kind: "type-only"
+      purpose: "Canonical shape definitions shared across all compat interfaces"
+
+      record_definitions:
+
+        event_log:
+          wit_definition: |
+            record event-log {
+              events: list<event>,
+              traces: list<trace>,
+              metadata: event-log-metadata,
+            }
+          constraint: "Ordered sequence of events, optionally grouped into traces"
+
+        ocel_log:
+          wit_definition: |
+            record ocel-log {
+              events: list<ocel-event>,
+              objects: list<ocel-object>,
+              e2o-links: list<event-to-object-link>,
+              o2o-links: list<object-to-object-link>,
+              object-changes: list<object-change>,
+            }
+          constraint: "Object-centric model: events, objects, links, state changes"
+
+        xes_log:
+          wit_definition: |
+            record xes-log {
+              traces: list<xes-trace>,
+              metadata: xes-metadata,
+            }
+          constraint: "XES 1.0 (case-centric event log)"
+
+        loss_report:
+          wit_definition: |
+            record loss-report {
+              from-format: string,
+              to-format: string,
+              items-lost: list<loss-item>,
+              summary: string,
+            }
+          constraint: "Audit trail for lossy transformations"
+
+        process_boundary:
+          wit_definition: |
+            record process-boundary {
+              kind: string,
+              name: string,
+              has-witness: bool,
+              has-round-trip: bool,
+            }
+          constraint: "Declaration of process boundary judgment"
+
+        witness_info:
+          wit_definition: |
+            record witness-info {
+              key: string,
+              family: string,
+              title: string,
+              year: option<u16>,
+            }
+          constraint: "Metadata extracted from Witness trait (KEY, FAMILY, TITLE, YEAR)"
+
+        metric:
+          wit_definition: |
+            record metric {
+              kind: string,
+              numerator: u64,
+              denominator: u64,
+              notes: string,
+            }
+          constraint: "Between01 bounded metric (numerator <= denominator)"
+
+      enum_definitions:
+
+        lifecycle_state:
+          wit_definition: |
+            enum lifecycle-state {
+              raw,        // Pre-parse
+              parsed,     // Syntactically valid
+              admitted,   // Structurally sound
+              refused,    // Admission failed
+              projected,  // Lossy transformation
+              exportable, // Ready for external format
+              receipted,  // Proof generated
+            }
+          constraint: "One-way state progression (never backward)"
+
+        witness_family:
+          wit_definition: |
+            enum witness-family {
+              standard,
+              paper,
+              api-grammar,
+              rust-law,
+              internal-bridge,
+            }
+          constraint: "Classification of witness authorities"
+
+      variant_definitions:
+
+        refusal_reason:
+          wit_definition: |
+            variant refusal-reason {
+              dangling-event-object-link(record {
+                event-id: string,
+                object-id: string,
+                object-type: string,
+              }),
+              missing-final-marking(record {
+                place-id: string,
+                state-id: string,
+              }),
+              invalid-petri-structure(record {
+                violation: string,
+                element-id: string,
+              }),
+              circular-dependency(record {
+                cycle: list<string>,
+              }),
+              hidden-process-mining-growth(record {
+                discovered-elements: u32,
+                boundary-elements: u32,
+              }),
+              invalid-loss-policy(record {
+                transformation: string,
+                policy-required: string,
+              }),
+              witness-mismatch(record {
+                expected: string,
+                found: string,
+              }),
+            }
+          constraint: "Every refusal names a specific law; no bare catch-all"
+
+    admission_interface:
+      name: "wasm4pm:compat/admission@1.0.0"
+      kind: "export"
+      functions:
+
+        - function: "admit-event-log"
+          signature: |
+            func(raw: event-log) -> result<record { value: event-log, witness-id: string }, refusal-reason>
+          contract: |
+            Input: Raw, unvalidated event log
+            Output: (Admitted log + witness tag) OR (named law refusal)
+            Witness: Inferred or explicit (depends on implementation)
+
+        - function: "admit-ocel-log"
+          signature: |
+            func(raw: ocel-log) -> result<record { value: ocel-log, witness-id: string }, refusal-reason>
+          contract: |
+            Input: Raw OCEL log
+            Validates: E2O links, object declarations, structural order
+            Witness: 'ocel-2.0' (explicit)
+            Refusals: DanglingEventObjectLink, InvalidOcelAttribute, etc.
+
+        - function: "admit-xes-log"
+          signature: |
+            func(raw: xes-log) -> result<record { value: xes-log, witness-id: string }, refusal-reason>
+          contract: |
+            Input: Raw XES log
+            Witness: 'xes-1849' (explicit)
+            Refusals: MalformedXesAttribute, InvalidXesTrace, etc.
+
+    loss_interface:
+      name: "wasm4pm:compat/loss@1.0.0"
+      kind: "export"
+      feature_gate: "formats"
+      functions:
+
+        - function: "project-ocel-to-xes"
+          signature: |
+            func(admitted: ocel-log, policy: loss-policy) ->
+              result<record {
+                xes-log: xes-log,
+                report: loss-report,
+              }, refusal-reason>
+          contract: |
+            Input: Admitted OCEL log, loss policy
+            Policy modes:
+              1. "refuse" — Reject any loss (fail if transformation loses data)
+              2. "allow-named" — Allow loss, name it, emit LossReport
+              3. "allow-with-report" — Unconditional; always emit report
+            Output: XES log + mandatory loss report
+            Refusal: InvalidLossPolicy if policy mismatches transformation
+
+        - function: "project-xes-to-dfg"
+          signature: |
+            func(admitted: xes-log, policy: loss-policy) ->
+              result<record {
+                dfg-model: dfg-model,
+                report: loss-report,
+              }, refusal-reason>
+          contract: "Similar to OCEL → XES; outputs directly-follows graph"
+
+    strict_interface:
+      name: "wasm4pm:compat/strict@1.0.0"
+      kind: "export"
+      feature_gate: "strict"
+      functions:
+
+        - function: "check-strict-boundary"
+          signature: |
+            func(boundary: process-boundary) ->
+              result<bool, strict-violation>
+          contract: |
+            Input: Declared process boundary
+            Checks:
+              1. has-witness: boundary carries witness tag (or fail with MissingWitnessMarker)
+              2. has-loss-policy: lossy operations documented (or fail with MissingLossPolicy)
+              3. has-round-trip: bidirectional transformation attested (or fail with MissingRoundTrip)
+            Output: true if all checks pass; strict-violation enum otherwise
+
+    graduation_interface:
+      name: "wasm4pm:compat/graduation@1.0.0"
+      kind: "export"
+      feature_gate: "wasm4pm"
+      functions:
+
+        - function: "graduate-to-wasm4pm"
+          signature: |
+            func(admitted: event-log) ->
+              result<record {
+                is-grounded: bool,
+                reason: string,
+              }, refusal-reason>
+          contract: |
+            Input: Fully admitted evidence (Evidence<T, Admitted, W>)
+            Output: GraduationCandidate (grounded or ungrounded)
+            Grounded: True → Engine can execute discovery/conformance/replay
+            Ungrounded: False → Missing context (loss policy, refusal path, temporal data)
+            Purpose: Signal when evidence is ready to cross into wasm4pm engine
+
+    witness_metadata_interface:
+      name: "wasm4pm:compat/witness-metadata@1.0.0"
+      kind: "export"
+      functions:
+
+        - function: "get-witness-info"
+          signature: |
+            func(key: string) -> option<witness-info>
+          contract: |
+            Input: Witness key (e.g., 'ocel-2.0', 'xes-1849', 'wf-net-soundness-paper')
+            Output: WitnessInfo struct OR null if not found
+            Registry: ~40 witnesses (static, immutable)
+
+        - function: "list-all-witnesses"
+          signature: |
+            func() -> list<witness-info>
+          contract: "Returns all registered witnesses"
+
+---
+
+engine_wit_imports:
+
+  description: "wasm4pm execution engine interfaces; imported by compat component"
+  world_name: "wasm4pm:engine@1.0.0"
+
+  interfaces:
+
+    discovery_interface:
+      name: "wasm4pm:engine/discovery@1.0.0"
+      kind: "import"
+      functions:
+
+        - function: "discover-dfg"
+          signature: |
+            func(admitted: event-log) -> result<dfg-model, string>
+          semantics: "Directly-follows graph discovery"
+
+        - function: "discover-petri"
+          signature: |
+            func(admitted: event-log, method: string) -> result<petri-net, string>
+          semantics: "Petri net discovery (alpha, inductive miner)"
+
+        - function: "discover-bpmn"
+          signature: |
+            func(admitted: event-log) -> result<bpmn-model, string>
+          semantics: "BPMN discovery (process tree conversion)"
+
+    replay_interface:
+      name: "wasm4pm:engine/replay@1.0.0"
+      kind: "import"
+      functions:
+
+        - function: "replay-on-petri"
+          signature: |
+            func(admitted: event-log, model: petri-net) ->
+              result<record {
+                fitness: f64,
+                moves-on-log: u32,
+                moves-on-model: u32,
+              }, string>
+          semantics: "Token replay with move-on-log and move-on-model costs"
+
+        - function: "align-on-petri"
+          signature: |
+            func(admitted: event-log, model: petri-net) ->
+              result<record {
+                cost: u32,
+                alignment: list<string>,
+              }, string>
+          semantics: "Optimal alignment (A* search)"
+
+    conformance_interface:
+      name: "wasm4pm:engine/conformance@1.0.0"
+      kind: "import"
+      functions:
+
+        - function: "check-conformance"
+          signature: |
+            func(admitted: event-log, model: process-model) ->
+              result<list<metric>, string>
+          semantics: "Fitness, precision, generalization, simplicity metrics"
+
+    ocpq_interface:
+      name: "wasm4pm:engine/ocpq@1.0.0"
+      kind: "import"
+      functions:
+
+        - function: "query-object-lifecycle"
+          signature: |
+            func(admitted: ocel-log, object-id: string) ->
+              result<list<record { event-id: string, timestamp: u64, activity: string }>, string>
+          semantics: "Object-centric process query (lifecycle events for one object)"
+
+        - function: "query-object-relations"
+          signature: |
+            func(admitted: ocel-log, object-id: string) ->
+              result<list<string>, string>
+          semantics: "Find related objects"
+
+    receipts_interface:
+      name: "wasm4pm:engine/receipts@1.0.0"
+      kind: "import"
+      functions:
+
+        - function: "generate-receipt"
+          signature: |
+            func(admitted: event-log) -> result<string, string>
+          semantics: "Cryptographic proof / hash of evidence"
+
+        - function: "verify-receipt"
+          signature: |
+            func(admitted: event-log, receipt: string) -> result<bool, string>
+          semantics: "Validate receipt against evidence"
+
+---
+
+world_definitions:
+
+  compat_world:
+    name: "wasm4pm:compat@1.0.0"
+    definition: |
+      package wasm4pm:compat@1.0.0;
+
+      interface types { /* ... */ }
+      interface admission { /* ... */ }
+      interface loss { /* ... */ }
+      interface strict { /* ... */ }
+      interface graduation { /* ... */ }
+      interface witness-metadata { /* ... */ }
+
+      world compat {
+        export types;
+        export admission;
+        export loss;        // feature=formats
+        export strict;      // feature=strict
+        export graduation;  // feature=wasm4pm
+        export witness-metadata;
+      }
+    feature_variants:
+      - "compat.wit (base: types, admission only)"
+      - "compat-formats.wit (formats feature: +loss)"
+      - "compat-strict.wit (strict feature: +strict)"
+      - "compat-wasm4pm.wit (wasm4pm feature: +graduation)"
+      - "compat-full.wit (all features)"
+
+  engine_world:
+    name: "wasm4pm:engine@1.0.0"
+    definition: |
+      package wasm4pm:engine@1.0.0;
+
+      interface discovery { /* ... */ }
+      interface replay { /* ... */ }
+      interface conformance { /* ... */ }
+      interface ocpq { /* ... */ }
+      interface receipts { /* ... */ }
+
+      world engine {
+        import discovery;
+        import replay;
+        import conformance;
+        import ocpq;
+        import receipts;
+      }
+    feature_gate: "wasm4pm"
+    purpose: "Execution engine interface; imported by compat when engine available"
+
+---
+
+witness_flow_at_component_boundary:
+
+  principle: "Witness is metadata, not a phantom type in WIT; encoded as string tag"
+
+  compat_boundary_encoding:
+    description: |
+      Returned records carry witness-id field:
+
+      record admitted-event-log {
+        value: event-log,
+        witness-id: string,  // "ocel-2.0", "xes-1849", etc.
+      }
+
+  engine_consumption:
+    description: |
+      Engine receives witness-id in admitted log; uses it to determine
+      semantic validation strategy.
+
+  example_flow:
+    - step: 1
+      actor: "Component host (JavaScript)"
+      action: "Call compat::admission::admit-ocel-log(raw-ocel)"
+      result: |
+        {
+          value: { events: [...], objects: [...], ... },
+          witness-id: "ocel-2.0",
+        }
+
+    - step: 2
+      actor: "Component host"
+      action: "Call engine::discovery::discover-petri(admitted)"
+      result: |
+        {
+          places: [...],
+          transitions: [...],
+          arcs: [...],
+        }
+      note: "Witness implicitly available via witness-id in admitted"
+
+    - step: 3
+      actor: "Component host"
+      action: "Call engine::conformance::check-conformance(admitted, petri-net)"
+      result: |
+        [
+          { kind: "fitness", numerator: 95, denominator: 100, notes: "95%" },
+          { kind: "precision", numerator: 87, denominator: 100, notes: "87%" },
+        ]
+
+---
+
+refusal_encoding_at_boundary:
+
+  principle: "Every refusal is a named variant of refusal-reason enum"
+
+  variant_structure: |
+    variant refusal-reason {
+      dangling-event-object-link(record { ... }),
+      missing-final-marking(record { ... }),
+      invalid-petri-structure(record { ... }),
+      circular-dependency(record { ... }),
+      hidden-process-mining-growth(record { ... }),
+      invalid-loss-policy(record { ... }),
+      witness-mismatch(record { ... }),
+    }
+
+  enforcement: |
+    Every result<T, refusal-reason> must return one of these variants.
+    No bare strings; no generic "InvalidInput"; no untyped errors.
+    Each variant carries context-specific payload (record of relevant IDs/flags).
+
+  consumption_by_host: |
+    Host code can match on variant:
+      match result {
+        Ok(admitted) => { /* process */ },
+        Err(refusal-reason::dangling-event-object-link(ctx)) => {
+          console.error(`Event ${ctx.event-id} references unknown object ${ctx.object-id}`);
+        },
+        Err(refusal-reason::witness-mismatch(ctx)) => {
+          console.error(`Expected ${ctx.expected} but found ${ctx.found}`);
+        },
+        /* ... other variants ... */
+      }
+
+---
+
+generated_wit_files:
+
+  directory: "ggen/wit"
+
+  files:
+    - name: "types.wit"
+      scope: "shared type definitions (always present)"
+      contains: |
+        - event-log, ocel-log, xes-log (records)
+        - loss-report, process-boundary, witness-info (records)
+        - lifecycle-state, witness-family (enums)
+        - refusal-reason (variant)
+        - metric (record)
+      size_estimate: "~1 KB"
+
+    - name: "compat.wit"
+      scope: "base compat world (types + admission only)"
+      contains: |
+        - types interface
+        - admission interface
+      size_estimate: "~500 B"
+
+    - name: "compat-formats.wit"
+      scope: "compat world with loss (feature=formats)"
+      contains: |
+        - types interface
+        - admission interface
+        - loss interface
+      size_estimate: "~800 B"
+
+    - name: "compat-strict.wit"
+      scope: "compat world with strict boundary (feature=strict)"
+      contains: |
+        - types interface
+        - admission interface
+        - strict interface
+      size_estimate: "~600 B"
+
+    - name: "compat-wasm4pm.wit"
+      scope: "compat world with graduation bridge (feature=wasm4pm)"
+      contains: |
+        - types interface
+        - admission interface
+        - graduation interface
+        - witness-metadata interface
+      size_estimate: "~700 B"
+
+    - name: "compat-full.wit"
+      scope: "compat world with all features"
+      contains: |
+        - types, admission, loss, strict, graduation, witness-metadata interfaces
+      size_estimate: "~1.2 KB"
+
+    - name: "engine.wit"
+      scope: "engine world (import only; feature=wasm4pm)"
+      contains: |
+        - discovery interface
+        - replay interface
+        - conformance interface
+        - ocpq interface
+        - receipts interface
+      size_estimate: "~1 KB"
+
+  audit_files:
+    - name: "wit-validation.md"
+      purpose: "Verify WIT syntax and world composition"
+      checks: |
+        - [ ] All .wit files parse without errors
+        - [ ] All imported types are available in scope
+        - [ ] No circular dependencies between worlds
+        - [ ] refusal-reason variant covers all named laws
+        - [ ] witness-family enum matches Witness trait families
+
+    - name: "wit-conformance.md"
+      purpose: "Cross-check WIT against Rust type definitions"
+      checks: |
+        - [ ] event-log WIT matches EventLog struct fields
+        - [ ] ocel-log WIT matches OcelLog struct fields
+        - [ ] refusal-reason variants match admission refusal enums
+        - [ ] witness-info fields match Witness trait const metadata
+
+---
+
+receipt:
+  receipt_type: "wasm4pm-compat component model projection"
+  receipt_path: "generated/component.receipt.json"
+  receipt_contents:
+    tool: "wit-bindgen + wit-parser"
+    target: "wasm32-wasip1-component"
+    feature_gate: "component (future)"
+    compat_worlds: 5 (base, formats, strict, wasm4pm, full)
+    engine_world: 1
+    interfaces_exported: 6 (types, admission, loss, strict, graduation, witness-metadata)
+    interfaces_imported: 5 (discovery, replay, conformance, ocpq, receipts)
+    refusal_variants: 7 (named laws)
+    witness_families: 5
+    lifecycle_states: 7
+    generated_files: ["types.wit", "compat.wit", "compat-*.wit", "engine.wit"]
+    audit_files: ["wit-validation.md", "wit-conformance.md"]
+    law_version: "component-boundary-law v1.0.0"
+    timestamp: "2026-06-01T00:00:00Z"
+
+---
+
+integration_roadmap:
+
+  phase_1:
+    title: "WIT File Generation"
+    effort: "2-3 weeks"
+    deliverables:
+      - "ggen/wit/types.wit (shared type defs)"
+      - "ggen/wit/compat.wit and feature variants"
+      - "ggen/wit/engine.wit (engine world import spec)"
+
+  phase_2:
+    title: "wit-bindgen Integration"
+    effort: "2-3 weeks"
+    tasks:
+      - "Add wit-bindgen to build.rs"
+      - "Generate Rust bindings in target/wit-gen/"
+      - "Validate generated types match src/admission.rs, src/loss.rs"
+      - "Test roundtrip: Rust struct → WIT → Rust struct"
+
+  phase_3:
+    title: "Component Linking"
+    effort: "3-4 weeks"
+    tasks:
+      - "Implement compat component guest (exports admission, loss, graduation)"
+      - "Implement engine component host (imports and adapts discovery, conformance, etc.)"
+      - "Test component linking via wasmtime component bindgen"
+
+  phase_4:
+    title: "Boundary Audit & Testing"
+    effort: "2 weeks"
+    tasks:
+      - "Verify WIT conformance to Rust types"
+      - "Test cross-component refusal handling"
+      - "Add component linking test suite"
+      - "Document component boundary contract"
+
+---
+
+end_of_projection: "✅ COMPONENT PROJECTION COMPLETE (ALPHA)"

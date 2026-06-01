@@ -1,0 +1,573 @@
+# Component Model Boundary Law
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+# Authority: WebAssembly Component Model MVP + Wit specification
+
+---
+
+law_metadata:
+  name: "Component Model Boundary Law"
+  codename: "component-boundary-law"
+  version: "1.0.0"
+  applies_to: "component.projection.yaml"
+  tool: "wit-bindgen + wit-parser"
+  spec: "WebAssembly Component Model 1.0 (MVP)"
+  authority: "WIT type system doctrine; type-safe component linking"
+  enforcement: "Compile-time (wit-bindgen validation) + Component link-time"
+
+---
+
+central_principle: |
+  Component Model is a framework for composing WebAssembly modules via
+  type-safe interfaces (WIT). The component boundary enforces:
+
+  1. **TYPED INTERFACES**: All functions are explicitly typed with WIT records, enums, variants.
+     - No bare strings; no untyped JSON
+     - Witness is string metadata, not a type
+     - State is enum variant in return type, not a phantom type
+
+  2. **WORLD SEPARATION**: Compat exports; Engine imports.
+     - compat.world exports: admission, loss, strict, graduation
+     - engine.world imports: discovery, replay, conformance, ocpq, receipts
+     - Host links compat instance to engine instance at component creation time
+
+  3. **REFUSAL PRECISION**: Named variant enum for every error.
+     - Never bare String; always refusal-reason variant
+     - Witness authority immutable and included in refusal
+     - Named laws: DanglingEventObjectLink, InvalidLossPolicy, WitnessMismatch, etc.
+
+  4. **WITNESS METADATA**: Extracted as record fields, not phantom types.
+     - witness-id: string field in returned records
+     - witness-family: enum (Standard, Paper, ApiGrammar, RustLaw, InternalBridge)
+     - Static witness registry accessible via interface
+
+---
+
+law_1_wit_interface_typing:
+
+  rule_1_1_no_bare_strings:
+    violation: "Using string type for error or witness in WIT function"
+    consequence: |
+      Bare strings lose semantic information and type safety.
+      Host code cannot distinguish error types.
+      WIT variant enums enforce structure.
+    enforcement: |
+      FORBID: func(...) -> result<T, string>
+      REQUIRE: func(...) -> result<T, refusal-reason>
+      REQUIRE: refusal-reason is variant enum with named fields
+    test_fixture: |
+      // FORBIDDEN (incorrect)
+      func admit-ocel-log(raw: ocel-log) -> result<ocel-log, string>
+
+      // CORRECT (typed variant)
+      variant refusal-reason {
+        dangling-event-object-link(record {
+          event-id: string,
+          object-id: string,
+          object-type: string,
+        }),
+        invalid-ocel-attribute(record {
+          key: string,
+          expected-type: string,
+        }),
+        // ... other variants ...
+      }
+
+      func admit-ocel-log(raw: ocel-log) -> result<record { value: ocel-log, witness-id: string }, refusal-reason>
+
+  rule_1_2_witness_as_record_field:
+    violation: "Witness as generic type parameter in WIT"
+    consequence: |
+      WIT does not support generic type parameters.
+      Witness must be a field in returned record.
+    enforcement: |
+      FORBID: func<W>(...) -> T  (WIT does not support generic functions)
+      REQUIRE: func(...) -> record { value: T, witness-id: string }
+      REQUIRE: witness-id is always a string constant (e.g., "ocel-2.0")
+    test_fixture: |
+      // CORRECT (witness as field)
+      record admitted-ocel-log {
+        value: ocel-log,
+        witness-id: string,  // "ocel-2.0"
+      }
+
+      func admit-ocel-log(raw: ocel-log) -> result<admitted-ocel-log, refusal-reason>
+
+  rule_1_3_state_as_enum_variant:
+    violation: "State as generic type parameter in WIT"
+    consequence: |
+      WIT does not support generic type parameters.
+      State (Raw, Parsed, Admitted, Refused) must be encoded in return type.
+    enforcement: |
+      FORBID: func<State>(...) -> T  (generic not allowed)
+      REQUIRE: func(...) -> enum { raw, parsed, admitted, refused, projected, ... }
+      ALTERNATIVE: func(...) -> result<admitted-log, refusal-reason>
+      (result<T, E> encodes success/failure via enum variant)
+    test_fixture: |
+      // CORRECT (state encoded as enum return value)
+      enum lifecycle-state {
+        raw,
+        parsed,
+        admitted,
+        refused,
+        projected,
+        exportable,
+        receipted,
+      }
+
+      record evidence-snapshot {
+        state: lifecycle-state,
+        value: string,  // serialized payload
+      }
+
+      // OR: Use result<T, E> to encode Admitted vs Refused
+      func admit-event-log(raw: event-log) ->
+        result<record { value: event-log, witness-id: string }, refusal-reason>
+
+---
+
+law_2_world_split:
+
+  rule_2_1_compat_world_exports_only:
+    violation: "Compat world imports from engine (circular or inappropriate)"
+    consequence: |
+      Compat is structure-only; engine is execution.
+      Compat cannot depend on engine to function.
+    enforcement: |
+      REQUIRE: compat.world exports admission, loss, strict, graduation, witness-metadata
+      FORBID: compat.world imports discovery, replay, conformance, ocpq, receipts
+      SEMANTICS: Compat instance is standalone; host links it to engine separately
+    test_fixture: |
+      // CORRECT (compat.world)
+      world compat {
+        export types;
+        export admission;
+        export loss;
+        export strict;
+        export graduation;
+        export witness-metadata;
+
+        // NO IMPORTS FROM ENGINE
+      }
+
+  rule_2_2_engine_world_imports_only:
+    violation: "Engine world exports functions (backwards dependency)"
+    consequence: |
+      Engine is consumed by host; it does not export to compat.
+      Engine imports discovery, replay, conformance, etc. algorithms.
+    enforcement: |
+      REQUIRE: engine.world imports discovery, replay, conformance, ocpq, receipts
+      FORBID: engine.world exports anything
+      SEMANTICS: Host imports engine world; compat and engine are linked at runtime by host
+    test_fixture: |
+      // CORRECT (engine.world)
+      world engine {
+        import discovery;
+        import replay;
+        import conformance;
+        import ocpq;
+        import receipts;
+
+        // NO EXPORTS
+      }
+
+  rule_2_3_linking_at_host_level:
+    violation: "Trying to link compat and engine at component definition time"
+    consequence: |
+      Linking is a host-level concern, not a component concern.
+      Host orchestrates: compat instance → engine instance flow.
+    enforcement: |
+      ARCHITECTURE: Host creates two component instances (compat, engine)
+      ORCHESTRATION: Host calls compat to admit evidence, receives GraduationCandidate
+      ORCHESTRATION: Host sends graduated evidence to engine
+      ORCHESTRATION: Host receives execution results back from engine
+      SEMANTICS: No direct WIT link between compat.world and engine.world
+
+---
+
+law_3_refusal_encoding:
+
+  rule_3_1_variant_per_named_law:
+    violation: "Generic 'error' variant instead of named law refusal"
+    consequence: |
+      Generic errors lose information.
+      Host cannot distinguish DanglingEventObjectLink from InvalidLossPolicy.
+    enforcement: |
+      REQUIRE: refusal-reason variant with one case per named law
+      REQUIRE: Each variant carries context-specific record fields
+      REQUIRE: Named laws: DanglingEventObjectLink, InvalidPetriStructure, CircularDependency, etc.
+    test_fixture: |
+      // CORRECT
+      variant refusal-reason {
+        dangling-event-object-link(record {
+          event-id: string,
+          object-id: string,
+          object-type: string,
+        }),
+        missing-final-marking(record {
+          place-id: string,
+          state-id: string,
+        }),
+        invalid-petri-structure(record {
+          violation: string,
+          element-id: string,
+        }),
+        circular-dependency(record {
+          cycle: list<string>,
+        }),
+        hidden-process-mining-growth(record {
+          discovered-elements: u32,
+          boundary-elements: u32,
+        }),
+        invalid-loss-policy(record {
+          transformation: string,
+          policy-required: string,
+        }),
+        witness-mismatch(record {
+          expected: string,
+          found: string,
+        }),
+      }
+
+  rule_3_2_witness_in_refusal_context:
+    violation: "Refusal without witness metadata"
+    consequence: |
+      Refusal is issued under a witness authority.
+      Without witness context, audit trail is incomplete.
+    enforcement: |
+      PATTERN: Wrapper record at function return level:
+        record refusal-snapshot {
+          reason: refusal-reason,
+          witness-id: string,
+        }
+      PATTERN: Or include witness in variant payload (per-law context)
+    test_fixture: |
+      // PATTERN 1: Wrapper record
+      record refusal-snapshot {
+        reason: refusal-reason,
+        witness-id: string,
+        detail: option<string>,  // optional diagnostic
+      }
+
+      func admit-ocel-log(raw: ocel-log) ->
+        result<record { value: ocel-log, witness-id: string }, refusal-snapshot>
+
+      // PATTERN 2: Witness in variant payload (alternative)
+      variant refusal-reason {
+        dangling-event-object-link(record {
+          event-id: string,
+          object-id: string,
+          object-type: string,
+          witness-id: string,  // Witness context
+        }),
+        // ... other variants ...
+      }
+
+  rule_3_3_refusal_context_specificity:
+    violation: "Refusal variant without enough context to diagnose"
+    consequence: |
+      Host cannot determine root cause.
+      Refusal becomes useless for troubleshooting.
+    enforcement: |
+      REQUIRE: Each variant payload includes all relevant IDs/flags
+      REQUIRE: variant DanglingEventObjectLink must include: event-id, object-id, object-type
+      REQUIRE: variant CircularDependency must include: list of IDs in cycle
+      EXAMPLE: variant hidden-process-mining-growth must include: discovered count vs boundary count
+
+---
+
+law_4_loss_covenant:
+
+  rule_4_1_loss_report_mandatory:
+    violation: "Lossy projection without loss-report in output"
+    consequence: |
+      Loss is auditable via loss-report.
+      Without it, host cannot track what structure was lost.
+    enforcement: |
+      REQUIRE: All lossy functions return record with xes-log and loss-report
+      NOT: func project-ocel-to-xes(...) -> result<xes-log, ...>
+      YES: func project-ocel-to-xes(...) -> result<record { xes-log: xes-log, report: loss-report }, ...>
+    test_fixture: |
+      // FORBIDDEN
+      func project-ocel-to-xes(admitted: ocel-log, policy: loss-policy) ->
+        result<xes-log, refusal-reason>  // No loss-report!
+
+      // CORRECT
+      record projection-outcome {
+        xes-log: xes-log,
+        report: loss-report,
+      }
+
+      func project-ocel-to-xes(admitted: ocel-log, policy: loss-policy) ->
+        result<projection-outcome, refusal-reason>
+
+  rule_4_2_loss_policy_constraint:
+    violation: "Ignoring loss-policy; allowing silent loss"
+    consequence: |
+      Policy determines behavior: refuse, allow-named, allow-with-report.
+      Ignoring policy violates the covenant.
+    enforcement: |
+      REQUIRE: Check policy before projection
+      FORBID: Projecting without enforcing policy constraint
+      REFUSAL: If policy is "refuse" and transformation loses data, fail with InvalidLossPolicy
+    test_fixture: |
+      // WIT
+      enum loss-policy-kind {
+        refuse,              // Fail if any loss
+        allow-named,         // Allow loss; name it
+        allow-with-report,   // Allow loss; always report
+      }
+
+      record loss-policy {
+        kind: loss-policy-kind,
+        name: option<string>,  // For allow-named
+      }
+
+      // IMPLEMENTATION LOGIC
+      func project-ocel-to-xes(admitted: ocel-log, policy: loss-policy) ->
+        result<projection-outcome, refusal-reason>
+      {
+        // Check policy
+        if (policy.kind == "refuse" && contains-loss(admitted)) {
+          return Err(refusal-reason::invalid-loss-policy(...))
+        }
+        // Proceed; emit loss-report
+      }
+
+---
+
+law_5_witness_metadata:
+
+  rule_5_1_static_registry:
+    violation: "Witness metadata not accessible via WIT interface"
+    consequence: |
+      Host cannot query witness information at runtime.
+      Type information becomes opaque.
+    enforcement: |
+      REQUIRE: Interface witness-metadata with functions:
+        - get-witness-info(key: string) -> option<witness-info>
+        - list-all-witnesses() -> list<witness-info>
+      REQUIRE: ~40 witnesses available (Ocel20, Xes1849, WfNetSoundness, etc.)
+    test_fixture: |
+      // WIT
+      enum witness-family {
+        standard,
+        paper,
+        api-grammar,
+        rust-law,
+        internal-bridge,
+      }
+
+      record witness-info {
+        key: string,                // "ocel-2.0"
+        family: witness-family,     // "standard"
+        title: string,              // "OCEL 2.0"
+        year: option<u16>,          // 2020
+      }
+
+      interface witness-metadata {
+        get-witness-info: func(key: string) -> option<witness-info>;
+        list-all-witnesses: func() -> list<witness-info>;
+      }
+
+  rule_5_2_immutable_registry:
+    violation: "Allowing mutation of witness metadata at runtime"
+    consequence: |
+      Witness definitions must be static and immutable.
+      Runtime registration breaks reproducibility.
+    enforcement: |
+      FORBID: register-witness(key, metadata) function at boundary
+      FORBID: mutate-witness-metadata(key, new-info) function
+      REQUIRE: Witness metadata is compile-time constant
+      REQUIRE: No I/O or network access for witness definitions
+
+---
+
+law_6_graduation_bridge:
+
+  rule_6_1_graduation_candidate_export:
+    violation: "No graduation signal at boundary"
+    consequence: |
+      Without GraduationCandidate, host has no typed signal for graduation.
+      Graduation becomes implicit and unauditable.
+    enforcement: |
+      REQUIRE: Interface graduation with function:
+        graduate-to-wasm4pm(admitted: event-log) ->
+          result<record { is-grounded: bool, reason: string }, refusal-reason>
+      FEATURE_GATE: wasm4pm
+    test_fixture: |
+      // WIT
+      record graduation-signal {
+        is-grounded: bool,
+        reason: string,  // "GroundedAtFullAdmission", "UngroundedMissingLossPolicy", etc.
+      }
+
+      interface graduation {
+        graduate-to-wasm4pm: func(admitted: event-log) ->
+          result<graduation-signal, refusal-reason>;
+      }
+
+  rule_6_2_graduation_reason_enum:
+    violation: "Graduation reason as bare string (untyped)"
+    consequence: |
+      Host cannot programmatically determine graduation status.
+    enforcement: |
+      RECOMMEND: Extend WIT to support reason enum (when supported in future WIT versions)
+      CURRENT: reason: string with well-known values:
+        - "GroundedAtFullAdmission"
+        - "UngroundedMissingLossPolicy"
+        - "UngroundedMissingRefusalPath"
+        - "UngroundedHiddenProcessMiningGrowth"
+        - "UngroundedTemporalOrdering"
+        - "UngroundedObjectLife"
+
+---
+
+law_7_feature_gating_in_wit:
+
+  rule_7_1_wit_file_per_feature:
+    violation: "Single WIT file for all feature combinations"
+    consequence: |
+      Consumers of non-default features include unwanted exports.
+      Feature gates become meaningless at the boundary.
+    enforcement: |
+      REQUIRE: compat.wit (base: types, admission only)
+      REQUIRE: compat-formats.wit (formats: +loss)
+      REQUIRE: compat-strict.wit (strict: +strict)
+      REQUIRE: compat-wasm4pm.wit (wasm4pm: +graduation)
+      REQUIRE: compat-full.wit (all features)
+      PATTERN: Each .wit file corresponds to a feature combination
+    test_fixture: |
+      // BASE (compat.wit)
+      world compat {
+        export types;
+        export admission;
+      }
+
+      // WITH FORMATS (compat-formats.wit)
+      world compat {
+        export types;
+        export admission;
+        export loss;
+      }
+
+      // WITH WASM4PM (compat-wasm4pm.wit)
+      world compat {
+        export types;
+        export admission;
+        export graduation;
+        export witness-metadata;
+      }
+
+  rule_7_2_feature_not_in_interface_names:
+    violation: "Interface names change based on feature (e.g., loss-formats vs loss)"
+    consequence: |
+      Interface names must be stable; feature gates affect presence, not naming.
+    enforcement: |
+      REQUIRE: loss interface name is always "wasm4pm:compat/loss"
+      REQUIRE: Feature gates control world inclusion, not interface naming
+
+---
+
+law_8_type_consistency:
+
+  rule_8_1_record_field_names:
+    violation: "Using kebab-case in WIT but camelCase in Rust struct"
+    consequence: |
+      wit-bindgen mapping is inconsistent; deserialization fails.
+    enforcement: |
+      REQUIRE: WIT record field names use kebab-case (event-id, object-type)
+      REQUIRE: wit-bindgen #[serde(rename)] to map from snake_case Rust
+      VALIDATE: Roundtrip test: Rust struct → WIT → Rust struct
+    test_fixture: |
+      // WIT
+      record ocel-event {
+        event-id: string,
+        object-id: string,
+        timestamp-ns: u64,
+      }
+
+      // RUST (wit-bindgen generated)
+      #[derive(Serialize, Deserialize)]
+      pub struct OcelEvent {
+        #[serde(rename = "event-id")]
+        pub event_id: String,
+        #[serde(rename = "object-id")]
+        pub object_id: String,
+        #[serde(rename = "timestamp-ns")]
+        pub timestamp_ns: u64,
+      }
+
+  rule_8_2_list_over_vec:
+    violation: "Using WIT list<T> but Rust represents as collection type mismatch"
+    consequence: |
+      WIT list maps to Rust Vec; other collection types cause serialization mismatches.
+    enforcement: |
+      REQUIRE: WIT list<T> ↔ Rust Vec<T>
+      REQUIRE: WIT option<T> ↔ Rust Option<T>
+      REQUIRE: WIT record ↔ Rust struct
+      REQUIRE: WIT variant ↔ Rust enum
+      REQUIRE: WIT enum ↔ Rust enum
+
+---
+
+law_9_boundary_audit:
+
+  rule_9_1_wit_validation:
+    violation: "WIT syntax errors uncaught before component creation"
+    consequence: |
+      Syntax errors cause build failures.
+      WIT files must be validated early.
+    enforcement: |
+      REQUIRE: cargo check --features component must parse all .wit files
+      REQUIRE: wit-parser validates all .wit for syntax correctness
+      VALIDATE: All interfaces are reachable from world exports
+
+  rule_9_2_conformance_testing:
+    violation: "No tests verifying WIT-to-Rust roundtrip"
+    consequence: |
+      Serialization mismatches discovered at runtime (too late).
+    enforcement: |
+      REQUIRE: Roundtrip tests: Rust struct → WIT → Rust struct (equality check)
+      REQUIRE: Test all major types: event-log, ocel-log, loss-report, etc.
+      REQUIRE: Test refusal variants (all cases)
+
+---
+
+quality_gates:
+
+  gate_1_wit_parsing:
+    test: "wit-parser validates all .wit files"
+    pass_criteria: "No syntax errors"
+
+  gate_2_world_completeness:
+    test: "Verify all exports reachable from world definition"
+    pass_criteria: "All interfaces linked"
+
+  gate_3_no_circular_dependencies:
+    test: "Graph analysis of interface use/dependency"
+    pass_criteria: "No cycles (compat exports only; engine imports only)"
+
+  gate_4_refusal_completeness:
+    test: "Enumerate all refusal-reason variants; verify coverage"
+    pass_criteria: "7+ named law variants present"
+
+  gate_5_witness_consistency:
+    test: "Verify witness-id field present in all admission outputs"
+    pass_criteria: "100% of admitted records have witness-id"
+
+  gate_6_loss_report_presence:
+    test: "Audit all lossy functions; verify loss-report in output"
+    pass_criteria: "All projections include loss-report"
+
+  gate_7_graduation_signal:
+    test: "Verify graduation interface present iff wasm4pm feature"
+    pass_criteria: "Conditional export correct"
+
+  gate_8_binding_generation:
+    test: "wit-bindgen generates Rust bindings; cargo check passes"
+    pass_criteria: "Generated types compile"
+
+---
+
+end_of_law: "✅ COMPONENT BOUNDARY LAW COMPLETE"

@@ -1,0 +1,672 @@
+# Specta TypeScript Projection Candidates for wasm4pm-compat
+# Generated: 2026-06-01
+# Scope: Module-by-module type exportability analysis
+
+---
+
+metadata:
+  crate_name: wasm4pm-compat
+  nightly_features:
+    - generic_const_exprs
+    - adt_const_params
+    - const_trait_impl
+    - min_specialization
+    - portable_simd
+  specta_version: "1.0.5"
+  typescript_target: "TypeScript 4.5+"
+  analysis_date: 2026-06-01
+
+---
+
+# TIER 1: IMMEDIATELY EXPORTABLE
+# ============================================================
+# Types with no type parameters, PhantomData, or const generics.
+# Pure data structures with Serde integration.
+
+tier_1_immediate:
+
+  # Module: eventlog
+  # Status: ✅ READY FOR EXPORT
+  # Context: Classical case-centric event logs. No generics, pure data.
+  
+  eventlog:
+    module_path: "src/eventlog.rs"
+    exportability: "READY"
+    tier: 1
+    note: "Core domain shapes; no type parameters or PhantomData"
+    
+    types:
+      - name: "Event"
+        kind: "struct"
+        fields:
+          - activity: "String"
+          - timestamp_ns: "Option<i64>"
+          - resource: "Option<String>"
+          - lifecycle: "Option<String>"
+        derives: ["Clone", "Debug", "PartialEq", "Eq"]
+        serde_attrs: "none"
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type Event = {
+            activity: string;
+            timestamp_ns: bigint | null;
+            resource: string | null;
+            lifecycle: string | null;
+          }
+        notes:
+          - "Builder API (at_ns, by, with_lifecycle) stays in Rust"
+          - "Export the struct shape only; builder methods not projected"
+      
+      - name: "Trace"
+        kind: "struct"
+        fields:
+          - id: "String"
+          - events: "Vec<Event>"
+        derives: ["Clone", "Debug", "PartialEq", "Eq"]
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type Trace = {
+            id: string;
+            events: Event[];
+          }
+      
+      - name: "EventLog"
+        kind: "struct"
+        fields:
+          - traces: "Vec<Trace>"
+        derives: ["Clone", "Debug", "PartialEq", "Eq"]
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type EventLog = {
+            traces: Trace[];
+          }
+      
+      - name: "EventStream"
+        kind: "struct"
+        note: "Append-only buffer; may contain mutable state. Defer or provide snapshot type."
+        exportability: "DEFER"
+
+  # Module: ocel
+  # Status: ✅ MOSTLY READY
+  # Context: Object-centric event logs. First-class multi-object-per-event model.
+  
+  ocel:
+    module_path: "src/ocel.rs"
+    exportability: "READY_WITH_REFACTORING"
+    tier: 1
+    note: "Core OCEL 2.0 shapes. Some types need structural simplification."
+    
+    types:
+      - name: "OcelAttributeValue"
+        kind: "enum"
+        variants:
+          - String(String)
+          - Integer(i64)
+          - Float(f64)
+          - Boolean(bool)
+          - TimestampNs(i64)
+          - List(Vec<OcelAttributeValue>)
+          - Map(Vec<(String, OcelAttributeValue)>)
+        derives: ["Clone", "Debug", "PartialEq"]
+        serde_attrs: "#[serde(...)] — check attribute usage"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+        typescript_shape: |
+          type OcelAttributeValue =
+            | { String: string }
+            | { Integer: bigint }
+            | { Float: number }
+            | { Boolean: boolean }
+            | { TimestampNs: bigint }
+            | { List: OcelAttributeValue[] }
+            | { Map: [string, OcelAttributeValue][] }
+      
+      - name: "OcelAttribute"
+        kind: "struct"
+        fields:
+          - key: "String"
+          - value: "OcelAttributeValue"
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type OcelAttribute = {
+            key: string;
+            value: OcelAttributeValue;
+          }
+      
+      - name: "OcelEvent"
+        kind: "struct"
+        fields:
+          - id: "u64"
+          - timestamp_ns: "i64"
+          - activity: "String"
+          - attributes: "Vec<OcelAttribute>"
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type OcelEvent = {
+            id: bigint;
+            timestamp_ns: bigint;
+            activity: string;
+            attributes: OcelAttribute[];
+          }
+      
+      - name: "OcelObject"
+        kind: "struct"
+        fields:
+          - id: "u64"
+          - type_name: "String"
+          - attributes: "Vec<OcelAttribute>"
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type OcelObject = {
+            id: bigint;
+            type_name: string;
+            attributes: OcelAttribute[];
+          }
+      
+      - name: "OcelLog"
+        kind: "struct"
+        note: "Check if this contains internal indices or HashMap fields; may need refactoring."
+        exportability: "DEFER_IF_COMPLEX"
+
+  # Module: ids
+  # Status: ⚠️ NEEDS STRUCTURAL CHANGE
+  # Context: Kind-typed identifier wrappers with PhantomData.
+  
+  ids:
+    module_path: "src/ids.rs"
+    exportability: "REFACTOR_RECOMMENDED"
+    tier: 1_alt
+    note: |
+      Generic kind markers (K) are PhantomData. Cannot export Evidence<T, K> 
+      directly. Recommend concrete wrappers or simpler newtype exports.
+    
+    types:
+      - name: "EventId<K>"
+        kind: "struct"
+        definition: "#[repr(transparent)] pub struct EventId<K> { raw: u64, _kind: PhantomData<K> }"
+        exportability: "REFACTOR"
+        recommendation: |
+          Option A: Export as concrete types (EventId without K parameter)
+            - pub struct EventId { pub value: u64 }
+            - Add newtype per log: LogEventId { pub value: u64 }
+          
+          Option B: Skip generic export, provide helper functions
+            - export fn event_id(raw: u64) -> EventId { EventId { value: raw } }
+        typescript_option_a: |
+          type EventId = { value: bigint };
+          type LogEventId = { value: bigint };
+        typescript_option_b: |
+          function event_id(raw: bigint): EventId { return { value: raw }; }
+      
+      - name: "ObjectId<K>"
+        kind: "struct"
+        exportability: "SAME_AS_EventId"
+        recommendation: "Mirror EventId refactoring"
+      
+      - name: "CaseId<K>"
+        kind: "struct"
+        exportability: "SAME_AS_EventId"
+        recommendation: "Mirror EventId refactoring"
+      
+      - name: "ObjectTypeName"
+        kind: "struct"
+        fields:
+          - name: "String"
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type)]"
+        typescript_shape: |
+          type ObjectTypeName = { name: string };
+      
+      - name: "EventTypeName"
+        kind: "struct"
+        fields:
+          - name: "String"
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type)]"
+
+---
+
+# TIER 2: REQUIRES TYPE PARAMETER HANDLING
+# ============================================================
+# Types with generic T but no const parameters or PhantomData witness tags.
+# Can be exported if generic constraints are clear.
+
+tier_2_generics:
+
+  # Module: admission
+  # Status: ⚠️ PARTIAL EXPORT
+  # Context: Boundary admission/refusal shapes. Carries witness W as PhantomData.
+  
+  admission:
+    module_path: "src/admission.rs"
+    exportability: "PARTIAL_WITH_WRAPPER"
+    tier: 2
+    note: |
+      Admission and Refusal carry a witness W (PhantomData). 
+      Cannot export W generically to TypeScript.
+      Recommend concrete refusals or witness-as-string wrapper.
+    
+    types:
+      - name: "Admission<T, W>"
+        kind: "struct"
+        definition: "pub struct Admission<T, W> { value: T, witness: PhantomData<W> }"
+        exportability: "WRAPPER_RECOMMENDED"
+        recommendation: |
+          Option A: Export without witness generics
+            - pub struct Admission<T> { pub value: T }
+            - Witness name available via Witness::KEY const string
+          
+          Option B: Add witness as a string field
+            - pub struct Admission<T> { pub value: T, pub witness_key: String }
+        typescript_option_a: |
+          type Admission<T> = { value: T };
+          // Witness enum or registry on TypeScript side
+          const OCEL20_KEY = "ocel-2.0";
+        typescript_option_b: |
+          type Admission<T> = { value: T; witness_key: string };
+      
+      - name: "Refusal<R, W>"
+        kind: "struct"
+        definition: "pub struct Refusal<R, W> { reason: R, witness: PhantomData<W> }"
+        exportability: "WRAPPER_RECOMMENDED"
+        recommendation: "Mirror Admission<T, W> strategy"
+        note: |
+          R is the reason type (e.g., OcelRefusal). These should be enums
+          with all variants implementing Type. Can be exported.
+
+  # Module: loss
+  # Status: ✅ MOSTLY READY
+  # Context: Loss accounting and projection names. Structural only.
+  
+  loss:
+    module_path: "src/loss.rs"
+    exportability: "READY"
+    tier: 2
+    note: "Loss policies, projection names, and loss reports are structural"
+    
+    types:
+      - name: "ProjectionName"
+        kind: "newtype"
+        definition: "pub struct ProjectionName(&'static str)"
+        exportability: "✅ READY"
+        specta_derive: "Manually implement Type or provide concrete enum"
+        typescript_shape: |
+          type ProjectionName = string; // or enum of known projections
+      
+      - name: "LossPolicy"
+        kind: "enum"
+        variants:
+          - RefuseLoss
+          - AllowNamedProjection(ProjectionName)
+          - AllowLossWithReport
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+        typescript_shape: |
+          type LossPolicy = 
+            | { RefuseLoss: {} }
+            | { AllowNamedProjection: { name: string } }
+            | { AllowLossWithReport: {} }
+      
+      - name: "LossReport<From, To, Items>"
+        kind: "struct"
+        exportability: "⚠️ NEEDS_CONSTRAINTS"
+        note: |
+          From, To, Items are generics. Can export if they bound to Type.
+          May require concrete types or simplified wrapper.
+
+---
+
+# TIER 3: TYPE-LAW ENFORCEMENT (COMPILE-TIME ONLY)
+# ============================================================
+# Types that enforce laws via type parameters and const expressions.
+# Generally NOT exportable; provide helper functions instead.
+
+tier_3_type_law:
+
+  # Module: law
+  # Status: ❌ NOT EXPORTABLE
+  # Context: Compile-time law enforcement via const parameters and bounds.
+  
+  law:
+    module_path: "src/law.rs"
+    exportability: "NOT_APPLICABLE"
+    tier: 3
+    note: |
+      Assert, IsTrue, Require, ConditionCell, Between01, Metric, EvidenceMode
+      are all compile-time enforcement mechanisms with no runtime representation.
+      These should NOT be exported to TypeScript.
+    
+    types:
+      - name: "Assert<OK>"
+        kind: "struct"
+        definition: "pub struct Assert<const OK: bool>;"
+        exportability: "❌ SKIP"
+        reason: "Phantom constraint; no runtime data"
+      
+      - name: "IsTrue"
+        kind: "trait"
+        exportability: "❌ SKIP"
+        reason: "Phantom trait; compile-time only"
+      
+      - name: "ConditionCell<BITS>"
+        kind: "struct"
+        definition: "pub struct ConditionCell<const BITS: usize> { … }"
+        exportability: "❌ SKIP"
+        reason: "Const parameter enforces Need9 law; not a data type"
+        alternative: |
+          If clients need condition cell validation, provide:
+          - fn new_condition_cell(bits: u32) -> Result<ConditionCell, Error> { … }
+          - Export the Result type, not the ConditionCell itself
+      
+      - name: "Metric<KIND, NUM, DEN>"
+        kind: "struct"
+        definition: "pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64> { … }"
+        exportability: "❌ SKIP"
+        reason: "Const parameters enforce [0,1] bounds; no TypeScript equivalent"
+        alternative: |
+          Export runtime getter functions:
+          - pub fn metric_num(&self) -> u64 { NUM }
+          - pub fn metric_den(&self) -> u64 { DEN }
+          - pub fn metric_as_float(&self) -> f64 { NUM as f64 / DEN as f64 }
+          Or provide a data struct: MetricData { kind: String, num: u64, den: u64 }
+
+  # Module: evidence
+  # Status: ⚠️ PARTIAL EXPORT (TYPESTATE WRAPPER NEEDED)
+  # Context: Universal carrier Evidence<T, State, W> with lifecycle tags.
+  
+  evidence:
+    module_path: "src/evidence.rs"
+    exportability: "WRAPPER_REQUIRED"
+    tier: 3_alt
+    note: |
+      Evidence<T, State, W> uses PhantomData for both State (lifecycle) and W (witness).
+      Cannot export the typestate machinery to TypeScript.
+      Recommend value-only wrapper: EvidenceShape<T>.
+    
+    types:
+      - name: "Evidence<T, State, W>"
+        kind: "struct"
+        definition: |
+          pub struct Evidence<T, State: EvidenceState, W> {
+            pub value: T,
+            pub state: PhantomData<State>,
+            pub witness: PhantomData<W>,
+          }
+        exportability: "WRAPPER_REQUIRED"
+        recommendation: |
+          Create concrete wrapper types for each state:
+          
+          pub struct RawEvidence<T> { pub value: T }
+          pub struct ParsedEvidence<T> { pub value: T }
+          pub struct AdmittedEvidence<T> { pub value: T }
+          pub struct RefusedEvidence { pub reason: String }
+          
+          Export these wrappers, not the generic Evidence type.
+          Typestate enforcement stays in Rust only.
+        typescript_shape: |
+          type RawEvidence<T> = { value: T };
+          type ParsedEvidence<T> = { value: T };
+          type AdmittedEvidence<T> = { value: T };
+          type RefusedEvidence = { reason: string };
+        
+        alternatives:
+          - "Enum wrapper: EvidenceStage<T> = Raw { value: T } | Admitted { value: T } | Refused { … }"
+          - "Skip export entirely; serialize/deserialize the inner T, re-apply state on Rust side"
+
+  # Module: state
+  # Status: ❌ NOT EXPORTABLE
+  # Context: Lifecycle stage tokens (empty enums).
+  
+  state:
+    module_path: "src/state.rs"
+    exportability: "NOT_APPLICABLE"
+    tier: 3
+    note: |
+      Raw, Parsed, Admitted, Refused, Projected, Exportable, Receipted
+      are all zero-cost PhantomData markers with no runtime values.
+      Do NOT export these to TypeScript.
+    
+    types:
+      - name: "Raw"
+        kind: "enum"
+        definition: "#[derive(Debug, Clone, Copy)] pub enum Raw {}"
+        exportability: "❌ SKIP"
+        reason: "Empty enum; zero-cost marker only"
+      
+      - name: "EvidenceState"
+        kind: "sealed trait"
+        exportability: "❌ SKIP"
+        reason: "Sealing trait; compile-time constraint only"
+
+  # Module: witness
+  # Status: ⚠️ CONDITIONAL
+  # Context: Witness markers naming standards, papers, and laws.
+  
+  witness:
+    module_path: "src/witness.rs"
+    exportability: "PARTIAL_EXPORT"
+    tier: 3_alt
+    note: |
+      Witness markers (Ocel20, Xes1849, etc.) are empty enums.
+      Their value is in the associated const metadata (KEY, TITLE, YEAR, FAMILY).
+      Can export as string constants or enum; skip the marker types themselves.
+    
+    types:
+      - name: "WitnessFamily"
+        kind: "enum"
+        variants:
+          - Standard
+          - Paper
+          - ApiGrammar
+          - RustLaw
+          - InternalBridge
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+        typescript_shape: |
+          type WitnessFamily = 
+            | "Standard" 
+            | "Paper" 
+            | "ApiGrammar" 
+            | "RustLaw" 
+            | "InternalBridge"
+      
+      - name: "Witness (trait)"
+        kind: "trait"
+        exportability: "❌ SKIP"
+        reason: "Trait; no concrete type to export"
+        alternative: |
+          Export a data struct with witness metadata:
+          pub struct WitnessMetadata {
+            pub key: String,
+            pub family: WitnessFamily,
+            pub title: String,
+            pub year: Option<u16>,
+          }
+          
+          Provide a registry:
+          fn witness_metadata(key: &str) -> Option<WitnessMetadata> { … }
+      
+      - name: "Ocel20, Xes1849, …"
+        kind: "enum marker"
+        definition: "pub enum Ocel20 {} impl Witness for Ocel20 { … }"
+        exportability: "❌ SKIP"
+        reason: "Empty enum; marker only"
+        alternative: |
+          Export string constants:
+          pub const OCEL20_KEY: &str = "ocel-2.0";
+          pub const OCEL20_TITLE: &str = "OCEL 2.0";
+          pub const XES1849_KEY: &str = "xes-1.0";
+          // TypeScript can use these strings as keys or enums
+
+---
+
+# TIER 4: REFUSAL AND REASON TYPES
+# ============================================================
+# Domain-specific refusal enums naming why admission failed.
+# Generally exportable as enums.
+
+tier_4_refusals:
+
+  admission:
+    module_path: "src/admission.rs"
+    types:
+      - name: "EventLogRefusal"
+        kind: "enum"
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+        note: "Named law per variant (DanglingEventObjectLink, etc.)"
+      
+      - name: "OcelRefusal"
+        kind: "enum"
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+      
+      - name: "ConformanceRefusal"
+        kind: "enum"
+        exportability: "✅ READY"
+        specta_derive: "✅ Add #[derive(Type, Serialize, Deserialize)]"
+
+---
+
+# EXPORT STRATEGY SUMMARY
+# ============================================================
+
+export_strategy:
+
+  immediate_actions:
+    - "Add #[derive(Type)] to all Tier 1 types (Event, Trace, EventLog, OcelAttribute, …)"
+    - "Add #[derive(Type, Serialize, Deserialize)] with appropriate #[serde(...)] attrs"
+    - "Register types in TypeCollection and emit TypeScript via Typescript::default().export_to()"
+
+  structural_refactors:
+    - "Create concrete wrappers: RawEvidence<T>, AdmittedEvidence<T>, etc. instead of Evidence<T, State, W>"
+    - "Refactor EventId<K>, ObjectId<K> to EventId (u64 wrapper) or concrete per-log types"
+    - "Export Admission<T, W> as Admission<T> with witness_key: String field"
+
+  skip_exports:
+    - "All Tier 3 law-enforcement types (Assert, IsTrue, ConditionCell, Metric, Between01)"
+    - "Lifecycle stage tokens (Raw, Parsed, Admitted state enums)"
+    - "Witness marker enums (Ocel20, Xes1849); use string constants instead"
+    - "EvidenceState, Witness trait definitions"
+
+  helper_exports:
+    - "Witness metadata registry: fn witness_by_key(key: &str) -> Option<WitnessMetadata>"
+    - "Metric getters: fn metric_value(kind: QualityMetricKind, num: u64, den: u64) -> f64"
+    - "ID constructors: fn event_id(raw: u64) -> EventId, fn object_id(raw: u64) -> ObjectId"
+
+  feature_gate:
+    recommendation: "Add a new feature `ts` (already in Cargo.toml) for all Specta-dependent code"
+    cargo_toml_example: |
+      [features]
+      ts = [
+        "dep:specta",
+        "dep:serde",
+        "dep:serde_json",
+      ]
+    
+    usage: "cargo build --features ts; generates TypeScript bindings during build"
+
+---
+
+# EMIT TARGETS
+# ============================================================
+
+emit_targets:
+
+  typescript_bindings:
+    output_file: "wasm4pm-compat-types.ts"
+    modules_included:
+      - eventlog
+      - ocel
+      - admission (wrapped)
+      - loss
+      - witness (metadata only)
+      - conformance (verdict shapes only)
+      - refusals (all enum variants)
+    
+    module_organization: |
+      // wasm4pm-compat-types.ts
+      
+      // Event log types
+      export type Event = { … };
+      export type Trace = { … };
+      export type EventLog = { … };
+      
+      // OCEL types
+      export type OcelAttributeValue = { … };
+      export type OcelEvent = { … };
+      export type OcelObject = { … };
+      export type OcelLog = { … };
+      
+      // Admission / Refusal
+      export type Admission<T> = { value: T };
+      export type Refusal = { reason: string; witness_key: string };
+      
+      // Loss
+      export type LossPolicy = { … };
+      export type ProjectionName = string;
+      
+      // Witness metadata
+      export type WitnessFamily = "Standard" | "Paper" | …;
+      export type WitnessMetadata = { key: string; family: WitnessFamily; … };
+      
+      // Quality metrics (value-only)
+      export type QualityMetric = { kind: string; num: bigint; den: bigint };
+      
+      // Witness registry
+      export const WITNESSES: Record<string, WitnessMetadata> = { … };
+
+  javascript_helpers:
+    output_file: "wasm4pm-compat-helpers.ts"
+    exports:
+      - "export function eventId(raw: bigint): EventId { … }"
+      - "export function objectId(raw: bigint): ObjectId { … }"
+      - "export function metric(kind: string, num: bigint, den: bigint): QualityMetric { … }"
+      - "export function witnessKey(family: WitnessFamily): string { … }"
+
+---
+
+# MIGRATION PATH
+# ============================================================
+
+migration_path:
+
+  phase_1:
+    title: "Export Foundation"
+    types:
+      - Tier 1 simple types (Event, Trace, EventLog)
+      - Tier 1 OCEL types (OcelEvent, OcelObject, OcelAttribute)
+      - Tier 4 refusal enums
+    timeline: "Week 1"
+    deliverable: "wasm4pm-compat-types.ts with core domain types"
+
+  phase_2:
+    title: "Admission & Loss Accounting"
+    types:
+      - Tier 2 admission/refusal wrappers (Admission<T>, Refusal)
+      - Tier 2 loss shapes (LossPolicy, ProjectionName, LossReport)
+    timeline: "Week 2"
+    deliverable: "Boundary ceremony types + loss covenants"
+    note: "Requires refactoring Evidence<T, State, W> → RawEvidence<T>, etc."
+
+  phase_3:
+    title: "ID and Metadata Types"
+    types:
+      - EventId, ObjectId refactoring (concrete or per-log)
+      - Witness metadata registry
+      - WitnessFamily enum
+    timeline: "Week 3"
+    deliverable: "Type-safe ID helpers + witness metadata"
+
+  phase_4:
+    title: "Quality Metrics & Conformance"
+    types:
+      - Conformance verdict shapes (Fitness, Precision, F1, Deviation)
+      - Metric value-only wrappers
+      - Quality metric registry
+    timeline: "Week 4"
+    deliverable: "Quality metric type exports + helper functions"
+    note: "Metric<KIND, NUM, DEN> not exported; export getters instead"
+
+---
+
+end_of_file: ✅ CANDIDATES COMPLETE

@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# ============================================================================
+# audit-no-dto-flattening.sh.ggen
+#
+# Purpose: Enforce type-law: no DTO flattening in generated surfaces.
+#
+# Rule: Generated files must NOT contain forbidden structural collapse patterns:
+#   - EvidenceDto / AdmissionDto / ReceiptDto type names
+#   - payload_json / payload field flattening
+#   - state_tag as unbounded string (must be enum)
+#   - witness_key as unbounded string (must be witness marker reference)
+#
+# Output:
+#   - PASS: audit passes, emit receipt with scan results
+#   - REFUSE: category-collapse detected, list all violations
+#
+# Scans: Generated .wit, .rs, .ts, .go files in ggen output directories
+# ============================================================================
+
+set -euo pipefail
+
+AUDIT_NAME="no-dto-flattening"
+PROJECT_ROOT="${1:-.}"
+AUDIT_PASS=true
+VIOLATIONS=()
+
+# Forbidden patterns that indicate DTO flattening
+declare -a FORBIDDEN_PATTERNS=(
+  "EvidenceDto"
+  "AdmissionDto"
+  "ReceiptDto"
+  "payload_json"
+  "payload:"
+  'state_tag.*string'
+  'state_tag.*u8'
+  'state_tag.*str'
+  'witness_key.*string'
+  'witness_key.*u8'
+  'witness_key.*str'
+)
+
+# File patterns to scan (generated artifacts only)
+declare -a SCAN_PATTERNS=(
+  "ggen/wit/*.wit"
+  "src/generated/*.rs"
+  "ggen/projections/**/*.rs"
+  "ggen/projections/**/*.ts"
+  "ggen/projections/**/*.go"
+)
+
+echo "Audit: ${AUDIT_NAME}"
+echo "========================================"
+echo ""
+echo "Scanning for DTO flattening violations..."
+echo ""
+
+# Scan each pattern
+for pattern in "${SCAN_PATTERNS[@]}"; do
+  # Expand glob safely
+  for file in $(find "${PROJECT_ROOT}" -type f -path "${PROJECT_ROOT}/${pattern}" 2>/dev/null || true); do
+    if [[ ! -f "$file" ]]; then
+      continue
+    fi
+
+    # Check each forbidden pattern in this file
+    for forbidden in "${FORBIDDEN_PATTERNS[@]}"; do
+      if grep -q "$forbidden" "$file" 2>/dev/null; then
+        AUDIT_PASS=false
+        violation="${file##${PROJECT_ROOT}/}:forbidden_pattern:${forbidden}"
+        VIOLATIONS+=("$violation")
+      fi
+    done
+  done
+done
+
+echo "Scan Results:"
+echo "========================================"
+echo ""
+
+if [[ ${#VIOLATIONS[@]} -eq 0 ]]; then
+  echo "✓ No DTO flattening detected"
+  echo ""
+  echo "RECEIPT (audit-no-dto-flattening):"
+  echo "  category: type-law"
+  echo "  law: no-dto-flattening"
+  echo "  verdict: PASS"
+  echo "  scanned_patterns: ${#SCAN_PATTERNS[@]}"
+  echo "  checked_forbidden: ${#FORBIDDEN_PATTERNS[@]}"
+  echo "  violations_found: 0"
+  echo ""
+  exit 0
+else
+  echo "✗ DTO flattening violations detected:"
+  echo ""
+  for violation in "${VIOLATIONS[@]}"; do
+    echo "  VIOLATE: $violation"
+  done
+  echo ""
+  echo "RECEIPT (audit-no-dto-flattening):"
+  echo "  category: type-law"
+  echo "  law: no-dto-flattening"
+  echo "  verdict: REFUSE"
+  echo "  refusal_reason: category-collapse"
+  echo "  violations_found: ${#VIOLATIONS[@]}"
+  echo ""
+  echo "Reason: Generated surfaces must maintain type-law boundaries."
+  echo "DTO flattening collapses Evidence<T, State, W> into a flat payload,"
+  echo "destroying the type-level lifecycle guarantees that prevent invalid"
+  echo "state transitions at compile time."
+  echo ""
+  echo "Fix: Review the generator template (likely a WIT serializer or DTO"
+  echo "codec). Ensure:"
+  echo "  1. Evidence<T, State, Witness> remains a sum type or tagged union"
+  echo "  2. state_tag is an enum, not a string"
+  echo "  3. witness_key references a witness enum variant, not a string"
+  echo "  4. Payload T is NOT flattened into the parent record"
+  echo ""
+  exit 1
+fi

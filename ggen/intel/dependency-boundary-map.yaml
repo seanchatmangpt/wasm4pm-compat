@@ -1,0 +1,331 @@
+# Dependency Boundary Map
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+#
+# Complete table of optional dependencies: what gates them, what they do,
+# transitive dependencies they pull, and the boundaries they enforce.
+
+optional_dependencies:
+  serde:
+    artifact: "serde"
+    crate_version: "1.0"
+    crates_io: "https://crates.io/crates/serde"
+    repo: "https://github.com/serde-rs/serde"
+
+    gated_by:
+      - ts (via dep:serde)
+      - wasm (via dep:serde)
+
+    declared_features: ["derive"]
+
+    activation_paths:
+      - Direct: "cargo build --features ts"
+      - Direct: "cargo build --features wasm"
+      - Transitive: ts ← specta → serde
+      - Transitive: wasm ← specta → serde
+      - Transitive: ts ← tsify → serde
+      - Transitive: wasm ← tsify → serde
+      - Transitive: wasm ← serde-wasm-bindgen → serde
+
+    stability: stable
+    msrv: "1.56"
+    semver_risk: low
+      # serde is mature and stable; no breaking changes expected in ^1.0 range
+
+    boundary_function: >
+      serde provides the serialization/deserialization foundation for all
+      TypeScript and WASM projections. The derive feature generates
+      Serialize/Deserialize trait impls for branded law types (Evidence<T,State,W>,
+      Admission<T,W>, Refusal<R,W>, etc.). Without serde, ts and wasm cannot
+      marshal types across language boundaries.
+
+    size_contribution: "~500 KB (static library, optimized)"
+      # Typical for opt-in serialization crate
+
+    transitive_weight:
+      - Direct compile time: low
+      - Binary bloat: low
+      - Feature surface: 60+ optional features (but we use none beyond derive)
+
+    law_invariants:
+      - Serde is never used to launder data (no #[serde(rename)] in critical types)
+      - All serde impls are transparent: identity serialization, no data transformation
+      - Type boundaries are preserved: Evidence<T> cannot be deserialized as Evidence<U>
+        unless T==U (enforced by generics, not runtime checks)
+
+    no_engine_logic: yes
+      # serde is pure serialization framework; contains no discovery/conformance/replay logic
+
+  specta:
+    artifact: "specta"
+    crate_version: "1.0.5"
+    crates_io: "https://crates.io/crates/specta"
+    repo: "https://github.com/oscartbeaumont/specta"
+
+    gated_by:
+      - ts (via dep:specta)
+      - wasm (via dep:specta)
+
+    declared_features: []
+
+    activation_paths:
+      - Direct: "cargo build --features ts"
+      - Direct: "cargo build --features wasm"
+      - Transitive: pulled by tsify when ts or wasm enabled
+
+    stability: stable
+    msrv: "1.70"
+    semver_risk: low
+      # specta is in 1.x; relatively stable API
+
+    boundary_function: >
+      specta generates TypeScript type definitions (.d.ts) from Rust types.
+      It is invoked at compile time via the ts/export.rs module's
+      export_ts_bindings() function. The output is a single TypeScript string
+      containing branded law projections (EvidenceTs, AdmissionTs, RefusalTs, etc.).
+      It enforces type-level correspondence: the TypeScript interface matches
+      the Rust struct exactly (same fields, same nullability).
+
+    size_contribution: "~600 KB (compile-time only; not linked)"
+      # specta is primarily a code-generation dependency; minimal binary impact
+
+    transitive_weight:
+      - Direct compile time: moderate (TypeScript generation)
+      - Binary bloat: none (code-generation only)
+      - Feature surface: large (many serialization formats supported)
+
+    law_invariants:
+      - specta impls never modify field names or type encodings
+      - Output TypeScript is deterministic and identical across builds
+      - Brand boundaries (OcelBrand, XesBrand, WfNetBrand) are encoded as zero-cost
+        discriminant types in TypeScript
+
+    no_engine_logic: yes
+      # specta is pure type-projection framework; contains no execution logic
+
+  tsify:
+    artifact: "tsify"
+    crate_version: "0.4.5"
+    crates_io: "https://crates.io/crates/tsify"
+    repo: "https://github.com/madonoharu/tsify"
+
+    gated_by:
+      - ts (via dep:tsify)
+      - wasm (via dep:tsify)
+
+    declared_features: ["js"]
+      # The "js" feature enables JavaScript ABI glue
+
+    activation_paths:
+      - Direct: "cargo build --features ts"
+      - Direct: "cargo build --features wasm"
+
+    stability: stable
+    msrv: "1.56"
+    semver_risk: low
+      # tsify is a bridge crate; stable interface
+
+    boundary_function: >
+      tsify derives #[derive(Tsify)] on serde types to generate JavaScript
+      serialization code and TypeScript interfaces simultaneously. It bridges
+      the gap between serde (Rust serialization) and JavaScript runtime
+      semantics (JSON, typed arrays, etc.). The "js" feature enables code generation
+      for JavaScript targets. Critical for WASM: no tsify means no TypeScript
+      type safety on the JS side of the boundary.
+
+    size_contribution: "~300 KB (compile-time, JavaScript generation)"
+
+    transitive_weight:
+      - Direct compile time: high (code generation)
+      - Binary bloat: none (code-generation only)
+      - Feature surface: 3 features (js, wasm-bindgen, deno)
+
+    law_invariants:
+      - tsify never changes the serialization format (it uses serde's)
+      - JavaScript ABI is deterministic: same Rust type always produces same JS signature
+      - TypeScript output from tsify and specta must be consistent (enforced by law_projection.rs)
+
+    no_engine_logic: yes
+      # tsify is a code-generation bridge; contains no execution logic
+
+  wasm-bindgen:
+    artifact: "wasm-bindgen"
+    crate_version: "0.2.92"
+    crates_io: "https://crates.io/crates/wasm-bindgen"
+    repo: "https://github.com/rustwasm/wasm-bindgen"
+
+    gated_by:
+      - ts (via dep:wasm-bindgen)
+      - wasm (via dep:wasm-bindgen)
+
+    declared_features: []
+
+    activation_paths:
+      - Direct: "cargo build --features ts"
+      - Direct: "cargo build --features wasm"
+      - Transitive: via tsify when ts or wasm enabled
+
+    stability: stable
+    msrv: "1.56"
+    semver_risk: low
+      # wasm-bindgen is foundational infrastructure; stable major version
+
+    boundary_function: >
+      wasm-bindgen is the JavaScript ↔ Rust FFI layer. It provides the #[wasm_bindgen]
+      macro that exports Rust functions to JavaScript and JavaScript objects to Rust.
+      It handles memory layout, calling conventions, and exception propagation across
+      the language boundary. Without wasm-bindgen, there is no JavaScript access to
+      Rust code. It is the gateway to all WASM targets.
+
+    size_contribution: "~2 MB (CLI tooling)"
+      # wasm-bindgen-cli is installed separately; runtime code is minimal
+
+    transitive_weight:
+      - Direct compile time: low (macros)
+      - Binary bloat: low (minimal runtime footprint)
+      - Feature surface: 2 major versions (0.2.x stable, 0.3.x alpha)
+
+    law_invariants:
+      - wasm-bindgen never converts types across the boundary without explicit opt-in
+      - All type conversions are documented in the #[wasm_bindgen] attribute
+      - JavaScript objects cannot be silently coerced to Rust types
+
+    no_engine_logic: yes
+      # wasm-bindgen is FFI infrastructure; contains no execution logic
+
+  serde-wasm-bindgen:
+    artifact: "serde-wasm-bindgen"
+    crate_version: "0.6"
+    crates_io: "https://crates.io/crates/serde-wasm-bindgen"
+    repo: "https://github.com/rustwasm/serde-wasm-bindgen"
+
+    gated_by:
+      - wasm (via dep:serde-wasm-bindgen)
+
+    declared_features: []
+
+    activation_paths:
+      - Direct: "cargo build --features wasm"
+
+    stability: stable
+    msrv: "1.56"
+    semver_risk: low
+      # Maintained by the wasm-bindgen team; stable interface
+
+    boundary_function: >
+      serde-wasm-bindgen provides a high-performance marshaling layer for serde types
+      crossing the Rust ↔ JavaScript boundary. Instead of using wasm-bindgen's generic
+      JsValue conversion (which is slow for large structures), serde-wasm-bindgen
+      serializes to JSON in WebAssembly memory, then deserializes on the JS side,
+      avoiding the JsValue allocation overhead. It is the fast path for bulk data transfer.
+
+    size_contribution: "~200 KB (minimal runtime)"
+
+    transitive_weight:
+      - Direct compile time: low
+      - Binary bloat: low
+      - Feature surface: 0 optional features
+
+    law_invariants:
+      - serde-wasm-bindgen never changes the serde serialization format (only optimizes transmission)
+      - Type safety is preserved: a Rust type that serializes to JSON is deserialized
+        as the same type on JS (via TypeScript)
+      - No data transformation or lossy projection happens at the boundary
+
+    no_engine_logic: yes
+      # serde-wasm-bindgen is serialization optimization; contains no execution logic
+
+dev_dependencies:
+  trybuild:
+    version: "1"
+    purpose: "UI test harness for compile-fail and compile-pass fixtures (ALIVE gate)"
+    not_shipped: yes
+
+  criterion:
+    version: "0.5"
+    features: ["html_reports"]
+    purpose: "Benchmarking harness; generates HTML comparison reports"
+    not_shipped: yes
+
+  serde_json:
+    version: "1.0"
+    purpose: "JSON serialization for test fixtures and example data"
+    not_shipped: yes
+
+transitive_dependency_risk_matrix:
+  # Given optional dependencies, what crates are pulled indirectly?
+
+  when_ts_enabled:
+    direct: ["specta", "serde", "tsify", "wasm-bindgen"]
+    transitive: |-
+      serde: proc-macro2, quote, syn, unicode-ident
+      specta: syn, quote, proc-macro2, serde_json
+      tsify: wasm-bindgen, serde, proc-macro2, quote, syn
+      wasm-bindgen: proc-macro2, quote, syn, wasm-bindgen-macro, wasm-bindgen-shared
+    total_crates_pulled: ~25 (compile-time dominated)
+    binary_bloat_estimate: low
+    compilation_time_impact: moderate
+
+  when_wasm_enabled:
+    direct: ["wasm-bindgen", "serde-wasm-bindgen", "tsify", "serde", "specta"]
+    transitive: |-
+      (same as ts_enabled, plus serde-wasm-bindgen with no transitive deps)
+    total_crates_pulled: ~25 (compile-time dominated)
+    binary_bloat_estimate: low
+    compilation_time_impact: moderate
+
+  when_both_ts_and_wasm_enabled:
+    direct: ["specta", "serde", "tsify", "wasm-bindgen", "serde-wasm-bindgen"]
+      # Note: specta, serde, tsify, wasm-bindgen are unified (single compilation)
+    deduplication: "Cargo automatically detects shared dependencies and compiles once"
+    total_crates_pulled: ~25 (no duplication)
+    binary_bloat_estimate: low (no duplicates)
+    compilation_time_impact: moderate (not 2x; features unify at serde/specta/wasm-bindgen)
+
+feature_unification_behavior:
+  rule: >
+    When multiple features gate the same dependency (e.g., ts and wasm both gate serde),
+    Cargo's feature unification ensures that dependency is compiled exactly once with
+    the union of all features requested across all enabling features.
+
+  serde_unification:
+    gated_by: ["ts", "wasm"]
+    behavior: >
+      If both ts and wasm are enabled, serde is compiled once with features=["derive"].
+      (Both features request the same feature set, so no union needed.)
+
+  specta_unification:
+    gated_by: ["ts", "wasm"]
+    behavior: >
+      If both ts and wasm are enabled, specta is compiled once with features=[].
+      (Both features request no additional features; Cargo unifies automatically.)
+
+  tsify_unification:
+    gated_by: ["ts", "wasm"]
+    behavior: >
+      If both ts and wasm are enabled, tsify is compiled once with features=["js"].
+      (Both features request "js"; Cargo unifies automatically.)
+
+  wasm_bindgen_unification:
+    gated_by: ["ts", "wasm"]
+    behavior: >
+      If both ts and wasm are enabled, wasm-bindgen is compiled once with features=[].
+      (Both features request no additional features; Cargo unifies automatically.)
+
+refusal_boundaries:
+  no_engine_imports: >
+    None of the optional dependencies (serde, specta, tsify, wasm-bindgen,
+    serde-wasm-bindgen) import or expose discovery, conformance, replay, or
+    OCPQ engines. They are pure serialization, code generation, and FFI infrastructure.
+
+  strict_refusal_on_smuggling: >
+    If any future feature attempts to gate a crate that imports process-mining
+    execution logic (discovery, conformance, replay, OCPQ queries), the refusal rule
+    "tool-smuggling-into-compat" is triggered, and the feature must be rejected.
+    Evidence: searched ts/, wasm/, formats.rs, engine_bridge.rs for engine imports.
+    Result: zero engine imports found. ✓
+
+no_stable_bridge: >
+  There is no backward-compatibility bridge from wasm4pm-compat to older versions.
+  Versions are nightly-pinned in rust-toolchain.toml. No MSRV is declared.
+  Dependencies must support nightly Rust unconditionally.

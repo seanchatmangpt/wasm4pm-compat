@@ -1,0 +1,919 @@
+---
+# Ecosystem Source Index for wasm4pm-compat Projection Manufacturing
+#
+# Maps each source (documentation, tool, crate, standard) to its evidentiary role
+# in the projection manufacturing pipeline.
+#
+# Date: 2026-06-01
+# Scope: Type-law kernel, TypeScript/WASM projection, process-evidence graduation
+# Authority: Sean Chatman (xpointsh@gmail.com)
+
+metadata:
+  project: wasm4pm-compat
+  version: 0.1.0
+  census_date: "2026-06-01"
+  census_scope: "Projection manufacturing ecosystem: tools, crates, standards, documentation"
+  authority: "Sean Chatman"
+  email: "xpointsh@gmail.com"
+
+# ============================================================================
+# SECTION I: RUST TOOLCHAIN SOURCES
+# ============================================================================
+toolchain:
+  rustc_nightly:
+    tool: "rustc (Nightly Compiler)"
+    version: "1.97.0-nightly (cb40c25f6 2026-05-04)"
+    source_url: "https://github.com/rust-lang/rust"
+    documentation_url: "https://doc.rust-lang.org/nightly/unstable-book/"
+    config_file: "rust-toolchain.toml"
+    features_enabled:
+      - "generic_const_exprs"
+      - "adt_const_params"
+      - "const_trait_impl"
+      - "min_specialization"
+      - "portable_simd"
+    evidentiary_roles:
+      - "Type-law kernel compilation"
+      - "Const-generic bounds (law.rs, Between01<NUM,DEN>)"
+      - "Specialization for zero-cost state/witness markers"
+      - "Safe abstract machine enforcer (#![forbid(unsafe_code)])"
+    impact_on_projection:
+      - "nightly-only feature stability required"
+      - "All doctests depend on nightly compiler"
+      - "Compile-fail/compile-pass fixtures tied to nightly syntax"
+    projection_artifact: "src/lib.rs (feature declarations)"
+
+  cargo_nightly:
+    tool: "Cargo (Nightly Build System)"
+    version: "1.97.0-nightly (4f9b52075 2026-05-01)"
+    source_url: "https://github.com/rust-lang/cargo"
+    documentation_url: "https://doc.rust-lang.org/cargo/"
+    config_file: "Cargo.toml"
+    evidentiary_roles:
+      - "Feature flag resolution (formats, strict, wasm4pm, ts, wasm)"
+      - "Dependency version pinning (Cargo.lock)"
+      - "Artifact manifest via `cargo metadata` (JSON)"
+      - "Test harness orchestration (unit, integration, trybuild, doctest)"
+    key_commands:
+      - "cargo metadata --format-version 1 --no-deps"
+      - "cargo test --tests"
+      - "cargo test --test ui_tests -- --ignored (ALIVE gate)"
+      - "cargo doc --no-deps"
+    impact_on_projection:
+      - "Feature matrix defines which types are exported (ts, wasm)"
+      - "Cargo.lock freezes specta, tsify, wasm-bindgen versions"
+      - "Metadata drives code generation (ggen inputs)"
+    projection_artifact: "Cargo.toml (19-75), Cargo.lock"
+
+  rustfmt:
+    tool: "rustfmt (Code Formatter)"
+    source_url: "https://github.com/rust-lang/rustfmt"
+    config_file: "rustfmt.toml"
+    documentation_url: "https://rust-lang.github.io/rustfmt/"
+    evidentiary_roles:
+      - "Enforce consistent formatting on const-generic types"
+      - "Normalize PhantomData and witness marker formatting"
+    impact_on_projection:
+      - "Generated TypeScript projection code must match rustfmt style"
+      - "Template output in ggen/templates/ is rustfmt-validated"
+
+  clippy:
+    tool: "clippy (Linter)"
+    source_url: "https://github.com/rust-lang/rust-clippy"
+    config_file: "clippy.toml"
+    documentation_url: "https://doc.rust-lang.org/clippy/"
+    evidentiary_roles:
+      - "Detect zero-cost type idiom violations"
+      - "Enforce unsafe code absence checks"
+      - "Catch potential type-law boundary violations"
+    impact_on_projection:
+      - "WASM projection must pass clippy --all-features"
+      - "TypeScript FFI wrappers checked for common mistakes"
+
+# ============================================================================
+# SECTION II: FEATURE ENGINEERING SOURCES
+# ============================================================================
+features:
+  cargo_feature_system:
+    system: "Cargo Feature System (Core)"
+    source_url: "https://doc.rust-lang.org/cargo/reference/features.html"
+    documentation_url: "https://doc.rust-lang.org/cargo/reference/features.html"
+    config_file: "Cargo.toml (lines 19-46)"
+    feature_declarations:
+      formats:
+        default: true
+        purpose: "Import/export contracts, round-trip claims, loss surfaces"
+        modules_gated: ["src/formats.rs"]
+        types_exported: ["ImportFormat", "ExportFormat", "RoundTripClaim", "LossyFormatExport"]
+      strict:
+        default: false
+        purpose: "Opt-in boundary judgment"
+        modules_gated: ["src/strict.rs"]
+        types_exported: ["ProcessBoundary", "StrictCheck", "StrictViolation"]
+      wasm4pm:
+        default: false
+        purpose: "Graduation bridge to execution engine"
+        modules_gated: ["src/engine_bridge.rs"]
+        types_exported: ["GraduateToWasm4pm", "GraduationCandidate"]
+      ts:
+        default: false
+        purpose: "TypeScript projection via specta/tsify/wasm-bindgen"
+        depends_on: ["specta", "serde", "tsify", "wasm-bindgen"]
+        projection_target: "TypeScript .d.ts generation"
+      wasm:
+        default: false
+        purpose: "WASM ABI boundary"
+        depends_on: ["wasm-bindgen", "serde-wasm-bindgen", "tsify", "serde", "specta"]
+        projection_target: ".wasm binary + JS bindings"
+    evidentiary_roles:
+      - "Feature matrix defines code generation matrix (ggen inputs)"
+      - "Exactly 3 public user features (no per-format flags)"
+      - "Feature propagation rules enforced by Cargo solver"
+      - "Feature combination = projection surface"
+    invariants:
+      - "No per-format flags (e.g., no ocel/xes/bpmn/petri/powl features)"
+      - "Nightly is a toolchain requirement, not a Cargo feature"
+      - "#![forbid(unsafe_code)] applies to all feature combinations"
+    impact_on_projection:
+      - "TypeScript projection depends on ts || wasm features"
+      - "WASM bindings depend on wasm || ts features"
+      - "Test matrix: baseline, +formats, +strict, +wasm4pm, +ts, +wasm, all-features"
+
+  cargo_lock:
+    source: "Cargo.lock"
+    size_bytes: 22664
+    purpose: "Reproducible builds; transitive dependency freeze"
+    evidentiary_roles:
+      - "Pins specta 1.0.5 version (type introspection)"
+      - "Pins tsify 0.4.5 version (WASM-TS bridge)"
+      - "Pins wasm-bindgen 0.2.92 version (ABI layer)"
+      - "Pins serde 1.0 version (serialization)"
+      - "Guarantees exact versions across CI/CD runs"
+    impact_on_projection:
+      - "Changes to Cargo.lock may require ggen template regeneration"
+      - "Transitive dep updates tracked for security/maintenance"
+
+# ============================================================================
+# SECTION III: TYPE INTROSPECTION & TYPESCRIPT PROJECTION SOURCES
+# ============================================================================
+type_introspection:
+  specta:
+    crate: "specta"
+    version: "1.0.5"
+    source_url: "https://github.com/oscartbeaumont/specta"
+    documentation_url: "https://specta.rs/"
+    feature_gated: true
+    features: ["ts", "wasm"]
+    cargo_line: "49"
+    purpose: "Compile-time type-to-TypeScript schema extraction"
+    evidentiary_roles:
+      - "Extract Rust type schema → TypeScript definitions"
+      - "Derive #[specta::Type] on witness markers (Ocel20, Xes1849, etc.)"
+      - "Derive #[specta::Type] on state tokens (Raw, Parsed, Admitted, etc.)"
+      - "Derive #[specta::Type] on Evidence<T, State, W> carrier"
+      - "Preserve phantom type distinctions in TypeScript"
+    projection_artifact_targets:
+      - "src/ts/law_projection.rs (derives)"
+      - "pkg/wasm4pm_compat.d.ts (generated)"
+    limitations:
+      - "Requires serde intermediate (serialization)"
+      - "adt_const_params types may need custom impl Type"
+      - "Zero-cost at runtime; compile-time schema generation"
+    validation_gate: "cargo test --tests (quick check); cargo test --doc (full audit)"
+    ecosystem_impact:
+      - "Changes to witness/state markers require specta derive update"
+      - "Custom types in Evidence<T> must impl specta::Type"
+
+  tsify:
+    crate: "tsify"
+    version: "0.4.5"
+    source_url: "https://github.com/madonohue/tsify"
+    documentation_url: "https://docs.rs/tsify/latest/"
+    feature_gated: true
+    features: ["ts", "wasm"]
+    cargo_line: "51"
+    purpose: "WASM TypeScript projection bridge; .d.ts generation"
+    evidentiary_roles:
+      - "Automatic .d.ts generation from Rust types compiled to WASM"
+      - "Bidirectional serialization: Rust <-> JavaScript"
+      - "Preserve phantom distinctions across WASM boundary"
+      - "Marshalable carrier types for Evidence, Admission, Refusal"
+    projection_artifact_targets:
+      - "src/wasm/bindings.rs (derives)"
+      - "pkg/wasm4pm_compat.d.ts (generated)"
+    limitations:
+      - "Derives only; custom serialization requires explicit impl"
+      - ".d.ts output depends on wasm-bindgen ABI layer"
+      - "TypeScript types must match Rust serialization format"
+    validation_gate: "cargo test --tests (serialization round-trip); npm publish (artifact check)"
+
+  wasm_bindgen:
+    crate: "wasm-bindgen"
+    version: "0.2.92"
+    source_url: "https://github.com/rustwasm/wasm-bindgen"
+    documentation_url: "https://rustwasm.github.io/docs/wasm-bindgen/"
+    feature_gated: true
+    features: ["ts", "wasm"]
+    cargo_line: "52"
+    purpose: "Rust → WASM FFI; ABI boundary; JavaScript bindings generation"
+    evidentiary_roles:
+      - "#[wasm_bindgen] on exported Evidence carriers"
+      - "ABI marshaling for state tokens, witness markers"
+      - "Memory safety across WASM linear memory boundary"
+      - ".d.ts generation for JavaScript consumers"
+      - "JS-to-Rust call signatures"
+    crate_type: ["cdylib", "rlib"]
+    projection_artifact_targets:
+      - "src/wasm/abi.rs (extern declarations)"
+      - "pkg/*.wasm (compiled binary)"
+      - "pkg/*.d.ts (TypeScript stubs)"
+    validation_gate: "wasm-pack build; npm link"
+    ecosystem_impact:
+      - "Changes to WASM-exported types require ABI compatibility audit"
+      - "WASM binary size tracked (zero-cost phantom types)"
+
+  serde:
+    crate: "serde"
+    version: "1.0"
+    source_url: "https://github.com/serde-rs/serde"
+    documentation_url: "https://serde.rs/"
+    feature_gated: true
+    features: ["ts", "wasm"]
+    cargo_line: "49"
+    purpose: "Trait-based serialization/deserialization framework"
+    evidentiary_roles:
+      - "#[derive(serde::Serialize, serde::Deserialize)] on Evidence<T, State, W>"
+      - "Format-agnostic serialization (JSON, bincode, MessagePack, etc.)"
+      - "Intermediate for tsify, serde-wasm-bindgen"
+      - "Test oracle: JSON round-trip validation"
+    projection_artifact_targets:
+      - "src/**/*.rs (derives)"
+      - "tests/**/*.rs (JSON test payloads)"
+    ecosystem_impact:
+      - "Serialization format changes affect WASM boundary"
+      - "serde version updates checked for API changes"
+
+  serde_wasm_bindgen:
+    crate: "serde-wasm-bindgen"
+    version: "0.6"
+    source_url: "https://github.com/rustwasm/serde-wasm-bindgen"
+    documentation_url: "https://docs.rs/serde-wasm-bindgen/latest/"
+    feature_gated: true
+    features: ["wasm"]
+    cargo_line: "53"
+    purpose: "Optimized serialization bridge: Rust → WASM → JavaScript"
+    evidentiary_roles:
+      - "Faster marshaling than JSON round-trip"
+      - "Zero-copy passage of Evidence across WASM boundary"
+      - "Reduces memory overhead in browser projections"
+    validation_gate: "cargo test --tests (serialization performance)"
+    ecosystem_impact:
+      - "Performance regression detected in benchmarks (criterion)"
+
+  serde_json:
+    crate: "serde_json"
+    version: "1.0"
+    source_url: "https://github.com/serde-rs/json"
+    documentation_url: "https://docs.rs/serde_json/latest/"
+    dependency_type: "dev-only"
+    purpose: "JSON codec for testing and OCEL/XES import/export"
+    evidentiary_roles:
+      - "Test oracle: JSON round-trip Evidence serialization"
+      - "OCEL/XES JSON payload validation"
+      - "LossReport structure testing"
+    validation_gate: "cargo test --tests"
+    test_fixtures:
+      - "tests/fixtures/ocel_sample.json"
+      - "tests/fixtures/xes_sample.json"
+
+# ============================================================================
+# SECTION IV: PROCESS-EVIDENCE DATA MODEL SOURCES
+# ============================================================================
+data_models:
+  ocel_2_0:
+    standard: "OCEL 2.0 (Object-Centric Event Logs)"
+    version: "2.0"
+    source_urls:
+      spec: "https://ocel-standard.github.io/"
+      xml_spec: "https://ocel-standard.github.io/docs/OCEL%202.0%20XML.html"
+      json_spec: "https://ocel-standard.github.io/docs/OCEL%202.0%20JSON.html"
+    purpose: "Multi-perspective event log with object-centric links"
+    witness_marker: "Ocel20"
+    modules: ["src/ocel.rs"]
+    types:
+      - "OcelLog"
+      - "OcelEvent"
+      - "Object"
+      - "EventObjectLink"
+      - "ObjectObjectLink"
+      - "ObjectChange"
+    evidentiary_roles:
+      - "Event-object graph carrier (E2O, O2O links)"
+      - "Object lifecycle tracking"
+      - "Admission validator (event-object consistency)"
+      - "Refusal codes: DanglingEventObjectLink, MissingObjectDefinition, CyclicObjectChange"
+    test_artifacts:
+      - "examples/basic_ocel"
+      - "tests/ui/ocel_*.rs (compile-fail/pass fixtures)"
+      - "tests/fixtures/ocel_sample.json"
+    validation_gate: "cargo test --all-features"
+    projection_artifact:
+      - "src/ts/law_projection.rs (Ocel20 specta derives)"
+      - "src/wasm/bindings.rs (OcelLog wasm-bindgen)"
+
+  xes_1849:
+    standard: "XES (eXtensible Event Stream)"
+    version: "1.849"
+    source_urls:
+      spec: "http://www.xes-standard.org/"
+      schema: "https://www.tf.uni-koblenz.de/index.php?id=xes_specification"
+    purpose: "Trace-centric event log (case-oriented, no object links)"
+    witness_marker: "Xes1849"
+    modules: ["src/xes.rs"]
+    types:
+      - "XesLog"
+      - "XesEvent"
+      - "XesTrace"
+      - "XesAttribute"
+    evidentiary_roles:
+      - "Legacy process-mining log carrier"
+      - "Attribute-value extension system"
+      - "OCEL → XES projection (lossy: flattening)"
+      - "Refusal codes: XesExportRefusal, FlatteningLoss"
+    test_artifacts:
+      - "examples/ocel_to_xes_projection (loss-covenant)"
+      - "tests/ui/xes_*.rs (compile-fail/pass fixtures)"
+      - "tests/fixtures/xes_sample.xml"
+    validation_gate: "cargo test --all-features --features formats"
+    projection_artifact:
+      - "src/ts/law_projection.rs (Xes1849 specta derives)"
+      - "src/wasm/bindings.rs (XesLog wasm-bindgen)"
+
+  bpmn_2_0:
+    standard: "BPMN 2.0 (Business Process Model and Notation)"
+    version: "2.0 (OMG)"
+    source_urls:
+      spec: "https://www.bpmn.org/"
+      omg_spec: "https://www.omg.org/spec/BPMN/2.0/"
+    purpose: "Graphical process model standard"
+    witness_marker: "Bpmn20"
+    modules: ["src/bpmn.rs"]
+    types:
+      - "BpmnProcess"
+      - "BpmnTask"
+      - "BpmnSequenceFlow"
+      - "BpmnGateway"
+    evidentiary_roles:
+      - "Flow diagram carrier (start/end, tasks, gateways, events)"
+      - "Process model structure validation"
+      - "Refusal codes: DanglingOutgoingFlow, MissingStartEvent"
+    test_artifacts:
+      - "tests/ui/bpmn_*.rs (compile-fail/pass fixtures)"
+      - "tests/fixtures/bpmn_sample.xml"
+
+  petri_nets:
+    standard: "Petri Nets & WF-Nets"
+    version: "ISO/IEC 15909 (PNML)"
+    source_urls:
+      iso: "ISO/IEC 15909: Petri Nets — Concepts and terminology"
+      pnml: "http://www.pnml.org/"
+      textbook: "Reisig, Wolfgang. *Petri Nets* (Springer, 2013)"
+    purpose: "Formal net-based process model with firing semantics"
+    witness_marker: "WfNetSoundnessPaper"
+    modules: ["src/petri.rs"]
+    types:
+      - "PetriNet"
+      - "Place"
+      - "Transition"
+      - "Arc"
+      - "WfNet"
+      - "WfNetConst<SOUNDNESS>"
+    evidentiary_roles:
+      - "WF-net designated source/sink places, proper completion"
+      - "Compile-time soundness proof: Require<{ SOUNDNESS == true }>: IsTrue"
+      - "Refusal codes: MissingSourcePlace, MissingFinalMarking, UnsoundWfNet"
+    type_law_surfaces:
+      - "const_generic<SOUNDNESS: bool>"
+      - "Specialization witness: WfNetSoundnessPaper"
+      - "Between01<NUM, DEN> for transition frequency"
+    test_artifacts:
+      - "tests/ui/petri_*.rs (compile-fail/pass fixtures)"
+      - "src/nightly_foundry.rs → petri_law (const-generic proofs)"
+
+  powl:
+    standard: "POWL (Partially-Ordered Workflow Language)"
+    version: "Current spec"
+    source_urls:
+      spec: "https://tinyurl.com/powl-spec"
+      authors: "van der Aalst et al."
+    purpose: "Tree-based process model: sequence, choice, parallelism, loop"
+    modules: ["src/powl.rs"]
+    types:
+      - "PowlNode"
+      - "PowlSequence"
+      - "PowlChoice"
+      - "PowlParallel"
+      - "PowlLoop"
+    evidentiary_roles:
+      - "TreeProjectable sealed trait (only projectable types)"
+      - "Compile-time arity law: Require<{ LOOP_ARITY == 2 }>: IsTrue"
+      - "Refusal codes: InvalidLoopArity, NestingDepthExceeded"
+    type_law_surfaces:
+      - "const_generic<ARITY: usize>"
+      - "Sealed trait pattern (TreeProjectable)"
+      - "min_specialization for arity checking"
+    test_artifacts:
+      - "tests/ui/powl_*.rs (compile-fail/pass fixtures)"
+      - "src/nightly_foundry.rs → powl_law (const-generic proofs)"
+
+  process_trees:
+    standard: "Process Trees"
+    version: "Leemans, van der Aalst, Bichler (IvOM3, 2013)"
+    source_urls:
+      paper: "https://doi.org/10.1109/TKDE.2014.55"
+    purpose: "Block-structured process model (canonical Inductive Miner output)"
+    modules: ["src/process_tree.rs"]
+    types:
+      - "ProcessTree"
+      - "TreeNode"
+      - "TypedLoopNode<ARITY>"
+    evidentiary_roles:
+      - "Compile-time arity law: Require<{ ARITY == 2 }>: IsTrue"
+      - "Loop operator must have exactly 2 children"
+      - "Refusal codes: InvalidLoopArity, UnknownOperator"
+    type_law_surfaces:
+      - "const_generic<ARITY: usize>"
+      - "adt_const_params for operator enums"
+
+  declare:
+    standard: "Declare Constraints"
+    version: "Pesic & van der Aalst (2007+)"
+    source_urls:
+      paper: "https://doi.org/10.1145/1297231.1297267"
+    purpose: "Declarative temporal constraints over event attributes"
+    modules: ["src/declare.rs", "src/ocel.rs"]
+    types:
+      - "DeclareConstraint"
+      - "DeclareTemplate"
+      - "DeclareTrace"
+      - "OcDeclareConstraint (OC-Declare variant)"
+    evidentiary_roles:
+      - "Constraint templates (Precedence, Response, Coexistence, etc.)"
+      - "Attribute parametrization"
+      - "Object-centric variant (OC-Declare)"
+
+  dfg:
+    standard: "Directly-Follows Graphs (DFG)"
+    version: "van der Aalst & Medeiros (2005+)"
+    source_urls:
+      paper: "https://doi.org/10.1016/j.ipm.2005.09.004"
+    purpose: "Simple activity-transition frequency graph"
+    modules: ["src/dfg.rs"]
+    types:
+      - "DfgNode"
+      - "DfgEdge"
+      - "DfgFrequency"
+    evidentiary_roles:
+      - "Lightweight discovery output"
+      - "Frequency-based process abstraction"
+
+  causal_nets:
+    standard: "Causal Nets (C-nets)"
+    version: "Weijters & van der Aalst (2003+)"
+    source_urls:
+      paper: "https://doi.org/10.1023/A:1006340214521"
+    purpose: "Causality-based process model"
+    modules: ["src/causal_net.rs"]
+    types:
+      - "CausalNet"
+      - "CausalActivity"
+      - "CausalBinding"
+    evidentiary_roles:
+      - "Heuristics Miner output carrier"
+      - "Input/output condition tracking per task"
+
+  conformance_verdicts:
+    standard: "Conformance Metrics"
+    version: "van der Aalst & de Medeiros (2005+)"
+    source_urls:
+      textbook: "van der Aalst, W. M. P. (2016). *Process Mining* (Chapter 7)"
+    purpose: "Quantitative fitness/precision/generalization/simplicity scores"
+    modules: ["src/conformance.rs"]
+    types:
+      - "ConformanceVerdict"
+      - "Metric<KIND, NUM, DEN>"
+      - "MetricKind"
+    evidentiary_roles:
+      - "Bounded metrics: Between01<NUM, DEN> ensures [0, 1]"
+      - "Compile-time bound law"
+      - "Refusal codes: OutOfBounds, InvalidDenominator"
+    type_law_surfaces:
+      - "const_generic<NUM: u32, DEN: u32>"
+      - "Between01<NUM, DEN> bound checking"
+      - "Specialization for metric kind dispatch"
+
+# ============================================================================
+# SECTION V: ECOSYSTEM & EXECUTION SOURCES (NOT IN COMPAT)
+# ============================================================================
+graduation_targets:
+  pm4py:
+    tool: "pm4py (Python Process Mining)"
+    version: "Latest"
+    source_url: "https://github.com/pm-py/pm4py-core"
+    documentation_url: "https://pm4py.fit.fraunhofer.de/"
+    role: "Reference conformance engine (NOT in wasm4pm-compat)"
+    purpose: "Token replay, alignment-based fitness, discovery"
+    evidentiary_roles:
+      - "Test oracle: validate LossReport accuracy"
+      - "Round-trip validation: export, pm4py, re-import"
+      - "Conformance baseline for ALIVE gate"
+    integration_point: "src/engine_bridge.rs"
+    not_in_scope:
+      - "Discovery algorithms (Alpha, Inductive, Heuristics)"
+      - "Conformance checking"
+      - "Token replay"
+      - "Visualization"
+
+  wasm4pm_engine:
+    tool: "wasm4pm (Execution Engine)"
+    role: "Graduation target for type-law carriers"
+    repository: "https://github.com/wasm4pm"
+    purpose: "Run discovery, conformance, replay, alignment, optimization"
+    graduation_interface: "src/engine_bridge.rs"
+    graduation_types:
+      - "GraduateToWasm4pm"
+      - "GraduationCandidate"
+      - "GraduationReason"
+    evidentiary_roles:
+      - "Accepts admitted Evidence<EventLog, Admitted, W>"
+      - "Graduates to execution context (discovery, conformance)"
+      - "Type-law contract boundary"
+
+# ============================================================================
+# SECTION VI: WASM & PORTABILITY SOURCES
+# ============================================================================
+wasm_ecosystem:
+  wasm_pack:
+    tool: "wasm-pack"
+    version: "1.x"
+    source_url: "https://github.com/rustwasm/wasm-pack"
+    documentation_url: "https://rustwasm.github.io/wasm-pack/"
+    purpose: "Rust → WebAssembly packaging for npm"
+    evidentiary_roles:
+      - "Compile Rust → .wasm binary"
+      - "Generate JavaScript + TypeScript stubs"
+      - "Package as npm artifact"
+    projection_artifact_targets:
+      - "pkg/package.json (npm metadata)"
+      - "pkg/*.wasm (compiled binary)"
+      - "pkg/*.d.ts (TypeScript definitions)"
+    output_directory: "/Users/sac/wasm4pm-compat/pkg/"
+
+  wasm_component_model:
+    standard: "WASM Component Model (W3C Proposal)"
+    version: "Component Model 0.1+ (draft)"
+    source_url: "https://github.com/WebAssembly/component-model"
+    documentation_urls:
+      main: "https://github.com/WebAssembly/component-model"
+      mvp_readme: "https://github.com/WebAssembly/component-model/blob/main/design/mvp/README.md"
+      explainer: "https://github.com/WebAssembly/component-model/blob/main/Explainer.md"
+    purpose: "Language-independent portable WASM interface"
+    future_role: "Graduation bridge to wasm4pm engine"
+    evidentiary_roles:
+      - "Portable module interface (like Java .jar)"
+      - "Arbitrary runtime hosting (browser, cloud, edge, IoT)"
+      - "Capability-based security model"
+    status: "Not yet implemented in wasm4pm-compat"
+    planned_artifact: "src/component_model.rs (future)"
+
+  wit:
+    standard: "WIT (WebAssembly Interface Types)"
+    version: "0.1+ (part of Component Model)"
+    source_urls:
+      spec: "https://github.com/WebAssembly/component-model/blob/main/design/mvp/WIT.md"
+      docs: "https://witgen.readthedocs.io/"
+    purpose: "IDL for WASM component boundaries"
+    future_role: "Express Evidence, Admission, Refusal as portable types"
+    evidentiary_roles:
+      - "Language-agnostic type contracts"
+      - "Discriminated union for Evidence<T, State, W>"
+      - "Graduation bridge specification"
+    status: "Not yet implemented in wasm4pm-compat"
+    planned_artifact: "wit/*.wit (future)"
+
+  wit_bindgen:
+    tool: "wit-bindgen"
+    version: "Latest"
+    source_url: "https://github.com/bytecodealliance/wit-bindgen"
+    documentation_url: "https://docs.rs/wit-bindgen/latest/"
+    purpose: "WIT → Rust code generator"
+    future_role: "Auto-generate WASM boundary stubs"
+    evidentiary_roles:
+      - "Type-safe bindings for WIT interface"
+      - "Compile-fail on ABI mismatch"
+      - "Zero-cost abstraction over WIT types"
+    status: "Not yet integrated in wasm4pm-compat"
+    planned_integration: "build.rs (future)"
+
+  wasmtime:
+    tool: "Wasmtime"
+    version: "Latest"
+    source_url: "https://github.com/bytecodealliance/wasmtime"
+    documentation_url: "https://docs.wasmtime.dev/"
+    purpose: "Standalone WASM runtime"
+    future_role: "Portable execution host for wasm4pm-compat + engine"
+    evidentiary_roles:
+      - "Component Model host implementation"
+      - "Memory safety enforcement across WASM boundary"
+      - "Cross-platform deployment (macOS, Linux, Windows, edge)"
+
+# ============================================================================
+# SECTION VII: DOCUMENTATION & INTROSPECTION SOURCES
+# ============================================================================
+documentation:
+  rustdoc:
+    tool: "rustdoc"
+    source: "Built into rustc"
+    documentation_url: "https://doc.rust-lang.org/rustdoc/"
+    purpose: "API documentation generation"
+    commands:
+      - "cargo doc --no-deps --open"
+      - "cargo test --doc --all-features (doctest validation)"
+    evidentiary_roles:
+      - "Render all public types/traits/functions"
+      - "Validate doctest examples compile and run"
+      - "Type-law surface documentation"
+    validation_gate: "cargo test --doc --all-features"
+
+  claude_md:
+    file: "/Users/sac/wasm4pm-compat/CLAUDE.md"
+    size_bytes: 10785
+    purpose: "Project-specific instructions and architecture"
+    evidentiary_roles:
+      - "Nightly-first covenant"
+      - "Test surface definitions (unit, ALIVE, doctest)"
+      - "Architecture principles (one-way door, type law)"
+      - "Feature model invariants"
+      - "When to graduate to wasm4pm"
+    authority: "Sean Chatman"
+
+  readme_md:
+    file: "/Users/sac/wasm4pm-compat/README.md"
+    size_bytes: 6536
+    purpose: "Public API overview and quick start"
+    evidentiary_roles:
+      - "What the crate is / is not"
+      - "Key concepts (evidence lifecycle, witness markers, loss policy)"
+      - "ALIVE gate description"
+      - "Feature model summary"
+      - "Verification commands"
+
+  nightly_type_law_md:
+    file: "/Users/sac/wasm4pm-compat/NIGHTLY_TYPE_LAW.md"
+    size_bytes: 8472
+    purpose: "Detailed type-law kernel specification"
+    evidentiary_roles:
+      - "Const-generic bounds (adt_const_params, generic_const_exprs)"
+      - "State/witness typestate machine"
+      - "Specialization-based zero-cost abstractions"
+      - "When specialization is mandatory vs optional"
+
+  cargo_toml:
+    file: "/Users/sac/wasm4pm-compat/Cargo.toml"
+    size_bytes: 1995
+    purpose: "Manifest and feature declarations"
+    evidentiary_roles:
+      - "Authoritative feature model"
+      - "Dependency versions and optional transitive deps"
+      - "Crate-type specification (cdylib, rlib)"
+      - "Package metadata (keywords, categories)"
+
+  cargo_lock:
+    file: "/Users/sac/wasm4pm-compat/Cargo.lock"
+    size_bytes: 22664
+    purpose: "Transitive dependency freeze"
+    evidentiary_roles:
+      - "Lock specta, tsify, wasm-bindgen, serde versions"
+      - "Reproducible builds"
+      - "Security audit trail"
+
+# ============================================================================
+# SECTION VIII: TEST & VALIDATION SOURCES
+# ============================================================================
+testing:
+  trybuild:
+    crate: "trybuild"
+    version: "1"
+    source_url: "https://github.com/dtolnay/trybuild"
+    documentation_url: "https://docs.rs/trybuild/latest/"
+    purpose: "Compile-fail/compile-pass fixture testing"
+    command: "cargo test --test ui_tests -- --ignored"
+    evidentiary_roles:
+      - "ALIVE type-law certification gate"
+      - "Verify intended law enforced at compile time"
+      - "196 compile-fail + 406 compile-pass fixtures"
+      - "Each fixture is a receipt of law certification"
+    fixture_directory: "tests/ui/"
+    validation_gate: "PR merge blocked if ALIVE gate fails"
+
+  criterion:
+    crate: "criterion"
+    version: "0.5"
+    source_url: "https://github.com/bheisler/criterion.rs"
+    documentation_url: "https://bheisler.github.io/criterion.rs/book/"
+    purpose: "Statistical performance benchmarking"
+    commands:
+      - "cargo bench"
+      - "cargo bench --all-features"
+    evidentiary_roles:
+      - "Zero-cost abstraction verification"
+      - "#[repr(transparent)] compilation equivalence"
+      - "PhantomData witness/state markers runtime cost"
+      - "Regression detection"
+    benchmarks:
+      - "benches/zero_cost_types.rs"
+      - "benches/law_bounds_bench.rs"
+      - "benches/evidence_lifecycle_bench.rs"
+      - "benches/id_operations_bench.rs"
+
+  unit_integration:
+    command: "cargo test --tests"
+    purpose: "Fast behavior verification"
+    cadence: "Every change (sub-second after first build)"
+    evidentiary_roles:
+      - "Type-law carrier serialization round-trip"
+      - "Admission/refusal contract validation"
+      - "State transition path verification"
+      - "Witness marker distinction preservation"
+
+  doctest:
+    command: "cargo test --doc --all-features"
+    purpose: "Public API example validation"
+    cadence: "Explicit opt-in (slow on nightly)"
+    evidentiary_roles:
+      - "Every public type has runnable doctest"
+      - "Usage examples compile and execute"
+      - "Generic const bounds in doctests validate"
+    note: "Doctests disabled by default in test run (doctest=false in Cargo.toml)"
+
+# ============================================================================
+# SECTION IX: STANDARDS & EXTERNAL REFERENCES
+# ============================================================================
+standards:
+  w3c_webassembly:
+    standard: "W3C WebAssembly Specification"
+    source_url: "https://webassembly.github.io/spec/core/"
+    purpose: "Authoritative WASM semantics and ABI"
+    evidentiary_roles:
+      - "WASM virtual machine specification"
+      - "Linear memory model"
+      - "Function call convention"
+      - "Foundation for wasm-bindgen FFI safety"
+
+  rust_2021_edition:
+    standard: "Rust 2021 Edition"
+    source_url: "https://doc.rust-lang.org/edition-guide/rust-2021/"
+    purpose: "Language semantics and feature set"
+    evidentiary_roles:
+      - "#![forbid(unsafe_code)] enforcement"
+      - "Trait coherence and specialization rules"
+      - "Module visibility and privacy rules"
+      - "Const-trait-impl feature foundation"
+
+  json_schema:
+    standard: "JSON Schema"
+    source_url: "https://json-schema.org/"
+    purpose: "Validate OCEL/XES/BPMN JSON shapes"
+    evidentiary_roles:
+      - "OCEL 2.0 JSON schema validation"
+      - "XES JSON payload validation"
+      - "Test oracle: compare imported structures to canonical schemas"
+
+  xml_xsd:
+    standard: "XML/XSD (Schema Definition)"
+    source_url: "W3C XML / XSD specifications"
+    purpose: "Validate OCEL/XES/BPMN XML shapes"
+    evidentiary_roles:
+      - "OCEL 2.0 XML schema validation"
+      - "XES 1.849 schema validation"
+      - "BPMN 2.0 XML schema validation"
+      - "Round-trip validation: XML → parse → export JSON → re-parse"
+
+# ============================================================================
+# SECTION X: CI/CD & BUILD ORCHESTRATION
+# ============================================================================
+ci_cd:
+  makefile_toml:
+    file: "/Users/sac/wasm4pm-compat/Makefile.toml"
+    size_bytes: 4165
+    tool: "cargo-make"
+    source_url: "https://github.com/sagiegurari/cargo-make"
+    purpose: "Cross-platform build task orchestration"
+    evidentiary_roles:
+      - "Feature combination matrix testing"
+      - "ALIVE gate orchestration"
+      - "Benchmark automation"
+      - "CI/CD pipeline definition"
+
+  github_actions:
+    location: ".github/workflows/*.yml"
+    purpose: "Continuous integration and delivery"
+    evidentiary_roles:
+      - "Automated test on push/PR"
+      - "Feature matrix testing"
+      - "ALIVE gate merge blocking"
+      - "Documentation build verification"
+      - "Regression detection (benchmarks)"
+
+  rustup:
+    tool: "rustup"
+    source_url: "https://rustup.rs/"
+    purpose: "Rust toolchain management"
+    config_file: "rust-toolchain.toml"
+    evidentiary_roles:
+      - "Pin nightly toolchain version"
+      - "Enforce nightly-first covenant"
+      - "Manage WASM targets (wasm32-unknown-unknown)"
+
+# ============================================================================
+# SECTION XI: CODE GENERATION & PROJECTION ORCHESTRATION
+# ============================================================================
+code_generation:
+  ggen:
+    directory: "/Users/sac/wasm4pm-compat/ggen/"
+    purpose: "Code generation orchestration"
+    subdirectories:
+      ggen_toml:
+        file: "ggen.toml"
+        size_bytes: 6548
+        purpose: "Generation manifests"
+      makefile_toml:
+        file: "Makefile.toml"
+        size_bytes: 4165
+        purpose: "Generation tasks"
+      templates:
+        path: "templates/"
+        purpose: "Code generation templates"
+        generated_outputs:
+          - "src/ts/law_projection.rs (specta types)"
+          - "src/wasm/bindings.rs (wasm-bindgen types)"
+          - "tests/ui/*/Cargo.toml (fixture boilerplate)"
+      ontology:
+        path: "ontology/"
+        purpose: "Semantic knowledge base (RDF/OWL)"
+        evidentiary_roles:
+          - "Formalize witness/state/evidence relationships"
+          - "Define type-law kernel axioms"
+          - "Automated schema validation"
+      queries:
+        path: "queries/"
+        purpose: "SPARQL introspection queries"
+        evidentiary_roles:
+          - "Query ontology for code generation inputs"
+          - "Validate ontology closure"
+          - "Regression detection (new witness without projection)"
+
+# ============================================================================
+# SECTION XII: MEMORY & FUTURE WORK
+# ============================================================================
+memory_and_future:
+  project_memory:
+    location: "/Users/sac/.claude/projects/-Users-sac-wasm4pm-compat/memory/"
+    files:
+      - "project_wasm4pm_compat.md (project state)"
+      - "project_process_intelligence.md (research program)"
+    purpose: "Session-persistent project context"
+
+  future_projections:
+    - "Component Model integration (WIT bindings, wit-bindgen in build.rs)"
+    - "ML-based benchmark regression detection (criterion + statistical analysis)"
+    - "Automated WIT interface generation from Rust types"
+    - "Cross-language WASM component testing (JavaScript, Python, Go)"
+    - "Process discovery engine graduation (separate wasm4pm crate)"
+
+# ============================================================================
+# SECTION XIII: SUMMARY & AUTHORITY
+# ============================================================================
+summary:
+  total_ecosystem_sources: 51
+  categories:
+    - "Rust toolchain: 4"
+    - "Feature engineering: 2"
+    - "Type introspection & TS: 5"
+    - "Process-evidence data models: 9"
+    - "Execution engines: 2"
+    - "WASM & portability: 5"
+    - "Documentation & introspection: 6"
+    - "Testing & validation: 4"
+    - "Standards & references: 4"
+    - "CI/CD & build: 3"
+    - "Code generation: 1"
+
+authority:
+  author: "Sean Chatman"
+  email: "xpointsh@gmail.com"
+  role: "wasm4pm-compat project lead"
+  date_created: "2026-06-01"
+  last_updated: "2026-06-01"
+  scope: "Ecosystem census for projection manufacturing"
+  version: "1.0"

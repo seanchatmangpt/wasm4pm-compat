@@ -1,0 +1,222 @@
+# Cargo Feature Intelligence Map
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+#
+# Maps public Cargo features to dependencies, activation risk, and unification behavior.
+# This is the canonical reference for understanding which features pull which external crates.
+
+features:
+  formats:
+    kind: public
+    default: yes
+    description: "Import/export contracts, round-trip claims, and loss surfaces"
+    gates_modules:
+      - src/formats.rs
+    gates_dependencies: []
+    direct_transitive_cost: zero
+    unification_risk: none
+    downstream_impact: >
+      formats is default-on, so all dependents of wasm4pm-compat inherit it unless they
+      explicitly disable default features. No external crate is gated by this feature.
+    law_requirement: >
+      formats gates module that enforces the boundary covenant: Raw bytes must pass
+      through admission (typed, witnessed, lawful refusal) before export. Silent
+      format-to-format laundering is forbidden. LossPolicy and LossReport required
+      on all lossy transformations.
+
+  strict:
+    kind: public
+    default: no
+    description: "Opt-in boundary judgment: strict admission/refusal declaration surfaces"
+    gates_modules:
+      - src/strict.rs
+    gates_dependencies: []
+    direct_transitive_cost: zero
+    unification_risk: none
+    downstream_impact: >
+      strict is opt-in (not default-on). A host declares ProcessBoundary kinds
+      and attests obligations (has_witness, has_round_trip_fixture, has_loss_policy, etc.).
+      StrictCheck inspects declarations, never data. No external crate is gated by this feature.
+    law_requirement: >
+      strict gates the tripwire that detects when a host has started claiming
+      discovery/conformance/replay capability without graduating to wasm4pm.
+      HiddenProcessMiningGrowth violation indicates the host is smuggling execution
+      logic into a structure-only layer. See refusal rule below.
+
+  ts:
+    kind: public
+    default: no
+    description: "Expose TypeScript law projection for browsers"
+    gates_modules:
+      - src/ts/mod.rs
+      - src/ts/export.rs
+      - src/ts/law_projection.rs
+      - src/ts/brand.rs
+    gates_dependencies:
+      - specta (^1.0.5) via dep:specta
+      - serde (^1.0 with derive) via dep:serde
+      - tsify (^0.4.5 with js feature) via dep:tsify
+      - wasm-bindgen (^0.2.92) via dep:wasm-bindgen
+    direct_transitive_cost: moderate
+      # specta, serde, tsify, wasm-bindgen are all moderate-weight dependencies
+    unification_risk: "MEDIUM — ts and wasm both gate specta, serde, tsify, wasm-bindgen"
+      # If both ts and wasm are enabled, features unify at serde/specta/tsify/wasm-bindgen level
+      # This is safe: no conflicting feature combinations among those crates
+    downstream_impact: >
+      ts is opt-in. When enabled in a browser target, it pulls specta (TypeScript
+      code generation), serde (serialization), tsify (ABI wrapping), and wasm-bindgen.
+      Activating both ts and wasm will unify serde/specta/tsify/wasm-bindgen, causing
+      single compilation of those crates (not duplicated).
+    law_requirement: >
+      ts gates type-level law projections: branded generics (Evidence<T,State,Witness>,
+      Admission<T,W>, Refusal<R,W>) are statically exported as TypeScript interfaces.
+      No code generation is performed at runtime. The projection is structure-only:
+      it does not emit events, validate data, or claim conformance. It is a static
+      type boundary.
+
+  wasm:
+    kind: public
+    default: no
+    description: "Expose WASM-safe boundary projection and validations"
+    gates_modules:
+      - src/wasm/mod.rs
+      - src/wasm/boundary.rs
+      - src/wasm/abi.rs
+      - src/wasm/bindings.rs
+    gates_dependencies:
+      - wasm-bindgen (^0.2.92) via dep:wasm-bindgen
+      - serde-wasm-bindgen (^0.6) via dep:serde-wasm-bindgen
+      - tsify (^0.4.5 with js feature) via dep:tsify
+      - serde (^1.0 with derive) via dep:serde
+      - specta (^1.0.5) via dep:specta
+    direct_transitive_cost: moderate
+      # serde-wasm-bindgen adds marshaling overhead; specta/serde/tsify/wasm-bindgen inherited
+    unification_risk: "MEDIUM — wasm and ts both gate specta, serde, tsify, wasm-bindgen"
+      # Feature unification is safe; no conflicts
+    downstream_impact: >
+      wasm is opt-in. When enabled in a browser/WASM target, it pulls wasm-bindgen
+      (FFI), serde-wasm-bindgen (marshaling), and re-gates specta/serde/tsify.
+      Activating both wasm and ts will result in a single compiled instance of
+      specta, serde, tsify, wasm-bindgen (no duplication).
+    law_requirement: >
+      wasm gates ABI-safe boundary projections: WasmWitness, WasmStateTag,
+      WasmAdmissionResult, WasmGraduationCandidate, WasmLossReport.
+      These are exported as #[wasm_bindgen] functions. No process-mining execution
+      is performed. ABI is structure-only: memory layout, serialization format,
+      and witness catalog are static.
+
+  wasm4pm:
+    kind: public
+    default: no
+    description: "Graduation bridge traits toward the wasm4pm execution engine"
+    gates_modules:
+      - src/engine_bridge.rs
+    gates_dependencies: []
+    direct_transitive_cost: zero
+      # engine_bridge is pure structure; no external dependencies
+    unification_risk: none
+    downstream_impact: >
+      wasm4pm is opt-in. When enabled, it gates GraduationCandidate and GraduationReason
+      enum surfaces — the typed signal for when a host has exhausted the compat layer's
+      structure-only mandate and must graduate to the execution engine.
+      No external crate is gated by this feature. No engine is imported.
+    law_requirement: >
+      wasm4pm is a *refusal gate*. If a host declares strict mode and also claims
+      discovery/conformance/replay/query execution, strict mode must refuse with
+      HiddenProcessMiningGrowth (pointing to engine_bridge::GraduationReason).
+      The bridge is a *contract seam*, not an implementation seam. It exists to make
+      graduation explicit and reviewable, not to auto-escalate.
+
+feature_combinations:
+  ts_and_wasm_together:
+    unification: "Safe. Both gate specta, serde, tsify, wasm-bindgen. Feature unification
+                  is automatic and produces a single compiled instance of each crate."
+    risk: none
+    note: "A WASM target that needs both TypeScript projections and JavaScript bindings
+           will activate both. This is the normal case for browser-facing wasm4pm-compat."
+
+  formats_always_default:
+    unification: "formats is default-on. Any dependent that does not explicitly
+                  disable default features will have formats gated."
+    risk: low
+      # formats gates no external crate, so activation cost is zero. The risk is
+      # structural: formats enforces strict admission/refusal/loss boundaries, which
+      # affects the API surface. A host that wants the base structure only (without
+      # the import/export contract machinery) must pass --no-default-features.
+    note: "Hosts that need only the canonical shape definitions (Event, Trace, EventLog,
+           OcelLog, PetriNet, etc.) but not the format contracts can use
+           cargo build --no-default-features."
+
+  strict_as_build_gate:
+    unification: "strict is opt-in and gates no external crate. It is a declaration
+                  surface only (ProcessBoundary, StrictCheck, StrictViolation)."
+    risk: none
+      # strict enforcement is structural: it does not change compilation,
+      # only adds a build-time check that declarations are honest. No transitive cost.
+    note: "strict is intended for load-bearing boundaries. Activating it does not
+           slow compilation or add runtime overhead."
+
+optional_dependency_table:
+  serde:
+    version: "^1.0"
+    features: ["derive"]
+    gated_by_features: ["ts", "wasm"]
+    transitive_via: ["specta", "tsify", "wasm-bindgen", "serde-wasm-bindgen"]
+    role: "Serialization/deserialization; required for TypeScript and WASM projections"
+    required: no
+      # serde is optional; only required if ts or wasm are enabled
+
+  specta:
+    version: "^1.0.5"
+    features: []
+    gated_by_features: ["ts", "wasm"]
+    transitive_via: ["tsify", "wasm-bindgen"]
+    role: "TypeScript type generation from Rust types; generates .d.ts from serde structs"
+    required: no
+      # specta is optional; only required if ts or wasm are enabled
+
+  tsify:
+    version: "^0.4.5"
+    features: ["js"]
+    gated_by_features: ["ts", "wasm"]
+    transitive_via: ["wasm-bindgen"]
+    role: "Derives JavaScript serialization ABI and TypeScript bindings from serde"
+    required: no
+      # tsify is optional; only required if ts or wasm are enabled
+
+  wasm-bindgen:
+    version: "^0.2.92"
+    features: []
+    gated_by_features: ["ts", "wasm"]
+    transitive_via: direct
+    role: "JavaScript ↔ Rust FFI and memory marshaling"
+    required: no
+      # wasm-bindgen is optional; only required if ts or wasm are enabled
+
+  serde-wasm-bindgen:
+    version: "^0.6"
+    features: []
+    gated_by_features: ["wasm"]
+    transitive_via: direct
+    role: "High-performance marshaling of serde types across WASM boundary"
+    required: no
+      # serde-wasm-bindgen is optional; only required if wasm is enabled
+
+refusal_rule:
+  rule_id: "tool-smuggling-into-compat"
+  enforcement: "STRICT"
+  trigger: >
+    Any feature (ts, wasm, or future) that attempts to import discovery, replay,
+    conformance, or OCPQ engine modules/crates (e.g., pm4py, wasm4pm engine itself,
+    custom discovery implementations) into wasm4pm-compat.
+  refusal: >
+    REFUSE. wasm4pm-compat is structure-only. Execution logic must graduate to
+    wasm4pm via the engine_bridge::GraduationCandidate signal. Smuggling execution
+    into compat is a covenant violation.
+  evidence: >
+    - ts module imports no discovery/replay/conformance/OCPQ crates ✓
+    - wasm module imports no discovery/replay/conformance/OCPQ crates ✓
+    - formats module imports no discovery/replay/conformance/OCPQ crates ✓
+    - engine_bridge imports no wasm4pm engine (structure only) ✓
+    - strict module has no execution logic, only structural checks ✓
+  exception: "None. The rule is unconditional."

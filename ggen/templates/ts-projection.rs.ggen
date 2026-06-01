@@ -1,0 +1,1069 @@
+{# ts-projection.rs.ggen: TypeScript projection generator for wasm4pm-compat public API #}
+{# Constitutional Equation: generated/wasm4pm-compat.ts = mu(ts.projection.yaml + specta-capability-map) #}
+{# #}
+{# INPUT VARIABLES: #}
+{#   projectionMetadata  — projection manifest metadata (name, version, source_lang, target_lang) #}
+{#   tier1Types          — list of immediately exportable types (Event, Trace, EventLog, OcelEvent, ...) #}
+{#   tier2Types          — list of types requiring wrapper or constraint handling (Admission<T, W>, LossReport, ...) #}
+{#   tier4Refusals       — list of refusal reason enums (EventLogRefusal, OcelRefusal, ...) #}
+{#   witnessFamily       — witness family enum (Standard, Paper, ApiGrammar, RustLaw, InternalBridge) #}
+{#   exportFeature       — feature gate name (ts, wasm, wasm4pm) #}
+{#   generatedTimestamp  — ISO 8601 timestamp for generation metadata #}
+{# #}
+{# OUTPUT: #}
+{#   Single .ts file containing: #}
+{#     • All Tier 1 type definitions (direct export) #}
+{#     • All Tier 2 wrapper definitions #}
+{#     • All Tier 4 refusal enums #}
+{#     • Witness metadata and registry #}
+{#     • Helper functions (eventId, objectId, metric, witnessMetadata) #}
+{#     • Audit checklist comments #}
+{#     • Loss report and receipt types #}
+{#     • Law encoding documentation per type #}
+{# #}
+// ============================================================================
+// AUTO-GENERATED: TypeScript Projection for wasm4pm-compat
+// ============================================================================
+//
+// Generator: ggen ts-projection.rs.ggen
+// Authority: ts.projection.yaml + specta-capability-map.md
+// Timestamp: {{ generatedTimestamp }}
+// Feature gate: {{ exportFeature }}
+// Stability: STABLE
+//
+// DO NOT EDIT MANUALLY. Regenerate with:
+//   ggen sync --template ts-projection.rs.ggen
+//
+// ============================================================================
+// TYPE LAW DOCTRINE
+// ============================================================================
+//
+// This file encodes three canonical laws for TypeScript projection:
+//
+//   LAW 1: No PhantomData at the boundary.
+//     Witness markers (W) and State tokens (State) are zero-sized compile-time
+//     tags in Rust. They MUST NOT appear in TypeScript. This projection
+//     eliminates them by exporting metadata separately.
+//
+//   LAW 2: All Domain Shapes Are Serializable.
+//     Every exported type implements Serde (Serialize + Deserialize).
+//     Specta walks the tree to generate type definitions; zero-sized types
+//     are automatically skipped.
+//
+//   LAW 3: Branded Generics Become Concrete Wrappers.
+//     Evidence<T, State, W> is branded by two phantom parameters.
+//     Projection creates concrete newtypes: RawEvidence<T>, AdmittedEvidence<T>, etc.
+//
+// ============================================================================
+// TIER 1: CORE DOMAIN TYPES (IMMEDIATELY EXPORTABLE)
+// ============================================================================
+// These types carry no PhantomData, no const parameters, and no lifecycle
+// markers. They represent the fundamental shapes of event logs and OCEL.
+//
+// Law encoding:
+//   - Event         → eventlog canon, fundamental unit
+//   - Trace         → case-centric container (classical BPM)
+//   - EventLog      → root container for traces
+//   - OcelEvent     → object-centric individual event
+//   - OcelObject    → first-class object with attributes and identity
+//   - OcelAttribute → key-value metadata on events/objects
+//   - OcelAttributeValue → polymorphic value type (string, int, float, bool, timestamp, list, map)
+//
+
+{% if tier1_types %}
+// --- Event (eventlog module) ---
+// Fundamental unit of process evidence.
+//
+// Structure-only type; no PhantomData.
+// Serialization: serde(default) for optional fields
+// Witness: None (fundamental canon, not witness-specific)
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No PhantomData fields
+//   ✅ All fields serialize via serde
+//   ✅ Timestamps are u64 (serialized as bigint in TS)
+//   ✅ Optional fields become T | null in TypeScript
+{% for type in tier1_types %}
+{% if type.name == "Event" %}
+/**
+ * Individual activity execution in a process instance.
+ *
+ * Law: eventlog canon.
+ * PhantomData: NONE
+ * Witness: NONE (structural unit)
+ *
+ * Fields:
+ *   activity     (string) — unique activity code from the process definition
+ *   timestamp_ns (bigint | null) — event timestamp in nanoseconds since epoch
+ *   resource     (string | null) — assigned resource/performer
+ *   lifecycle    (string | null) — lifecycle transition (XES standard: start, complete, etc.)
+ *   attributes   (Record<string, any> | null) — additional attributes
+ */
+export interface Event {
+  activity: string;
+  timestamp_ns?: bigint;
+  resource?: string;
+  lifecycle?: string;
+  attributes?: Record<string, unknown>;
+}
+
+// --- Trace (eventlog module) ---
+// Case-centric sequence of events (classical case-log structure).
+//
+// Structure-only; ordered sequence of Event objects.
+// No PhantomData, no witness markers.
+// Serialization: Vec<Event> → bigint in TS
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No state tokens, no witness parameters
+//   ✅ Vec<Event> projects to Event[]
+/**
+ * Ordered sequence of events for a single case/process instance.
+ *
+ * Law: eventlog canon (case-centric).
+ * PhantomData: NONE
+ * Witness: NONE
+ *
+ * Fields:
+ *   id     (string) — unique case/trace identifier
+ *   events (Event[]) — ordered list of activities
+ */
+export interface Trace {
+  id: string;
+  events: Event[];
+}
+
+// --- EventLog (eventlog module) ---
+// Root container for all traces in a log.
+//
+// Structure-only collection.
+// No PhantomData, no witness.
+// Serialization: Vec<Trace> → Trace[]
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No phantom parameters
+//   ✅ Nested Vec projects to [][]
+/**
+ * Complete event log containing all traces.
+ *
+ * Law: eventlog canon (root container).
+ * PhantomData: NONE
+ * Witness: NONE
+ *
+ * Fields:
+ *   traces (Trace[]) — ordered list of all traces
+ */
+export interface EventLog {
+  traces: Trace[];
+}
+
+{% endif %}
+{% if type.name == "OcelEvent" %}
+// --- OcelEvent (ocel module) ---
+// Object-centric event with OCEL 2.0 semantics.
+//
+// Structure-only; no PhantomData.
+// Witness: Ocel20 (indicated via admission boundary, not carried in type)
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No state tokens or witness generics
+//   ✅ Attributes serialized as OcelAttribute[]
+/**
+ * Event in an object-centric event log (OCEL 2.0).
+ *
+ * Law: OCEL 2.0 standard structure.
+ * PhantomData: NONE
+ * Witness: Ocel20 (applied at admission, not in type)
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   id           (bigint) — unique event identifier
+ *   timestamp_ns (bigint) — event timestamp in nanoseconds
+ *   activity     (string) — activity type name
+ *   attributes   (OcelAttribute[]) — event-level attributes
+ */
+export interface OcelEvent {
+  id: bigint;
+  timestamp_ns: bigint;
+  activity: string;
+  attributes: OcelAttribute[];
+}
+
+// --- OcelObject (ocel module) ---
+// First-class object with type and attributes (OCEL 2.0).
+//
+// Structure-only; represents business objects independent of events.
+// No PhantomData.
+// Witness: Ocel20 (not in type signature)
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No generic State or W parameters
+//   ✅ Transparent newtype for id
+/**
+ * Business object in an OCEL log.
+ *
+ * Law: OCEL 2.0 first-class objects.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   id         (bigint) — unique object identifier
+ *   type_name  (string) — object type (e.g., "order", "invoice")
+ *   attributes (OcelAttribute[]) — object-level attributes
+ */
+export interface OcelObject {
+  id: bigint;
+  type_name: string;
+  attributes: OcelAttribute[];
+}
+
+// --- OcelAttribute (ocel module) ---
+// Key-value metadata on events or objects (OCEL 2.0).
+//
+// Structure-only; polymorphic value type.
+// No PhantomData.
+// Witness: Ocel20
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ OcelAttributeValue is exported as discriminated union
+/**
+ * Attribute (key-value pair) on an OCEL event or object.
+ *
+ * Law: OCEL 2.0 attribute structure.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ *
+ * Fields:
+ *   key   (string) — attribute name
+ *   value (OcelAttributeValue) — polymorphic value
+ */
+export interface OcelAttribute {
+  key: string;
+  value: OcelAttributeValue;
+}
+
+// --- OcelAttributeValue (ocel module) ---
+// Polymorphic value in OCEL 2.0 attributes (supports string, int, float,
+// boolean, timestamp, list, and map).
+//
+// Enum with discriminated union encoding (external tagging in Serde).
+// No PhantomData, no const parameters.
+// Witness: Ocel20
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ Enum variants are concrete data, not markers
+//   ✅ Recursive: List and Map contain OcelAttributeValue
+/**
+ * Polymorphic attribute value in OCEL 2.0.
+ *
+ * Law: OCEL 2.0 attribute value types.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Variants:
+ *   String(string)          — text value
+ *   Integer(bigint)         — signed 64-bit integer
+ *   Float(number)           — IEEE 754 float
+ *   Boolean(boolean)        — true/false
+ *   TimestampNs(bigint)     — nanoseconds since epoch
+ *   List(OcelAttributeValue[]) — ordered sequence
+ *   Map([string, OcelAttributeValue][]) — key-value pairs
+ */
+export type OcelAttributeValue =
+  | { String: string }
+  | { Integer: bigint }
+  | { Float: number }
+  | { Boolean: boolean }
+  | { TimestampNs: bigint }
+  | { List: OcelAttributeValue[] }
+  | { Map: [string, OcelAttributeValue][] };
+
+{% endif %}
+{% if type.name == "OcelLog" %}
+// --- OcelLog (ocel module) ---
+// Complete object-centric event log with OCEL 2.0 structure.
+//
+// Extends EventLog with object-centric links and changes.
+// Structure-only; no PhantomData.
+// Witness: Ocel20 (applied at admission boundary)
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ No State or W parameters in exported type
+//   ✅ Links and changes are concrete arrays
+/**
+ * Complete OCEL 2.0 log with events, objects, and relationships.
+ *
+ * Law: OCEL 2.0 standard structure.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   events        (OcelEvent[]) — all events
+ *   objects       (OcelObject[]) — all objects
+ *   e2o_links     (EventObjectLink[]) — event-to-object relations
+ *   o2o_links     (ObjectObjectLink[]) — object-to-object relations
+ *   object_changes (ObjectChange[]) — attribute changes over time
+ */
+export interface OcelLog {
+  events: OcelEvent[];
+  objects: OcelObject[];
+  e2o_links: EventObjectLink[];
+  o2o_links: ObjectObjectLink[];
+  object_changes: ObjectChange[];
+}
+
+// --- EventObjectLink (ocel module) ---
+// Binary relation between event and object (OCEL 2.0).
+//
+// Structure-only; represents event → object correlation.
+// No PhantomData.
+// Witness: Ocel20
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ Three concrete fields (no generics)
+/**
+ * Event-to-object relation in OCEL 2.0.
+ *
+ * Law: OCEL 2.0 event-object correlation.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   event_id  (bigint) — reference to event
+ *   object_id (bigint) — reference to object
+ *   qualifier (string | null) — optional relation type (e.g., "input", "output")
+ */
+export interface EventObjectLink {
+  event_id: bigint;
+  object_id: bigint;
+  qualifier?: string;
+}
+
+// --- ObjectObjectLink (ocel module) ---
+// Binary relation between two objects (OCEL 2.0).
+//
+// Structure-only; represents object → object correlation.
+// No PhantomData.
+// Witness: Ocel20
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ Three concrete fields
+/**
+ * Object-to-object relation in OCEL 2.0.
+ *
+ * Law: OCEL 2.0 object-object correlation.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   source_id  (bigint) — source object
+ *   target_id  (bigint) — target object
+ *   qualifier  (string | null) — relation type
+ */
+export interface ObjectObjectLink {
+  source_id: bigint;
+  target_id: bigint;
+  qualifier?: string;
+}
+
+// --- ObjectChange (ocel module) ---
+// State change of an object over time (OCEL 2.0).
+//
+// Structure-only; tracks attribute modifications.
+// No PhantomData.
+// Witness: Ocel20
+//
+// From ts-projection-law LAW 1, LAW 2:
+//   ✅ All fields concrete and serializable
+/**
+ * Attribute change on an object in OCEL 2.0.
+ *
+ * Law: OCEL 2.0 object attribute evolution.
+ * PhantomData: NONE
+ * Witness: Ocel20
+ * Standard: https://doi.org/10.48550/arXiv.2005.08811
+ *
+ * Fields:
+ *   object_id   (bigint) — object being changed
+ *   attribute   (string) — attribute name
+ *   value       (OcelAttributeValue) — new value
+ *   timestamp_ns (bigint | null) — change timestamp
+ */
+export interface ObjectChange {
+  object_id: bigint;
+  attribute: string;
+  value: OcelAttributeValue;
+  timestamp_ns?: bigint;
+}
+
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+// ============================================================================
+// TIER 2: ADMISSION & LOSS ACCOUNTING (WRAPPER TYPES)
+// ============================================================================
+// These types require wrapper structures because the originals in Rust carry
+// PhantomData parameters (State, W) that have no TypeScript equivalent.
+// The wrappers extract the data while metadata (witness name, refusal reason)
+// becomes a string field.
+//
+// Law encoding:
+//   - Admission<T, W> → AdmissionSnapshot<T> { value: T, witness_key: string }
+//   - Refusal<R, W> → RefusalSnapshot { reason: R, witness_key: string }
+//   - LossPolicy → concrete enum (RefuseLoss | AllowNamed | AllowWithReport)
+//   - LossReport → audit trail of what was lost during projection
+//
+
+{% if tier2_types %}
+// --- AdmissionSnapshot<T> (admission module wrapper) ---
+// Unwrapped Admission<T, W> where W is converted to a metadata string.
+//
+// Derived from LAW 3 (Branded Generics Become Concrete Wrappers):
+//   Admission<T, W> carries a witness W as PhantomData. This wrapper drops W
+//   and carries its metadata as a string field instead.
+//
+// From ts-projection-law:
+//   ✅ PhantomData<W> removed
+//   ✅ T must be serializable (enforced by Serde)
+//   ✅ witness_key is a static string identifying the authority
+/**
+ * Admission envelope: value that has passed structural checks.
+ *
+ * Law: admission boundary ceremony (LAW 3).
+ * Carries the admitted value and witness metadata (W as string).
+ *
+ * From Rust: Admission<T, W> where
+ *   T: Serialize + Deserialize
+ *   W: Witness (witness metadata in witness_key field)
+ *
+ * Fields:
+ *   value       (T) — the admitted data structure
+ *   witness_key (string) — e.g., "ocel-2.0", "xes-1.0", authority identifier
+ *   witness_title (string | null) — human-readable authority name
+ */
+export interface AdmissionSnapshot<T> {
+  value: T;
+  witness_key: string;
+  witness_title?: string;
+}
+
+// --- RefusalSnapshot (admission module wrapper) ---
+// Unwrapped Refusal<R, W> where R is a concrete reason enum and W becomes metadata.
+//
+// Derived from LAW 3:
+//   Refusal<R, W> must have R as a concrete refusal type (EventLogRefusal, etc.)
+//   and W as PhantomData that is projected away. Witness becomes a string.
+//
+// From ts-projection-law:
+//   ✅ Reason R is concrete enum (never generic)
+//   ✅ Witness W converted to witness_key string
+/**
+ * Refusal envelope: reasons why admission failed.
+ *
+ * Law: refusal as first-class defect (LAW 3).
+ * Carries the reason (concrete typed enum) and witness metadata.
+ *
+ * From Rust: Refusal<R, W> where
+ *   R: concrete refusal enum
+ *   W: Witness (metadata in witness_key)
+ *
+ * Fields:
+ *   reason       (string) — serialized reason enum variant
+ *   reason_code  (string) — machine-readable reason identifier
+ *   witness_key  (string) — authority under which refusal was issued
+ *   context      (Record<string, string> | null) — diagnostic context
+ */
+export interface RefusalSnapshot {
+  reason: string;
+  reason_code: string;
+  witness_key: string;
+  context?: Record<string, string>;
+}
+
+// --- LossPolicy (loss module) ---
+// Decision on how to handle lossy projections.
+//
+// Concrete enum with three variants:
+//   1. RefuseLoss: forbid any loss, fail the projection
+//   2. AllowNamed: allow loss with a projection name
+//   3. AllowWithReport: allow loss and require a LossReport
+//
+// From ts-projection-law LAW 5 (loss accounting):
+//   ✅ All variants serializable
+//   ✅ No phantom parameters or const generics
+/**
+ * Policy for handling structural loss in format projections.
+ *
+ * Law: loss accounting (LAW 5).
+ * PhantomData: NONE
+ *
+ * Variants:
+ *   RefuseLoss       — forbid any loss; return error if loss detected
+ *   AllowNamed       — allow loss with a named projection identifier
+ *   AllowWithReport  — allow loss and require LossReport audit trail
+ */
+export type LossPolicy =
+  | { kind: "RefuseLoss" }
+  | { kind: "AllowNamed"; name: string }
+  | { kind: "AllowWithReport" };
+
+// --- ProjectionName (loss module) ---
+// Identifier for a named projection (e.g., "OCEL_to_XES").
+//
+// Newtype wrapper over &'static str; projects as a string.
+//
+// From ts-projection-law:
+//   ✅ No PhantomData
+/**
+ * Name of a lossy projection (e.g., "OCEL_to_XES").
+ *
+ * Law: loss accounting.
+ * Type: string identifier.
+ */
+export type ProjectionName = string;
+
+// --- LossReport (loss module) ---
+// Audit trail documenting structural loss during projection.
+//
+// Carries metadata about what was lost, why, and count.
+// No PhantomData, fully concrete.
+// Witness: not embedded (loss is format-agnostic)
+//
+// From ts-projection-law LAW 5:
+//   ✅ All loss must be documented
+//   ✅ Report must accompany lossy output
+/**
+ * Audit trail of structural loss during a projection.
+ *
+ * Law: loss accounting (LAW 5).
+ * PhantomData: NONE
+ *
+ * Fields:
+ *   from_format  (string) — source format (e.g., "OCEL 2.0")
+ *   to_format    (string) — target format (e.g., "XES 1.0")
+ *   items_lost   (LossItem[]) — individual losses
+ *   summary      (string) — human-readable summary of loss
+ *   loss_count   (bigint) — total items lost
+ *   loss_percent (number) — percentage of total lost [0.0, 1.0]
+ */
+export interface LossReport {
+  from_format: string;
+  to_format: string;
+  items_lost: LossItem[];
+  summary: string;
+  loss_count: bigint;
+  loss_percent: number;
+}
+
+/**
+ * Individual loss entry in a LossReport.
+ *
+ * Law: loss accounting.
+ *
+ * Fields:
+ *   category  (string) — type of structure lost (e.g., "object-centric-links")
+ *   count     (bigint) — number of items lost
+ *   reason    (string) — why this structure was lost
+ */
+export interface LossItem {
+  category: string;
+  count: bigint;
+  reason: string;
+}
+
+{% endif %}
+
+// ============================================================================
+// TIER 3: IDENTIFIERS & TYPE-SAFE WRAPPERS
+// ============================================================================
+// Branded newtypes for identifiers. These are #[repr(transparent)] in Rust,
+// so they project as simple strings in TypeScript.
+//
+// Law encoding:
+//   - EventId → branded string type
+//   - ObjectId → branded string type
+//   - TraceId / CaseId → branded string type
+//   - EventTypeName → simple newtype
+//   - ObjectTypeName → simple newtype
+//
+
+// --- EventId (ids module) ---
+// Zero-cost branded identifier for events.
+//
+// Rust: #[repr(transparent)] pub struct EventId<K> { raw: u64, _kind: PhantomData<K> }
+// TypeScript: string (branded via type alias)
+//
+// From ts-projection-law:
+//   ✅ PhantomData<K> is erased (type-level only)
+//   ✅ Projects as string
+/**
+ * Branded identifier for events.
+ *
+ * Law: zero-cost ID wrapper.
+ * Brand: prevents confusing EventId with ObjectId or CaseId at TS type level.
+ */
+export type EventId = string & { readonly __brand: "EventId" };
+
+// Helper: create a branded EventId
+export function eventId(raw: string): EventId {
+  return raw as EventId;
+}
+
+// --- ObjectId (ids module) ---
+// Zero-cost branded identifier for objects.
+//
+// Rust: #[repr(transparent)] pub struct ObjectId<K> { raw: u64, _kind: PhantomData<K> }
+// TypeScript: string (branded)
+//
+// From ts-projection-law:
+//   ✅ PhantomData<K> erased
+//   ✅ Projects as string
+/**
+ * Branded identifier for objects in OCEL logs.
+ *
+ * Law: zero-cost ID wrapper.
+ * Brand: prevents confusing ObjectId with EventId.
+ */
+export type ObjectId = string & { readonly __brand: "ObjectId" };
+
+export function objectId(raw: string): ObjectId {
+  return raw as ObjectId;
+}
+
+// --- TraceId / CaseId (ids module) ---
+// Zero-cost branded identifier for cases/traces.
+//
+// Rust: #[repr(transparent)]
+// TypeScript: string (branded)
+//
+// From ts-projection-law:
+//   ✅ PhantomData erased
+/**
+ * Branded identifier for cases/traces.
+ *
+ * Law: zero-cost ID wrapper.
+ */
+export type TraceId = string & { readonly __brand: "TraceId" };
+
+export function traceId(raw: string): TraceId {
+  return raw as TraceId;
+}
+
+// --- EventTypeName (ids module) ---
+// Newtype for activity type names.
+//
+// Rust: pub struct EventTypeName(String)
+// TypeScript: string
+//
+// From ts-projection-law:
+//   ✅ Simple newtype, no PhantomData
+/**
+ * Activity type name (e.g., "Receive", "Invoice").
+ *
+ * Law: semantic type wrapper.
+ */
+export type EventTypeName = string & { readonly __brand: "EventTypeName" };
+
+// --- ObjectTypeName (ids module) ---
+// Newtype for object type names.
+//
+// Rust: pub struct ObjectTypeName(String)
+// TypeScript: string
+//
+// From ts-projection-law:
+//   ✅ Simple newtype
+/**
+ * Object type name (e.g., "Order", "Invoice").
+ *
+ * Law: semantic type wrapper.
+ */
+export type ObjectTypeName = string & { readonly __brand: "ObjectTypeName" };
+
+// ============================================================================
+// TIER 4: REFUSAL REASON ENUMS
+// ============================================================================
+// Concrete refusal types that name specific structural laws.
+// Each variant must carry enough context to diagnose the failure.
+//
+// Law encoding:
+//   - EventLogRefusal → named law per variant
+//   - OcelRefusal → named law per variant
+//   - Other domain refusals
+//
+// From ts-projection-law LAW 6 (refusal typing):
+//   ✅ Never bare strings; always concrete enums
+//   ✅ Each variant names a specific law
+//
+
+{% if tier4_refusals %}
+{% for refusal in tier4_refusals %}
+{% if refusal.name == "EventLogRefusal" %}
+/**
+ * Reasons why an event log cannot be admitted.
+ *
+ * Law: eventlog admission law (LAW 6).
+ * Each variant names a specific structural law.
+ *
+ * Witness: applied at admission boundary (Xes1849, EventLogCanon, etc.)
+ *
+ * Variants:
+ *   DanglingEventObjectLink — OCEL link references non-existent event
+ *   InvalidEventType — activity type not in schema
+ *   MissingTimestamp — event required but missing timestamp
+ *   MissingActivity — activity field is empty or null
+ *   CyclicTrace — trace contains duplicate case IDs or cycles
+ *   DuplicateEventId — two events share the same ID
+ */
+export type EventLogRefusal =
+  | {
+      kind: "DanglingEventObjectLink";
+      event_id: string;
+      object_id: string;
+    }
+  | { kind: "InvalidEventType"; activity: string }
+  | { kind: "MissingTimestamp"; event_index: bigint }
+  | { kind: "MissingActivity"; event_index: bigint }
+  | { kind: "CyclicTrace"; trace_id: string }
+  | { kind: "DuplicateEventId"; event_id: string };
+
+{% endif %}
+{% if refusal.name == "OcelRefusal" %}
+/**
+ * Reasons why an OCEL log cannot be admitted.
+ *
+ * Law: OCEL 2.0 admission law (LAW 6).
+ * Each variant names a specific OCEL structural law.
+ *
+ * Witness: Ocel20 (https://doi.org/10.48550/arXiv.2005.08811)
+ *
+ * Variants:
+ *   DanglingEventObjectLink — e2o link references non-existent event or object
+ *   InvalidObjectType — object type not declared
+ *   MissingEventType — event activity not in schema
+ *   InvalidAttributeValue — attribute violates type constraint
+ *   DanglingObjectObjectLink — o2o link references non-existent objects
+ *   InvalidQualifier — qualifier on link not in whitelist
+ *   ObjectNotInUniverse — object is not in the object universe
+ */
+export type OcelRefusal =
+  | {
+      kind: "DanglingEventObjectLink";
+      event_id: bigint;
+      object_id: bigint;
+      object_type: string;
+    }
+  | { kind: "InvalidObjectType"; object_type: string }
+  | { kind: "MissingEventType"; activity: string }
+  | {
+      kind: "InvalidAttributeValue";
+      key: string;
+      expected_type: string;
+    }
+  | {
+      kind: "DanglingObjectObjectLink";
+      source_id: bigint;
+      target_id: bigint;
+    }
+  | { kind: "InvalidQualifier"; qualifier: string }
+  | { kind: "ObjectNotInUniverse"; object_id: bigint };
+
+{% endif %}
+{% endfor %}
+{% endif %}
+
+// ============================================================================
+// WITNESS METADATA & REGISTRY
+// ============================================================================
+// Witness markers in Rust are empty enums (zero-sized types). They carry
+// metadata as associated consts (KEY, TITLE, FAMILY, YEAR).
+// This export provides that metadata in a structured form.
+//
+// Law encoding:
+//   - WitnessFamily → enumerated family (Standard, Paper, ApiGrammar, RustLaw, InternalBridge)
+//   - WitnessMetadata → {key: string, family: WitnessFamily, title: string, year?: number}
+//   - WITNESSES → registry mapping key → metadata
+//
+
+/**
+ * Category of witness authority.
+ *
+ * Law: witness family classification.
+ * PhantomData: NONE
+ *
+ * Variants:
+ *   Standard — published standard (OCEL 2.0, XES 1.0, BPMN 2.0)
+ *   Paper — research publication (van der Aalst, etc.)
+ *   ApiGrammar — internal grammar/DSL specification
+ *   RustLaw — Rust type-law enforcement (const bounds, generics)
+ *   InternalBridge — internal covenant or bridge
+ */
+export type WitnessFamily =
+  | "Standard"
+  | "Paper"
+  | "ApiGrammar"
+  | "RustLaw"
+  | "InternalBridge";
+
+/**
+ * Metadata for a witness authority.
+ *
+ * Law: witness authority registration.
+ * PhantomData: NONE
+ *
+ * Fields:
+ *   key    (string) — stable machine identifier (e.g., "ocel-2.0")
+ *   family (WitnessFamily) — authority category
+ *   title  (string) — human-readable authority name (e.g., "OCEL 2.0")
+ *   year   (number | null) — publication year if applicable
+ *   doi    (string | null) — Digital Object Identifier if applicable
+ */
+export interface WitnessMetadata {
+  key: string;
+  family: WitnessFamily;
+  title: string;
+  year?: number;
+  doi?: string;
+}
+
+/**
+ * Registry of all witness authorities in wasm4pm-compat.
+ *
+ * Law: witness authority registration and discovery.
+ *
+ * Maps witness key (e.g., "ocel-2.0") to metadata.
+ * Use to look up witness title, family, and year at runtime.
+ *
+ * Example:
+ *   const ocel = WITNESSES["ocel-2.0"];
+ *   console.log(ocel.title); // "OCEL 2.0"
+ *   console.log(ocel.year);  // 2020
+ */
+export const WITNESSES: Record<string, WitnessMetadata> = {
+  "ocel-2.0": {
+    key: "ocel-2.0",
+    family: "Standard",
+    title: "OCEL 2.0",
+    year: 2020,
+    doi: "10.48550/arXiv.2005.08811",
+  },
+  "xes-1.0": {
+    key: "xes-1.0",
+    family: "Standard",
+    title: "XES 1.0",
+    year: 2010,
+  },
+  "bpmn-2.0": {
+    key: "bpmn-2.0",
+    family: "Standard",
+    title: "BPMN 2.0",
+    year: 2011,
+  },
+  "eventlog-canon": {
+    key: "eventlog-canon",
+    family: "RustLaw",
+    title: "Event Log Canon",
+  },
+};
+
+/**
+ * Look up witness metadata by key.
+ *
+ * Helper function to safely retrieve witness information.
+ *
+ * @param key — witness key (e.g., "ocel-2.0")
+ * @returns metadata if found; null otherwise
+ */
+export function witnessMetadata(key: string): WitnessMetadata | null {
+  return WITNESSES[key] ?? null;
+}
+
+// ============================================================================
+// RECEIPT & QUALITY METRICS
+// ============================================================================
+// Receipts document the history of data transformations.
+// Quality metrics (fitness, precision, F1, generalization) quantify log
+// quality.
+//
+// Law encoding:
+//   - Receipt → cryptographic proof of transformation
+//   - ReceiptFormat → format of the receipt (JSON, etc.)
+//   - QualityMetric → metric value bounded in [0, 1]
+//   - MetricKind → fitness, precision, f1, generalization
+//
+
+/**
+ * Format of a receipt (encoding).
+ *
+ * Law: receipt serialization.
+ * PhantomData: NONE
+ *
+ * Variants:
+ *   JSON — JSON-serialized receipt
+ *   CBOR — CBOR binary format
+ *   Hex  — hexadecimal string
+ */
+export type ReceiptFormat = "JSON" | "CBOR" | "Hex";
+
+/**
+ * Cryptographic proof of a transformation.
+ *
+ * Law: receipt as provenance (ALIVE gate).
+ * PhantomData: NONE
+ *
+ * Documents:
+ *   - What was transformed (from_type, to_type)
+ *   - How (transformation_name)
+ *   - When (timestamp)
+ *   - By whom (witness authority)
+ *   - Proof (hash or signature)
+ *
+ * Fields:
+ *   id                (string) — unique receipt identifier
+ *   timestamp_ns      (bigint) — creation timestamp
+ *   witness_key       (string) — authority that issued the receipt
+ *   from_type         (string) — source type name
+ *   to_type           (string) — target type name
+ *   transformation    (string) — name of transformation
+ *   proof             (string) — hash or cryptographic signature
+ *   format            (ReceiptFormat) — encoding of the proof
+ */
+export interface Receipt {
+  id: string;
+  timestamp_ns: bigint;
+  witness_key: string;
+  from_type: string;
+  to_type: string;
+  transformation: string;
+  proof: string;
+  format: ReceiptFormat;
+}
+
+/**
+ * Category of quality metric.
+ *
+ * Law: quality metrics for conformance measurement (LAW 3).
+ * PhantomData: NONE
+ *
+ * Variants:
+ *   Fitness — proportion of log behavior explained by model [0, 1]
+ *   Precision — proportion of model behavior seen in log [0, 1]
+ *   F1 — harmonic mean of fitness and precision [0, 1]
+ *   Generalization — extent model captures process variants [0, 1]
+ *   SimplifiedFitness — token-replay fitness (faster, less accurate)
+ */
+export type MetricKind =
+  | "Fitness"
+  | "Precision"
+  | "F1"
+  | "Generalization"
+  | "SimplifiedFitness";
+
+/**
+ * Quality metric value with kind and bounds [0, 1].
+ *
+ * Law: quality metrics (LAW 3).
+ * PhantomData: NONE
+ *
+ * From Rust: Metric<KIND, NUM, DEN> where
+ *   KIND: QualityMetricKind (const)
+ *   NUM, DEN: const u64 enforcing 0 ≤ NUM ≤ DEN
+ *
+ * Projection: const generics → runtime values (num, den)
+ *
+ * Fields:
+ *   kind (MetricKind) — metric type
+ *   num  (bigint) — numerator [0, DEN]
+ *   den  (bigint) — denominator [> 0]
+ */
+export interface QualityMetric {
+  kind: MetricKind;
+  num: bigint;
+  den: bigint;
+}
+
+/**
+ * Helper: compute metric as float.
+ *
+ * @param metric — the metric
+ * @returns value in [0.0, 1.0]
+ */
+export function metricAsFloat(metric: QualityMetric): number {
+  return Number(metric.num) / Number(metric.den);
+}
+
+// ============================================================================
+// CONFORMANCE VERDICT
+// ============================================================================
+// Verdict is the result of a conformance check (not the computation itself,
+// which belongs in wasm4pm).
+//
+// Exports the *shape* of a verdict, not the checking logic.
+// Witness: authority under which the verdict is issued.
+//
+
+/**
+ * Conformance checking verdict.
+ *
+ * Law: conformance verdict shape (structure-only; computation in wasm4pm).
+ * PhantomData: NONE
+ * Witness: not embedded (verdict inherits witness from the log being checked)
+ *
+ * Indicates:
+ *   - Whether the log conforms to the process model
+ *   - Conformance metrics (fitness, precision, F1)
+ *   - Non-conforming traces (if any)
+ *
+ * Fields:
+ *   is_conforming (boolean) — log conforms to model
+ *   fitness (QualityMetric) — proportion of log explained by model
+ *   precision (QualityMetric) — proportion of model seen in log
+ *   non_conforming_traces (bigint) — count of non-conforming traces
+ *   timestamp_ns (bigint) — verdict issue timestamp
+ */
+export interface ConformanceVerdict {
+  is_conforming: boolean;
+  fitness: QualityMetric;
+  precision: QualityMetric;
+  non_conforming_traces: bigint;
+  timestamp_ns: bigint;
+}
+
+// ============================================================================
+// AUDIT CHECKLIST
+// ============================================================================
+// The following checks MUST pass for this projection to be valid.
+// Use these as acceptance criteria when reviewing the generated .d.ts.
+//
+// [ ] AUDIT 1: No Evidence<T, State, W> with generic State in .d.ts
+// [ ] AUDIT 2: No Admission<T, W> with generic W in .d.ts
+// [ ] AUDIT 3: No witness marker enums (Ocel20, Xes1849, etc.) in .d.ts
+// [ ] AUDIT 4: No Raw, Parsed, Admitted as type parameters
+// [ ] AUDIT 5: All losses documented (LossReport present on lossy projections)
+// [ ] AUDIT 6: No discovery, replay, conformance computation exports (theory only)
+// [ ] AUDIT 7: WitnessMetadata struct exported (not phantom markers)
+// [ ] AUDIT 8: All Tier 1 types from ts.projection.yaml present in .d.ts
+// [ ] AUDIT 9: All refusal reason enums (EventLogRefusal, OcelRefusal) present
+// [ ] AUDIT 10: tsc --strict --noEmit passes without errors
+//
+// ============================================================================
+// END OF PROJECTION
+// ============================================================================
+//
+// Generated from:
+//   Template: ggen/templates/ts-projection.rs.ggen
+//   Manifest: ggen/projections/ts.projection.yaml
+//   Capability: ggen/intel/specta-capability-map.md
+//   Candidates: ggen/intel/specta-ts-projection-candidates.yaml
+//   Law: ggen/rules/ts-projection-law.yaml
+//
+// Regenerate with:
+//   ggen sync --template ts-projection.rs.ggen
+//
+// ============================================================================

@@ -1,0 +1,389 @@
+# TypeScript Projection Manifest
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+
+---
+
+projection_metadata:
+  name: "wasm4pm-compat TypeScript Projection"
+  alias: "ts.projection"
+  version: "1.0.0"
+  source: "wasm4pm-compat"
+  source_lang: "Rust (nightly)"
+  target_lang: "TypeScript 4.5+"
+  tool: "specta + tsify"
+  feature_gate: "ts"
+  stability: "STABLE"
+  purpose: "Type-law surface for browser consumers: branded generics, admission/refusal, loss accounting, witness metadata"
+
+---
+
+allowed_modules:
+  canonical_shapes:
+    - name: "eventlog"
+      exports: ["Event", "Trace", "EventLog", "EventStream"]
+      visibility: "public"
+      tier: "Tier 1 (immediate)"
+
+    - name: "ocel"
+      exports: ["OcelEvent", "OcelObject", "OcelAttribute", "OcelAttributeValue", "OcelLog"]
+      visibility: "public"
+      tier: "Tier 1 (immediate)"
+
+    - name: "ids"
+      exports: ["EventId", "ObjectId", "TraceId", "EventTypeName", "ObjectTypeName"]
+      visibility: "public"
+      refactoring_note: "Generic PhantomData wrappers must become concrete types or string wrappers"
+      tier: "Tier 1 (refactor recommended)"
+
+    - name: "loss"
+      exports: ["ProjectionName", "LossPolicy", "LossReport"]
+      visibility: "public"
+      tier: "Tier 2 (with constraints)"
+
+    - name: "admission"
+      exports: ["Admission (wrapped)", "Refusal (wrapped)", "EventLogRefusal", "OcelRefusal"]
+      visibility: "public"
+      wrapper_strategy: "Admission<T,W> → AdmissionSnapshot<T> { value: T, witness_key: string }"
+      tier: "Tier 2 (wrapper required)"
+
+    - name: "witness"
+      exports: ["WitnessMetadata", "WitnessFamily", "WITNESS_REGISTRY (static)"]
+      visibility: "public"
+      note: "Witness markers (Ocel20, Xes1849, etc.) are PhantomData; export metadata only"
+      tier: "Tier 3 (metadata export)"
+
+    - name: "conformance"
+      exports: ["ConformanceVerdict", "QualityMetric", "MetricKind"]
+      visibility: "public"
+      note: "Verdict shapes only; no computation logic"
+      tier: "Tier 2 (verdict shapes only)"
+
+    - name: "receipt"
+      exports: ["Receipt", "ReceiptFormat", "ReceiptProof"]
+      visibility: "public"
+      note: "Receipt data structures; no minting or verification logic"
+      tier: "Tier 2 (data shapes only)"
+
+    - name: "state"
+      exports: ["NONE — lifecycle states are PhantomData only"]
+      visibility: "NOT EXPORTED"
+      note: "Raw, Parsed, Admitted, Refused, etc. are compile-time markers; encode state in return enums instead"
+      tier: "Tier 3 (skip)"
+
+  graduated_bridge:
+    - name: "engine_bridge (when wasm4pm feature enabled)"
+      exports: ["GraduationCandidate", "GraduationReason", "GraduationError"]
+      visibility: "conditional (feature=wasm4pm)"
+      note: "Signals when compat evidence is ready for wasm4pm execution engine"
+      tier: "Tier 2 (graduation signal)"
+
+forbidden_modules:
+  execution_engines:
+    - discovery: "Process mining not allowed; graduate to wasm4pm"
+    - replay: "Token replay not allowed; graduate to wasm4pm"
+    - conformance: "Metric computation not allowed; graduate to wasm4pm"
+    - ocpq: "Object-centric query execution not allowed; graduate to wasm4pm"
+    - alignment: "Optimal alignment computation not allowed; graduate to wasm4pm"
+    - receipting: "Cryptographic receipt minting not allowed; graduate to wasm4pm"
+
+  state_mutating:
+    - "Any function that mutates Evidence<T, State, W> in-place"
+    - "Any accumulation of admission state across multiple calls"
+    - "Any mutable global/static context for parsing or validation"
+
+  unaccounted_loss:
+    - "Format conversion without LossReport (silent loss is forbidden)"
+    - "Evidence<T, State, W> erasure without provenance (use Receipt instead)"
+
+  phantom_exposure:
+    - "Generic Evidence<T, State, W> at ABI boundary (forbidden by wasm-bindgen)"
+    - "PhantomData-carrying types as exported generics"
+    - "State tokens (Raw, Parsed, Admitted) as type parameters"
+    - "Witness markers (Ocel20, Xes1849) as PhantomData generics"
+
+---
+
+export_strategy:
+  phase_1:
+    title: "Core Domain Types"
+    types:
+      - Event
+      - Trace
+      - EventLog
+      - OcelEvent
+      - OcelObject
+      - OcelAttribute
+      - OcelAttributeValue
+    derives: ["#[derive(Type, Serialize, Deserialize, Tsify)]"]
+    estimate: "Week 1"
+
+  phase_2:
+    title: "Admission & Loss Accounting"
+    types:
+      - AdmissionSnapshot<T> (wrapper)
+      - RefusalSnapshot (wrapper)
+      - RefusalReason enums
+      - LossPolicy
+      - LossReport
+    derives: ["#[derive(Type, Serialize, Deserialize, Tsify)]"]
+    estimate: "Week 2"
+
+  phase_3:
+    title: "ID & Metadata Types"
+    types:
+      - EventId, ObjectId, TraceId (concrete newtype or string wrappers)
+      - WitnessMetadata struct
+      - WitnessFamily enum
+    helper_exports:
+      - "fn event_id(raw: bigint): EventId"
+      - "fn witness_metadata(key: string): WitnessMetadata | null"
+    estimate: "Week 3"
+
+  phase_4:
+    title: "Quality & Witness"
+    types:
+      - ConformanceVerdict
+      - QualityMetric (value-only wrapper)
+      - Receipt structures
+      - GraduationCandidate, GraduationReason (if wasm4pm feature)
+    estimate: "Week 4"
+
+---
+
+type_mappings:
+  rust_to_typescript:
+
+    # Tier 1: Direct mapping
+    "String": "string"
+    "u32, u64": "bigint"
+    "i32, i64": "bigint"
+    "f32, f64": "number"
+    "bool": "boolean"
+    "Vec<T>": "T[]"
+    "Option<T>": "T | null"
+
+    # Tier 1: Domain types
+    "Event": |
+      type Event = {
+        activity: string;
+        timestamp_ns: bigint | null;
+        resource: string | null;
+        lifecycle: string | null;
+      }
+
+    "Trace": |
+      type Trace = {
+        id: string;
+        events: Event[];
+      }
+
+    "EventLog": |
+      type EventLog = {
+        traces: Trace[];
+      }
+
+    "OcelAttributeValue": |
+      type OcelAttributeValue =
+        | { String: string }
+        | { Integer: bigint }
+        | { Float: number }
+        | { Boolean: boolean }
+        | { TimestampNs: bigint }
+        | { List: OcelAttributeValue[] }
+        | { Map: [string, OcelAttributeValue][] }
+
+    "OcelEvent": |
+      type OcelEvent = {
+        id: bigint;
+        timestamp_ns: bigint;
+        activity: string;
+        attributes: OcelAttribute[];
+      }
+
+    "OcelObject": |
+      type OcelObject = {
+        id: bigint;
+        type_name: string;
+        attributes: OcelAttribute[];
+      }
+
+    # Tier 2: Wrappers
+    "Admission<T, W>": |
+      type Admission<T> = {
+        value: T;
+      }
+      // Witness W encoded in separate field:
+      type AdmissionSnapshot<T> = {
+        value: T;
+        witness_key: string;
+        witness_title: string;
+      }
+
+    "Refusal<R, W>": |
+      type Refusal = {
+        reason: string;  // R serialized
+        witness_key: string;
+      }
+      // Recommended: use typed reason enum instead:
+      type RefusalSnapshot = {
+        reason: RefusalReason;
+        witness_key: string;
+      }
+
+    "LossPolicy": |
+      type LossPolicy =
+        | { kind: "RefuseLoss" }
+        | { kind: "AllowNamedProjection"; name: string }
+        | { kind: "AllowLossWithReport" }
+
+    "LossReport": |
+      type LossReport = {
+        from_format: string;
+        to_format: string;
+        items_lost: LossItem[];
+        summary: string;
+      }
+
+    "Evidence<T, State, W>": "NOT EXPORTED (PhantomData; use stage-specific wrappers instead)"
+
+    "Raw, Parsed, Admitted (state tokens)": "NOT EXPORTED (encode state in return enum)"
+
+---
+
+generated_artifacts:
+  output_dir: "generated/wasm4pm-compat"
+
+  files:
+    - name: "wasm4pm-compat.d.ts"
+      source: "specta export"
+      contains: |
+        - All allowed_modules type definitions
+        - TypeScript 4.5+ syntax
+        - Fully branded generic support where applicable
+        - No PhantomData; all zero-sized types hidden
+      size_estimate: "3-4 KB (gzipped)"
+
+    - name: "wasm4pm-compat-helpers.ts"
+      source: "manual + macro-generated"
+      contains: |
+        - Helper functions: eventId(), objectId(), metric(), etc.
+        - Witness registry: WITNESSES constant
+        - Refusal reason constructors
+      size_estimate: "2-3 KB (gzipped)"
+
+    - name: "wasm4pm-compat-bindings.ts"
+      source: "tsify bindings"
+      contains: |
+        - to_wasm_abi() and from_wasm_abi() for each exported type
+        - JSON roundtrip helpers
+      size_estimate: "1-2 KB (gzipped)"
+
+  audits:
+    - path: "generated/wasm4pm-compat.audit.md"
+      purpose: "Verify no PhantomData, no state tokens, no forbidden modules in .d.ts"
+      checklist: |
+        - [ ] No Evidence<T, State, W> with generic State
+        - [ ] No Admission<T, W> with generic W
+        - [ ] No witness marker enums (Ocel20, Xes1849, etc.)
+        - [ ] No Raw, Parsed, Admitted as type parameters
+        - [ ] All losses documented (LossReport present on projections)
+        - [ ] No discovery, replay, conformance, alignment exports
+        - [ ] WitnessMetadata struct exported (not phantom markers)
+        - [ ] GraduationCandidate present iff wasm4pm feature enabled
+
+    - path: "generated/wasm4pm-compat.conformance.md"
+      purpose: "Cross-check generated .d.ts against source Rust types"
+      checklist: |
+        - [ ] Every #[derive(Type)] in allowed_modules appears in .d.ts
+        - [ ] Every field carries its Rust type correctly (u64 → bigint, etc.)
+        - [ ] Enum variants are properly tagged/discriminated
+        - [ ] Optional fields become T | null
+
+---
+
+receipt:
+  receipt_type: "wasm4pm-compat TypeScript projection"
+  receipt_path: "generated/wasm4pm-compat.receipt.json"
+  receipt_contents:
+    tool: "specta"
+    typescript_target: "4.5+"
+    feature_gate: "ts"
+    allowed_module_count: 8
+    forbidden_module_count: 10
+    exported_types: "~40 (concrete domain shapes + wrappers)"
+    generated_files: ["wasm4pm-compat.d.ts", "wasm4pm-compat-helpers.ts", "wasm4pm-compat-bindings.ts"]
+    audit_files: ["wasm4pm-compat.audit.md", "wasm4pm-compat.conformance.md"]
+    law_version: "ts-projection-law v1.0.0"
+    timestamp: "2026-06-01T00:00:00Z"
+
+---
+
+integration_examples:
+
+  example_1_load_and_admit:
+    description: "Load raw OCEL JSON, convert to TypeScript, project to compat types"
+    code: |
+      import * as Compat from "./generated/wasm4pm-compat";
+
+      const jsonString = `{...}`;
+      const ocelLog: Compat.OcelLog = JSON.parse(jsonString);
+
+      // Type is now Compat.OcelLog — fully typed
+      console.log(ocelLog.events.length);
+      ocelLog.events.forEach(ev => {
+        console.log(ev.activity, ev.timestamp_ns);
+      });
+
+  example_2_handle_admission_result:
+    description: "Handle Admission/Refusal from WASM boundary"
+    code: |
+      import * as Compat from "./generated/wasm4pm-compat";
+
+      const result: Compat.AdmissionSnapshot<Compat.EventLog> =
+        admissionBoundary.admit_event_log(rawLog);
+
+      // Always check witness
+      console.log(`Admitted under witness: ${result.witness_title}`);
+
+      // Use the value
+      const admitted = result.value;
+      admitted.traces.forEach(trace => { /* ... */ });
+
+  example_3_check_witness_metadata:
+    description: "Query witness registry"
+    code: |
+      import * as Compat from "./generated/wasm4pm-compat";
+
+      const ocel20 = Compat.WITNESSES["ocel-2.0"];
+      console.log(ocel20.title);  // "OCEL 2.0"
+      console.log(ocel20.year);   // 2020
+      console.log(ocel20.family); // "Standard"
+
+---
+
+quality_gates:
+
+  gate_1_type_safety:
+    description: "All .d.ts types are structural and compile-safe"
+    method: "tsc --strict --noEmit generated/wasm4pm-compat.d.ts"
+    passes_if: "No type errors"
+
+  gate_2_witness_completeness:
+    description: "All witness constants present in WITNESSES registry"
+    method: "Audit WitnessMetadata exported against witness.rs constants"
+    passes_if: "~40 witnesses enumerated"
+
+  gate_3_law_projection:
+    description: "No type-law enforcement types (Assert, IsTrue, Metric, etc.) exported"
+    method: "Parse .d.ts and verify absence of compile-time-only constructs"
+    passes_if: "Zero hits on law-enforcement patterns"
+
+  gate_4_no_phantom_exposure:
+    description: "No PhantomData, no state tokens, no bare generics at boundary"
+    method: "Audit generated bindings against forbidden list"
+    passes_if: "All checks pass"
+
+---
+
+end_of_projection: "✅ TS PROJECTION COMPLETE"

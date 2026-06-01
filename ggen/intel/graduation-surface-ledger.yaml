@@ -1,0 +1,393 @@
+---
+ledger_name: Graduation Surface Ledger
+description: Traits and witnesses that hand evidence to wasm4pm engine; graduation protocol
+extraction_date: 2026-06-01
+crate: wasm4pm-compat
+
+# Feature-gated graduation traits (wasm4pm feature flag)
+graduation_bridge_traits:
+  GraduateToWasm4pm:
+    declared_in: "engine_bridge.rs (feature=wasm4pm)"
+    is_sealed: true
+    purpose: "The only sanctioned protocol for handing typed compat evidence to the wasm4pm execution engine"
+    trait_signature: |
+      pub trait GraduateToWasm4pm {
+        type CompatEvidence: Evidence<...>;
+        type EngineInput: ...;
+        fn graduate(evidence: Self::CompatEvidence) -> Result<Self::EngineInput, GraduationError>;
+      }
+    why_sealed: "Prevents downstream crates from fabricating fake graduation paths. The wasm4pm bridge is the *only* way to graduate a compat Evidence value to engine-executable form."
+    graduation_path_workflow: |
+      1. Build compat evidence: Evidence<OcelLog, Admitted, Ocel20>
+      2. Implement GraduateToWasm4pm for a witness-specific marker
+      3. Call graduated_value = MyGraduation::graduate(evidence)
+      4. Hand graduated_value to wasm4pm engine with witness metadata
+    example_impl: |
+      struct OcelAdmissionGraduation;
+      impl GraduateToWasm4pm for OcelAdmissionGraduation {
+        type CompatEvidence = Evidence<OcelLog, Admitted, Ocel20>;
+        type EngineInput = Wasm4pmOcelEngine;
+        fn graduate(evidence) -> Result<...> {
+          let ocel_log = evidence.into_inner();
+          // Validate against OCEL 2.0 law in wasm4pm engine
+          Wasm4pmOcelEngine::admit_ocel(ocel_log)
+        }
+      }
+    key_constraint: "Admission at the compat boundary is *structural* only. The engine's admission in wasm4pm is *semantic*. Both must pass."
+
+  GraduationCandidate:
+    declared_in: "engine_bridge.rs (feature=wasm4pm)"
+    is_sealed: false
+    purpose: "Describes a compat evidence value as either grounded (ready to graduate) or ungrounded (needs more validation)"
+    type_signature: |
+      pub struct GraduationCandidate<T, W> {
+        evidence: Evidence<T, Admitted, W>,
+        is_grounded: bool,
+        reason: GraduationReason,
+      }
+    methods:
+      - "is_grounded(&self) → bool"
+      - "into_evidence(self) → Evidence<T, Admitted, W> [if grounded]"
+      - "graduation_reason(&self) → &GraduationReason"
+    graduation_semantics: |
+      Grounded: This compat Evidence has reached a stable structural state and is ready to
+      cross into the wasm4pm engine. No further validation is needed at this boundary.
+
+      Ungrounded: This compat Evidence is structurally Admitted but is missing context
+      (e.g., a refusal reason, a loss report, a temporal constraint). Graduation is
+      blocked until the missing context is provided.
+
+  GraduationReason:
+    declared_in: "engine_bridge.rs (feature=wasm4pm)"
+    is_enum: true
+    variants:
+      - GroundedAtFullAdmission
+      - UngroundedMissingLossPolicy
+      - UngroundedMissingRefusalPath
+      - UngroundedHiddenProcessMiningGrowth
+      - UngroundedTemporalOrdering
+      - UngroundedObjectLife
+    methods:
+      - "tag(&self) → &'static str"
+      - "is_hard_signal(&self) → bool"
+    purpose: "Names the specific reason a compat Evidence is or is not ready for graduation"
+    graduation_semantics: |
+      GroundedAtFullAdmission: Admission was complete; Evidence is ready for engine.
+
+      UngroundedMissingLossPolicy: A lossy projection occurred but no LossPolicy was
+      recorded. The engine cannot trust the shape.
+
+      UngroundedMissingRefusalPath: The refusal surface was not fully explored.
+      Evidence may contain hidden refusals.
+
+      UngroundedHiddenProcessMiningGrowth: Process evidence grew (new objects,
+      activities discovered) after admission. The model is unstable.
+
+      UngroundedTemporalOrdering: Events lack timestamp context or temporal ordering
+      is incomplete. Temporal conformance cannot be computed.
+
+      UngroundedObjectLife: Object lifecycle is incomplete (missing create/destroy
+      markers or violating state transitions). Engine cannot determine object validity.
+
+# Witness markers used for graduation targeting
+graduation_witnesses:
+  Wasm4pmBridge:
+    declared_in: "witness.rs"
+    family: InternalBridge
+    key: "wasm4pm-bridge"
+    title: "wasm4pm graduation bridge"
+    purpose: "Names the authority under which an Admitted evidence value is cleared for graduation to the wasm4pm execution engine"
+    key_const_members:
+      - "KEY: 'wasm4pm-bridge'"
+      - "FAMILY: WitnessFamily::InternalBridge"
+      - "TITLE: 'wasm4pm graduation bridge'"
+      - "YEAR: None"
+    graduation_protocol: "Evidence<T, Admitted, Wasm4pmBridge> is the canonical type at the graduation boundary."
+    example: "Evidence<OcelLog, Admitted, Wasm4pmBridge> signals: 'This OcelLog is ready for wasm4pm engine admission.'"
+
+# Per-domain graduation surfaces
+domain_graduation_paths:
+  OCEL_2.0_path:
+    source_witness: Ocel20 (Standard)
+    graduation_witness: Wasm4pmBridge
+    step_1_compat_boundary: |
+      Input: OcelLog in JSON/XML format (Raw)
+      → Admit at compat boundary: Evidence<OcelLog, Admitted, Ocel20>
+      Purpose: Check structural OCEL 2.0 conformance (E2O/O2O links, object types, attributes)
+      Engine: Rust only (compat crate)
+
+    step_2_graduation_gate: |
+      Decision point: GraduationCandidate::is_grounded() → bool
+      If true: Graduate via GraduateToWasm4pm::graduate()
+      If false: Block and report GraduationReason
+      Reason: The compat crate sees only structure. The wasm4pm engine will check
+      *semantic* OCEL 2.0 conformance (object lifecycle ordering, event→object binding
+      consistency, temporal constraints).
+
+    step_3_engine_admission: |
+      Input: Evidence<OcelLog, Admitted, Wasm4pmBridge>
+      → Wasm4pm engine runs semantic validation:
+        - Object lifecycle state transitions (create → update → delete)
+        - Cross-object causality (temporal and causal ordering)
+        - Event→object binding is consistent with declared lifecycle
+        - No dangling references between objects
+      Output: Wasm4pm-internal Admitted<OcelLog> (different authority, richer validation)
+
+    expected_refusals_at_compat_boundary:
+      - "MissingObjectType"
+      - "MissingEventType"
+      - "DanglingEventObjectLink"
+      - "InvalidAttributeValue"
+      - "MalformedTimestamp"
+
+    expected_refusals_at_engine_boundary:
+      - "ObjectLifecycleViolation"
+      - "CausalOrderingCycle"
+      - "InconsistentObjectBinding"
+      - "TemporalConstraintViolation"
+
+  PetriNet_path:
+    source_witness: WfNetSoundnessPaper (Paper)
+    graduation_witness: Wasm4pmBridge
+    step_1_compat_boundary: |
+      Input: PetriNet (places, transitions, arcs, marking)
+      → Admit at compat boundary: Evidence<PetriNet, Admitted, WfNetSoundnessPaper>
+      Purpose: Check structural Petri net shape (nodes, arcs, initial marking exist)
+      Engine: Rust only (compat crate)
+
+    step_2_graduation_gate: |
+      Decision: Is this a workflow net? Is soundness provable?
+      GraduationReason: UngroundedHiddenProcessMiningGrowth if the net was
+      grown incrementally without re-checking soundness.
+
+    step_3_engine_admission: |
+      Input: Evidence<PetriNet, Admitted, Wasm4pmBridge>
+      → Wasm4pm engine checks soundness (Murata's rules, reachability graph,
+      safety, liveness).
+      Output: Evidence<WfNet, Admitted, WfNetSoundnessPaper> [nested witness]
+      (The engine is now asserting soundness, not just structure.)
+
+    expected_refusals_at_compat_boundary:
+      - "MissingInitialMarking"
+      - "DisconnectedSubnet"
+      - "DeadTransition"
+
+    expected_refusals_at_engine_boundary:
+      - "UnsoundWfNet"
+      - "UnsafeMarking"
+      - "DeadlockDetected"
+
+  ProcessTree_path:
+    source_witness: InductiveMiner (Paper)
+    graduation_witness: Wasm4pmBridge
+    step_1_compat_boundary: |
+      Input: ProcessTree (root node, structure)
+      → Admit: Evidence<ProcessTree, Admitted, InductiveMiner>
+      Purpose: Check tree structure (parent-child relationships valid)
+      Engine: Rust only (compat crate)
+
+    step_2_graduation_gate: |
+      GraduationReason: UngroundedTemporalOrdering if the tree was mined
+      without temporal context. Generalization metrics depend on timestamps.
+
+    step_3_engine_admission: |
+      Input: Evidence<ProcessTree, Admitted, Wasm4pmBridge>
+      → Wasm4pm computes fitness, precision, generalization, simplicity.
+      Output: Evidence<ProcessTree, Admitted, Wasm4pmBridge> [with verdict]
+
+    expected_refusals_at_compat_boundary:
+      - "InvalidLoopArity (loop node must have exactly 2 children)"
+      - "MissingLoopExitCondition"
+
+    expected_refusals_at_engine_boundary:
+      - "DeadActivityInModel"
+      - "UnobservedActivity"
+
+  ConformanceMetrics_path:
+    source_witness: None (internal compat verdict)
+    graduation_witness: Wasm4pmBridge
+    step_1_compat_boundary: |
+      Input: ConformanceVerdict { fitness, precision, generalization, simplicity }
+      → Admit: Evidence<ConformanceVerdict, Admitted, Wasm4pmBridge>
+      Purpose: Validate that all 4 metrics are in [0,1] (enforced by Between01)
+      Engine: Rust only (compat crate)
+
+    step_2_graduation_gate: |
+      GraduationReason: GroundedAtFullAdmission (metrics are numeric; structure is complete)
+
+    step_3_engine_admission: |
+      Input: Evidence<ConformanceVerdict, Admitted, Wasm4pmBridge>
+      → Wasm4pm engine stores the verdict; may use it for model selection.
+      (Verdict is read-only once graduated; engine does not recompute.)
+
+    expected_refusals_at_compat_boundary:
+      - "MetricOutOfBounds"
+
+    expected_refusals_at_engine_boundary: "None (engine is read-only)"
+
+# Witness-to-engine responsibility mapping
+witness_responsibility_matrix:
+  Standard_witnesses:
+    - Ocel20: "compat checks structure; wasm4pm checks object lifecycle semantics"
+    - Xes1849: "compat checks syntax; wasm4pm validates event ordering"
+
+  Paper_witnesses:
+    - WfNetSoundnessPaper: "compat checks Petri net shape; wasm4pm verifies soundness via Murata rules"
+    - PowlPaper: "compat checks POWL grammar; wasm4pm verifies partial order consistency"
+    - InductiveMiner: "compat checks tree structure; wasm4pm computes fitness"
+    - AlphaMiner: "compat checks WF-net shape; wasm4pm mines causal matrix"
+    - DeclareFamily: "compat checks constraint template list; wasm4pm verifies LTL semantics"
+
+  RustLaw_witnesses:
+    - RustTypestateLaw: "compat enforces at type-level; engine trusts the typestate"
+
+  InternalBridge_witnesses:
+    - Wasm4pmBridge: "marks the graduation boundary; engine is responsible for all semantic checking"
+
+# Graduation error types
+graduation_errors:
+  GraduationUngrounded:
+    carried_reason: "GraduationReason (enum)"
+    typical_causes:
+      - "Evidence::is_grounded() returned false"
+      - "Missing LossPolicy on a lossy projection"
+      - "Missing refusal path (some structural violations not checked)"
+    recovery: "Return to compat boundary; gather missing context; re-admit"
+
+  GraduationTypeMismatch:
+    carried_reason: "Expected type vs. actual type"
+    typical_causes:
+      - "Evidence<OcelLog, ...> but engine expects Evidence<PetriNet, ...>"
+      - "Witness mismatch: Evidence<..., Ocel20> but engine bridge expects Wasm4pmBridge"
+    recovery: "Check witness and type parameters; may need intermediate transformation"
+
+  GraduationWitnessMismatch:
+    carried_reason: "Witness W does not match engine's expected authority"
+    typical_causes:
+      - "Evidence<T, Admitted, Ocel20> cannot graduate to a WF-net soundness engine"
+      - "Wrong witness family (Paper vs. Standard vs. ApiGrammar)"
+    recovery: "Ensure witness matches the engine's expected authority"
+
+# Feature gating and availability
+feature_gate_graduation:
+  feature_flag: "wasm4pm (default: disabled)"
+  reason: "Graduation is optional. A compat-only downstream crate may never graduate; it may only use structural types and admitted evidence."
+  enabling_feature: "cargo build --all-features"
+  when_disabled: "GraduateToWasm4pm trait and GraduationCandidate are not available; Evidence remains at the compat boundary"
+
+# Integration patterns
+integration_examples:
+  pattern_1_admit_then_graduate:
+    description: "Admit raw format → check graduation readiness → graduate to wasm4pm engine"
+    code_sketch: |
+      // Step 1: Parse and admit at compat boundary
+      let raw_ocel = OcelJson::parse(json_string)?;
+      let admitted = OcelAdmitter::admit(
+        Evidence::raw(raw_ocel)
+      )?;
+
+      // Step 2: Check if grounded
+      let candidate = GraduationCandidate::from(admitted);
+      if !candidate.is_grounded() {
+        eprintln!("Cannot graduate: {}", candidate.graduation_reason().tag());
+        return Err(GraduationUngrounded);
+      }
+
+      // Step 3: Graduate to wasm4pm
+      let engine_input = OcelGraduation::graduate(candidate.into_evidence())?;
+      let engine = Wasm4pmOcelEngine::new(engine_input);
+
+      // Step 4: Run engine analysis (discovery, conformance, etc.)
+      let verdict = engine.check_conformance(log, model)?;
+
+  pattern_2_graduated_evidence_in_engine:
+    description: "Engine receives Evidence<T, Admitted, Wasm4pmBridge>; treats it as trusted input"
+    code_sketch: |
+      // Inside wasm4pm engine
+      impl Engine {
+        fn admit_evidence<T>(
+          evidence: Evidence<T, Admitted, Wasm4pmBridge>
+        ) -> Result<EngineAdmitted<T>> {
+          let value = evidence.into_inner();
+          // Value is structurally sound (compat crate proved it)
+          // Engine can focus on semantic validation
+          self.validate_semantics(&value)
+            .map(|()| EngineAdmitted { value })
+        }
+      }
+
+  pattern_3_refusal_at_graduation:
+    description: "Evidence is structurally Admitted but semantically ungrounded"
+    code_sketch: |
+      let candidate = GraduationCandidate::from(admitted_evidence);
+
+      match candidate.graduation_reason() {
+        GraduationReason::GroundedAtFullAdmission => {
+          // Safe to graduate
+          let engine_input = graduate(candidate.into_evidence())?;
+        }
+        GraduationReason::UngroundedMissingLossPolicy => {
+          // Block: a lossy transformation occurred without accounting
+          eprintln!("Lossy projection without LossPolicy—cannot graduate");
+          return Err(GraduationUngrounded);
+        }
+        GraduationReason::UngroundedObjectLife => {
+          // Block: object lifecycle is incomplete
+          eprintln!("Object lifecycle validation incomplete—cannot graduate to engine");
+          return Err(GraduationUngrounded);
+        }
+        _ => { /* other reasons */ }
+      }
+
+# Witness identity at graduation
+witness_projection_at_graduation:
+  witness_metadata_export: |
+    All 41 witness markers project via const metadata:
+
+    at_compat_boundary:
+      Witness::KEY → &'static str (e.g., "ocel-2.0")
+      Witness::FAMILY → WitnessFamily (Standard, Paper, ApiGrammar, RustLaw, InternalBridge)
+      Witness::TITLE → &'static str (e.g., "OCEL 2.0")
+      Witness::YEAR → Option<u16> (publication year if available)
+
+    export_to_wasm4pm:
+      struct WasmWitnessMetadata {
+        key: String,
+        family: String,
+        title: String,
+        year: Option<u16>,
+      }
+      // Derived from Witness::KEY, Witness::FAMILY, Witness::TITLE, Witness::YEAR
+      // at compile-time and exported as runtime struct at graduation boundary.
+
+# Graduation boundary invariants
+graduation_invariants:
+  invariant_1_structural_soundness: "No Evidence graduates unless Evidence<T, Admitted, W> for some concrete T and W."
+  invariant_2_witness_consistency: "Witness W at graduation must match the wasm4pm engine's expected authority."
+  invariant_3_no_silent_loss: "Evidence with loss (LossReport present) must not graduate without documenting the loss."
+  invariant_4_typed_refusal_path: "Every GraduationReason is a specific named reason, never a bare 'Ungrounded'."
+  invariant_5_one_way_graduation: "Graduation to wasm4pm is one-way. Engine output cannot be brought back to compat boundary."
+
+# Summary
+graduation_surface_summary: |
+  The wasm4pm graduation bridge is the **only** public interop surface between
+  the compat crate and the wasm4pm execution engine.
+
+  Compat crate responsibility:
+    - Structure-only admission (is the shape valid?)
+    - Typestate enforcement (is the lifecycle legal?)
+    - Witness naming (which authority governs this evidence?)
+    - Loss accounting (was any data lost, and was it documented?)
+
+  Wasm4pm engine responsibility:
+    - Semantic validation (do the values satisfy the witness authority?)
+    - Execution (discovery, conformance, replay, alignment, etc.)
+    - Re-admission (engine may refuse evidence that compat admitted)
+
+  Graduation witnesses:
+    - Evidence<T, Admitted, WitnessW> carries a promise: "This is structurally sound."
+    - Evidence<T, Admitted, Wasm4pmBridge> carries a promise: "This is ready for engine."
+
+  GraduationCandidate:
+    - If grounded: Graduate immediately. Engine trusts the compat boundary.
+    - If ungrounded: Block and report the specific reason. Return to compat boundary.

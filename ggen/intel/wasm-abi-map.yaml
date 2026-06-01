@@ -1,0 +1,639 @@
+# WASM ABI Boundary Intelligence Map
+# Generated: 2026-06-01
+# Purpose: Assess wasm4pm-compat type-law surface for ABI-safe crossing
+# Scope: Evidence<T, State, W> lifecycle, refusal enums, witness markers
+
+---
+################################################################################
+# SECTION 1: ABI-SAFE TYPES (Can cross wasm-bindgen boundary)
+################################################################################
+
+abi_safe_primitives:
+  description: |
+    Rust primitive types that are directly representable in WebAssembly
+    instruction set and automatically ABI-safe in wasm-bindgen.
+  types:
+    - name: "u32, u64, u16, u8"
+      status: ABI-SAFE
+      reason: "Directly map to WASM i32/i64"
+      wasm_binding: "Direct primitive encoding"
+      example: "WasmAbi::Abi = u32"
+    - name: "i32, i64, i16, i8"
+      status: ABI-SAFE
+      reason: "Directly map to WASM i32/i64 (signed)"
+      wasm_binding: "Direct primitive encoding"
+      example: "WasmAbi::Abi = i32"
+    - name: "f32, f64"
+      status: ABI-SAFE
+      reason: "Directly map to WASM f32/f64"
+      wasm_binding: "Direct primitive encoding"
+      example: "WasmAbi::Abi = f64"
+    - name: "bool"
+      status: ABI-SAFE
+      reason: "Encodes as u32 (0=false, 1=true)"
+      wasm_binding: "WasmAbi::Abi = u32"
+      example: "bool passes as boolean in JS"
+    - name: "char"
+      status: ABI-SAFE
+      reason: "Encodes as u32 (Unicode scalar)"
+      wasm_binding: "WasmAbi::Abi = u32"
+      example: "Converts to/from JS number"
+    - name: "String"
+      status: ABI-SAFE
+      reason: "Encodes as WasmSlice (ptr, len); JS/Rust string conversion"
+      wasm_binding: "Via serde-wasm-bindgen or json"
+      example: "String ↔ JS string (UTF-8)"
+    - name: "str"
+      status: ABI-SAFE
+      reason: "&str borrows encode as WasmSlice"
+      wasm_binding: "Via RefFromWasmAbi lifetime management"
+      example: "Function params take &str directly"
+
+abi_safe_collections:
+  description: |
+    Standard library collections that can be safely serialized/deserialized
+    across the ABI boundary. Requires serde + serde-wasm-bindgen or serde_json.
+  types:
+    - name: "Vec<T>"
+      status: ABI-SAFE (with serde)
+      reason: "Serializes to JS Array via serde"
+      constraint: "T must itself be Serialize + Deserialize"
+      example: "Vec<u32> ↔ number[] in TypeScript"
+      note: "No direct WasmAbi; must serialize"
+    - name: "Box<T>"
+      status: ABI-SAFE (with serde)
+      reason: "Serializes same as T via serde"
+      constraint: "T must be Serialize + Deserialize"
+      example: "Box<MyStruct> ↔ MyStruct in TS"
+    - name: "Option<T>"
+      status: ABI-SAFE (with serde)
+      reason: "Serializes to null | T via serde"
+      constraint: "T must be Serialize + Deserialize"
+      example: "Option<String> ↔ string | null"
+    - name: "Result<T, E>"
+      status: ABI-SAFE (with serde)
+      reason: "Serializes as tagged union via serde"
+      constraint: "T, E must be Serialize + Deserialize"
+      example: "Result<u32, String> ↔ { ok: number } | { err: string }"
+    - name: "HashMap<K, V>"
+      status: ABI-SAFE (with serde-wasm-bindgen)
+      reason: "Serializes to JS Map or Object"
+      constraint: "K, V must be Serialize + Deserialize; K typically String"
+      example: "HashMap<String, u32> ↔ Record<string, number>"
+      note: "serde_json does not support Map; use serde-wasm-bindgen"
+    - name: "[T; N]"
+      status: ABI-SAFE (with serde)
+      reason: "Fixed-size arrays serialize to JS arrays"
+      constraint: "T must be Serialize + Deserialize; N known at compile time"
+      example: "[u32; 4] ↔ [number, number, number, number]"
+    - name: "&[T]"
+      status: ABI-SAFE (with serde)
+      reason: "Slices serialize as arrays"
+      constraint: "T must be Serialize + Deserialize"
+      example: "&[u8] ↔ number[] (or Uint8Array)"
+
+abi_safe_wasm_bindgen_types:
+  description: |
+    Special types from wasm-bindgen and js-sys ecosystems designed specifically
+    for ABI crossing.
+  types:
+    - name: "JsValue"
+      status: ABI-SAFE
+      reason: "Native wasm-bindgen opaque JS object handle"
+      wasm_binding: "Direct pointer; repr is stable across calls"
+      usage: "Pass raw JS objects without type conversion"
+      note: "Loses type information; JS dynamic typing"
+    - name: "js_sys::Object"
+      status: ABI-SAFE
+      reason: "Typed wrapper around JS Object"
+      wasm_binding: "Via JsValue under the hood"
+      usage: "Better than raw JsValue for some use cases"
+    - name: "js_sys::Array"
+      status: ABI-SAFE
+      reason: "Typed wrapper for JS arrays"
+      wasm_binding: "Via JsValue"
+      usage: "Direct access to JS Array methods"
+    - name: "web_sys::Window, Document, etc."
+      status: ABI-SAFE
+      reason: "Typed wrappers for DOM/Web APIs"
+      wasm_binding: "Via JsValue"
+      usage: "Browser-specific; not relevant for headless wasm4pm"
+    - name: "*const T, *mut T"
+      status: SPECIAL
+      reason: "Raw pointers encode as u32/u64"
+      constraint: "Unsafe; loses semantic ownership; use with caution"
+      example: "*const u32 ↔ number (as address)"
+      note: "Generally avoid; Rust lifetime rules don't cross boundary"
+
+abi_safe_zero_sized_markers:
+  description: |
+    Zero-sized types (PhantomData, empty enums) are ABI-safe because they
+    occupy no memory and are elided at the boundary.
+  types:
+    - name: "PhantomData<T>"
+      status: ABI-SAFE (zero cost)
+      reason: "No memory; completely elided in binary"
+      constraint: "Type parameter T is phantom; not evaluated at ABI boundary"
+      usage: "Suitable for witness W and state State tags in Evidence<T, State, W>"
+      note: "T itself does NOT need to be ABI-safe"
+    - name: "Empty enum (e.g., Raw, Parsed, Admitted)"
+      status: ABI-SAFE (zero cost)
+      reason: "Uninhabited, zero-sized; purely compile-time"
+      constraint: "None; these are type tokens only"
+      usage: "Perfect for typestate markers"
+      note: "Not serializable; don't try to pass through wasm-bindgen directly"
+
+custom_serde_compatible_types:
+  description: |
+    User-defined types that are ABI-safe only when Serialize + Deserialize
+    are implemented and all nested members are themselves ABI-safe.
+  types:
+    - name: "struct MyData { fields... }"
+      status: ABI-SAFE (with #[derive(Serialize, Deserialize)])"
+      requirement: "#[derive(Serialize, Deserialize, Tsify)]"
+      constraint: "All field types must be Serialize + Deserialize"
+      example: "#[derive(Serialize, Deserialize)] struct MyStruct { id: u32, name: String }"
+      note: "Tsify generates TypeScript interfaces automatically"
+    - name: "enum MyEnum { variants... }"
+      status: ABI-SAFE (with #[derive(Serialize, Deserialize)])"
+      requirement: "#[derive(Serialize, Deserialize, Tsify)]"
+      constraint: "All variant payloads must be Serialize + Deserialize"
+      example: "#[derive(Serialize)] enum Status { Active, Inactive(String) }"
+      note: "Tsify generates TypeScript unions automatically"
+    - name: "newtype (e.g., TraceId(String))"
+      status: ABI-SAFE (with Serialize + Deserialize)"
+      requirement: "Derive or manual impl"
+      constraint: "Inner type must be Serialize + Deserialize"
+      example: "pub struct TraceId(pub String); // Serialize/Deserialize impl"
+      note: "With Tsify, becomes type TraceId = string; in TS"
+
+################################################################################
+# SECTION 2: RUST-ONLY TYPES (Cannot cross boundary)
+################################################################################
+
+rust_only_types:
+  description: |
+    Types that have no ABI representation and cannot be passed across the
+    wasm-bindgen boundary, even with serde. These must stay Rust-side.
+  types:
+    - name: "&T (general reference)"
+      status: RUST-ONLY
+      reason: "Lifetimes don't cross ABI; references are not serializable"
+      constraint: "Cannot pass borrowed references through wasm-bindgen"
+      workaround: "Pass owned types (String instead of &str for complex data)"
+      note: "Exception: RefFromWasmAbi for specific lifetime-managed types"
+    - name: "lifetime parameters ('a, 'static)"
+      status: RUST-ONLY
+      reason: "Lifetimes are compile-time only; they are erased in binary"
+      constraint: "No lifetime can be expressed in JavaScript"
+      workaround: "Use owned types or 'static references"
+    - name: "generic type parameters (T, U) on #[wasm_bindgen]"
+      status: RUST-ONLY
+      reason: "wasm-bindgen does not allow generic types on #[wasm_bindgen] structs/enums"
+      constraint: "Cannot instantiate Evidence<T, State, W> as a #[wasm_bindgen] type"
+      workaround: "Create concrete newtype wrappers or expose only non-generic access patterns"
+      reference: "GitHub issue rustwasm/wasm-bindgen#3671"
+    - name: "Trait objects (dyn Trait)"
+      status: RUST-ONLY
+      reason: "Dynamic dispatch metadata (vtable) cannot cross ABI"
+      constraint: "No representation in WebAssembly"
+      workaround: "Use enum dispatch or concrete types instead"
+    - name: "Closures, function pointers"
+      status: RUST-ONLY (mostly)
+      reason: "Closures capture environment; fn pointers don't cross safely"
+      constraint: "JavaScript callbacks have different calling convention"
+      note: "Some patterns via wasm-bindgen-futures or manual JsValue callbacks"
+    - name: "Async/await values (before completion)"
+      status: RUST-ONLY
+      reason: "In-flight async state machines cannot be represented in JS"
+      constraint: "Only completed Futures/Results can be serialized"
+      workaround: "Use wasm-bindgen-futures to bridge async; pass completed results"
+    - name: "Io-dependent types (File, Socket, BufReader)"
+      status: RUST-ONLY
+      reason: "I/O handles are OS-specific; WebAssembly has no filesystem/network"
+      constraint: "Browser environment provides no direct file/socket access"
+      workaround: "Refactor I/O out; let JavaScript handle I/O, pass bytes to Rust"
+    - name: "Thread-local state, Mutex<T> (in web context)"
+      status: RUST-ONLY (in web)
+      reason: "WebAssembly threads are experimental; Mutex memory model unclear"
+      constraint: "No threading guarantee in browser; shared state unsafe"
+      note: "Possible in wasm32 with threading feature; not standard web"
+    - name: "Custom types without Serialize + Deserialize"
+      status: RUST-ONLY
+      reason: "No serialization impl means no ABI representation"
+      constraint: "Cannot cross boundary without impl"
+      workaround: "Implement Serialize + Deserialize; or expose only methods that return ABI-safe types"
+
+################################################################################
+# SECTION 3: WASM4PM-COMPAT TYPE-LAW SURFACE ABI ANALYSIS
+################################################################################
+
+evidence_lifecycle_analysis:
+  description: |
+    Analysis of Evidence<T, State, W> and related types for ABI safety in
+    wasm4pm-compat. This is the core type that must cross the boundary.
+
+  type: "Evidence<T, State, W>"
+  abi_safe: false
+  reason: |
+    Evidence cannot be directly exposed as a #[wasm_bindgen] type because:
+    1. Generic type parameters (T, State, W) on wasm_bindgen structs are forbidden
+    2. PhantomData fields (state, witness) are zero-sized but need special handling
+    3. Arbitrary T may not be Serialize + Deserialize
+
+  solution_pattern: |
+    Do NOT expose Evidence<T, State, W> directly across the boundary.
+    Instead:
+    1. Keep Evidence and lifecycle logic Rust-side only
+    2. Expose concrete serializable newtype wrappers:
+       - RawEvidenceView<T> where T: Serialize
+       - AdmittedEvidenceView<T> where T: Serialize
+    3. Or: Expose only the value T via #[wasm_bindgen] methods
+    4. Let TypeScript reconstruct the lifecycle model from method semantics
+
+  components:
+    - field: "value: T"
+      analysis: |
+        ABI-safe only if T: Serialize + Deserialize. For Evidence to cross
+        the boundary, T must be fully serializable. Example: EventLog,
+        OcelLog, PetriNet — these are all serde-compatible in formats feature.
+
+    - field: "state: PhantomData<State>"
+      analysis: |
+        ABI-safe and zero-cost. PhantomData is always elided. The State type
+        parameter (Raw, Parsed, Admitted, etc.) does not occupy memory.
+        However, wasm-bindgen FORBIDS generic type parameters on structs.
+        Workaround: Encode state in method names or a separate enum.
+
+    - field: "witness: PhantomData<W>"
+      analysis: |
+        ABI-safe and zero-cost for same reasons as State. W is a phantom
+        marker (Ocel20, Xes1849, etc.) that never needs serialization.
+        Same workaround applies: encode witness in returned enum or metadata.
+
+witness_markers_analysis:
+  description: |
+    Analysis of witness marker types for ABI safety.
+
+  witnesses:
+    - name: "Ocel20, Xes1849, WfNetSoundnessPaper, etc."
+      definition: "pub enum Ocel20 {} (empty, uninhabited)"
+      abi_safe: true
+      reason: "Zero-sized; no data to serialize"
+      constraint: "Cannot be passed directly; witness info must be encoded separately"
+      solution: |
+        Expose witness metadata as a separate struct/enum that carries
+        Witness::KEY, TITLE, YEAR, FAMILY as serializable fields.
+        Example:
+          #[derive(Serialize)]
+          struct WitnessMetadata {
+              key: String,
+              title: String,
+              year: Option<u16>,
+              family: String,
+          }
+
+  exports_safe: true
+  exports_how: |
+    Witness markers should not cross the boundary as phantom types.
+    Instead, expose their metadata (Witness trait const fields) as
+    concrete serializable structs or enums.
+
+state_tokens_analysis:
+  description: |
+    Analysis of typestate tokens for ABI safety.
+
+  tokens:
+    - name: "Raw, Parsed, Admitted, Refused, Projected, Exportable, Receipted"
+      definition: "pub enum Raw {} (empty, uninhabited)"
+      abi_safe: true
+      reason: "Zero-sized; no memory cost"
+      constraint: "Cannot be passed directly; state must be encoded in method/response"
+      solution: |
+        Do NOT expose state tokens across the boundary.
+        Instead, encode state as a named enum variant in returned structures.
+        Example (JavaScript-side call):
+          const result = wasm.admit_evidence(raw_value);
+          // result.type === "Admitted" or "Refused"
+          // result.value === the admitted payload or refusal reason
+
+  exports_safe: false
+  exports_how: |
+    State tokens should never be exposed as type parameters.
+    Encode state information in the return type/variant structure.
+
+admission_refusal_analysis:
+  description: |
+    Analysis of Admission<T, W> and Refusal<R, W> for ABI safety.
+
+  admission:
+    - field: "value: T"
+      abi_safe: "if T: Serialize"
+      reason: "Serializable payload"
+    - field: "witness: PhantomData<W>"
+      abi_safe: true
+      reason: "Zero-sized phantom"
+
+    overall_abi_safe: "if T: Serialize"
+    solution: |
+      Admission<T, W> is ABI-safe only if T is serializable.
+      Create concrete newtype wrapper:
+        #[derive(Serialize)]
+        pub struct AdmittedEventLog { value: EventLog }
+
+      Then expose via #[wasm_bindgen]:
+        #[wasm_bindgen]
+        pub fn admit_event_log(raw: JsValue) -> Result<AdmittedEventLog, String> {
+            // ... implementation
+        }
+
+  refusal:
+    - field: "reason: R"
+      abi_safe: "if R: Serialize"
+      reason: "Reason type must be serializable"
+    - field: "witness: PhantomData<W>"
+      abi_safe: true
+      reason: "Zero-sized phantom"
+
+    overall_abi_safe: "if R: Serialize"
+    solution: |
+      Refusal<R, W> is ABI-safe only if R is serializable.
+      Refusal reason types MUST BE named enums, never bare strings.
+      Example (from wasm4pm-compat):
+        #[derive(Serialize)]
+        pub enum OcelAdmissionRefusal {
+            DanglingEventObjectLink,
+            MissingFinalMarking,
+            // ... other named laws
+        }
+
+      Then expose:
+        #[wasm_bindgen]
+        pub fn admit_ocel_log(raw: JsValue)
+            -> Result<AdmittedOcelLog, JsValue>
+        {
+            // Serialize OcelAdmissionRefusal into JsValue
+        }
+
+################################################################################
+# SECTION 4: PROPOSED WASM4PM-COMPAT ABI SAFE BOUNDARIES
+################################################################################
+
+proposed_safe_exports:
+  description: |
+    Recommended surface to expose from wasm4pm-compat across the wasm-bindgen
+    boundary. Follows the ABI-safety rules above.
+
+  export_strategy: |
+    1. NEVER expose Evidence<T, State, W> directly with generic params
+    2. Create concrete facade structs wrapping serializable payloads
+    3. Encode state/witness as enum variants or method return types
+    4. Use serde + tsify for TypeScript generation
+
+  module_by_module:
+    - module: "eventlog"
+      abi_exports: |
+        #[wasm_bindgen]
+        pub fn new_event_log() -> EventLog { /* ... */ }
+
+        #[wasm_bindgen]
+        pub fn validate_event_log(log: &EventLog) -> bool { /* ... */ }
+
+        #[derive(Serialize, Tsify)]
+        pub struct EventLog { events: Vec<Event>, /* ... */ }
+
+        #[derive(Serialize, Tsify)]
+        pub struct Event { id: String, timestamp: u64, /* ... */ }
+      reason: "EventLog and Event are concrete, serializable types"
+
+    - module: "ocel"
+      abi_exports: |
+        #[wasm_bindgen]
+        pub fn load_ocel_log_from_json(json: &str) -> Result<OcelLog, String>
+
+        #[derive(Serialize, Tsify)]
+        pub struct OcelLog { events: Vec<OcelEvent>, /* ... */ }
+
+        #[derive(Serialize, Tsify)]
+        pub struct OcelEvent { id: String, /* ... */ }
+      reason: "Concrete serializable types; state management via return type"
+
+    - module: "admission"
+      abi_exports: |
+        #[wasm_bindgen]
+        pub enum AdmissionOutcome {
+            Admitted(AdmittedEventLog),
+            Refused(String), // or enum of refusal reasons
+        }
+
+        #[wasm_bindgen]
+        pub fn admit_event_log(raw: &EventLog) -> AdmissionOutcome { /* ... */ }
+      reason: "Outcome enum encodes both success/failure; no generic Evidence type"
+
+    - module: "loss"
+      abi_exports: |
+        #[wasm_bindgen]
+        pub struct ProjectionResult {
+            projected: Vec<u8>, // serialized Projected evidence
+            loss_report: LossReport,
+        }
+
+        #[derive(Serialize, Tsify)]
+        pub struct LossReport {
+            from_shape: String,
+            to_shape: String,
+            items_lost: Vec<String>,
+        }
+      reason: "Loss information is auditable; serializable"
+
+    - module: "conformance"
+      abi_exports: |
+        #[derive(Serialize, Tsify)]
+        pub struct ConformanceVerdict {
+            fitness: u32, // e.g., 750 = 0.75
+            precision: u32,
+            f1: u32,
+        }
+
+        #[wasm_bindgen]
+        pub fn conformance_verdict_from_json(json: &str) -> Result<ConformanceVerdict, String>
+      reason: "Verdicts are metrics; never computed here (structure-only)"
+
+    - module: "witness"
+      abi_exports: |
+        #[derive(Serialize, Tsify)]
+        pub struct WitnessInfo {
+            key: String,
+            title: String,
+            year: Option<u16>,
+            family: String,
+        }
+
+        #[wasm_bindgen]
+        pub fn get_witness_info(key: &str) -> Option<WitnessInfo> { /* ... */ }
+      reason: "Witness metadata is serializable; markers themselves stay Rust-only"
+
+do_not_export:
+  - "Evidence<T, State, W> with generic parameters"
+    reason: "wasm-bindgen forbids generic types on structs"
+  - "Admission<T, W> with generic parameters"
+    reason: "Same restriction"
+  - "Refusal<R, W> with generic parameters"
+    reason: "Same restriction"
+  - "Raw, Parsed, Admitted, etc. type tokens directly"
+    reason: "Zero-sized; cannot be serialized; encode state in return values instead"
+  - "Witness marker enums (Ocel20, Xes1849, etc.) directly"
+    reason: "Zero-sized; extract metadata into serializable struct instead"
+  - "PhantomData, ZST fields"
+    reason: "Cannot be serialized; they are compile-time only"
+
+################################################################################
+# SECTION 5: TSIFY + SERDE-WASM-BINDGEN INTEGRATION NOTES
+################################################################################
+
+tsify_integration:
+  description: |
+    How tsify derives TypeScript interfaces from Rust types in wasm4pm-compat.
+
+  derives_needed: ["Serialize", "Deserialize", "Tsify"]
+
+  example: |
+    #[derive(Serialize, Deserialize, Tsify)]
+    #[tsify(into_wasm_abi, from_wasm_abi)]
+    pub struct EventLog {
+        events: Vec<Event>,
+        trace_id: String,
+    }
+
+    #[derive(Serialize, Deserialize, Tsify)]
+    pub struct Event {
+        id: String,
+        timestamp: u64,
+        activity: String,
+    }
+
+  generated_typescript: |
+    export interface EventLog {
+      events: Event[];
+      trace_id: string;
+    }
+
+    export interface Event {
+      id: string;
+      timestamp: number;
+      activity: string;
+    }
+
+  constraint_on_enums: |
+    Enums with tsify + serde serialize as tagged unions by default.
+    Example Rust:
+      #[derive(Serialize, Tsify)]
+      pub enum AdmissionOutcome {
+          Admitted(EventLog),
+          Refused(String),
+      }
+
+    Generated TypeScript:
+      export type AdmissionOutcome =
+        | { Admitted: EventLog }
+        | { Refused: string };
+
+    Or with #[tsify(namespace)] you can customize the representation.
+
+serde_wasm_bindgen_choice:
+  description: |
+    serde-wasm-bindgen vs serde_json for serialization across the boundary.
+
+  serde_wasm_bindgen:
+    pros: |
+      - Smaller code size than JSON
+      - Faster serialization/deserialization
+      - Supports Map, Set, array buffers (JSON doesn't)
+      - Preserves number types (u64, i64 → BigInt)
+    cons: |
+      - Binary format; not human-readable
+      - Less widely debugged than JSON
+    use_when: "Performance matters; code size is critical"
+
+  serde_json:
+    pros: |
+      - Human-readable; easy to debug
+      - Widely supported and tested
+      - Smaller dependency
+    cons: |
+      - Larger serialized output
+      - Number types limited to f64 (loses precision for u64/i64)
+      - No Map/Set support
+    use_when: "Debugging, interop with JSON APIs, human inspection"
+
+  recommendation_for_wasm4pm_compat: |
+    Use serde-wasm-bindgen for primary boundary.
+    - Process evidence often includes numeric IDs (may be u64)
+    - Code size and performance matter for browser WASM
+    - Loss reports and verdicts can use JSON for inspection
+
+################################################################################
+# SECTION 6: FEATURE GATING FOR WASM COMPILATION
+################################################################################
+
+feature_gates_for_wasm:
+  description: |
+    How to gate Cargo features so WASM-specific deps only compile for WASM targets.
+
+  pattern_in_cargo_toml: |
+    [target.'cfg(target_arch = "wasm32")'.dependencies]
+    wasm-bindgen = "0.2"
+    tsify = "0.4"
+    serde-wasm-bindgen = "0.6"
+
+    # OR: Define a "wasm" feature and gate via target + feature
+    [features]
+    wasm = ["dep:wasm-bindgen", "dep:tsify", "dep:serde-wasm-bindgen"]
+    ts = ["dep:tsify", "dep:serde"]
+
+  usage: |
+    #[cfg(target_arch = "wasm32")]
+    #[cfg(feature = "wasm")]
+    use wasm_bindgen::prelude::*;
+
+    #[cfg(all(target_arch = "wasm32", feature = "wasm"))]
+    #[wasm_bindgen]
+    pub fn admit_event_log(json: &str) -> Result<EventLog, String> {
+        // WASM-specific binding
+    }
+
+  wasm_pack_invocation: |
+    wasm-pack build --target web --features wasm
+    wasm-pack build --target nodejs --features ts
+
+################################################################################
+# SECTION 7: SUMMARY TABLE
+################################################################################
+
+summary_table: |
+  ┌─────────────────────────────────┬──────────────────┬───────────────────────┐
+  │ Type / Construct                │ ABI-Safe?        │ Serializable?         │
+  ├─────────────────────────────────┼──────────────────┼───────────────────────┤
+  │ Evidence<T,State,W>             │ NO (generic)     │ NO                    │
+  │ EventLog, OcelLog, etc.         │ YES (with serde) │ YES (in formats feat) │
+  │ Admission<T,W>                  │ NO (generic)     │ NO                    │
+  │ Refusal<R,W>                    │ NO (generic)     │ NO                    │
+  │ Raw, Parsed, Admitted, etc.     │ NO (ZST)         │ NO                    │
+  │ Ocel20, Xes1849, Witness marks  │ NO (ZST)         │ NO                    │
+  │ PhantomData<T>                  │ NO (ZST)         │ NO                    │
+  │ ConformanceVerdict              │ YES (with serde) │ YES                   │
+  │ LossReport                      │ YES (with serde) │ YES                   │
+  │ GraduationCandidate             │ YES (with serde) │ YES                   │
+  │ String, Vec, HashMap            │ YES (with serde) │ YES (with serde)      │
+  │ u32, u64, bool, f64             │ YES              │ YES                   │
+  │ JsValue, js_sys types           │ YES              │ YES (opaque)          │
+  └─────────────────────────────────┴──────────────────┴───────────────────────┘
+
+next_steps: |
+  1. Review ggen/intel/tsify-capability-map.md for tsify workflow details
+  2. Review ggen/intel/wasm-boundary-prohibited.yaml for engine functions
+  3. Create concrete wasm-bindgen wrappers for each ABI-safe type
+  4. Add #[cfg(target_arch = "wasm32")] conditional compilation
+  5. Use Tsify #[derive] on all boundary structs
+  6. Test with wasm-pack build and verify .d.ts generation
+  7. Validate that Evidence and witness types remain Rust-only (not exposed)

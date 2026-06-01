@@ -1,0 +1,345 @@
+#!/bin/bash
+# ggen/audits/audit-projection-receipts.sh.ggen
+#
+# Projection Receipt Validation Audit
+#
+# Purpose: Validate that every projected artifact from the three projection manifests
+# (TypeScript, WASM, Component Model) is tracked in version control or snapshotted in
+# an audit manifest. This is a manufacturing pipeline proof-gate: projected artifacts
+# must have receipt evidence (git commits, git-tracked snapshots, or signed audit manifests).
+#
+# Usage:
+#   bash ggen/audits/audit-projection-receipts.sh.ggen
+#   echo $?  # Exit code: 0 = all projections tracked; 1+ = gaps found
+#
+# Artifacts validated:
+#   - TypeScript projection: wasm4pm-compat.d.ts, wasm4pm-compat-helpers.ts
+#   - WASM projection: wasm4pm_compat.wasm, pkg/package.json, pkg/*.d.ts
+#   - Component Model: ggen/wit/*.wit files, world definitions
+#   - Feature manifests: ggen/manifests/*.manifest.md
+#   - Audit results: ggen/audits/audit-results-*.json
+#
+# Exit codes:
+#   0: All projected artifacts are tracked (pass)
+#   1: Untracked or missing projected artifacts (fail)
+#   2: Configuration error (missing projection manifest files)
+
+set -euo pipefail
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Root directory (run from repository root or specify via GEN_ROOT)
+GEN_ROOT="${GEN_ROOT:-.}"
+PROJ_MANIFESTS_DIR="${GEN_ROOT}/ggen/projections"
+WIT_DIR="${GEN_ROOT}/ggen/wit"
+PKG_DIR="${GEN_ROOT}/pkg"
+MANIFESTS_DIR="${GEN_ROOT}/ggen/manifests"
+AUDITS_DIR="${GEN_ROOT}/ggen/audits"
+
+# Result tracking
+PASS_COUNT=0
+FAIL_COUNT=0
+WARNINGS=0
+
+# Helper function to check if artifact is declared in a manifest
+artifact_declared() {
+  local artifact="$1"
+  local manifest_file="$2"
+
+  if [ ! -f "${manifest_file}" ]; then
+    return 1
+  fi
+
+  if grep -qE "${artifact}" "${manifest_file}" 2>/dev/null; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# Helper function to check git status
+check_git_status() {
+  local artifact_path="$1"
+  local relative_path="$2"
+
+  # Check if tracked in git
+  if git -C "${GEN_ROOT}" ls-files --error-unmatch "${relative_path}" >/dev/null 2>&1; then
+    return 0  # tracked
+  fi
+
+  return 1  # not tracked
+}
+
+# Helper function to check if in .gitignore
+check_gitignore() {
+  local artifact_path="$1"
+
+  if git -C "${GEN_ROOT}" check-ignore "${artifact_path}" >/dev/null 2>&1; then
+    return 0  # ignored
+  fi
+
+  return 1  # not ignored
+}
+
+echo "================================"
+echo "Projection Receipt Audit"
+echo "================================"
+echo ""
+
+# ====================================================================
+# PHASE 1: Validate Projection Manifest Files Exist
+# ====================================================================
+echo "[Phase 1] Validating projection manifests..."
+echo ""
+
+PROJECTION_MANIFESTS=(
+  "ts.projection.yaml"
+  "wasm.projection.yaml"
+  "component.projection.yaml"
+)
+
+for manifest in "${PROJECTION_MANIFESTS[@]}"; do
+  if [ -f "${PROJ_MANIFESTS_DIR}/${manifest}" ]; then
+    echo "  ✓ ${manifest}"
+    PASS_COUNT=$((PASS_COUNT + 1))
+  else
+    echo -e "  ${RED}✗ Missing: ${manifest}${NC}"
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
+done
+
+echo ""
+
+# ====================================================================
+# PHASE 2: TypeScript Projection Artifacts
+# ====================================================================
+echo "[Phase 2] TypeScript Projection Artifacts"
+echo ""
+
+TS_ARTIFACTS=(
+  "generated/wasm4pm-compat.d.ts"
+  "generated/wasm4pm-compat-helpers.ts"
+  "generated/wasm4pm-compat.ts"
+)
+
+for artifact in "${TS_ARTIFACTS[@]}"; do
+  full_path="${GEN_ROOT}/${artifact}"
+
+  if [ -f "${full_path}" ]; then
+    if check_git_status "${full_path}" "${artifact}"; then
+      echo "  ✓ ${artifact} (tracked in git)"
+      PASS_COUNT=$((PASS_COUNT + 1))
+    elif check_gitignore "${full_path}"; then
+      echo "  ⚠ ${artifact} (ignored by .gitignore — snapshot candidate)"
+      WARNINGS=$((WARNINGS + 1))
+    else
+      echo -e "  ${RED}✗ ${artifact} (untracked)${NC}"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+  else
+    # File doesn't exist — check if it's expected
+    if artifact_declared "wasm4pm-compat" "${PROJ_MANIFESTS_DIR}/ts.projection.yaml"; then
+      echo -e "  ${RED}✗ ${artifact} (missing but declared in projection)${NC}"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    else
+      echo "  - ${artifact} (not declared in projection manifest)"
+    fi
+  fi
+done
+
+echo ""
+
+# ====================================================================
+# PHASE 3: WASM Projection Artifacts
+# ====================================================================
+echo "[Phase 3] WASM Projection Artifacts"
+echo ""
+
+WASM_ARTIFACTS=(
+  "pkg/wasm4pm_compat.wasm"
+  "pkg/wasm4pm_compat.d.ts"
+  "pkg/wasm4pm_compat_bg.d.ts"
+  "pkg/wasm4pm_compat_bg.wasm.d.ts"
+  "pkg/package.json"
+)
+
+for artifact in "${WASM_ARTIFACTS[@]}"; do
+  full_path="${GEN_ROOT}/${artifact}"
+
+  if [ -f "${full_path}" ]; then
+    if check_git_status "${full_path}" "${artifact}"; then
+      echo "  ✓ ${artifact} (tracked in git)"
+      PASS_COUNT=$((PASS_COUNT + 1))
+    elif check_gitignore "${full_path}"; then
+      echo "  ⚠ ${artifact} (ignored by .gitignore — snapshot candidate)"
+      WARNINGS=$((WARNINGS + 1))
+    else
+      echo -e "  ${RED}✗ ${artifact} (untracked)${NC}"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+  else
+    # File doesn't exist — check if it's expected
+    if artifact_declared "wasm4pm_compat\|package\.json" "${PROJ_MANIFESTS_DIR}/wasm.projection.yaml"; then
+      echo -e "  ${RED}✗ ${artifact} (missing but declared in projection)${NC}"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    else
+      echo "  - ${artifact} (not declared in projection manifest)"
+    fi
+  fi
+done
+
+echo ""
+
+# ====================================================================
+# PHASE 4: Component Model / WIT Artifacts
+# ====================================================================
+echo "[Phase 4] Component Model / WIT Artifacts"
+echo ""
+
+if [ -d "${WIT_DIR}" ]; then
+  WIT_FILES=$(find "${WIT_DIR}" -name "*.wit" 2>/dev/null || true)
+  if [ -z "${WIT_FILES}" ]; then
+    echo "  - No .wit files found in ${WIT_DIR} (not yet generated)"
+  else
+    while IFS= read -r wit_file; do
+      relative_path="${wit_file#${GEN_ROOT}/}"
+
+      if check_git_status "${wit_file}" "${relative_path}"; then
+        echo "  ✓ ${relative_path} (tracked in git)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+      elif check_gitignore "${wit_file}"; then
+        echo "  ⚠ ${relative_path} (ignored by .gitignore — snapshot candidate)"
+        WARNINGS=$((WARNINGS + 1))
+      else
+        echo -e "  ${RED}✗ ${relative_path} (untracked)${NC}"
+        FAIL_COUNT=$((FAIL_COUNT + 1))
+      fi
+    done <<< "${WIT_FILES}"
+  fi
+else
+  echo "  - ${WIT_DIR} does not exist (not yet generated)"
+fi
+
+echo ""
+
+# ====================================================================
+# PHASE 5: Feature Manifests
+# ====================================================================
+echo "[Phase 5] Feature Manifests"
+echo ""
+
+if [ -d "${MANIFESTS_DIR}" ]; then
+  MANIFEST_FILES=$(find "${MANIFESTS_DIR}" -name "*.manifest.md" 2>/dev/null || true)
+  if [ -z "${MANIFEST_FILES}" ]; then
+    echo "  - No manifest files in ${MANIFESTS_DIR}"
+  else
+    while IFS= read -r manifest_file; do
+      relative_path="${manifest_file#${GEN_ROOT}/}"
+
+      if check_git_status "${manifest_file}" "${relative_path}"; then
+        echo "  ✓ ${relative_path} (tracked in git)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+      else
+        echo -e "  ${YELLOW}⚠ ${relative_path} (manifest — recommend tracking)${NC}"
+        WARNINGS=$((WARNINGS + 1))
+      fi
+    done <<< "${MANIFEST_FILES}"
+  fi
+else
+  echo "  - ${MANIFESTS_DIR} does not exist (not yet created)"
+fi
+
+echo ""
+
+# ====================================================================
+# PHASE 6: Audit Results Snapshots
+# ====================================================================
+echo "[Phase 6] Audit Results Snapshots"
+echo ""
+
+if [ -d "${AUDITS_DIR}" ]; then
+  AUDIT_RESULTS=$(find "${AUDITS_DIR}" -name "audit-results-*.json" 2>/dev/null || true)
+  if [ -z "${AUDIT_RESULTS}" ]; then
+    echo "  - No audit result files yet (first run)"
+  else
+    while IFS= read -r audit_file; do
+      relative_path="${audit_file#${GEN_ROOT}/}"
+
+      if check_git_status "${audit_file}" "${relative_path}"; then
+        echo "  ✓ ${relative_path} (tracked in git)"
+        PASS_COUNT=$((PASS_COUNT + 1))
+      else
+        echo -e "  ${YELLOW}⚠ ${relative_path} (recommend committing audit snapshots)${NC}"
+        WARNINGS=$((WARNINGS + 1))
+      fi
+    done <<< "${AUDIT_RESULTS}"
+  fi
+else
+  echo "  - ${AUDITS_DIR} directory does not exist yet"
+fi
+
+echo ""
+
+# ====================================================================
+# PHASE 7: Projection Document Inventory
+# ====================================================================
+echo "[Phase 7] Projection Documentation"
+echo ""
+
+PROJECTION_DOCS=(
+  "ggen/PROJECTION_MANIFESTS.md"
+  "ggen/WIT_TEMPLATE_INDEX.md"
+  "ggen/WIT_TEMPLATE_MANIFEST.md"
+  "ggen/WIT_TEMPLATE_MANUFACTURE.md"
+  "ggen/WIT_TEMPLATE_USAGE.md"
+)
+
+for doc in "${PROJECTION_DOCS[@]}"; do
+  full_path="${GEN_ROOT}/${doc}"
+
+  if [ -f "${full_path}" ]; then
+    if check_git_status "${full_path}" "${doc}"; then
+      echo "  ✓ ${doc} (tracked in git)"
+      PASS_COUNT=$((PASS_COUNT + 1))
+    else
+      echo -e "  ${RED}✗ ${doc} (untracked)${NC}"
+      FAIL_COUNT=$((FAIL_COUNT + 1))
+    fi
+  else
+    echo "  - ${doc} (not yet generated)"
+  fi
+done
+
+echo ""
+
+# ====================================================================
+# SUMMARY
+# ====================================================================
+echo "================================"
+echo "Audit Summary"
+echo "================================"
+echo ""
+echo "  Passed:    ${GREEN}${PASS_COUNT}${NC}"
+echo "  Failed:    ${RED}${FAIL_COUNT}${NC}"
+echo "  Warnings:  ${YELLOW}${WARNINGS}${NC}"
+echo ""
+
+# Emit exit code
+if [ "${FAIL_COUNT}" -eq 0 ]; then
+  echo -e "${GREEN}✓ PASS: All projected artifacts are tracked${NC}"
+  exit 0
+else
+  echo -e "${RED}✗ FAIL: ${FAIL_COUNT} untracked projected artifact(s)${NC}"
+  echo ""
+  echo "Action items:"
+  echo "  1. Commit tracked artifacts to git: git add <file>"
+  echo "  2. For generated files (TS, WASM, WIT), ensure .gitignore is correct"
+  echo "  3. For manifests & audits, commit snapshots: git add ggen/manifests/ ggen/audits/"
+  echo "  4. Re-run: bash ggen/audits/audit-projection-receipts.sh.ggen"
+  echo ""
+  exit 1
+fi

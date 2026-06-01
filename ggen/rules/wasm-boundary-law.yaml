@@ -1,0 +1,665 @@
+# WASM Boundary Law
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+# Authority: wasm-bindgen + ABI-safety doctrine
+
+---
+
+law_metadata:
+  name: "WASM Boundary Law"
+  codename: "wasm-boundary-law"
+  version: "1.0.0"
+  applies_to: "wasm.projection.yaml"
+  tool: "wasm-bindgen + tsify + serde-wasm-bindgen"
+  authority: "ABI-safety covenant; zero-cost type law at FFI"
+  enforcement: "Compile-time + Runtime marshaling"
+
+---
+
+central_principle: |
+  WASM boundary is an ABI (Application Binary Interface). The ABI must be:
+
+  1. **ABI-SAFE**: All exports must map to WebAssembly instruction set.
+     - No generic type parameters on #[wasm_bindgen] items (wasm-bindgen forbids)
+     - All types must be Serialize + Deserialize + Tsify
+     - Witness/state encoded as string metadata, not phantom types
+
+  2. **TYPED REFUSAL**: Every error is a named enum variant, never bare strings.
+     - Witness authority (witness_key: String) always present
+     - Refusal reason is concrete enum variant
+     - No silent loss of diagnostic information
+
+  3. **LOSS-ACCOUNTED**: All lossy transformations emit LossReport.
+     - LossReport mandatory on output
+     - Policy constraint (refuse, allow-named, allow-with-report)
+     - Host can audit what was lost and why
+
+---
+
+law_1_no_generics_at_boundary:
+
+  rule_1_1_wasm_bindgen_forbids_generics:
+    citation: "GitHub issue rustwasm/wasm-bindgen#3671"
+    violation: "Using generic type parameters on #[wasm_bindgen] struct/enum"
+    consequence: |
+      wasm-bindgen does not support generic types on exported items.
+      The compiler will error: "generic types are not supported on this item"
+    enforcement: |
+      FORBID: #[wasm_bindgen] pub struct Evidence<T, W> { ... }
+      FORBID: #[wasm_bindgen] pub fn admit<T>(data: T) -> Admission<T> { ... }
+      REQUIRE: Concrete newtypes instead
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub struct Evidence<T, State, W> {
+        value: T,
+      }
+      // COMPILE ERROR: generic types not allowed on #[wasm_bindgen]
+
+      // CORRECT
+      #[wasm_bindgen]
+      pub struct AdmittedEventLog {
+        pub value: EventLog,  // T is bound; no generics
+      }
+
+      #[wasm_bindgen]
+      pub fn admit_event_log(raw: &EventLog) -> AdmittedEventLog { ... }
+
+  rule_1_2_phantom_types_not_serializable:
+    violation: "Including PhantomData<State> or PhantomData<W> in exported struct"
+    consequence: |
+      PhantomData is zero-sized and not serializable.
+      serde-wasm-bindgen will fail to serialize it.
+      The field will be silently dropped or cause runtime panic.
+    enforcement: |
+      FORBID: pub struct MyExport { phantom: PhantomData<T> }
+      REQUIRE: Remove phantom fields OR skip with #[serde(skip)]
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Serialize)]
+      #[wasm_bindgen]
+      pub struct ExportedEvidenceWithPhantom {
+        pub value: String,
+        pub witness: PhantomData<Ocel20>,  // ERROR: not serializable
+      }
+
+      // CORRECT
+      #[derive(Serialize)]
+      #[wasm_bindgen]
+      pub struct ExportedEvidenceWithMetadata {
+        pub value: String,
+        pub witness_key: String,  // Witness as string metadata
+      }
+
+---
+
+law_2_all_exports_abi_safe:
+
+  rule_2_1_serialize_deserialize_required:
+    violation: "Exporting type without Serialize + Deserialize"
+    consequence: |
+      serde-wasm-bindgen uses serde to marshal data across the ABI.
+      Without Serialize + Deserialize, marshaling fails at runtime.
+    enforcement: |
+      REQUIRE: #[derive(Serialize, Deserialize, Tsify)] on all #[wasm_bindgen] items
+      VALIDATE: cargo build --target wasm32-unknown-unknown
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub struct EventLog {
+        events: Vec<Event>,
+      }
+      // COMPILE ERROR: EventLog does not implement Serialize (missing derive)
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct EventLog {
+        pub events: Vec<Event>,
+      }
+
+  rule_2_2_witness_as_string_tag:
+    violation: "Exporting witness type parameter (W) or witness marker enum"
+    consequence: |
+      Witness markers (Ocel20, Xes1849, etc.) are empty enums.
+      Empty enums cannot be serialized or passed across ABI.
+    enforcement: |
+      FORBID: witness_marker: Ocel20 in struct field
+      REQUIRE: witness_key: String field instead
+      REQUIRE: Extract Witness::KEY, FAMILY, TITLE, YEAR as WitnessMetadata struct
+    test_fixture: |
+      // FORBIDDEN
+      #[derive(Serialize)]
+      #[wasm_bindgen]
+      pub struct AdmittedWithWitness<W: Witness> {
+        pub value: EventLog,
+        pub witness: PhantomData<W>,  // ERROR: generics not allowed; W is phantom
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct AdmittedEventLog {
+        pub value: EventLog,
+        pub witness_key: String,  // Always "ocel-2.0", "xes-1849", etc.
+      }
+
+  rule_2_3_state_not_transmitted:
+    violation: "Exporting state token (Raw, Parsed, Admitted) as type or field"
+    consequence: |
+      State tokens are zero-sized compile-time markers.
+      They have no runtime representation.
+      Encode state in return enum variant instead.
+    enforcement: |
+      FORBID: pub state: Admitted in struct
+      FORBID: Generic State parameter on exported function
+      REQUIRE: Encode state as enum variant or method name
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub fn get_evidence_state<State>(
+        ev: &Evidence<_, State, _>
+      ) -> State { ... }
+      // ERROR: generic State not allowed; also State is phantom
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub enum AdmissionResult {
+        #[serde(rename = "Admitted")]
+        Admitted(AdmittedEventLog),
+        #[serde(rename = "Refused")]
+        Refused(RefusalSnapshot),
+      }
+
+      #[wasm_bindgen]
+      pub fn admit_event_log(raw: &EventLog) -> AdmissionResult { ... }
+
+---
+
+law_3_concrete_wrappers_required:
+
+  rule_3_1_wrapper_per_major_type:
+    violation: "Exporting generic wrapper instead of concrete types"
+    consequence: |
+      Concrete wrappers (AdmittedEventLog, AdmittedOcelLog) are essential.
+      They replace Evidence<T, State, W> at the boundary.
+    enforcement: |
+      REQUIRE: pub struct AdmittedEventLog { pub value: EventLog }
+      REQUIRE: pub struct AdmittedOcelLog { pub value: OcelLog, pub witness_key: String }
+      REQUIRE: pub struct AdmittedXesLog { pub value: XesLog, pub witness_key: String }
+      REQUIRE: pub struct RefusalSnapshot { pub reason: String, pub witness_key: String }
+    test_fixture: |
+      // RUST
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct AdmittedEventLog {
+        pub value: EventLog,
+      }
+
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct AdmittedOcelLog {
+        pub value: OcelLog,
+        pub witness_key: String,
+      }
+
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct RefusalSnapshot {
+        pub reason: String,  // Serialized refusal enum
+        pub witness_key: String,
+      }
+
+      // GENERATED TYPESCRIPT
+      export interface AdmittedEventLog {
+        value: EventLog;
+      }
+
+      export interface AdmittedOcelLog {
+        value: OcelLog;
+        witness_key: string;
+      }
+
+      export interface Refusal {
+        reason: string;
+        witness_key: string;
+      }
+
+  rule_3_2_no_mixed_generic_concrete:
+    violation: "Mixing generic and concrete wrappers; inconsistent patterns"
+    consequence: |
+      Host code must understand which types are generic (admit error or confusion).
+      Use one pattern consistently: either all concrete or all enum-wrapped.
+    enforcement: |
+      CHOOSE: Pattern A (concrete per-type) OR Pattern B (single enum, all variants)
+      ENFORCE: Consistency across all admission gates
+    test_fixture: |
+      // PATTERN A: Concrete per-type (RECOMMENDED)
+      pub struct AdmittedEventLog { pub value: EventLog }
+      pub struct AdmittedOcelLog { pub value: OcelLog, pub witness_key: String }
+      pub struct AdmittedXesLog { pub value: XesLog, pub witness_key: String }
+      // Each type has its own concrete wrapper; clear and predictable
+
+      // PATTERN B: Single enum variant (ALTERNATIVE)
+      #[derive(Serialize, Deserialize, Tsify)]
+      pub enum AdmissionOutcome {
+        #[serde(rename = "EventLog")]
+        EventLog(EventLog),
+        #[serde(rename = "OcelLog")]
+        OcelLog(OcelLog),
+        #[serde(rename = "XesLog")]
+        XesLog(XesLog),
+      }
+      // All outcomes in one enum; witness must be extracted per variant
+
+---
+
+law_4_marshaling_constraints:
+
+  rule_4_1_serde_wasm_bindgen_choice:
+    violation: "Using JSON marshaling for large numeric types (loses precision)"
+    consequence: |
+      JSON cannot represent u64 or i64 with full precision.
+      Large IDs (u64) become imprecise f64 in JSON.
+      serde-wasm-bindgen uses binary format; preserves BigInt.
+    enforcement: |
+      REQUIRE: serde-wasm-bindgen for primary path (performance + precision)
+      ALLOW: serde_json as fallback for debugging or JSON APIs
+      VALIDATE: cargo build --target wasm32-unknown-unknown --features wasm
+    test_fixture: |
+      // CARGO.TOML
+      [target.'cfg(target_arch = "wasm32")'.dependencies]
+      serde-wasm-bindgen = "0.6"  // Primary: binary marshaling
+      serde = { version = "1.0", features = ["derive"] }
+      tsify = { version = "0.4.5", features = ["js"] }
+      wasm-bindgen = "0.2.92"
+
+      // RUST
+      #[wasm_bindgen]
+      pub fn load_event_ids(json_data: &JsValue) -> Result<Vec<u64>, String> {
+        // serde-wasm-bindgen preserves u64 precision
+        serde_wasm_bindgen::from_value(json_data.clone())
+          .map_err(|e| e.to_string())
+      }
+
+  rule_4_2_tsify_derives_typescript:
+    violation: "Missing #[tsify] derive; TypeScript interface not generated"
+    consequence: |
+      Tsify generates .d.ts TypeScript interfaces from Rust structs.
+      Without #[tsify], the host has no type information.
+    enforcement: |
+      REQUIRE: #[derive(Tsify)] on all #[wasm_bindgen] structs/enums
+      VALIDATE: Inspect generated .wasm.d.ts file for all types
+    test_fixture: |
+      // RUST
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[tsify(into_wasm_abi, from_wasm_abi)]
+      #[wasm_bindgen]
+      pub struct EventLog {
+        pub events: Vec<Event>,
+      }
+
+      // GENERATED TYPESCRIPT (.wasm.d.ts)
+      export interface EventLog {
+        events: Event[];
+      }
+
+  rule_4_3_numeric_type_mapping:
+    violation: "Rust u64/i64 mapped to f64 in TypeScript (precision loss)"
+    consequence: |
+      JSON maps all numbers to f64; u64 loses precision for values > 2^53.
+      serde-wasm-bindgen maps u64/i64 to JavaScript BigInt (no loss).
+    enforcement: |
+      REQUIRE: serde-wasm-bindgen for u64/i64 fields (primary path)
+      NOTE: JSON alternative loses precision; document the limitation
+    test_fixture: |
+      // RUST
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct OcelEvent {
+        pub id: u64,        // Large ID
+        pub timestamp_ns: u64,  // Nanosecond timestamp
+      }
+
+      // TYPESCRIPT (via serde-wasm-bindgen)
+      export interface OcelEvent {
+        id: bigint;         // JavaScript BigInt (full precision)
+        timestamp_ns: bigint;
+      }
+
+      // TYPESCRIPT (via serde_json, if fallback used)
+      export interface OcelEvent {
+        id: number;         // PRECISION LOSS for large u64
+        timestamp_ns: number;
+      }
+
+---
+
+law_5_typed_refusals_mandatory:
+
+  rule_5_1_refusal_reason_enum:
+    violation: "Returning bare String as error instead of typed refusal enum"
+    consequence: |
+      Bare strings lose semantic information.
+      Host cannot programmatically distinguish error types.
+      Refusal reason MUST be a concrete enum with named variants.
+    enforcement: |
+      FORBID: Result<T, String> at boundary
+      REQUIRE: Result<T, RefusalSnapshot> where RefusalSnapshot carries reason enum
+      REQUIRE: Witness authority (witness_key: String) always included
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub fn admit_ocel_log(log: &OcelLog) -> Result<OcelLog, String> {
+        Err("Invalid OCEL".to_string())  // Loss of information
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Tsify)]
+      pub enum OcelRefusal {
+        #[serde(rename = "DanglingEventObjectLink")]
+        DanglingEventObjectLink {
+          event_id: String,
+          object_id: String,
+          object_type: String,
+        },
+        #[serde(rename = "InvalidObjectType")]
+        InvalidObjectType { object_type: String },
+        #[serde(rename = "MissingEventType")]
+        MissingEventType { activity: String },
+      }
+
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct RefusalSnapshot {
+        pub reason: OcelRefusal,
+        pub witness_key: String,
+      }
+
+      #[wasm_bindgen]
+      pub fn admit_ocel_log(log: &OcelLog)
+        -> Result<AdmittedOcelLog, RefusalSnapshot>
+      {
+        // Return specific variant + witness
+      }
+
+  rule_5_2_witness_in_every_refusal:
+    violation: "Refusal without witness_key field"
+    consequence: |
+      Refusal is issued under a specific witness authority.
+      Witness must be recorded for audit trail.
+    enforcement: |
+      REQUIRE: witness_key: String in every refusal snapshot
+      REQUIRE: Constant value matching the witness authority (e.g., "ocel-2.0")
+      VALIDATE: Host can always identify which witness issued the refusal
+    test_fixture: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct RefusalSnapshot {
+        pub reason: OcelRefusal,      // Typed reason enum
+        pub witness_key: String,      // Always "ocel-2.0"
+        pub detail: String,           // Optional human-readable detail
+      }
+
+---
+
+law_6_loss_accounting_at_boundary:
+
+  rule_6_1_loss_report_on_output:
+    violation: "Lossy transformation without LossReport in result"
+    consequence: |
+      Loss is auditable via LossReport.
+      Silent loss (transformation without report) is a covenant breach.
+    enforcement: |
+      REQUIRE: All lossy functions return (Projected, LossReport) or (Model, LossReport)
+      FORBID: Result<ProjectedOutput, _> without LossReport field
+      VALIDATE: Host can inspect loss_report to understand structure changes
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub fn project_ocel_to_xes(
+        admitted: &OcelLog,
+        policy: &str,
+      ) -> Result<XesLog, String> {
+        // Silent loss of object-centric structure
+      }
+
+      // CORRECT
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct ProjectionOutcome {
+        pub xes_log: XesLog,
+        pub loss_report: LossReportWasm,
+      }
+
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct LossReportWasm {
+        pub from_format: String,       // "ocel"
+        pub to_format: String,         // "xes"
+        pub items_lost: Vec<String>,   // List of structure lost
+        pub summary: String,           // Human summary
+      }
+
+      #[wasm_bindgen]
+      pub fn project_ocel_to_xes(
+        admitted: &OcelLog,
+        policy: &str,
+      ) -> Result<ProjectionOutcome, RefusalSnapshot> {
+        // Always include loss_report
+      }
+
+  rule_6_2_loss_policy_enforcement:
+    violation: "Ignoring loss policy; allowing silent loss"
+    consequence: |
+      Loss policy determines behavior: refuse loss, allow-named, allow-with-report.
+      Ignoring policy violates the covenant.
+    enforcement: |
+      REQUIRE: Check policy before projection
+      FORBID: Projecting without validating policy
+      VALIDATE: Refusal if policy is "refuse" and any loss occurs
+    test_fixture: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[serde(tag = "kind")]
+      pub enum LossPolicyWasm {
+        #[serde(rename = "RefuseLoss")]
+        RefuseLoss,
+        #[serde(rename = "AllowNamed")]
+        AllowNamed { name: String },
+        #[serde(rename = "AllowWithReport")]
+        AllowWithReport,
+      }
+
+      #[wasm_bindgen]
+      pub fn project_ocel_to_xes(
+        admitted: &OcelLog,
+        policy: LossPolicyWasm,
+      ) -> Result<ProjectionOutcome, RefusalSnapshot> {
+        match policy {
+          LossPolicyWasm::RefuseLoss => {
+            if contains_loss(&admitted) {
+              return Err(RefusalSnapshot {
+                reason: ProjectionRefusal::InvalidLossPolicy { /* ... */ },
+                witness_key: "ocel-2.0".to_string(),
+              });
+            }
+            // Proceed with no loss
+          }
+          LossPolicyWasm::AllowNamed { .. } |
+          LossPolicyWasm::AllowWithReport => {
+            // Proceed; emit LossReport
+          }
+        }
+      }
+
+---
+
+law_7_forbidden_exports:
+
+  rule_7_1_no_discovery_at_boundary:
+    violation: "Exporting discovery function (Inductive Miner, Alpha, etc.)"
+    consequence: |
+      Discovery is NP-hard algorithmic work; belongs in wasm4pm engine.
+      Exposing discovery at WASM boundary violates separation of concerns.
+      Host must call engine after graduation.
+    enforcement: |
+      FORBID: pub fn discover_petri_net(log: &EventLog) -> PetriNet
+      FORBID: pub fn discover_process_tree(log: &EventLog) -> ProcessTree
+      REQUIRE: GraduationCandidate instead; engine handles discovery
+    test_fixture: |
+      // FORBIDDEN
+      #[wasm_bindgen]
+      pub fn discover_petri_net(log: &EventLog) -> PetriNet {
+        // Discovery algorithm — PROHIBITED
+      }
+
+      // CORRECT
+      #[wasm_bindgen]
+      pub fn graduation_case_for_discovery(
+        log: &EventLog
+      ) -> GraduationCandidate {
+        GraduationCandidate {
+          kind: "discovery",
+          is_grounded: true,
+          reason: "GraduatedAtFullAdmission".to_string(),
+        }
+      }
+
+  rule_7_2_no_replay_at_boundary:
+    violation: "Exporting token replay function"
+    consequence: |
+      Replay is state-mutating simulation; belongs in wasm4pm engine.
+    enforcement: |
+      FORBID: pub fn replay_log_on_model(log: &EventLog, net: &PetriNet) -> ReplayResult
+      REQUIRE: GraduationCandidate; engine executes replay
+
+  rule_7_3_no_conformance_computation:
+    violation: "Exporting conformance checking or alignment algorithm"
+    consequence: |
+      Conformance is algorithmic (alignment is exponential); belongs in wasm4pm engine.
+    enforcement: |
+      FORBID: pub fn compute_fitness(log: &EventLog, model: &PetriNet) -> f32
+      FORBID: pub fn compute_alignment(trace: &Trace, net: &PetriNet) -> Alignment
+      REQUIRE: GraduationCandidate; host gets verdict from pre-computed verdict struct
+
+  rule_7_4_no_ocpq_execution:
+    violation: "Exporting OCPQ query execution"
+    consequence: |
+      Query execution is algorithmic; belongs in wasm4pm engine.
+    enforcement: |
+      FORBID: pub fn execute_ocpq_query(log: &OcelLog, query: &OcpqQuery) -> QueryResult
+      REQUIRE: GraduationCandidate; engine executes query
+
+---
+
+law_8_state_must_be_stateless:
+
+  rule_8_1_pure_functions_only:
+    violation: "Maintaining mutable state across WASM calls"
+    consequence: |
+      WASM calls are synchronous and stateless.
+      Each call is independent; no accumulated state between calls.
+    enforcement: |
+      FORBID: static mut PARSING_CONTEXT: OnceCell<...>
+      FORBID: pub fn begin_admission(...), pub fn add_chunk(...), pub fn finalize_admission(...)
+      REQUIRE: Each function is pure; all context passed as arguments
+    test_fixture: |
+      // FORBIDDEN
+      static ADMISSION_STATE: Mutex<AdmissionContext> = Mutex::new(...);
+
+      #[wasm_bindgen]
+      pub fn begin_admission(hint: &str) {
+        let mut state = ADMISSION_STATE.lock().unwrap();
+        state.hint = hint.to_string();
+      }
+
+      #[wasm_bindgen]
+      pub fn add_to_admission(chunk: &[u8]) {
+        let mut state = ADMISSION_STATE.lock().unwrap();
+        state.chunks.push(chunk.to_vec());
+      }
+
+      #[wasm_bindgen]
+      pub fn finalize_admission() -> AdmittedLog {
+        let state = ADMISSION_STATE.lock().unwrap();
+        admit(&state.chunks)
+      }
+
+      // CORRECT
+      #[wasm_bindgen]
+      pub fn admit_event_log(raw: &EventLog) -> Result<AdmittedEventLog, RefusalSnapshot> {
+        // Pure function; no state accumulation
+        validate_and_admit(raw)
+      }
+
+---
+
+law_9_graduation_signal:
+
+  rule_9_1_graduation_candidate_export:
+    violation: "No graduation signal; host cannot determine when to graduate"
+    consequence: |
+      Without GraduationCandidate, host has no signal for when to escalate to engine.
+      Graduation becomes implicit and unauditable.
+    enforcement: |
+      REQUIRE: GraduationCandidate struct with is_grounded: bool and reason: String
+      REQUIRE: pub fn graduation_check(admitted: &AdmittedEventLog) -> GraduationCandidate
+      FEATURE_GATE: wasm4pm
+    test_fixture: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct GraduationSignal {
+        pub is_grounded: bool,
+        pub reason: String,  // "GroundedAtFullAdmission", "UngroundedMissingLossPolicy", etc.
+      }
+
+      #[wasm_bindgen]
+      pub fn graduation_check(
+        admitted: &AdmittedEventLog
+      ) -> GraduationSignal {
+        GraduationSignal {
+          is_grounded: true,
+          reason: "GroundedAtFullAdmission".to_string(),
+        }
+      }
+
+---
+
+quality_gates:
+
+  gate_1_wasm_compilation:
+    test: "cargo build --target wasm32-unknown-unknown"
+    pass_criteria: "Build succeeds; no wasm-bindgen errors about generics"
+
+  gate_2_no_phantom_in_exports:
+    test: "Audit all #[wasm_bindgen] items; verify no PhantomData, no generics"
+    pass_criteria: "Zero violations"
+
+  gate_3_marshaling_roundtrip:
+    test: "JavaScript test: create struct → serialize → WASM → deserialize → check equality"
+    pass_criteria: "All roundtrip tests pass"
+
+  gate_4_numeric_precision:
+    test: "Test u64 roundtrip: u64::MAX → WASM → JS → WASM → u64::MAX"
+    pass_criteria: "Precision preserved (serde-wasm-bindgen)"
+
+  gate_5_refusal_typing:
+    test: "Verify all Result<T, _> errors are RefusalSnapshot, not String"
+    pass_criteria: "100% typed refusals"
+
+  gate_6_loss_reports:
+    test: "Audit all lossy functions; verify LossReport in output"
+    pass_criteria: "All projections include LossReport"
+
+  gate_7_no_engine_logic:
+    test: "Grep exports for discovery, replay, conformance, alignment, ocpq"
+    pass_criteria: "Zero matches"
+
+  gate_8_witness_consistency:
+    test: "Verify all refusals include witness_key: String field"
+    pass_criteria: "100% of refusals witness-tagged"
+
+---
+
+end_of_law: "✅ WASM BOUNDARY LAW COMPLETE"

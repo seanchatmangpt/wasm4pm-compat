@@ -1,0 +1,575 @@
+# Graduation Law
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+# Authority: Evidence lifecycle doctrine + engine responsibility separation
+
+---
+
+law_metadata:
+  name: "Graduation Law"
+  codename: "graduation-law"
+  version: "1.0.0"
+  applies_to: "GraduationCandidate, GraduationReason enums + graduation bridge"
+  authority: "Type-law doctrine; covenant: compat carries, wasm4pm adjudicates"
+  enforcement: "Type-system + runtime GraduationCandidate checks"
+
+---
+
+central_principle: |
+  Graduation is the one-way bridge from compat (structure-only) to wasm4pm (execution).
+
+  LAW 1: Graduation Eligibility
+    Compat evidence must reach Evidence<T, Admitted, W> state.
+    Not all admitted evidence is eligible for graduation.
+    GraduationCandidate(is_grounded: bool, reason: GraduationReason) signals readiness.
+
+  LAW 2: Grounded vs Ungrounded
+    Grounded = structurally sound + all context present; engine can consume
+    Ungrounded = missing context (loss policy, refusal path, temporal data, etc.)
+
+  LAW 3: Named Graduation Reasons
+    Every reason is a specific enum variant, never bare "Ungrounded".
+    Reasons: GroundedAtFullAdmission, UngroundedMissingLossPolicy, UngroundedMissingRefusalPath, etc.
+
+  LAW 4: One-Way Graduation
+    After graduation, evidence enters engine domain.
+    Compat does not see engine output; compat and engine are separate authorities.
+
+  LAW 5: Witness Authority at Graduation
+    Compat witness (Ocel20, Xes1849, etc.) passes to engine wrapped in Wasm4pmBridge.
+    Engine's admission is semantic; compat's was structural.
+    Both must pass; both are required.
+
+---
+
+law_1_graduation_eligibility:
+
+  rule_1_1_admitted_state_required:
+    violation: "Attempting graduation from Raw, Parsed, or Refused state"
+    consequence: |
+      Only Admitted state is eligible for graduation.
+      Raw and Parsed have not passed the admission gate.
+      Refused has been rejected; graduation is impossible.
+    enforcement: |
+      REQUIRE: Evidence<T, Admitted, W> before graduation check
+      FORBID: Evidence<T, Raw, W> to graduation (compilation error)
+      FORBID: Evidence<T, Parsed, W> to graduation (compilation error)
+      FORBID: Evidence<T, Refused, W> to graduation (compilation error)
+    test_fixture: |
+      // RUST
+      fn graduation_check<T, W: Witness>(
+        evidence: Evidence<T, Admitted, W>
+      ) -> GraduationCandidate {
+        // Only Admitted evidence can be checked
+      }
+
+      // COMPILE ERROR: Wrong state
+      let raw_ev: Evidence<T, Raw, W> = Evidence::raw(value);
+      let candidate = graduation_check(raw_ev);  // ERROR: expected Admitted, found Raw
+
+      // CORRECT
+      let admitted_ev: Evidence<T, Admitted, W> = admit_gate(raw_ev)?;
+      let candidate = graduation_check(admitted_ev);  // OK
+
+  rule_1_2_witness_must_match:
+    violation: "Admitted evidence with witness mismatch (e.g., Ocel20 log for engine expecting PetriNet)"
+    consequence: |
+      Witness W must match the engine's expected authority.
+      Evidence<OcelLog, Admitted, Ocel20> cannot graduate to a Petri net soundness engine.
+    enforcement: |
+      PATTERN: Per-domain graduation paths
+        - OCEL 2.0 → wasm4pm::engine::discover_ocel (witness: Ocel20)
+        - Petri net → wasm4pm::engine::soundness_check (witness: WfNetSoundnessPaper)
+        - Process tree → wasm4pm::engine::compute_metrics (witness: InductiveMiner)
+      REFUSAL: GraduationReason::WitnessMismatch if witness doesn't match expected
+    test_fixture: |
+      // RUST
+      impl GraduateToWasm4pm for OcelGraduation {
+        type CompatEvidence = Evidence<OcelLog, Admitted, Ocel20>;
+        type EngineInput = WasmWasm4pmOcelEngine;
+
+        fn graduate(evidence: Self::CompatEvidence) -> Result<Self::EngineInput, GraduationError> {
+          // Evidence witness is Ocel20; engine expects Ocel20
+          let log = evidence.into_inner();
+          Wasm4pmOcelEngine::admit_ocel(log)  // Engine's semantic validation
+        }
+      }
+
+      // WITNESS MISMATCH
+      let ocel_admitted: Evidence<OcelLog, Admitted, Ocel20> = ...;
+      let petri_engine = PetriNetEngine::admit(ocel_admitted);
+      // ERROR: PetriNetEngine expects WfNetSoundnessPaper witness, found Ocel20
+
+---
+
+law_2_grounded_vs_ungrounded:
+
+  rule_2_1_grounded_at_full_admission:
+    reason: "GroundedAtFullAdmission"
+    condition: |
+      Evidence<T, Admitted, W> has passed all compat admission checks.
+      No lossy projections occurred.
+      No refusal paths remain unchecked.
+      Object lifecycle (if applicable) is complete.
+      Temporal ordering (if required) is fully specified.
+    consequence: "Evidence can graduate immediately to engine"
+    validation_checklist:
+      - [ ] Evidence::is_admitted() true
+      - [ ] No LossPolicy constraint violated
+      - [ ] All refusal paths explored
+      - [ ] Object lifecycle complete (if OCEL)
+      - [ ] Temporal data present (if required)
+    test_fixture: |
+      let candidate = GraduationCandidate::from(admitted_event_log);
+      assert!(candidate.is_grounded());
+      assert_eq!(candidate.graduation_reason(), GraduationReason::GroundedAtFullAdmission);
+
+  rule_2_2_ungrounded_missing_loss_policy:
+    reason: "UngroundedMissingLossPolicy"
+    condition: |
+      Admitted evidence underwent a lossy projection (e.g., OCEL → XES).
+      LossPolicy was not recorded or was violated.
+      Engine cannot trust the shape.
+    consequence: "Graduation blocked; return to compat boundary to document loss"
+    recovery: |
+      Specify LossPolicy (RefuseLoss, AllowNamedProjection, AllowLossWithReport).
+      Re-project with policy enforced.
+      LossReport must be present and auditable.
+    test_fixture: |
+      // RUST
+      let ocel_admitted = admit_ocel_log(raw)?;
+      let xes_result = project_ocel_to_xes(&ocel_admitted, policy)?;
+      // If policy was ignored or missing, GraduationCandidate will be:
+      let candidate = GraduationCandidate::from(xes_admitted);
+      assert!(!candidate.is_grounded());
+      assert_eq!(candidate.graduation_reason(), GraduationReason::UngroundedMissingLossPolicy);
+
+  rule_2_3_ungrounded_missing_refusal_path:
+    reason: "UngroundedMissingRefusalPath"
+    condition: |
+      Some refusal paths were not fully explored.
+      Evidence may contain hidden structural violations.
+      Engine's semantic validation might uncover new refusals.
+    consequence: "Graduation blocked; complete the refusal surface"
+    recovery: |
+      Ensure all admission gates (EventLog, OcelLog, XesLog, etc.) were called.
+      All refusal enums (EventLogRefusal, OcelRefusal, etc.) must be known.
+    test_fixture: |
+      // RUST
+      // If compat boundary only checked surface structures but not all edges:
+      let candidate = GraduationCandidate::from(admitted);
+      if !candidate.is_grounded() {
+        match candidate.graduation_reason() {
+          GraduationReason::UngroundedMissingRefusalPath => {
+            eprintln!("Some structural violations not checked; surface is incomplete");
+          }
+          _ => {}
+        }
+      }
+
+  rule_2_4_ungrounded_hidden_process_mining_growth:
+    reason: "UngroundedHiddenProcessMiningGrowth"
+    condition: |
+      Process model was built incrementally (e.g., via discovery).
+      Model grew after admission without re-checking admission.
+      compat layer was violated: new objects/activities discovered post-admission.
+    consequence: "Graduation blocked; compat strictly forbids execution logic"
+    recovery: |
+      Do not execute discovery in compat layer.
+      Graduation signals when discovery is needed; engine does it.
+      Evidence must not grow after admission.
+    test_fixture: |
+      // FORBIDDEN (triggers UngroundedHiddenProcessMiningGrowth)
+      let admitted = admit_event_log(raw)?;
+      let petri = discover_petri_net(&admitted);  // FORBIDDEN: discovery in compat
+      let candidate = GraduationCandidate::from(admitted);  // Ungrounded!
+
+      // CORRECT
+      let admitted = admit_event_log(raw)?;
+      let candidate = GraduationCandidate::from(admitted);  // Check first
+      if candidate.is_grounded() {
+        let petri = engine.discover_petri_net(&admitted)?;  // Engine does it
+      }
+
+  rule_2_5_ungrounded_temporal_ordering:
+    reason: "UngroundedTemporalOrdering"
+    condition: |
+      Events lack timestamps or temporal ordering is incomplete.
+      Engine's conformance metrics depend on temporal context.
+      Model projection requires time-aware alignment.
+    consequence: "Graduation blocked; provide temporal data"
+    recovery: |
+      Ensure all events have timestamps (timestamp_ns field).
+      Ensure temporal order is monotonic (sorted by time).
+    test_fixture: |
+      // RUST
+      let admitted = admit_event_log(raw)?;
+      // If events lack timestamp_ns or ordering is not monotonic:
+      let candidate = GraduationCandidate::from(admitted);
+      assert!(!candidate.is_grounded());
+      assert_eq!(candidate.graduation_reason(), GraduationReason::UngroundedTemporalOrdering);
+
+  rule_2_6_ungrounded_object_life:
+    reason: "UngroundedObjectLife"
+    condition: |
+      (OCEL-specific) Object lifecycle is incomplete.
+      Missing create/destroy markers or violating state transitions.
+      Engine cannot determine when objects are valid.
+    consequence: "Graduation blocked; complete object lifecycle"
+    recovery: |
+      Ensure all objects have consistent lifecycle (create → update → delete).
+      No object references before creation or after deletion.
+    test_fixture: |
+      // RUST
+      let ocel_admitted = admit_ocel_log(raw)?;
+      // If object lifecycle is incomplete:
+      let candidate = GraduationCandidate::from(ocel_admitted);
+      assert!(!candidate.is_grounded());
+      assert_eq!(candidate.graduation_reason(), GraduationReason::UngroundedObjectLife);
+
+---
+
+law_3_named_graduation_reasons:
+
+  rule_3_1_enum_not_string:
+    violation: "Using bare String for graduation reason instead of enum variant"
+    consequence: |
+      Host cannot programmatically determine reason for ungrounded state.
+      Errors become opaque.
+    enforcement: |
+      REQUIRE: GraduationReason enum with concrete variants
+      FORBID: graduation_reason: String in GraduationCandidate
+      PATTERN: result.graduation_reason() returns &'static str (from enum variant)
+    test_fixture: |
+      // RUST
+      pub enum GraduationReason {
+        GroundedAtFullAdmission,
+        UngroundedMissingLossPolicy,
+        UngroundedMissingRefusalPath,
+        UngroundedHiddenProcessMiningGrowth,
+        UngroundedTemporalOrdering,
+        UngroundedObjectLife,
+      }
+
+      impl GraduationReason {
+        pub fn tag(&self) -> &'static str {
+          match self {
+            GraduationReason::GroundedAtFullAdmission => "GroundedAtFullAdmission",
+            GraduationReason::UngroundedMissingLossPolicy => "UngroundedMissingLossPolicy",
+            // ...
+          }
+        }
+      }
+
+  rule_3_2_hard_signals:
+    violation: "Cannot distinguish blocking from advisory reasons"
+    consequence: |
+      Host doesn't know whether to fail hard or proceed with caution.
+    enforcement: |
+      PATTERN: GraduationReason::is_hard_signal() → bool
+      HARD_SIGNALS: UngroundedMissingLossPolicy, HiddenProcessMiningGrowth (must block)
+      SOFT_SIGNALS: None (all are blocking)
+    test_fixture: |
+      // RUST
+      impl GraduationReason {
+        pub fn is_hard_signal(&self) -> bool {
+          matches!(
+            self,
+            GraduationReason::UngroundedHiddenProcessMiningGrowth
+              | GraduationReason::UngroundedMissingLossPolicy
+          )
+        }
+      }
+
+      let candidate = GraduationCandidate::from(admitted);
+      if candidate.graduation_reason().is_hard_signal() {
+        // MUST block; cannot proceed
+        return Err(format!("Hard block: {}", candidate.graduation_reason().tag()));
+      }
+
+---
+
+law_4_one_way_graduation:
+
+  rule_4_1_no_reverse_path:
+    violation: "Engine output being brought back to compat boundary"
+    consequence: |
+      Graduation is one-way. Once evidence enters engine, it's engine-governed.
+      Compat authority ends.
+    enforcement: |
+      FORBID: pub fn downgrade_from_engine(engine_result: EngineOutput) -> Evidence<..., Admitted, ...>
+      ARCHITECTURE: Engine output stays in engine domain; compat never sees it
+      PATTERN: Host orchestrates: compat → engine, not: compat ↔ engine
+    test_fixture: |
+      // ARCHITECTURE DIAGRAM
+      compat instance
+        ↓ (GraduationCandidate)
+        ↓ (admits → graduates)
+      engine instance
+        ↓ (executes: discovery, conformance, replay, etc.)
+      verdict/receipt
+        ↓ (returned to host)
+      host consumes result
+
+      // NO REVERSE PATH
+
+  rule_4_2_witness_immutable_at_boundary:
+    violation: "Changing witness during graduation"
+    consequence: |
+      Witness W identifies the authority.
+      Changing it breaks the audit trail.
+    enforcement: |
+      REQUIRE: Witness stays constant: Evidence<T, Admitted, W> → Evidence<T, Admitted, Wasm4pmBridge>
+      PATTERN: Wasm4pmBridge wraps the original witness as metadata
+      SEMANTICS: Wasm4pmBridge says "graduated to engine"; original witness (Ocel20, etc.) is immutable
+    test_fixture: |
+      // RUST
+      let ocel_admitted: Evidence<OcelLog, Admitted, Ocel20> = ...;
+      // Graduation wraps in Wasm4pmBridge; Ocel20 is preserved as metadata
+      let engine_input = WasmWasm4pmOcelEngine::graduate(ocel_admitted)?;
+      // engine_input is Evidence<OcelLog, Admitted, Wasm4pmBridge>
+      // With metadata: original_witness = "ocel-2.0"
+
+---
+
+law_5_witness_authority_at_graduation:
+
+  rule_5_1_compat_witness_to_bridge:
+    violation: "Losing original witness during graduation"
+    consequence: |
+      Engine needs to know the compat witness to validate semantically.
+      Example: Engine's OCEL validation depends on knowing Ocel20 was compat authority.
+    enforcement: |
+      PATTERN: Evidence<T, Admitted, W> → Evidence<T, Admitted, Wasm4pmBridge>
+      WITH_METADATA: Wasm4pmBridge carries original witness (Ocel20, Xes1849, etc.) as const metadata
+      EXAMPLE: pub struct Wasm4pmBridge { original_witness_key: &'static str }
+    test_fixture: |
+      // RUST
+      pub struct Wasm4pmBridge {
+        original_witness_key: &'static str,  // "ocel-2.0", "xes-1849", etc.
+      }
+
+      impl Witness for Wasm4pmBridge {
+        const KEY: &'static str = "wasm4pm-bridge";
+        const FAMILY: WitnessFamily = WitnessFamily::InternalBridge;
+        const TITLE: &'static str = "wasm4pm graduation bridge";
+        const YEAR: Option<u16> = None;
+      }
+
+  rule_5_2_engine_re_admits:
+    violation: "Engine skipping semantic validation because compat admitted"
+    consequence: |
+      Compat validates structure; engine validates semantics.
+      Both are required. Engine does NOT trust compat completely.
+    enforcement: |
+      PATTERN: Engine has its own admission gate
+      EXAMPLE: Wasm4pmOcelEngine::admit_ocel(log) performs semantic validation
+      SEMANTICS: Engine can refuse evidence that compat admitted
+      NOTE: Refusals at engine boundary are different from refusals at compat boundary
+    test_fixture: |
+      // ARCHITECTURE
+      compat boundary (structural admission)
+        ↓
+      Evidence<OcelLog, Admitted, Ocel20>
+        ↓ (graduation)
+        ↓
+      engine boundary (semantic admission)
+        ↓
+      Evidence<OcelLog, Admitted, Wasm4pmBridge>  // Engine's re-admission passed
+        ↓
+      Engine execution (discovery, conformance, replay, etc.)
+
+      // ENGINE CAN REFUSE
+      if engine.is_invalid_semantically(&log) {
+        return Err(EngineRefusal::ObjectLifecycleViolation(...))
+      }
+
+---
+
+law_6_graduation_witness_protocol:
+
+  rule_6_1_witness_metadata_export:
+    violation: "Witness W not exported as queryable metadata"
+    consequence: |
+      Host cannot determine which witness governs the evidence.
+      Type information is opaque.
+    enforcement: |
+      REQUIRE: Witness::KEY, FAMILY, TITLE, YEAR exported as const metadata
+      REQUIRE: fn get_witness_info(key: &str) → Option<WitnessMetadata>
+      REQUIRE: pub const WITNESSES: &[WitnessMetadata] or similar registry
+    test_fixture: |
+      // RUST
+      impl Witness for Ocel20 {
+        const KEY: &'static str = "ocel-2.0";
+        const FAMILY: WitnessFamily = WitnessFamily::Standard;
+        const TITLE: &'static str = "OCEL 2.0";
+        const YEAR: Option<u16> = Some(2020);
+      }
+
+      pub fn get_witness_info(key: &str) -> Option<WitnessMetadata> {
+        match key {
+          "ocel-2.0" => Some(WitnessMetadata {
+            key: "ocel-2.0",
+            family: WitnessFamily::Standard,
+            title: "OCEL 2.0",
+            year: Some(2020),
+          }),
+          // ... ~40 witnesses ...
+          _ => None,
+        }
+      }
+
+  rule_6_2_witness_to_wasm4pm_bridge:
+    violation: "Not wrapping original witness in Wasm4pmBridge during graduation"
+    consequence: |
+      Engine cannot trace back to original compat witness authority.
+      Audit trail is broken.
+    enforcement: |
+      PATTERN: GraduateToWasm4pm trait implementation
+      SIGNATURE: fn graduate(evidence: Evidence<T, Admitted, W>) → Result<Evidence<T, Admitted, Wasm4pmBridge>, GraduationError>
+      SEMANTICS: Original W is preserved as metadata in Wasm4pmBridge
+    test_fixture: |
+      // RUST
+      impl GraduateToWasm4pm for OcelGraduation {
+        type CompatEvidence = Evidence<OcelLog, Admitted, Ocel20>;
+        type EngineInput = Evidence<OcelLog, Admitted, Wasm4pmBridge>;
+
+        fn graduate(
+          evidence: Self::CompatEvidence
+        ) -> Result<Self::EngineInput, GraduationError> {
+          let log = evidence.into_inner();
+          // Original witness (Ocel20) is implicitly wrapped in Wasm4pmBridge
+          Evidence::<_, _, Wasm4pmBridge>::raw(log)
+            .into_admitted()  // Return Evidence<OcelLog, Admitted, Wasm4pmBridge>
+        }
+      }
+
+---
+
+law_7_sealed_graduation_trait:
+
+  rule_7_1_prevent_downstream_graduation:
+    violation: "Downstream crates implementing GraduateToWasm4pm"
+    consequence: |
+      Fake graduation paths can be fabricated.
+      The wasm4pm bridge must be the only graduation authority.
+    enforcement: |
+      REQUIRE: GraduateToWasm4pm is a sealed trait
+      IMPLEMENTATION: Placed in wasm4pm-compat engine_bridge module
+      VISIBILITY: Implementations only in compat crate
+      NOTE: Sealed trait prevents external implementations
+    test_fixture: |
+      // RUST (in wasm4pm-compat)
+      mod sealed {
+        pub trait Sealed {}
+      }
+
+      pub trait GraduateToWasm4pm: sealed::Sealed {
+        type CompatEvidence: Evidence<...>;
+        type EngineInput: ...;
+        fn graduate(evidence: Self::CompatEvidence) -> Result<Self::EngineInput, GraduationError>;
+      }
+
+      // Only compat crate can implement GraduateToWasm4pm
+      struct OcelGraduation;
+      impl sealed::Sealed for OcelGraduation {}
+      impl GraduateToWasm4pm for OcelGraduation { ... }
+
+---
+
+law_8_graduation_integration_patterns:
+
+  pattern_1_admit_then_graduate:
+    name: "Admit evidence, check graduation readiness, graduate"
+    code: |
+      // Step 1: Parse raw input
+      let raw = parse_event_log(json)?;
+      let raw_ev = Evidence::raw(raw);
+
+      // Step 2: Admit at compat boundary
+      let admitted_ev = EventLogAdmitter::admit(raw_ev)?;
+
+      // Step 3: Check graduation readiness
+      let candidate = GraduationCandidate::from(admitted_ev);
+      if !candidate.is_grounded() {
+        eprintln!("Cannot graduate: {}", candidate.graduation_reason().tag());
+        return Err(GraduationUngrounded);
+      }
+
+      // Step 4: Graduate to engine
+      let engine_input = EventLogGraduation::graduate(candidate.into_evidence())?;
+
+      // Step 5: Execute in engine
+      let discovery_result = engine.discover_petri_net(&engine_input)?;
+
+  pattern_2_ungrounded_recovery:
+    name: "Handle ungrounded evidence; determine recovery path"
+    code: |
+      let candidate = GraduationCandidate::from(admitted);
+      match candidate.graduation_reason() {
+        GraduationReason::GroundedAtFullAdmission => {
+          // Safe to graduate
+          let engine_input = graduate(candidate.into_evidence())?;
+        }
+        GraduationReason::UngroundedMissingLossPolicy => {
+          // Return to compat boundary; specify loss policy
+          eprintln!("Lossy projection detected; specify LossPolicy");
+          return Err(GraduationUngrounded);
+        }
+        GraduationReason::UngroundedHiddenProcessMiningGrowth => {
+          // Hard block: compat integrity violated
+          eprintln!("HARD BLOCK: Process model grown post-admission");
+          return Err(GraduationUngrounded);
+        }
+        _ => {
+          // Other ungrounded reasons
+          eprintln!("Cannot graduate: {}", candidate.graduation_reason().tag());
+          return Err(GraduationUngrounded);
+        }
+      }
+
+  pattern_3_witness_propagation:
+    name: "Ensure witness is preserved through graduation"
+    code: |
+      // Compat witness
+      let ocel_admitted: Evidence<OcelLog, Admitted, Ocel20> = admit_ocel(...)?;
+
+      // Graduation wraps in Wasm4pmBridge; metadata preserved
+      let engine_input = OcelGraduation::graduate(ocel_admitted)?;
+      // engine_input: Evidence<OcelLog, Admitted, Wasm4pmBridge>
+
+      // Engine can query original witness
+      let ocel_metadata = get_witness_info("ocel-2.0")?;
+      engine.validate_against_ocel20(&engine_input, &ocel_metadata)?;
+
+---
+
+quality_gates:
+
+  gate_1_graduation_enum:
+    test: "Verify GraduationReason enum has all 6+ variants"
+    pass_criteria: "GroundedAtFullAdmission + 5+ Ungrounded variants"
+
+  gate_2_no_generic_graduation:
+    test: "Verify GraduationCandidate is NOT generic<T, W>"
+    pass_criteria: "Generic parameters NOT on GraduationCandidate"
+
+  gate_3_witness_preservation:
+    test: "Verify Wasm4pmBridge preserves original witness metadata"
+    pass_criteria: "Witness key/family/title exported"
+
+  gate_4_sealed_trait:
+    test: "Verify GraduateToWasm4pm is sealed (no downstream impls possible)"
+    pass_criteria: "Sealed trait prevents external implementations"
+
+  gate_5_graduation_protocol:
+    test: "Roundtrip test: Evidence → Graduation check → Graduation → Engine"
+    pass_criteria: "Witness and state preserved; no data loss"
+
+  gate_6_ungrounded_recovery:
+    test: "Test all 6 GraduationReason variants; verify each has recovery path"
+    pass_criteria: "All variants tested"
+
+---
+
+end_of_law: "✅ GRADUATION LAW COMPLETE"

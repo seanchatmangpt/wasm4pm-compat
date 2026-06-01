@@ -1,0 +1,595 @@
+# WASM ABI Boundary — Prohibited Functions & Engine Operations
+# Generated: 2026-06-01
+# Purpose: Enumerate wasm4pm-compat operations that MUST NOT be exposed across WASM boundary
+# Covenant: "Compat carries the evidence. wasm4pm adjudicates it."
+
+---
+################################################################################
+# SECTION 1: ENGINE OPERATIONS (PROHIBITED)
+################################################################################
+
+engine_operations_prohibited:
+  description: |
+    wasm4pm-compat is a structure-only crate. No engine logic (discovery,
+    conformance checking, replay, alignment) is implemented here.
+    These operations are forbidden at the boundary because:
+    1. They require algorithmic complexity (NP-hard problems)
+    2. They need mutable state & side effects
+    3. They graduate to wasm4pm for actual execution
+    4. WASM calls are synchronous; engines are often async
+
+  discovery_prohibited:
+    operation: "Process discovery (Inductive Miner, Alpha miner, etc.)"
+    category: "HARD PROHIBITED"
+    why: "Core engine responsibility; not structure-only"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::discovery.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn discover_petri_net(log: &EventLog) -> PetriNet { }
+        pub fn discover_process_tree(log: &EventLog) -> ProcessTree { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_discovery(log: &EventLog)
+            -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsDiscovery,
+                "event log requiring discovery",
+                hash_log(log),
+            )
+        }
+    reference: "engine_bridge module; GraduationReason::NeedsDiscovery"
+
+  conformance_execution_prohibited:
+    operation: "Conformance checking (token replay, alignment, fitness computation)"
+    category: "HARD PROHIBITED"
+    why: "Requires state exploration; NP-hard alignment problem"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::conformance.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn replay_log_on_model(
+            log: &EventLog,
+            model: &PetriNet,
+        ) -> ConformanceResult { }
+        pub fn compute_fitness(
+            log: &EventLog,
+            model: &PetriNet,
+        ) -> f32 { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_conformance(
+            log: &EventLog,
+            model: &PetriNet,
+        ) -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsConformanceExecution,
+                &format!("log vs {} model", model.id),
+                hash_pair(log, model),
+            )
+        }
+
+      Then:
+        pub fn load_conformance_verdict(json: &str)
+            -> Result<ConformanceVerdictData, String>
+        {
+            // Load pre-computed verdict; never compute it
+            serde_json::from_str(json).map_err(|e| e.to_string())
+        }
+    reference: "conformance module (structure-only); GraduationReason::NeedsConformanceExecution"
+
+  replay_prohibited:
+    operation: "Token replay / transition firing simulation"
+    category: "HARD PROHIBITED"
+    why: "State-mutating simulation; belongs in engine"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::replay.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn replay_trace(
+            trace: &Trace,
+            initial_marking: &Marking,
+            net: &PetriNet,
+        ) -> (Marking, Vec<Move>) { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_replay(
+            trace: &Trace,
+            net: &PetriNet,
+        ) -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsReplay,
+                &format!("trace vs {} net", net.id),
+                hash_trace(trace),
+            )
+        }
+    reference: "engine_bridge module; GraduationReason::NeedsReplay"
+
+  alignment_computation_prohibited:
+    operation: "Optimal alignment (recursive alignment algorithm)"
+    category: "HARD PROHIBITED"
+    why: "Exponential complexity; requires dynamic programming or ILP"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::alignment.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn compute_optimal_alignment(
+            trace: &Trace,
+            net: &PetriNet,
+        ) -> Alignment { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_conformance(...) -> GraduationCandidate { }
+    reference: "conformance module; GraduationReason::NeedsConformanceExecution"
+
+  receipt_minting_prohibited:
+    operation: "Receipt chaining and cryptographic proof generation"
+    category: "HARD PROHIBITED"
+    why: "Cryptographic commitment; requires hash chains and consensus"
+    location: |
+      NOT in wasm4pm-compat (no receipt::mint function).
+      Graduate to wasm4pm::receipt.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn mint_receipt(
+            evidence: &Evidence<T, Admitted, W>,
+            previous_receipt: &Receipt,
+        ) -> Receipt { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_receipts(
+            evidence: &Evidence<T, Admitted, W>,
+        ) -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsReceipts,
+                "evidence requiring receipt chaining",
+                /* evidence reference */,
+            )
+        }
+    reference: "engine_bridge module; GraduationReason::NeedsReceipts"
+
+  benchmark_gate_prohibited:
+    operation: "Benchmark gate execution (performance threshold checking)"
+    category: "HARD PROHIBITED"
+    why: "Requires measured execution; depends on runtime environment"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::benchmarking.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn run_benchmark_gate(
+            candidate: &GraduationCandidate,
+            threshold_ms: u32,
+        ) -> bool { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_benchmark(...) -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsBenchmarkGate,
+                "conformance result requiring performance validation",
+                /* ... */,
+            )
+        }
+    reference: "engine_bridge module; GraduationReason::NeedsBenchmarkGate"
+
+  object_centric_query_execution_prohibited:
+    operation: "OCPQ (Object-Centric Process Query) execution"
+    category: "HARD PROHIBITED"
+    why: "Query evaluation over object-centric event logs; algorithmic complexity"
+    location: |
+      NOT in wasm4pm-compat. Graduate to wasm4pm::ocpq.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn execute_ocpq(
+            log: &OcelLog,
+            query: &OcpqQuery,
+        ) -> QueryResult { }
+    correct_handling: |
+      Instead:
+        pub fn graduation_case_for_ocpq(
+            log: &OcelLog,
+            query: &OcpqQuery,
+        ) -> GraduationCandidate
+        {
+            GraduationCandidate::new(
+                GraduationReason::NeedsObjectCentricQueryExecution,
+                &format!("OCPQ query on log {}", log.id),
+                hash_log(log),
+            )
+        }
+    reference: "engine_bridge module; GraduationReason::NeedsObjectCentricQueryExecution"
+
+################################################################################
+# SECTION 2: STATE-MUTATING OPERATIONS (PROHIBITED AT BOUNDARY)
+################################################################################
+
+state_mutating_operations_prohibited:
+  description: |
+    WASM function calls are synchronous and cannot maintain state between
+    calls (in most environments). State-mutating operations belong in the
+    host or the engine, not at the ABI boundary.
+
+  mutable_evidence_modification:
+    operation: "Direct mutation of Evidence<T, State, W>"
+    category: "PROHIBITED (structural)"
+    why: |
+      Evidence fields are public but ONLY for reading. PhantomData fields
+      cannot be mutated (zero-sized), and the value field should not be
+      mutated after lifecycle transitions. The type system enforces this
+      via newtypes; WASM boundaries can't.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn mutate_evidence<T, State, W>(
+            evidence: &mut Evidence<T, State, W>,
+            new_value: T,
+        ) { }
+    correct_handling: |
+      Create a new Evidence value instead; don't mutate.
+        pub fn update_evidence<T: Serialize>(
+            old: &Evidence<T, Raw, Ocel20>,
+            new_value: T,
+        ) -> Evidence<T, Raw, Ocel20>
+        {
+            Evidence::<_, _, Ocel20>::raw(new_value)
+        }
+
+  log_mutation_during_parsing:
+    operation: "In-place mutation of EventLog during parsing"
+    category: "PROHIBITED (architecture)"
+    why: |
+      Parsing is a pure function: EventLog should be immutable post-construction.
+      Mutations belong in the host.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn parse_and_mutate_log(
+            bytes: &[u8],
+            mutations: Vec<(usize, Event)>,
+        ) -> EventLog { }
+    correct_handling: |
+      Parse first, return immutable; let host apply mutations.
+        pub fn parse_event_log(bytes: &[u8]) -> Result<EventLog, String> { }
+        // Host applies mutations and calls other boundary functions
+
+  admission_state_accumulation:
+    operation: "Accumulating admission state across multiple calls"
+    category: "PROHIBITED (architectural)"
+    why: |
+      Admission is a single gate, not a stateful process. Each call is
+      independent. Stateful accumulation belongs in the host.
+    attempted_exposure: |
+      DON'T expose:
+        // Global/static state
+        static ADMISSION_CONTEXT: OnceCell<AdmissionState> = OnceCell::new();
+
+        pub fn begin_admission(hint: &str) { }
+        pub fn add_to_admission(chunk: &[u8]) { }
+        pub fn finalize_admission() -> Admission<...> { }
+    correct_handling: |
+      Each call is stateless:
+        pub fn admit_event_log(log: &EventLog) -> Result<Admission<...>, Refusal<...>>
+        {
+            // Pure function; no accumulated state
+        }
+
+################################################################################
+# SECTION 3: LOSSY OPERATIONS WITHOUT ACCOUNTIN G (PROHIBITED)
+################################################################################
+
+lossy_operations_unaccounted:
+  description: |
+    Loss must be explicit and auditable. Silent lossy projections violate
+    the covenant. All lossy operations MUST produce a LossReport.
+
+  format_conversion_without_loss_report:
+    operation: "OCEL → XES / XES → BPMN conversion without explicit loss accounting"
+    category: "PROHIBITED"
+    why: |
+      Format conversions lose information. The loss must be named and recorded.
+      A LossReport is the compliance artifact.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn ocel_to_xes(log: &OcelLog) -> XesLog {
+            // Silent loss of object-centric model
+        }
+    correct_handling: |
+      Instead:
+        pub fn project_ocel_to_xes(
+            log: &OcelLog,
+            policy: LossPolicy,
+        ) -> Result<(XesLog, LossReport), ProjectionRefusal>
+        {
+            // LossReport documents what was lost and why
+        }
+    reference: "loss module; Project trait"
+
+  evidence_type_erasure_without_audit:
+    operation: "Erasing Evidence<T, State, W> to raw bytes without provenance"
+    category: "PROHIBITED"
+    why: |
+      Evidence carries provenance (witness W). Erasing it loses the chain of
+      custody. If export is needed, use Receipt.
+    attempted_exposure: |
+      DON'T expose:
+        pub fn evidence_to_bytes<T: Serialize>(
+            ev: &Evidence<T, Admitted, W>,
+        ) -> Vec<u8>
+        {
+            // Lost witness W and state information
+        }
+    correct_handling: |
+      Instead:
+        pub fn evidence_to_receipted(
+            ev: Evidence<T, Admitted, W>,
+        ) -> Evidence<T, Receipted, W>
+        {
+            // Wrapped in receipt; witness + state preserved
+        }
+
+################################################################################
+# SECTION 4: TYPED WITNESS/STATE OPERATIONS (PROHIBITED AT BOUNDARY)
+################################################################################
+
+witness_state_phantom_operations:
+  description: |
+    Witness and State are PhantomData (zero-sized, compile-time only).
+    They cannot be passed across the ABI boundary. Do NOT try to expose
+    witness/state information as generic type parameters.
+
+  generic_witness_exposure:
+    operation: "Exposing Evidence<T, State, W> with generic W"
+    category: "HARD PROHIBITED"
+    why: |
+      1. wasm-bindgen forbids generic type parameters on #[wasm_bindgen] items
+      2. W is PhantomData; no runtime representation
+      3. Witness information is metadata, not a value
+    attempted_exposure: |
+      DON'T expose:
+        #[wasm_bindgen]
+        pub struct EvidenceExport<T, W>
+        where
+            T: Serialize,
+            W: Witness,
+        {
+            pub value: T,
+            pub witness: PhantomData<W>,
+        }
+        // COMPILE ERROR: generics not allowed on #[wasm_bindgen]
+    correct_handling: |
+      Extract witness metadata:
+        #[derive(Serialize, Tsify)]
+        pub struct EvidenceSnapshot {
+            pub value: String,          // serialized T
+            pub witness_key: String,    // e.g., "ocel-2.0"
+            pub witness_title: String,  // e.g., "OCEL 2.0"
+        }
+
+  generic_state_exposure:
+    operation: "Exposing Evidence<T, State, W> with generic State"
+    category: "HARD PROHIBITED"
+    why: |
+      1. wasm-bindgen forbids generic type parameters
+      2. State (Raw, Admitted, etc.) is PhantomData; zero-sized
+      3. State is a compile-time marker, not a serializable value
+    attempted_exposure: |
+      DON'T expose:
+        #[wasm_bindgen]
+        pub fn get_evidence_state<State: EvidenceState>(
+            ev: &Evidence<T, State, W>,
+        ) -> State
+        // IMPOSSIBLE: State is PhantomData, cannot construct it
+    correct_handling: |
+      Encode state in return enum:
+        #[derive(Serialize, Tsify)]
+        pub enum EvidenceStage {
+            Raw(RawEvidence),
+            Parsed(ParsedEvidence),
+            Admitted(AdmittedEvidence),
+            Refused(RefusedEvidence),
+        }
+
+  admission_refusal_as_generic:
+    operation: "Exposing Admission<T, W> or Refusal<R, W> generically"
+    category: "HARD PROHIBITED"
+    why: |
+      Same as above: generics not allowed on #[wasm_bindgen].
+    attempted_exposure: |
+      DON'T expose:
+        #[wasm_bindgen]
+        pub struct AdmissionExport<T, W>
+        where
+            T: Serialize,
+            W: Witness,
+        {
+            pub value: T,
+        }
+    correct_handling: |
+      Create concrete newtype wrappers:
+        #[wasm_bindgen]
+        pub struct AdmittedEventLog {
+            pub value: EventLog,
+        }
+
+################################################################################
+# SECTION 5: INTERNAL/PRIVATE FUNCTIONS (PROHIBITED AT BOUNDARY)
+################################################################################
+
+internal_functions_not_for_export:
+  description: |
+    Some functions are private or documented as Rust-only. These must never
+    be exposed at the WASM boundary, even if technically ABI-safe.
+
+  admission_impl_internals:
+    operation: "Direct access to Admit trait impl details"
+    category: "PROHIBITED (private)"
+    why: |
+      Admit impls are internal machinery. The public surface is
+      GraduationCandidate; hosts don't call Admit directly.
+    functions_not_to_expose: |
+      pub(crate) fn ocel_admit_inner(log: &EventLog) -> /* ... */
+      pub(crate) fn check_dangling_links(log: &OcelLog) -> /* ... */
+    correct_handling: |
+      Expose only the public verdict:
+        pub fn admit_ocel_log(json: &str) -> Result<AdmissionOutcome, String> { }
+
+  loss_policy_internals:
+    operation: "Direct manipulation of LossPolicy or LossReport"
+    category: "PROHIBITED (impl details)"
+    why: |
+      Loss is an audit trail, not a state machine. Policy is decided before
+      projection begins; reports are immutable after.
+    functions_not_to_expose: |
+      pub fn mutate_loss_report(report: &mut LossReport, items: Vec<...>) { }
+    correct_handling: |
+      Projection is pure:
+        pub fn project_with_loss(
+            log: &EventLog,
+            policy: &str,
+        ) -> Result<ProjectedLog, ProjectionRefusal> { }
+
+  witness_metadata_registry_internals:
+    operation: "Direct mutable access to witness registry"
+    category: "PROHIBITED (immutable registry)"
+    why: |
+      Witness metadata is static and immutable. Registries must not be
+      modified at runtime.
+    functions_not_to_expose: |
+      pub fn register_witness(key: &str, metadata: WitnessMetadata) { }
+      pub fn unregister_witness(key: &str) { }
+    correct_handling: |
+      Read-only access:
+        pub fn get_all_witnesses() -> Vec<WitnessMetadata> { }
+        pub fn get_witness(key: &str) -> Option<WitnessMetadata> { }
+
+  type_law_internals:
+    operation: "Low-level type-law machinery (Assert, Require, IsTrue, etc.)"
+    category: "PROHIBITED (compile-time only)"
+    why: |
+      These are compile-time proof markers. They have no runtime value.
+    functions_not_to_expose: |
+      pub fn check_between_01<const NUM: u64, const DEN: u64>() { }
+      pub fn enforce_const_param_ty<T: ConstParamTy>() { }
+    correct_handling: |
+      Type-law violations are compile errors, not runtime errors.
+      Nothing needs to be exposed.
+
+################################################################################
+# SECTION 6: DIAGNOSTICS & LOGGING (ARCHITECTURE)
+################################################################################
+
+diagnostics_and_logging:
+  description: |
+    Logging and diagnostics are useful for debugging but must not be part
+    of the formal boundary contract. They can be internal or gated by
+    feature flags.
+
+  permitted_diagnostics: |
+    - Debug trait implementations (used in error messages)
+    - Display trait for error reasons (human-readable text)
+    - Logging to stderr (not part of return value)
+
+  prohibited_diagnostics: |
+    - Returning raw diagnostics as function output
+    - Exposing the Diagnostic enum across the boundary
+    - Including debug metadata in ABI-safe types
+
+  example_correct_handling: |
+    #[wasm_bindgen]
+    pub fn admit_log(json: &str) -> Result<AdmittedLog, String> {
+        match parse_and_admit(json) {
+            Ok(admitted) => Ok(admitted),
+            Err(refusal) => {
+                // Internal logging (optional)
+                eprintln!("Admission refused: {:?}", refusal.reason);
+
+                // Return human-readable text, not raw diagnostic
+                Err(format!("Admission refused: {}", refusal.reason))
+            }
+        }
+    }
+
+################################################################################
+# SECTION 7: SUMMARY TABLE
+################################################################################
+
+summary_table: |
+  ┌─────────────────────────────────┬──────────────────────┬───────────────────┐
+  │ Operation                       │ Status               │ Graduate To       │
+  ├─────────────────────────────────┼──────────────────────┼───────────────────┤
+  │ Discovery (Alpha/Inductive)     │ PROHIBITED           │ wasm4pm::discover │
+  │ Token replay                    │ PROHIBITED           │ wasm4pm::replay   │
+  │ Conformance/alignment compute   │ PROHIBITED           │ wasm4pm::conform  │
+  │ Receipt minting/chaining        │ PROHIBITED           │ wasm4pm::receipt  │
+  │ OCPQ query execution            │ PROHIBITED           │ wasm4pm::ocpq     │
+  │ Benchmark gate execution        │ PROHIBITED           │ wasm4pm::bench    │
+  │ Silent lossy conversion         │ PROHIBITED           │ Audit with Report │
+  │ Witness/state as generics       │ PROHIBITED           │ Extract metadata  │
+  │ Mutable evidence/log state      │ PROHIBITED           │ Pure functions    │
+  │ Evidence<T,State,W> directly    │ PROHIBITED           │ Concrete wrappers │
+  │ Private Admit impl details      │ PROHIBITED (private) │ Public boundary   │
+  │ Load/manipulate evidence        │ PERMITTED (immut)    │ Structure-only OK │
+  │ Create verdicts (not compute)   │ PERMITTED (immut)    │ Structure-only OK │
+  │ Export formatted evidence       │ PERMITTED (w/loss)   │ With LossReport   │
+  │ Validate structure              │ PERMITTED (immut)    │ Structure-only OK │
+  │ Graduation candidate creation   │ PERMITTED            │ Core boundary     │
+  └─────────────────────────────────┴──────────────────────┴───────────────────┘
+
+################################################################################
+# SECTION 8: THE COVENANT IN ACTION
+################################################################################
+
+covenant_enforcement: |
+  **"Compat carries the evidence. wasm4pm adjudicates it."**
+
+  When a host (JavaScript consumer) finds itself:
+  1. Attempting to discover a model from a log → GraduationCandidate needed
+  2. Trying to compute token replay → GraduationCandidate needed
+  3. Building an alignment algorithm → GraduationCandidate needed
+  4. Running a benchmark → GraduationCandidate needed
+  5. Executing an OCPQ query → GraduationCandidate needed
+
+  **The correct response is NOT to implement these in compat.**
+  The correct response is:
+    pub fn graduation_case_for_X(evidence: &...) -> GraduationCandidate { }
+
+  The host then:
+    1. Creates the candidate
+    2. Sends it to wasm4pm (the engine)
+    3. Receives the result back
+    4. Loads the result as a structured verdict/receipt
+
+  This preserves the covenant: compat carries, wasm4pm adjudicates.
+
+################################################################################
+# SECTION 9: NEXT STEPS FOR IMPLEMENTATION
+################################################################################
+
+implementation_checklist: |
+  - [ ] Audit all #[wasm_bindgen] exports in src/ts/ module
+  - [ ] Verify no generic type parameters on exported types
+  - [ ] Verify no PhantomData, no state tokens at boundary
+  - [ ] Verify all lossy operations include LossReport
+  - [ ] Verify admission returns concrete outcome enum, not generic Admission<T,W>
+  - [ ] Verify refusal reasons are concrete enums, not bare strings
+  - [ ] Verify no mutable state in exported functions
+  - [ ] Verify witness metadata extracted to concrete struct
+  - [ ] Verify discovery/replay/conformance raise GraduationCandidate
+  - [ ] Verify .d.ts generation produces correct TypeScript interfaces
+  - [ ] Add tests: wasm-pack test --headless --firefox (or --chrome)
+  - [ ] Document boundary contract in pkg/README.md
+
+################################################################################
+# SECTION 10: SOURCES & REFERENCES
+################################################################################
+
+sources: |
+  - wasm-bindgen Guide: https://rustwasm.github.io/docs/wasm-bindgen/
+  - wasm-bindgen Generic Types: https://github.com/rustwasm/wasm-bindgen/issues/3671
+  - tsify: https://crates.io/crates/tsify
+  - serde-wasm-bindgen: https://docs.rs/serde-wasm-bindgen/latest/
+  - wasm4pm-compat CLAUDE.md (this repo)
+  - engine_bridge module (GraduationCandidate, GraduationReason)
+  - Covenant: "Compat carries the evidence. wasm4pm adjudicates it."

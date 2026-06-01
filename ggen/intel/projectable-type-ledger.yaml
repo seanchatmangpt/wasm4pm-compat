@@ -1,0 +1,306 @@
+---
+ledger_name: Projectable Type Surface
+description: Types that can be exported to TypeScript, WASM, and WIT interfaces
+extraction_date: 2026-06-01
+crate: wasm4pm-compat
+
+# Core event-log domain — always projectable
+eventlog_types:
+  Event:
+    fields: [activity, timestamp_ns, resource, lifecycle_transition, attributes]
+    to_ts: "interface WasmEvent { activity: string; timestamp_ns?: bigint; resource?: string; lifecycle?: string; }"
+    to_wasm: "struct WasmEvent { activity: [u8], timestamp_ns: Option<u64>, resource: [u8] }"
+    to_wit: "type wasm-event = record { activity: string, timestamp-ns: option<u64>, resource: option<string> }"
+    projectable_reason: "Fundamental unit of event logs; every external format carries this"
+    zero_cost_impl: "One-way conversion: Event → JSON → TS"
+
+  Trace:
+    fields: [case_id, events, attributes]
+    to_ts: "interface WasmTrace { case_id: string; events: WasmEvent[]; }"
+    to_wasm: "struct WasmTrace { case_id: [u8], events: Vec<WasmEvent> }"
+    to_wit: "type wasm-trace = record { case-id: string, events: list<wasm-event> }"
+    projectable_reason: "Container for event sequence; needed for log export"
+    zero_cost_impl: "Iterator over events → TypeScript array"
+
+  EventLog:
+    fields: [traces, attributes, metadata]
+    to_ts: "interface WasmEventLog { traces: WasmTrace[]; trace_count: bigint; }"
+    to_wasm: "struct WasmEventLog { traces: Vec<WasmTrace> }"
+    to_wit: "type wasm-event-log = record { traces: list<wasm-trace>, metadata: option<record { ... }> }"
+    projectable_reason: "Root container for entire event log structure"
+    zero_cost_impl: "Nested vector projection → TS array-of-arrays"
+
+# OCEL 2.0 — object-centric extensions
+ocel_types:
+  OcelLog:
+    extends: EventLog
+    fields: [event_to_object_links, object_to_object_links, object_changes]
+    to_ts: "interface WasmOcelLog extends WasmEventLog { e2o_links: WasmEventObjectLink[]; o2o_links: WasmObjectObjectLink[]; object_changes: WasmObjectChange[]; }"
+    to_wasm: "struct WasmOcelLog { traces: Vec<WasmTrace>, e2o_links: Vec<WasmEventObjectLink>, o2o_links: Vec<WasmObjectObjectLink>, object_changes: Vec<WasmObjectChange> }"
+    to_wit: "type wasm-ocel-log = record { traces: list<wasm-trace>, e2o-links: list<wasm-e2o-link>, o2o-links: list<wasm-o2o-link>, object-changes: list<wasm-object-change> }"
+    projectable_reason: "OCEL 2.0 is a standard; its shape must cross language boundaries"
+    witness: Ocel20
+    zero_cost_impl: "Flatten object-centric structure into TS arrays of links"
+
+  EventObjectLink:
+    fields: [event_id, object_id, qualifier]
+    to_ts: "interface WasmE2OLink { event_id: string; object_id: string; qualifier?: string; }"
+    to_wasm: "struct WasmE2OLink { event_id: [u8], object_id: [u8], qualifier: Option<[u8]> }"
+    to_wit: "type wasm-e2o-link = record { event-id: string, object-id: string, qualifier: option<string> }"
+    projectable_reason: "Fundamental OCEL 2.0 structural unit"
+    witness: Ocel20
+    zero_cost_impl: "#[repr(C)] tuple → WIT record"
+
+  ObjectObjectLink:
+    fields: [source_id, target_id, qualifier]
+    to_ts: "interface WasmO2OLink { source_id: string; target_id: string; qualifier?: string; }"
+    to_wasm: "struct WasmO2OLink { source_id: [u8], target_id: [u8], qualifier: Option<[u8]> }"
+    to_wit: "type wasm-o2o-link = record { source-id: string, target-id: string, qualifier: option<string> }"
+    projectable_reason: "OCEL 2.0 object-to-object relation"
+    witness: Ocel20
+    zero_cost_impl: "Direct field projection"
+
+  ObjectChange:
+    fields: [object_id, attribute, value, timestamp_ns]
+    to_ts: "interface WasmObjectChange { object_id: string; attribute: string; value: any; timestamp_ns?: bigint; }"
+    to_wasm: "struct WasmObjectChange { object_id: [u8], attribute: [u8], value: [u8], timestamp_ns: Option<u64> }"
+    to_wit: "type wasm-object-change = record { object-id: string, attribute: string, value: blobbed<string>, timestamp-ns: option<u64> }"
+    projectable_reason: "OCEL 2.0 object state tracking"
+    witness: Ocel20
+    zero_cost_impl: "TS `any` type for value; dynamic typing bridge"
+
+# Identifiers — repr(transparent) newtype wrappers
+identifier_types:
+  ActivityId:
+    wraps: "&str"
+    to_ts: "type ActivityId = Branded<string, 'ActivityId'>;"
+    to_wasm: "struct ActivityId([u8])  #[repr(transparent)]"
+    to_wit: "type activity-id = string"
+    projectable_reason: "Zero-cost newtype; transparent to TS via branded type"
+    zero_cost_impl: "No-op cast; newtype wrapper erased in WASM ABI"
+    note: "Branded type prevents accidental ActivityId ↔ CaseId confusion in TS"
+
+  CaseId:
+    wraps: "&str"
+    to_ts: "type CaseId = Branded<string, 'CaseId'>;"
+    to_wasm: "struct CaseId([u8])  #[repr(transparent)]"
+    to_wit: "type case-id = string"
+    projectable_reason: "Zero-cost newtype for trace identifiers"
+    zero_cost_impl: "Direct string pass-through with type-level branding"
+
+  EventId:
+    wraps: "&str"
+    to_ts: "type EventId = Branded<string, 'EventId'>;"
+    to_wasm: "struct EventId([u8])  #[repr(transparent)]"
+    to_wit: "type event-id = string"
+    projectable_reason: "Zero-cost identifier for individual events"
+    zero_cost_impl: "Transparent newtype wrapper"
+
+  ObjectId:
+    wraps: "&str"
+    to_ts: "type ObjectId = Branded<string, 'ObjectId'>;"
+    to_wasm: "struct ObjectId([u8])  #[repr(transparent)]"
+    to_wit: "type object-id = string"
+    projectable_reason: "Zero-cost identifier for OCEL objects"
+    zero_cost_impl: "Transparent newtype wrapper"
+
+  ResourceId:
+    wraps: "&str"
+    to_ts: "type ResourceId = Branded<string, 'ResourceId'>;"
+    to_wasm: "struct ResourceId([u8])  #[repr(transparent)]"
+    to_wit: "type resource-id = string"
+    projectable_reason: "Zero-cost identifier for resources (org:resource)"
+    zero_cost_impl: "Transparent newtype wrapper"
+
+# Process models — always projectable
+process_model_types:
+  PetriNet:
+    fields: [places, transitions, arcs, initial_marking]
+    to_ts: "interface WasmPetriNet { places: WasmPlace[]; transitions: WasmTransition[]; arcs: WasmArc[]; initial_marking: WasmMarking; }"
+    to_wasm: "struct WasmPetriNet { places: Vec<WasmPlace>, transitions: Vec<WasmTransition>, arcs: Vec<WasmArc>, initial_marking: WasmMarking }"
+    to_wit: "type wasm-petri-net = record { places: list<wasm-place>, transitions: list<wasm-transition>, arcs: list<wasm-arc>, initial-marking: wasm-marking }"
+    projectable_reason: "Petri net is a standard notation; must be portable"
+    zero_cost_impl: "Flatten 4-tuple of vectors into nested TS structure"
+
+  Place:
+    fields: [id, label]
+    to_ts: "interface WasmPlace { id: string; label?: string; }"
+    to_wasm: "struct WasmPlace { id: [u8], label: Option<[u8]> }"
+    to_wit: "type wasm-place = record { id: string, label: option<string> }"
+    zero_cost_impl: "Direct field mapping"
+
+  Transition:
+    fields: [id, label, silent]
+    to_ts: "interface WasmTransition { id: string; label?: string; silent: boolean; }"
+    to_wasm: "struct WasmTransition { id: [u8], label: Option<[u8]>, silent: bool }"
+    to_wit: "type wasm-transition = record { id: string, label: option<string>, silent: bool }"
+    zero_cost_impl: "Direct field mapping with bool passthrough"
+
+  ProcessTree:
+    fields: [root, nodes]
+    to_ts: "interface WasmProcessTree { root: WasmTreeNode; }"
+    to_wasm: "struct WasmProcessTree { root: Box<WasmTreeNode> }"
+    to_wit: "type wasm-process-tree = record { root: wasm-tree-node }"
+    projectable_reason: "Process tree is a discovered/canonical model format"
+    zero_cost_impl: "Recursive tree structure → TS nested objects"
+
+  PowlModel:
+    fields: [nodes, partial_order, attributes]
+    to_ts: "interface WasmPowlModel { nodes: WasmPowlNode[]; partial_order: [string, string][]; }"
+    to_wasm: "struct WasmPowlModel { nodes: Vec<WasmPowlNode>, partial_order: Vec<(String, String)> }"
+    to_wit: "type wasm-powl-model = record { nodes: list<wasm-powl-node>, partial-order: list<tuple<string, string>> }"
+    projectable_reason: "POWL is a canonical model notation from Kourani & van Zelst"
+    witness: PowlPaper
+    zero_cost_impl: "Linearize partial order as edge list; flatten nodes"
+
+# Conformance metrics — always projectable
+conformance_types:
+  Fitness:
+    fields: [value_num, value_den]
+    to_ts: "interface WasmFitness { numerator: bigint; denominator: bigint; }"
+    to_wasm: "struct WasmFitness { num: u32, den: u32 }"
+    to_wit: "type wasm-fitness = record { numerator: u32, denominator: u32 }"
+    projectable_reason: "Fitness is a fundamental conformance metric"
+    zero_cost_impl: "Rational number as (u32, u32) pair"
+    note: "Always in [0,1]; denominator never zero (enforced by Between01)"
+
+  Precision:
+    fields: [value_num, value_den]
+    to_ts: "interface WasmPrecision { numerator: bigint; denominator: bigint; }"
+    to_wasm: "struct WasmPrecision { num: u32, den: u32 }"
+    to_wit: "type wasm-precision = record { numerator: u32, denominator: u32 }"
+    projectable_reason: "Precision is a fundamental conformance metric"
+    zero_cost_impl: "Rational number as (u32, u32) pair"
+
+  Generalization:
+    fields: [value_num, value_den]
+    to_ts: "interface WasmGeneralization { numerator: bigint; denominator: bigint; }"
+    to_wasm: "struct WasmGeneralization { num: u32, den: u32 }"
+    to_wit: "type wasm-generalization = record { numerator: u32, denominator: u32 }"
+    projectable_reason: "Generalization is a fundamental conformance metric"
+    zero_cost_impl: "Rational number as (u32, u32) pair"
+
+  ConformanceVerdict:
+    fields: [fitness, precision, generalization, simplicity]
+    to_ts: "interface WasmConformanceVerdict { fitness: WasmFitness; precision: WasmPrecision; generalization: WasmGeneralization; simplicity: WasmSimplicity; }"
+    to_wasm: "struct WasmConformanceVerdict { fitness: WasmFitness, precision: WasmPrecision, generalization: WasmGeneralization, simplicity: WasmSimplicity }"
+    to_wit: "type wasm-conformance-verdict = record { fitness: wasm-fitness, precision: wasm-precision, generalization: wasm-generalization, simplicity: wasm-simplicity }"
+    projectable_reason: "Conformance verdicts are results of process analysis"
+    zero_cost_impl: "Bundle 4 rational-number pairs"
+
+# XES interchange shapes
+xes_types:
+  XesLog:
+    fields: [traces, global_extensions, global_attributes]
+    to_ts: "interface WasmXesLog { traces: WasmXesTrace[]; }"
+    to_wasm: "struct WasmXesLog { traces: Vec<WasmXesTrace>, extensions: Vec<String> }"
+    to_wit: "type wasm-xes-log = record { traces: list<wasm-xes-trace> }"
+    projectable_reason: "XES is an IEEE standard interchange format"
+    witness: Xes1849
+    zero_cost_impl: "Vector of traces → TS array"
+
+  XesTrace:
+    fields: [case_id, events, attributes]
+    to_ts: "interface WasmXesTrace { case_id: string; events: WasmXesEvent[]; }"
+    to_wasm: "struct WasmXesTrace { case_id: [u8], events: Vec<WasmXesEvent> }"
+    to_wit: "type wasm-xes-trace = record { case-id: string, events: list<wasm-xes-event> }"
+    projectable_reason: "XES trace structure"
+    zero_cost_impl: "Direct vector projection"
+
+  XesEvent:
+    fields: [name, timestamp, attributes]
+    to_ts: "interface WasmXesEvent { name: string; timestamp?: number; attributes: Record<string, any>; }"
+    to_wasm: "struct WasmXesEvent { name: [u8], timestamp: Option<u64>, attributes: BTreeMap<String, String> }"
+    to_wit: "type wasm-xes-event = record { name: string, timestamp: option<u64>, attributes: list<tuple<string, string>> }"
+    projectable_reason: "Individual XES event"
+    witness: Xes1849
+    zero_cost_impl: "TS `Record<string, any>` for extension attributes"
+
+# BPMN shapes
+bpmn_types:
+  BpmnModel:
+    fields: [processes, collaboration]
+    to_ts: "interface WasmBpmnModel { processes: WasmBpmnProcess[]; }"
+    to_wasm: "struct WasmBpmnModel { processes: Vec<WasmBpmnProcess> }"
+    to_wit: "type wasm-bpmn-model = record { processes: list<wasm-bpmn-process> }"
+    projectable_reason: "BPMN is an OMG standard notation"
+    zero_cost_impl: "Vector of processes → TS array"
+
+  BpmnTask:
+    fields: [id, name, incoming, outgoing]
+    to_ts: "interface WasmBpmnTask { id: string; name: string; incoming: string[]; outgoing: string[]; }"
+    to_wasm: "struct WasmBpmnTask { id: [u8], name: [u8], incoming: Vec<[u8]>, outgoing: Vec<[u8]> }"
+    to_wit: "type wasm-bpmn-task = record { id: string, name: string, incoming: list<string>, outgoing: list<string> }"
+    projectable_reason: "BPMN task is the fundamental executable unit"
+    zero_cost_impl: "String IDs + edge lists"
+
+# DFG shapes
+dfg_types:
+  DirectlyFollowsGraph:
+    fields: [activities, edges, start_activity, end_activity]
+    to_ts: "interface WasmDFG { activities: string[]; edges: [string, string][]; start?: string; end?: string; }"
+    to_wasm: "struct WasmDFG { activities: Vec<[u8]>, edges: Vec<([u8], [u8])> }"
+    to_wit: "type wasm-dfg = record { activities: list<string>, edges: list<tuple<string, string>>, start: option<string>, end: option<string> }"
+    projectable_reason: "DFG is the simplest process model notation"
+    zero_cost_impl: "Adjacency list → TS edge array"
+
+# Summary
+projection_categories:
+  by_target_language:
+    TypeScript:
+      description: "Branded types prevent accidental ID confusion; interfaces mirror Rust struct layout"
+      id_strategy: "Use Branded<T, 'Label'> from ts:brand module"
+      example: "type EventId = Branded<string, 'EventId'>"
+
+    WASM:
+      description: "repr(C) and repr(transparent) for ABI stability; no allocation after struct creation"
+      id_strategy: "Use #[repr(transparent)] newtype over [u8]"
+      example: "struct EventId([u8]) #[repr(transparent)]"
+
+    WIT:
+      description: "WIT (WebAssembly Interface Types) for language-agnostic boundaries"
+      id_strategy: "All IDs map to WIT string type"
+      example: "type event-id = string"
+
+  by_projection_cost:
+    zero_cost:
+      description: "Type erasure via newtype, #[repr(transparent)], or direct field mapping"
+      examples:
+        - "EventId → TS string (newtype erased)"
+        - "PetriNet → TS array of records (field layout preserved)"
+        - "Rational pair (num, den) → WIT u32, u32"
+
+    minimal_cost:
+      description: "One vector copy or field reordering, then erasure"
+      examples:
+        - "Vec<Trace> → TS Trace[] (vector reallocation)"
+        - "Partial order edges → flattened edge list"
+
+    structural_translation:
+      description: "Semantic-preserving restructuring (e.g., tree flattening)"
+      examples:
+        - "Recursive ProcessTree → flattened TS object with parent IDs"
+        - "POWL partial order → adjacency list"
+
+  by_witness:
+    Standard:
+      types: [OcelLog, XesLog, BpmnModel, PetriNet]
+      witness_examples: [Ocel20, Xes1849]
+      note: "All standard-witness types are projectable; they must cross language boundaries"
+
+    Paper:
+      types: [ProcessTree, PowlModel, DFG]
+      witness_examples: [PowlPaper, AlphaMiner, InductiveMiner]
+      note: "Paper-derived models are projectable as structural shapes"
+
+    RustLaw:
+      types: [ActivityId, CaseId, EventId, ObjectId]
+      witness_examples: [RustTypestateLaw]
+      note: "ID newtype wrappers are projectable via branded types in TS"
+
+projection_constraints:
+  - "All projectable types must have repr(C) or repr(transparent) for WASM ABI"
+  - "No generic parameters in projected types (monomorphize before ABI)"
+  - "No lifetime parameters (all values owned at projection boundary)"
+  - "No unsized types (Trait objects, [T] slices — use Vec instead)"
+  - "All identifiers project via string + TS branded type"

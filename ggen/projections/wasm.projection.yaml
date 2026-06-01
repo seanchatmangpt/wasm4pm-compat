@@ -1,0 +1,465 @@
+# WASM Projection Manifest
+# wasm4pm-compat v0.1.0
+# Generated: 2026-06-01
+
+---
+
+projection_metadata:
+  name: "wasm4pm-compat WASM Projection"
+  alias: "wasm.projection"
+  version: "1.0.0"
+  source: "wasm4pm-compat"
+  source_lang: "Rust (nightly)"
+  target: "WebAssembly (wasm32-unknown-unknown)"
+  tool: "wasm-bindgen + tsify + serde-wasm-bindgen"
+  feature_gate: "wasm"
+  stability: "STABLE"
+  purpose: "ABI-safe boundary for browser/Node.js: admission gates, loss accounting, graduation signals with zero-cost type law"
+
+---
+
+abi_safety_principle:
+  covenant: "No generic type parameters at ABI boundary; no PhantomData in exports; all witness/state as metadata strings"
+  wasm_bindgen_constraint: "Generic types forbidden on #[wasm_bindgen] structs/enums"
+  serialization_strategy: "serde-wasm-bindgen (binary) for performance; JSON fallback for inspection"
+  witness_encoding: "String tags (witness-key: 'ocel-2.0', 'xes-1849', etc.)"
+  state_encoding: "Return enum variants (Admitted { value }, Refused { reason })"
+
+---
+
+abi_safe_exports:
+
+  admission_gate:
+    name: "#[wasm_bindgen] pub fn admit_event_log(raw: EventLog) -> AdmissionResult"
+    description: "Admit raw event log at WASM boundary"
+    signature: |
+      #[wasm_bindgen]
+      pub fn admit_event_log(raw: &EventLog) -> Result<AdmittedEventLog, String>
+    abi_constraint: "EventLog must be Serialize + Deserialize + Tsify"
+    returns: |
+      Success: AdmittedEventLog { value: EventLog }
+      Failure: String (serialized RefusalReason enum as JSON)
+    marshaling: "serde-wasm-bindgen (binary efficient)"
+    witnesses: "Default: inferred; can be explicit"
+
+  admission_gate_ocel:
+    name: "#[wasm_bindgen] pub fn admit_ocel_log(raw: OcelLog) -> Result<AdmittedOcelLog, String>"
+    description: "Admit raw OCEL log; validate structure + E2O/O2O links"
+    signature: |
+      #[wasm_bindgen]
+      pub fn admit_ocel_log(raw: &OcelLog) -> Result<AdmittedOcelLog, String>
+    abi_constraint: "OcelLog must be ABI-safe; RefusalReason serialized"
+    witness_tag: "ocel-2.0"
+    concrete_wrapper: |
+      #[wasm_bindgen]
+      pub struct AdmittedOcelLog {
+        pub value: OcelLog,
+      }
+
+  admission_gate_xes:
+    name: "#[wasm_bindgen] pub fn admit_xes_log(raw: XesLog) -> Result<AdmittedXesLog, String>"
+    description: "Admit raw XES log"
+    witness_tag: "xes-1849"
+    concrete_wrapper: |
+      #[wasm_bindgen]
+      pub struct AdmittedXesLog {
+        pub value: XesLog,
+      }
+
+  loss_projection:
+    name: "#[wasm_bindgen] pub fn project_ocel_to_xes(admitted: OcelLog, policy: LossPolicyWasm) -> Result<ProjectionResultWasm, String>"
+    description: "Lossy transformation OCEL → XES with mandatory loss accounting"
+    abi_constraint: "LossPolicyWasm enum must have concrete variants (RefuseLoss, AllowNamed, AllowWithReport)"
+    returns: |
+      ProjectionResultWasm {
+        xes_log: XesLog,
+        loss_report: LossReportWasm,
+      }
+    loss_report_mandatory: true
+    witness_encoding: "Both input (ocel-2.0) and output (xes-1849) tags in result"
+
+  witness_metadata_registry:
+    name: "#[wasm_bindgen] pub fn get_witness_info(key: &str) -> Option<WitnessInfoWasm>"
+    description: "Query witness metadata by key"
+    abi_constraint: "WitnessInfoWasm is concrete struct with String fields"
+    returns: |
+      WitnessInfoWasm {
+        key: String,           // e.g., 'ocel-2.0'
+        title: String,         // e.g., 'OCEL 2.0'
+        year: Option<u16>,     // e.g., 2020
+        family: String,        // 'Standard' | 'Paper' | 'ApiGrammar' | 'RustLaw' | 'InternalBridge'
+      }
+    null_on_miss: true
+
+  graduation_signal:
+    name: "#[wasm_bindgen] pub fn graduation_check(admitted: &AdmittedEventLog) -> GraduationSignalWasm"
+    description: "Check if evidence is grounded for engine graduation"
+    abi_constraint: "GraduationSignalWasm is concrete enum variant return"
+    feature_gate: "wasm4pm"
+    returns: |
+      GraduationSignalWasm {
+        is_grounded: bool,
+        reason: String,  // e.g., 'GroundedAtFullAdmission', 'UngroundedMissingLossPolicy'
+      }
+    purpose: "Signal when compat evidence is ready to cross into wasm4pm engine"
+
+---
+
+concrete_wrappers:
+
+  wrapper_class: "AdmittedEvidence wrappers"
+  purpose: "Replace Evidence<T, State, W> generics with concrete newtypes at boundary"
+
+  admitted_event_log:
+    definition: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct AdmittedEventLog {
+        pub value: EventLog,
+      }
+    witness: "inferred from EventLog source"
+    purpose: "Concrete wrapper for Evidence<EventLog, Admitted, {inferred}>"
+
+  admitted_ocel_log:
+    definition: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct AdmittedOcelLog {
+        pub value: OcelLog,
+        pub witness_key: String,  // always 'ocel-2.0'
+      }
+    witness: "ocel-2.0 (explicit)"
+    purpose: "Concrete wrapper for Evidence<OcelLog, Admitted, Ocel20>"
+
+  refusal_snapshot:
+    definition: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct RefusalSnapshot {
+        pub reason: String,        // serialized RefusalReason enum
+        pub witness_key: String,   // which witness authority rejected it
+        pub detail: String,        // human-readable explanation
+      }
+    purpose: "Concrete wrapper for Refusal<R, W>"
+
+  loss_report_wasm:
+    definition: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[wasm_bindgen]
+      pub struct LossReportWasm {
+        pub from_format: String,
+        pub to_format: String,
+        pub items_lost: Vec<LossItemWasm>,
+        pub summary: String,
+      }
+    purpose: "Serializable loss accounting"
+
+---
+
+forbidden_exports:
+
+  generic_types_at_boundary:
+    - "Evidence<T, State, W> (forbidden by wasm-bindgen)"
+    - "Admission<T, W> generic form (use AdmittedEventLog instead)"
+    - "Refusal<R, W> generic form (use RefusalSnapshot instead)"
+    reason: "wasm-bindgen does not support generic type parameters on exported items"
+
+  phantom_data_fields:
+    - "PhantomData<State>, PhantomData<W>"
+    - "Raw, Parsed, Admitted as type markers"
+    - "Witness enums (Ocel20, Xes1849) as phantom markers"
+    reason: "Zero-sized types cannot be serialized or passed across ABI boundary"
+
+  execution_logic:
+    - "Discovery (Alpha, Inductive Miner, etc.)"
+    - "Token replay and conformance checking"
+    - "Alignment computation"
+    - "Receipt minting and chaining"
+    - "OCPQ query execution"
+    reason: "Execution is engine responsibility; compat is structure-only"
+
+  state_mutations:
+    - "Mutable Evidence modification"
+    - "Accumulated admission state across calls"
+    - "In-place log mutations during parsing"
+    reason: "WASM calls are stateless; all functions must be pure"
+
+---
+
+marshaling_strategy:
+
+  serialization_format: "serde-wasm-bindgen (primary)"
+  rationale: |
+    - Binary encoding is smaller than JSON
+    - Preserves numeric types (u64 → BigInt without precision loss)
+    - Supports Map, Set, array buffers (JSON doesn't)
+    - Faster roundtrip than JSON parsing
+
+  fallback_format: "serde_json"
+  fallback_use: "Human inspection, debugging, API interop with JSON-only consumers"
+
+  numeric_type_handling: |
+    Rust u64 / i64 → JavaScript BigInt (via serde-wasm-bindgen)
+    NOT f64 (which loses precision for large integers)
+
+  configuration:
+    in_cargo_toml: |
+      [target.'cfg(target_arch = "wasm32")'.dependencies]
+      serde-wasm-bindgen = "0.6"  # Binary marshaling
+      serde = { version = "1.0", features = ["derive"] }
+      tsify = { version = "0.4.5", features = ["js"] }
+      wasm-bindgen = "0.2.92"
+
+    in_build_rs: |
+      // Detect wasm32 target and enable wasm-bindgen tools
+      let target = env::var("TARGET").unwrap();
+      if target.contains("wasm32") {
+          println!("cargo:rustc-cfg=wasm32_target");
+      }
+
+---
+
+type_projections:
+
+  event_log_projection:
+    rust: "EventLog { traces: Vec<Trace>, … }"
+    abi_safe: true
+    typescript: |
+      export interface EventLog {
+        traces: Trace[];
+        // other fields …
+      }
+    wrapper_at_boundary: "not needed (concrete, serializable)"
+
+  ocel_log_projection:
+    rust: "OcelLog { events: Vec<OcelEvent>, objects: Vec<OcelObject>, … }"
+    abi_safe: true
+    typescript: |
+      export interface OcelLog {
+        events: OcelEvent[];
+        objects: OcelObject[];
+        e2o_links: EventObjectLink[];
+        o2o_links: ObjectObjectLink[];
+        object_changes: ObjectChange[];
+      }
+    wrapper_at_boundary: "AdmittedOcelLog { value: OcelLog }"
+
+  witness_info_projection:
+    rust: "Witness trait const metadata (KEY, FAMILY, TITLE, YEAR)"
+    abi_safe: false (trait, not concrete)
+    solution: |
+      #[derive(Serialize, Tsify)]
+      pub struct WitnessInfoWasm {
+        pub key: String,
+        pub family: String,
+        pub title: String,
+        pub year: Option<u16>,
+      }
+    typescript: |
+      export interface WitnessInfo {
+        key: string;
+        family: "Standard" | "Paper" | "ApiGrammar" | "RustLaw" | "InternalBridge";
+        title: string;
+        year?: number;
+      }
+
+  loss_policy_projection:
+    rust: |
+      enum LossPolicy {
+        RefuseLoss,
+        AllowNamedProjection(ProjectionName),
+        AllowLossWithReport,
+      }
+    abi_safe: "if all variants are concrete (no generic T)"
+    solution: |
+      #[derive(Serialize, Deserialize, Tsify)]
+      #[serde(tag = "kind")]
+      pub enum LossPolicyWasm {
+        #[serde(rename = "RefuseLoss")]
+        RefuseLoss,
+        #[serde(rename = "AllowNamed")]
+        AllowNamed { name: String },
+        #[serde(rename = "AllowWithReport")]
+        AllowWithReport,
+      }
+    typescript: |
+      export type LossPolicy =
+        | { kind: "RefuseLoss" }
+        | { kind: "AllowNamed"; name: string }
+        | { kind: "AllowWithReport" };
+
+---
+
+generated_artifacts:
+  output_dir: "target/wasm32-unknown-unknown/release"
+
+  files:
+    - name: "wasm4pm_compat.wasm"
+      source: "cargo build --target wasm32-unknown-unknown"
+      contains: "All #[wasm_bindgen] exports + witness registry + admission gates"
+      size_estimate: "~150-200 KB (gzipped)"
+
+    - name: "wasm4pm_compat.d.ts"
+      source: "wasm-bindgen-generated"
+      contains: |
+        - TypeScript interfaces for all #[wasm_bindgen] structs/enums
+        - Function signatures (JS calling convention)
+        - Type definitions for marshaling helpers
+      size_estimate: "~2 KB"
+
+    - name: "wasm4pm_compat.js"
+      source: "wasm-bindgen-generated"
+      contains: "JavaScript glue code for WASM ↔ JS marshaling"
+      size_estimate: "~3 KB (minified)"
+
+    - name: "pkg/package.json"
+      source: "manual + wasm-pack"
+      contains: |
+        {
+          "name": "wasm4pm-compat",
+          "version": "0.1.0",
+          "main": "wasm4pm_compat.js",
+          "types": "wasm4pm_compat.d.ts",
+          "files": ["*.wasm", "*.js", "*.d.ts"],
+          "dependencies": {
+            "tsify": "^0.4.5"
+          }
+        }
+
+  audits:
+    - path: "target/wasm32-unknown-unknown/audit.md"
+      purpose: "Verify ABI safety of all exports"
+      checks: |
+        - [ ] No generic type parameters on #[wasm_bindgen] items
+        - [ ] No PhantomData fields in exported structs
+        - [ ] All Serialize + Deserialize impls present
+        - [ ] No state mutations (all functions pure)
+        - [ ] Witness info extracted to concrete WitnessInfo struct
+        - [ ] Loss reports mandatory on lossy operations
+        - [ ] Graduation signal present iff wasm4pm feature enabled
+        - [ ] No discovery/replay/conformance/OCPQ exports
+
+    - path: "target/wasm32-unknown-unknown/boundary.md"
+      purpose: "Validate boundary contract enforcement"
+      checks: |
+        - [ ] WASM can only call structure-only functions
+        - [ ] No engine logic accessible from WASM boundary
+        - [ ] All refusals carry named reason enums (not bare strings)
+        - [ ] Witness metadata immutable and read-only
+        - [ ] All Type implementations are Serialize + Deserialize
+
+---
+
+receipt:
+  receipt_type: "wasm4pm-compat WASM projection"
+  receipt_path: "generated/wasm4pm-compat.receipt.json"
+  receipt_contents:
+    tool: "wasm-bindgen + tsify + serde-wasm-bindgen"
+    target: "wasm32-unknown-unknown"
+    feature_gate: "wasm"
+    abi_safe_exports:
+      admission_gates: 3
+      loss_projections: 2
+      witness_metadata: 1
+      graduation_signal: 1 (if wasm4pm)
+    concrete_wrappers: 4
+    forbidden_exports: "10+ (all enforcement via compile-time checks)"
+    generated_files: ["wasm4pm_compat.wasm", "wasm4pm_compat.d.ts", "wasm4pm_compat.js", "package.json"]
+    audit_files: ["audit.md", "boundary.md"]
+    law_version: "wasm-boundary-law v1.0.0"
+    timestamp: "2026-06-01T00:00:00Z"
+
+---
+
+npm_integration:
+
+  package_name: "@wasm4pm/compat"
+  publish_to: "npm registry"
+  entry_point: "pkg/wasm4pm_compat.js"
+  types_entry: "pkg/wasm4pm_compat.d.ts"
+
+  installation: |
+    npm install @wasm4pm/compat
+
+  usage_example: |
+    import init, * as compat from '@wasm4pm/compat';
+
+    // Initialize WASM module
+    await init();
+
+    // Load and admit event log
+    const eventLog = { events: [...], traces: [...] };
+    const admitted = compat.admit_event_log(eventLog);
+
+    if (admitted.success) {
+      console.log(`Admitted under witness: ${admitted.value.witness_key}`);
+      console.log(`Events: ${admitted.value.value.events.length}`);
+    } else {
+      console.error(`Refusal: ${admitted.error.reason}`);
+    }
+
+    // Query witness metadata
+    const ocelInfo = compat.get_witness_info('ocel-2.0');
+    console.log(ocelInfo.title);  // "OCEL 2.0"
+
+    // Check graduation readiness
+    const signal = compat.graduation_check(admitted.value);
+    if (signal.is_grounded) {
+      console.log("Ready to graduate to wasm4pm engine");
+    }
+
+---
+
+quality_gates:
+
+  gate_1_wasm_size:
+    description: "Compiled WASM module is under 200 KB (gzipped)"
+    method: "wasm-opt and gzip size check"
+    passes_if: "size < 200 KB"
+
+  gate_2_abi_safety:
+    description: "All exports compile without generic type errors"
+    method: "cargo build --target wasm32-unknown-unknown"
+    passes_if: "Build succeeds; no wasm-bindgen errors"
+
+  gate_3_marshaling_correctness:
+    description: "Roundtrip: Rust struct → WASM → JS → WASM → Rust preserves value"
+    method: "Test suite in JS calling WASM"
+    passes_if: "All roundtrip tests pass"
+
+  gate_4_witness_completeness:
+    description: "All ~40 witnesses accessible via get_witness_info()"
+    method: "Test enumerate all WITNESSES const keys"
+    passes_if: "All keys present and no panics"
+
+  gate_5_npm_package:
+    description: "Package publishes to npm and installs cleanly"
+    method: "npm pack && npm install"
+    passes_if: "Install succeeds; types resolve"
+
+---
+
+deployment:
+
+  build_command: |
+    wasm-pack build --target web --features wasm --out-dir pkg
+
+  publish_command: |
+    cd pkg && npm publish --access public
+
+  ci_integration: |
+    # .github/workflows/wasm-release.yml
+    name: WASM Release
+    on: [release]
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v4
+          - uses: rustwasm/setup-toolchain@v1
+          - run: wasm-pack build --target web --features wasm --out-dir pkg
+          - run: cd pkg && npm publish --access public
+
+---
+
+end_of_projection: "✅ WASM PROJECTION COMPLETE"

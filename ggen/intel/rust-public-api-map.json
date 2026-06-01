@@ -1,0 +1,411 @@
+{
+  "crate": "wasm4pm-compat",
+  "version": "0.1.0",
+  "description": "Nightly-only, paper-complete, structure-only Rust process-evidence standard",
+  "toolchain": "nightly (generic_const_exprs, adt_const_params, const_trait_impl, min_specialization, portable_simd)",
+  "extraction_date": "2026-06-01",
+  "public_modules": 37,
+  "core_law_modules": {
+    "state": {
+      "purpose": "Typestate tokens — the evidence lifecycle, tracked at the type level",
+      "items": [
+        "Raw",
+        "Parsed",
+        "Admitted",
+        "Refused",
+        "Projected",
+        "Exportable",
+        "Receipted",
+        "EvidenceState (sealed trait)",
+        "RawToParsed",
+        "ParsedToAdmitted",
+        "ParsedToRefused",
+        "AdmittedToProjected",
+        "AdmittedToExportable",
+        "AdmittedToReceipted",
+        "ProjectedToExportable",
+        "ExportableToReceipted"
+      ],
+      "classification": "LAW_TAG"
+    },
+    "evidence": {
+      "purpose": "Evidence carrier: T (value) + State (lifecycle) + W (witness)",
+      "items": [
+        "Evidence<T, State, W> (universal carrier struct)",
+        "RawOcelEvidence<T> (type alias)",
+        "AdmittedOcelEvidence<T> (type alias)",
+        "RawXesEvidence<T> (type alias)",
+        "AdmittedXesEvidence<T> (type alias)",
+        "ReceiptedEvidence<T, W> (type alias)",
+        "EvidenceMode (const-generic lifecycle enum)"
+      ],
+      "classification": "LAW_TAG",
+      "methods": [
+        "raw(T) → Evidence<T, Raw, W>",
+        "sealed(T) → Evidence<T, Admitted, W> [pub(crate) only]",
+        "into_inner(self) → T",
+        "into_parsed(self) → Evidence<T, Parsed, W>",
+        "into_admitted(self) → Evidence<T, Admitted, W> [via Admit trait]",
+        "into_projected(self) → Evidence<T, Projected, W>",
+        "into_exportable(self) → Evidence<T, Exportable, W>",
+        "into_receipted(self) → Evidence<T, Receipted, W>"
+      ]
+    },
+    "admission": {
+      "purpose": "First-class boundary verdict surface: Admission vs Refusal",
+      "items": [
+        "Admission<T, W> (admitted value carrier)",
+        "Refusal<R, W> (named refusal with reason)",
+        "Admit (trait: only sanctioned Raw→Admitted path)"
+      ],
+      "classification": "LAW_TAG",
+      "key_trait": "Admit",
+      "trait_methods": [
+        "admit(Evidence<T, Raw, W>) → Result<Admission<T, W>, Refusal<R, W>>"
+      ]
+    },
+    "witness": {
+      "purpose": "Type-level proof carriers naming canon/standard/paper/law",
+      "items": [
+        "Witness (trait: authority label)",
+        "WitnessFamily (enum: Standard, Paper, ApiGrammar, RustLaw, InternalBridge)",
+        "40+ witness markers (Ocel20, Xes1849, WfNetSoundnessPaper, ...)"
+      ],
+      "classification": "LAW_TAG",
+      "witness_count": 41,
+      "key_trait": "Witness",
+      "trait_const_members": [
+        "const KEY: &'static str",
+        "const FAMILY: WitnessFamily",
+        "const TITLE: &'static str",
+        "const YEAR: Option<u16>"
+      ]
+    },
+    "loss": {
+      "purpose": "Named projection loss policy and accounting",
+      "items": [
+        "ProjectionName (newtype: &'static str)",
+        "LossPolicy (enum: RefuseLoss, AllowNamedProjection, AllowLossWithReport)",
+        "LossReport<From, To, Items> (loss record)",
+        "Project (trait: only sanctioned lossy transformation path)"
+      ],
+      "classification": "LAW_TAG",
+      "methods": [
+        "is_refusing(&self) → bool",
+        "is_named(&self) → bool",
+        "is_reporting(&self) → bool"
+      ]
+    },
+    "law": {
+      "purpose": "Compile-time law kernel: ConstParamTy enums, bounds machinery",
+      "items": [
+        "ConstParamTy (enum: for generic_const_exprs)",
+        "Assert<CONDITION> (const assertion)",
+        "IsTrue (marker for satisfied conditions)",
+        "Require (trait: compile-time requirement)",
+        "ConditionCell<BITS> (adt_const_params: bit-width condition)",
+        "Between01<NUM, DEN> (adt_const_params: rational bounds [0,1])",
+        "EvidenceMode (const-generic lifecycle enum)"
+      ],
+      "classification": "LAW_TAG"
+    }
+  },
+  "domain_model_modules": {
+    "eventlog": {
+      "purpose": "Event, Trace, EventLog shapes and builders",
+      "public_types": ["Event", "Trace", "EventLog", "EventStream", "TraceId"],
+      "builders": [
+        "Event::new(activity) → Event",
+        "Event::at_ns(ns: u64) → Self",
+        "Event::by(resource: String) → Self",
+        "Event::with_lifecycle(transition) → Self",
+        "Trace::new(id, [events]) → Trace",
+        "EventLog::from_traces([Trace]) → EventLog"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "ocel": {
+      "purpose": "Object-centric event log shapes with E2O/O2O links",
+      "public_types": [
+        "OcelLog",
+        "OcelEvent",
+        "ObjectType",
+        "EventType",
+        "EventObjectLink",
+        "ObjectObjectLink",
+        "ObjectChange",
+        "OcelAttribute"
+      ],
+      "builders": [
+        "OcelEvent::new(activity) → OcelEvent",
+        "OcelEvent::at_ns(ns) → Self",
+        "EventObjectLink::new(event_id, object_id) → EventObjectLink",
+        "EventObjectLink::qualified(qualifier) → Self",
+        "ObjectObjectLink::new(source, target) → ObjectObjectLink",
+        "ObjectObjectLink::qualified(qualifier) → Self",
+        "ObjectChange::new(object_id, attribute, value) → ObjectChange",
+        "ObjectChange::at_ns(ns) → Self"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "ids": {
+      "purpose": "Zero-cost repr(transparent) identifier newtype wrappers",
+      "public_types": [
+        "ActivityId",
+        "CaseId",
+        "EventId",
+        "ObjectId",
+        "TraceId",
+        "ResourceId",
+        "AttributeId"
+      ],
+      "derives": ["Display", "Clone", "Copy", "PartialEq", "Eq", "Hash"],
+      "conversions": [
+        "From<&str>",
+        "From<String>",
+        "Display"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "petri": {
+      "purpose": "Petri net and WF-net shapes",
+      "public_types": [
+        "PetriNet",
+        "WfNet",
+        "WfNetConst<SOUNDNESS> (const-generic with proof of soundness)",
+        "Place",
+        "Transition",
+        "Arc",
+        "Marking"
+      ],
+      "const_generic_params": [
+        "SOUNDNESS: bool (tracks soundness at type-level)"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "powl": {
+      "purpose": "POWL (Partially Ordered Workflow Language) shapes",
+      "public_types": [
+        "PowlModel",
+        "PowlNode",
+        "PowlEdge",
+        "PartialOrder",
+        "SequenceNode",
+        "XorNode",
+        "AndNode",
+        "LoopNode",
+        "OptionalNode"
+      ],
+      "sealed_traits": [
+        "TreeProjectable (sealed: determines if POWL can be projected to process tree)"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "process_tree": {
+      "purpose": "Process tree shapes with typed loop nodes",
+      "public_types": [
+        "ProcessTree",
+        "TreeNode",
+        "TypedLoopNode<ARITY> (const-generic with Require<{ARITY==2}>)",
+        "SequenceOperator",
+        "XorOperator",
+        "AndOperator",
+        "LoopOperator"
+      ],
+      "const_generic_constraints": [
+        "TypedLoopNode<ARITY> requires ARITY == 2 (exactly 2 children for loop)"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "xes": {
+      "purpose": "XES interchange format shapes",
+      "public_types": [
+        "XesLog",
+        "XesEvent",
+        "XesTrace",
+        "XesAttribute",
+        "XesExtension",
+        "XesLifecycleTransition"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "bpmn": {
+      "purpose": "BPMN model notation shapes",
+      "public_types": [
+        "BpmnModel",
+        "BpmnTask",
+        "BpmnGateway",
+        "BpmnEvent",
+        "BpmnSequenceFlow",
+        "GatewayType"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "dfg": {
+      "purpose": "Directly-follows graph (DFG) shapes",
+      "public_types": [
+        "DirectlyFollowsGraph",
+        "ActivityNode",
+        "FollowsEdge",
+        "StartNode",
+        "EndNode"
+      ],
+      "sealed_traits": [
+        "FollowsRelation (sealed: enforces DFG edge semantics)"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "conformance": {
+      "purpose": "Conformance verdict shapes (structure only — no engine)",
+      "public_types": [
+        "ConformanceVerdict",
+        "Fitness",
+        "Precision",
+        "Generalization",
+        "Simplicity",
+        "Metric<KIND, NUM, DEN> (const-generic with Between01 bounds)"
+      ],
+      "const_generic_params": [
+        "KIND: MetricKind",
+        "NUM, DEN: u16 (numerator, denominator for rational bounds [0,1])"
+      ],
+      "type_aliases": [
+        "FitnessScore = Metric<Fitness, NUM, DEN>",
+        "PrecisionScore = Metric<Precision, NUM, DEN>"
+      ],
+      "classification": "PROJECTABLE"
+    },
+    "receipt": {
+      "purpose": "Provenance-bearing receipt envelope shapes",
+      "public_types": [
+        "ReceiptEnvelope<T, W>",
+        "ReceiptDigest",
+        "ProvenanceRecord",
+        "ChainLink"
+      ],
+      "sealed_traits": [
+        "ReceiptCarrier (sealed: enforces receipt structure)"
+      ],
+      "classification": "LAW_TAG"
+    },
+    "ocel": {
+      "purpose": "OCEL 2.0 full shape (standards and bridges)",
+      "sealed_traits": [
+        "OcelValidator (sealed: checks structural OCEL validity)",
+        "OcelRoundTripClaim (sealed: asserts lossless OCEL→external→OCEL)"
+      ],
+      "classification": "PROJECTABLE"
+    }
+  },
+  "feature_gated_modules": {
+    "formats": {
+      "feature": "formats (default: yes)",
+      "purpose": "Import/export contracts, round-trip claims, loss surfaces",
+      "public_types": [
+        "Importer",
+        "Exporter",
+        "RoundTripClaim",
+        "LossyFormatExport"
+      ],
+      "sealed_traits": [
+        "LossyFormatExport (sealed: requires named loss report)"
+      ]
+    },
+    "strict": {
+      "feature": "strict (default: no)",
+      "purpose": "Opt-in boundary judgment: strict admission/refusal",
+      "public_types": [
+        "ProcessBoundary",
+        "StrictCheck",
+        "StrictViolation"
+      ]
+    },
+    "engine_bridge": {
+      "feature": "wasm4pm (default: no)",
+      "purpose": "Graduation bridge traits toward wasm4pm engine",
+      "public_types": [
+        "GraduateToWasm4pm",
+        "GraduationCandidate",
+        "GraduationReason"
+      ],
+      "sealed_traits": [
+        "GraduateToWasm4pm (sealed: enforces graduation protocol)"
+      ]
+    },
+    "ts": {
+      "feature": "ts (default: no)",
+      "purpose": "Browser TypeScript law projections",
+      "path": "src/ts/",
+      "modules": [
+        "brand.rs — branded types for TS",
+        "export.rs — export to TypeScript",
+        "law_projection.rs — law surface in TS"
+      ]
+    },
+    "wasm": {
+      "feature": "wasm (default: no)",
+      "purpose": "WebAssembly boundary projections and ABI",
+      "path": "src/wasm/",
+      "modules": [
+        "abi.rs — WASM ABI surface",
+        "bindings.rs — wasm-bindgen integration",
+        "boundary.rs — WASM boundary enforcement",
+        "mod.rs — root WASM module"
+      ]
+    }
+  },
+  "nightly_foundry": {
+    "purpose": "Zero-cost type-law surfaces from process-mining papers",
+    "status": "Experimental staging; main law lives in public modules",
+    "surfaces": [
+      "petri_law (using generic_const_exprs and adt_const_params)",
+      "powl_law (using generic_const_exprs)",
+      "evidence_law (using const_trait_impl)",
+      "token_law (using portable_simd)"
+    ],
+    "nightly_features_required": [
+      "generic_const_exprs",
+      "adt_const_params",
+      "const_trait_impl",
+      "min_specialization",
+      "portable_simd"
+    ]
+  },
+  "public_surface_summary": {
+    "total_public_types": 318,
+    "law_tags": [
+      "Evidence<T, State, W>",
+      "State tokens (Raw, Parsed, Admitted, Refused, Projected, Exportable, Receipted)",
+      "Witness markers (41 types)",
+      "Admission<T, W>, Refusal<R, W>",
+      "LossPolicy, LossReport, ProjectionName",
+      "ReceiptEnvelope<T, W>"
+    ],
+    "sealed_traits": [
+      "EvidenceState (constrains State parameter)",
+      "Witness (trait with const metadata)",
+      "LossyFormatExport (enforces loss accounting)",
+      "TreeProjectable (POWL→Tree projection)",
+      "FollowsRelation (DFG edge semantics)",
+      "ReceiptCarrier (receipt structure)",
+      "OcelValidator (OCEL structural validity)",
+      "OcelRoundTripClaim (lossless export)",
+      "GraduateToWasm4pm (graduation protocol)"
+    ],
+    "zero_cost_abstractions": [
+      "Evidence: PhantomData<State> + PhantomData<W> → zero-sized",
+      "Witness markers: empty enums → uninhabited, zero cost",
+      "ID wrappers: #[repr(transparent)] → zero-cost over inner type",
+      "State tokens: empty enums → zero-sized"
+    ]
+  },
+  "invariants": {
+    "forbidden_unsafe": "#![forbid(unsafe_code)]",
+    "feature_constraint": "Exactly three public features: formats, strict, wasm4pm",
+    "refusal_law": "Every refusal carries a specific named reason R, never bare InvalidInput",
+    "loss_accountability": "All lossy projections go through Project trait with LossPolicy + LossReport",
+    "no_engine_logic": "Discovery, conformance, replay, alignment are not in this crate",
+    "documentation": "Every public type, module, fn requires rustdoc with usage context",
+    "typestate_enforcement": "Illegal lifecycle transitions are unrepresentable at compile time"
+  }
+}
