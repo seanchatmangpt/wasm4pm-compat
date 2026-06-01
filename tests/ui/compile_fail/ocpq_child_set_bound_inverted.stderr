@@ -1,0 +1,67 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_child_set_bound_inverted.rs:10:12
+   |
+10 |     let _: ChildSetBoundConst<"items", 5, 2> = ChildSetBoundConst::new();
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `ChildSetBoundConst`
+  --> src/ocpq.rs
+   |
+   | pub struct ChildSetBoundConst<const LABEL: &'static str, const MIN: usize, const MAX: usize>
+   |            ------------------ required by a bound in this struct
+   | where
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `ChildSetBoundConst`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_child_set_bound_inverted.rs:10:48
+   |
+10 |     let _: ChildSetBoundConst<"items", 5, 2> = ChildSetBoundConst::new();
+   |                                                ^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `ChildSetBoundConst`
+  --> src/ocpq.rs
+   |
+   | pub struct ChildSetBoundConst<const LABEL: &'static str, const MIN: usize, const MAX: usize>
+   |            ------------------ required by a bound in this struct
+   | where
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `ChildSetBoundConst`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_child_set_bound_inverted.rs:10:48
+   |
+10 |     let _: ChildSetBoundConst<"items", 5, 2> = ChildSetBoundConst::new();
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `ChildSetBoundConst::<LABEL, MIN, MAX>::new`
+  --> src/ocpq.rs
+   |
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `ChildSetBoundConst::<LABEL, MIN, MAX>::new`
+...
+   |     pub const fn new() -> Self {
+   |                  --- required by a bound in this associated function
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_child_set_bound_inverted.rs:10:48
+   |
+10 |     let _: ChildSetBoundConst<"items", 5, 2> = ChildSetBoundConst::new();
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `ChildSetBoundConst`
+  --> src/ocpq.rs
+   |
+   | pub struct ChildSetBoundConst<const LABEL: &'static str, const MIN: usize, const MAX: usize>
+   |            ------------------ required by a bound in this struct
+   | where
+   |     crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
+   |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `ChildSetBoundConst`

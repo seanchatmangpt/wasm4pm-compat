@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:12:18
+   |
+12 |     requires_xor(lp);
+   |     ------------ ^^ expected `wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor`, found `wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Loop`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `TypedNode<wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor>`
+              found struct `TypedNode<wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Loop>`
+note: function defined here
+  --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:7:4
+   |
+ 7 | fn requires_xor(_node: TypedNode<{ PowlKind::Xor }>) {}
+   |    ^^^^^^^^^^^^ -----------------------------------

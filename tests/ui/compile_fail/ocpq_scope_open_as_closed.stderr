@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_scope_open_as_closed.rs:14:27
+   |
+14 |     requires_closed_scope(open);
+   |     --------------------- ^^^^ expected `Closed`, found `Open`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `ObjectScopeConst<Closed>`
+              found struct `ObjectScopeConst<Open>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_scope_open_as_closed.rs:9:4
+   |
+ 9 | fn requires_closed_scope(_s: ObjectScopeConst<{ OcpqScopeKind::Closed }>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^ -----------------------------------------------

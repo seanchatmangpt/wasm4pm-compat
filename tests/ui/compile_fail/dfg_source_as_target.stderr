@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `DfgSourceMarker: IsDfgTarget` is not satisfied
+  --> tests/ui/compile_fail/dfg_source_as_target.rs:10:18
+   |
+10 |     needs_target(DfgSourceMarker);
+   |     ------------ ^^^^^^^^^^^^^^^ the trait `IsDfgTarget` is not implemented for `DfgSourceMarker`
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `IsDfgTarget` is implemented for `DfgTargetMarker`
+  --> src/dfg.rs
+   |
+   | impl IsDfgTarget for DfgTargetMarker {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `needs_target`
+  --> tests/ui/compile_fail/dfg_source_as_target.rs:6:20
+   |
+ 6 | fn needs_target<T: IsDfgTarget>(_: T) {}
+   |                    ^^^^^^^^^^^ required by this bound in `needs_target`

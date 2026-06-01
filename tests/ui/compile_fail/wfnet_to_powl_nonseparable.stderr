@@ -1,27 +1,27 @@
 warning: unreachable expression
-  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:35:64
+  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:36:64
    |
-35 |       let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
+36 |       let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
    |  ________________________________________________________________^
-36 | |         net,
-37 | |         _seal: todo!(),
+37 | |         net,
+38 | |         _seal: todo!(),
    | |                ------- any code following this expression is unreachable
-38 | |     };
+39 | |     };
    | |_____^ unreachable expression
    |
    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
 
 error[E0451]: field `_seal` of struct `SeparableWfNet` is private
-  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:37:9
+  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:38:9
    |
-35 |     let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
+36 |     let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
    |                                                                -------------- in this type
-36 |         net,
-37 |         _seal: todo!(),
+37 |         net,
+38 |         _seal: todo!(),
    |         ^^^^^ private field
 
 error: type `petri::wfnet_seal::WfNetSeal` is private
-  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:37:16
+  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:38:16
    |
-37 |         _seal: todo!(),
+38 |         _seal: todo!(),
    |                ^^^^^^^ private type

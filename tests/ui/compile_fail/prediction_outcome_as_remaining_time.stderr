@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/prediction_outcome_as_remaining_time.rs:13:37
+   |
+13 |     requires_remaining_time_problem(outcome);
+   |     ------------------------------- ^^^^^^^ expected `PredictionProblem<RemainingTime>`, found `PredictionProblem<OutcomeLabel>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `wasm4pm_compat::prediction::PredictionProblem<wasm4pm_compat::prediction::RemainingTime>`
+              found struct `wasm4pm_compat::prediction::PredictionProblem<wasm4pm_compat::prediction::OutcomeLabel>`
+note: function defined here
+  --> tests/ui/compile_fail/prediction_outcome_as_remaining_time.rs:7:4
+   |
+ 7 | fn requires_remaining_time_problem(_p: PredictionProblem<RemainingTime>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ------------------------------------

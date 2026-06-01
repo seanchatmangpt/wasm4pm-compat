@@ -1,7 +1,7 @@
 error[E0277]: the trait bound `wasm4pm_compat::powl::ExceedsProcessTree: TreeProjectable` is not satisfied
-  --> tests/ui/compile_fail/powl_silent_tree_projection.rs:10:29
+  --> tests/ui/compile_fail/powl_silent_tree_projection.rs:11:29
    |
-10 |     assert_tree_projectable(ExceedsProcessTree);
+11 |     assert_tree_projectable(ExceedsProcessTree);
    |     ----------------------- ^^^^^^^^^^^^^^^^^^ the trait `TreeProjectable` is not implemented for `wasm4pm_compat::powl::ExceedsProcessTree`
    |     |
    |     required by a bound introduced by this call

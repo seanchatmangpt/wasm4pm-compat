@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:22:27
+  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:23:27
    |
-22 |     exclusive_choice_only(ps);
+23 |     exclusive_choice_only(ps);
    |     --------------------- ^^ expected `wasm4pm_compat::law::WorkflowPattern::ExclusiveChoice`, found `ParallelSplit`
    |     |
    |     arguments to this function are incorrect
@@ -9,7 +9,7 @@ error[E0308]: mismatched types
    = note: expected struct `PatternNet<wasm4pm_compat::law::WorkflowPattern::ExclusiveChoice>`
               found struct `PatternNet<ParallelSplit>`
 note: function defined here
-  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:17:4
+  --> tests/ui/compile_fail/workflow_pattern_wrong_kind.rs:18:4
    |
-17 | fn exclusive_choice_only(_: PatternNet<{ WorkflowPattern::ExclusiveChoice }>) {}
+18 | fn exclusive_choice_only(_: PatternNet<{ WorkflowPattern::ExclusiveChoice }>) {}
    |    ^^^^^^^^^^^^^^^^^^^^^ ---------------------------------------------------

@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/nightly_petri_prematrix_as_postmatrix.rs:17:19
+   |
+17 |     requires_post(pre);
+   |     ------------- ^^^ expected `PostMatrix<_, _>`, found `PreMatrix<2, 3>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `PostMatrix<_, _>`
+              found struct `PreMatrix<2, 3>`
+note: function defined here
+  --> tests/ui/compile_fail/nightly_petri_prematrix_as_postmatrix.rs:8:4
+   |
+ 8 | fn requires_post<const P: usize, const T: usize>(_m: PostMatrix<P, T>)
+   |    ^^^^^^^^^^^^^                                 --------------------

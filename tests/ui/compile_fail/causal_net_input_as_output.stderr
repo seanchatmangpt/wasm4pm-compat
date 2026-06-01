@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/causal_net_input_as_output.rs:16:21
+   |
+16 |     requires_output(input);
+   |     --------------- ^^^^^ expected `OutputBinding<TaskA, TaskB>`, found `InputBinding<TaskA, TaskB>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `OutputBinding<TaskA, TaskB>`
+              found struct `InputBinding<TaskA, TaskB>`
+note: function defined here
+  --> tests/ui/compile_fail/causal_net_input_as_output.rs:11:4
+   |
+11 | fn requires_output(_b: OutputBinding<TaskA, TaskB>) {}
+   |    ^^^^^^^^^^^^^^^ -------------------------------

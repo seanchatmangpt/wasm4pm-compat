@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/projection_name_bare_str.rs:24:30
+   |
+24 |     requires_projection_name("ocel-flatten-to-xes:by-order");
+   |     ------------------------ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `ProjectionName`, found `&str`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/projection_name_bare_str.rs:17:4
+   |
+17 | fn requires_projection_name(_name: ProjectionName) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^ ---------------------
+help: try wrapping the expression in `wasm4pm_compat::loss::ProjectionName`
+   |
+24 |     requires_projection_name(wasm4pm_compat::loss::ProjectionName("ocel-flatten-to-xes:by-order"));
+   |                              +++++++++++++++++++++++++++++++++++++                              +

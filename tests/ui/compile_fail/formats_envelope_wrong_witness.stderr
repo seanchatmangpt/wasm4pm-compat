@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/formats_envelope_wrong_witness.rs:13:27
+   |
+13 |     requires_xes_envelope(ocel_env);
+   |     --------------------- ^^^^^^^^ expected `FormatEnvelope<Xes1849>`, found `FormatEnvelope<Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `FormatEnvelope<Xes1849>`
+              found struct `FormatEnvelope<Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/formats_envelope_wrong_witness.rs:8:4
+   |
+ 8 | fn requires_xes_envelope(_e: FormatEnvelope<Xes1849>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^ ---------------------------

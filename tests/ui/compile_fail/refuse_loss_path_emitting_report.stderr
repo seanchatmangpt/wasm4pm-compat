@@ -1,0 +1,33 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/refuse_loss_path_emitting_report.rs:38:24
+   |
+38 |               return Err(LossReport::new(
+   |  ____________________---_^
+   | |                    |
+   | |                    arguments to this enum variant are incorrect
+39 | |                 ProjectionName("ocel-flatten-to-xes:by-case"),
+40 | |                 policy,
+41 | |                 vec!["item"],
+42 | |             ));
+   | |_____________^ expected `&str`, found `LossReport<_, _, Vec<&str>>`
+   |
+   = note: expected reference `&str`
+                 found struct `LossReport<_, _, Vec<&str>>`
+help: the type constructed contains `LossReport<_, _, Vec<&str>>` due to the type of the argument passed
+  --> tests/ui/compile_fail/refuse_loss_path_emitting_report.rs:38:20
+   |
+38 |                return Err(LossReport::new(
+   |   ____________________^   -
+   |  |________________________|
+39 | ||                 ProjectionName("ocel-flatten-to-xes:by-case"),
+40 | ||                 policy,
+41 | ||                 vec!["item"],
+42 | ||             ));
+   | ||_____________-^
+   | |______________|
+   |                this argument influences the type of `Err`
+note: tuple variant defined here
+  --> $RUST/core/src/result.rs
+   |
+   |     Err(#[stable(feature = "rust1", since = "1.0.0")] E),
+   |     ^^^

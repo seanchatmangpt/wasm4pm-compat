@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/metric_out_of_bounds.rs:12:12
+  --> tests/ui/compile_fail/metric_out_of_bounds.rs:13:12
    |
-12 |     let _: FitnessConst<2, 1> = FitnessConst::new();
+13 |     let _: FitnessConst<2, 1> = FitnessConst::new();
    |            ^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
    |
    = note: expected constant `false`
@@ -16,9 +16,9 @@ note: required by a bound in `Metric`
    |                              ^^^^^^ required by this bound in `Metric`
 
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/metric_out_of_bounds.rs:12:33
+  --> tests/ui/compile_fail/metric_out_of_bounds.rs:13:33
    |
-12 |     let _: FitnessConst<2, 1> = FitnessConst::new();
+13 |     let _: FitnessConst<2, 1> = FitnessConst::new();
    |                                 ^^^^^^^^^^^^ expected `false`, found `true`
    |
    = note: expected constant `false`
@@ -33,9 +33,9 @@ note: required by a bound in `Metric`
    |                              ^^^^^^ required by this bound in `Metric`
 
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/metric_out_of_bounds.rs:12:33
+  --> tests/ui/compile_fail/metric_out_of_bounds.rs:13:33
    |
-12 |     let _: FitnessConst<2, 1> = FitnessConst::new();
+13 |     let _: FitnessConst<2, 1> = FitnessConst::new();
    |                                 ^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
    |
    = note: expected constant `false`
@@ -50,9 +50,9 @@ note: required by a bound in `Metric::<KIND, NUM, DEN>::new`
    |                  --- required by a bound in this associated function
 
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/metric_out_of_bounds.rs:12:33
+  --> tests/ui/compile_fail/metric_out_of_bounds.rs:13:33
    |
-12 |     let _: FitnessConst<2, 1> = FitnessConst::new();
+13 |     let _: FitnessConst<2, 1> = FitnessConst::new();
    |                                 ^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
    |
    = note: expected constant `false`

@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/wfnet2powl_precondition_rejected.rs:36:33
+  --> tests/ui/compile_fail/wfnet2powl_precondition_rejected.rs:37:33
    |
-36 |     let _w = wfnet_to_powl_gate(plain);
+37 |     let _w = wfnet_to_powl_gate(plain);
    |              ------------------ ^^^^^ expected `SeparableWfNet<_>`, found `WfNetConst<SoundnessState::Unknown>`
    |              |
    |              arguments to this function are incorrect
@@ -9,9 +9,9 @@ error[E0308]: mismatched types
    = note: expected struct `SeparableWfNet<_>`
               found struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Unknown>`
 note: function defined here
-  --> tests/ui/compile_fail/wfnet2powl_precondition_rejected.rs:24:4
+  --> tests/ui/compile_fail/wfnet2powl_precondition_rejected.rs:25:4
    |
-24 | fn wfnet_to_powl_gate<const S: SoundnessState>(
+25 | fn wfnet_to_powl_gate<const S: SoundnessState>(
    |    ^^^^^^^^^^^^^^^^^^
-25 |     _separable: SeparableWfNet<S>,
+26 |     _separable: SeparableWfNet<S>,
    |     -----------------------------

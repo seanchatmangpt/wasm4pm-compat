@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/petri_transition_to_transition_arc.rs:12:49
+  --> tests/ui/compile_fail/petri_transition_to_transition_arc.rs:13:49
    |
-12 |     let arc: PlaceToTransitionArc<T1, T2, u8> = TransitionToPlaceArc::<T1, T2, u8>::new(1u8);
+13 |     let arc: PlaceToTransitionArc<T1, T2, u8> = TransitionToPlaceArc::<T1, T2, u8>::new(1u8);
    |              --------------------------------   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `PlaceToTransitionArc<T1, T2, u8>`, found `TransitionToPlaceArc<T1, T2, u8>`
    |              |
    |              expected due to this

@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/eventlog_event_as_trace.rs:11:20
+   |
+11 |     requires_trace(ev);
+   |     -------------- ^^ expected `Trace`, found `Event`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/eventlog_event_as_trace.rs:6:4
+   |
+ 6 | fn requires_trace(_trace: Trace) {}
+   |    ^^^^^^^^^^^^^^ -------------

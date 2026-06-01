@@ -1,0 +1,30 @@
+warning: unused import: `ProjectionName`
+  --> tests/ui/compile_fail/loss_without_report_on_allow_path.rs:17:61
+   |
+17 | use wasm4pm_compat::loss::{LossPolicy, LossReport, Project, ProjectionName};
+   |                                                             ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/loss_without_report_on_allow_path.rs:36:12
+   |
+36 |         Ok(())
+   |         -- ^^ expected `LossReport<OcelShape, XesShape, ...>`, found `()`
+   |         |
+   |         arguments to this enum variant are incorrect
+   |
+   = note: expected struct `LossReport<OcelShape, XesShape, Vec<&str>>`
+           found unit type `()`
+help: the type constructed contains `()` due to the type of the argument passed
+  --> tests/ui/compile_fail/loss_without_report_on_allow_path.rs:36:9
+   |
+36 |         Ok(())
+   |         ^^^--^
+   |            |
+   |            this argument influences the type of `Ok`
+note: tuple variant defined here
+  --> $RUST/core/src/result.rs
+   |
+   |     Ok(#[stable(feature = "rust1", since = "1.0.0")] T),
+   |     ^^

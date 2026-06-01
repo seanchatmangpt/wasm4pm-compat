@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/witness_declare_as_ocpq.rs:14:5
+   |
+12 |     let decl_ev: Evidence<String, Admitted, DeclareFamily> = todo!();
+   |                                                              ------- any code following this expression is unreachable
+13 |     // This must fail: DeclareFamily witness is not OcpqPaper.
+14 |     requires_ocpq_evidence(decl_ev);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/witness_declare_as_ocpq.rs:14:28
+   |
+14 |     requires_ocpq_evidence(decl_ev);
+   |     ---------------------- ^^^^^^^ expected `Evidence<String, Admitted, OcpqPaper>`, found `Evidence<String, Admitted, ...>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, OcpqPaper>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, DeclareFamily>`
+note: function defined here
+  --> tests/ui/compile_fail/witness_declare_as_ocpq.rs:9:4
+   |
+ 9 | fn requires_ocpq_evidence(_: Evidence<String, Admitted, OcpqPaper>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ ----------------------------------------

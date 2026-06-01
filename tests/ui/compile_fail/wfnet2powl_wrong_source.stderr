@@ -1,7 +1,7 @@
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:32:33
+  --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:33:33
    |
-32 |     let _w = wfnet_to_powl_gate(net);
+33 |     let _w = wfnet_to_powl_gate(net);
    |              ------------------ ^^^ expected `SeparableWfNet<_>`, found `PetriNet`
    |              |
    |              arguments to this function are incorrect
@@ -9,9 +9,9 @@ error[E0308]: mismatched types
    = note: expected struct `SeparableWfNet<_>`
               found struct `wasm4pm_compat::petri::PetriNet`
 note: function defined here
-  --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:20:4
+  --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:21:4
    |
-20 | fn wfnet_to_powl_gate<const S: SoundnessState>(
+21 | fn wfnet_to_powl_gate<const S: SoundnessState>(
    |    ^^^^^^^^^^^^^^^^^^
-21 |     _separable: SeparableWfNet<S>,
+22 |     _separable: SeparableWfNet<S>,
    |     -----------------------------

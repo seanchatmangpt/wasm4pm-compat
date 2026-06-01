@@ -1,0 +1,18 @@
+error[E0277]: the trait bound `MyCandidate: GraduationCandidate` is not satisfied
+  --> tests/ui/compile_fail/graduation_candidate_as_wasm4pm_bridge.rs:14:32
+   |
+14 |     only_graduation_candidates(&MyCandidate);
+   |     -------------------------- ^^^^^^^^^^^^ unsatisfied trait bound
+   |     |
+   |     required by a bound introduced by this call
+   |
+help: the trait `GraduationCandidate` is not implemented for `MyCandidate`
+  --> tests/ui/compile_fail/graduation_candidate_as_wasm4pm_bridge.rs:8:1
+   |
+ 8 | struct MyCandidate;
+   | ^^^^^^^^^^^^^^^^^^
+note: required by a bound in `only_graduation_candidates`
+  --> tests/ui/compile_fail/graduation_candidate_as_wasm4pm_bridge.rs:10:34
+   |
+10 | fn only_graduation_candidates<T: GraduationCandidate>(_: &T) {}
+   |                                  ^^^^^^^^^^^^^^^^^^^ required by this bound in `only_graduation_candidates`
