@@ -501,6 +501,76 @@ witness_marker!(
     Some(2013)
 );
 witness_marker!(
+    /// Streaming evidence authority — evidence collected from a live event stream.
+    ///
+    /// Names the authority under which a piece of evidence is tagged as originating
+    /// from a streaming (online) source. An `Admission<T, StreamingEvidenceWitness>`
+    /// is distinguishable from `Admission<T, Ocel20>` or any batch-log witness —
+    /// streaming evidence may be partial, windowed, or out-of-order relative to a
+    /// complete offline log.
+    ///
+    /// Distinct from [`CausalConsistencyWitness`] (which names the causal-ordering
+    /// authority) and from any individual format witness. Use
+    /// `StreamingEvidenceWitness` when tagging evidence whose *collection mode* is
+    /// the relevant authority — not its format or its causal properties.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when streaming ingestion, online monitoring, or windowed conformance
+    /// checking must execute.
+    StreamingEvidenceWitness,
+    "streaming-evidence",
+    WitnessFamily::Paper,
+    "Streaming evidence (online collection context)",
+    None
+);
+witness_marker!(
+    /// Causal consistency authority — cross-object causal ordering has been
+    /// established and verified for this evidence.
+    ///
+    /// Names the authority under which cross-object causal links are asserted to
+    /// be mutually consistent. An `Admission<T, CausalConsistencyWitness>` claims
+    /// that the admitted value's causal order has been verified — no cycles, no
+    /// contradictions — per the process-mining Chicago TDD doctrine (if the event
+    /// log cannot prove a lawful causal process happened, then it did not happen).
+    ///
+    /// Distinct from [`StreamingEvidenceWitness`] (collection mode) and from
+    /// [`CrossLogCorrelationWitness`] (cross-log merging). Use
+    /// `CausalConsistencyWitness` when tagging evidence whose *causal ordering* is
+    /// the relevant authority claim.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when causal ordering derivation, cycle detection, or consistency checking
+    /// must execute.
+    CausalConsistencyWitness,
+    "causal-consistency",
+    WitnessFamily::Paper,
+    "Causal consistency (cross-object causal ordering verified)",
+    None
+);
+witness_marker!(
+    /// Cross-log correlation authority — events from two or more logs have been
+    /// correlated under a named schema.
+    ///
+    /// Names the authority under which a merged log shape was produced by
+    /// correlating two source logs. An `Admission<T, CrossLogCorrelationWitness>`
+    /// is distinguishable from any single-log witness — it asserts that the
+    /// admitted value is a *merged* result whose provenance spans multiple logs.
+    ///
+    /// Distinct from [`StreamingEvidenceWitness`] (collection mode) and from
+    /// [`CausalConsistencyWitness`] (causal ordering). Use
+    /// `CrossLogCorrelationWitness` when tagging evidence whose *multi-log
+    /// provenance* is the relevant authority claim.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// when cross-log event matching, join execution, or merged log analysis
+    /// must execute.
+    CrossLogCorrelationWitness,
+    "cross-log-correlation",
+    WitnessFamily::Paper,
+    "Cross-log correlation (multi-log provenance)",
+    None
+);
+witness_marker!(
     /// Aggregation view witness — a process cube projection to the aggregated
     /// (statistical/summary) perspective.
     ///
