@@ -1,0 +1,45 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+Process mining implementations routinely assert correctness through runtime
+checks, test suites, and informal code review. These mechanisms are necessary
+but not sufficient: they can verify that a program produced a result, but they
+cannot prove that the result was produced by a lawful process. When a crate
+claims that an event log has been admitted against the OCEL~2.0 standard, there
+is no compile-time obligation that prevents the caller from treating the
+admitted evidence as raw, unvalidated data --- unless the type system itself
+encodes that distinction. This is the verification gap that
+\texttt{wasm4pm-compat} addresses.
+
+We present a nightly Rust type-law foundry whose central invariant is a
+typed, one-way lifecycle enforced entirely at compile time. The carrier type
+\Evidence{T}{State}{W} couples a value with a state token and a witness marker
+that names the specific paper, standard, or law under which the value was
+admitted. Because state tokens are empty enums and witness markers are
+zero-sized \texttt{PhantomData} fields, the distinction between
+\Evidence{T}{\texttt{Raw}}{W} and \Evidence{T}{\texttt{Admitted}}{W} is
+erased at runtime while remaining fully opaque to the type checker. No cast,
+coercion, or unsafe block can bridge two incompatible lifecycle states; the
+compiler rejects such programs before they execute.
+
+The approach is certified through the ALIVE gate: a trybuild-based
+compile-time receipt suite in \texttt{tests/ui/}. The gate consists of
+compile-fail fixtures --- each of which must fail for the \emph{intended named
+law}, not accidentally --- and compile-pass fixtures that prove every lawful path
+remains open. Reaching \textsc{PaperLaw Crown Alive 004} required
+37~modules, 196~compile-fail receipts, 406~compile-pass receipts, 98~mapped
+papers from the process mining literature, and 601~receipt-bearing commits
+manufactured across May~2026.
+
+The principal contribution is the \emph{manufacturing doctrine}: a discipline
+in which every commit is a receipt, every compile-fail fixture is a proof
+obligation, and the graduation boundary to the \texttt{wasm4pm} execution
+engine is enforced by feature-gated type contracts rather than by convention.
+The result is a crate that applications cannot misuse at the lifecycle level
+without a compiler error, and whose correctness evidence survives intact
+across refactors, toolchain upgrades, and contributor changes.
+
+\bigskip
+\noindent\textbf{Keywords:} process mining, type theory, nightly Rust,
+compile-time verification, object-centric event logs, OCEL~2.0, trybuild,
+ALIVE gate, manufacturing doctrine, evidence lifecycle.

@@ -1,0 +1,274 @@
+\chapter{Introduction}
+\label{ch:introduction}
+
+\section{The Verification Gap in Process Mining Implementations}
+\label{sec:intro-gap}
+
+Process mining has matured into a discipline with well-understood algorithms,
+published standards, and production-grade open-source libraries. The Alpha
+Miner~\cite{vanderaalst2004workflow}, the Inductive
+Miner~\cite{leemans2013discovering}, alignment-based conformance
+checking~\cite{adriansyah2011conformance}, and the OCEL~2.0
+standard~\cite{ocel20_2023} collectively represent decades of theoretical
+development. Libraries such as pm4py~\cite{berti2019pm4py} and toolkits built
+on top of them bring these algorithms within reach of practitioners writing
+ordinary Python or Rust code.
+
+Yet a persistent gap separates the guarantees stated in the literature from
+the guarantees that can be verified in a running implementation. A Petri net
+soundness theorem~\cite{vanderaalst1998application} holds unconditionally for
+the mathematical object it describes. A software representation of that net
+holds its invariants only as long as every caller, at every call site, respects
+the conventions documented in comments, enforced by runtime assertions, or
+validated by tests. None of these mechanisms is structural: none of them
+prevents a caller from constructing an unsound net, admitting it as sound, and
+passing it downstream without the compiler raising an objection.
+
+This is the \emph{verification gap}: the space between what a type signature
+claims and what the compiler is willing to enforce. Closing the gap requires
+making the invariant \emph{visible to the type system} --- encoding it as a
+type-level distinction that the compiler checks at every use site, without
+exception and without the need for runtime evidence.
+
+The \texttt{wasm4pm-compat} crate is an attempt to close this gap for the core
+abstractions of object-centric process mining. Its central invariant is a
+typed, one-way lifecycle: raw data must be admitted before it can be projected,
+exported, or receipted, and admission is only possible through a sanctioned
+path that names a specific structural law. The compiler enforces this invariant
+unconditionally. No escape hatch exists short of \texttt{unsafe} code, and
+the crate unconditionally declares \texttt{\#![forbid(unsafe\_code)]}.
+
+\section{The Central Claim: Type Law as Compile-Time Proof Obligation}
+\label{sec:intro-claim}
+
+The central claim of this work is stated precisely:
+
+\begin{quote}
+  A \emph{type law} is a structural invariant of a domain that can be
+  encoded as a well-typed program such that any violation causes a
+  compile-time error. A \emph{compile-time proof obligation} is a type-law
+  encoding together with a trybuild fixture that demonstrates the obligation is
+  both enforced (compile-fail path exists and fails for the named law) and
+  satisfiable (compile-pass path exists and compiles successfully).
+\end{quote}
+
+The key safety property is:
+
+\begin{equation}
+  \label{eq:type-law-safety}
+  \forall T, S_1, S_2, W.\
+  \Evidence{T}{S_1}{W} \not\leq \Evidence{T}{S_2}{W}
+  \text{ when } S_1 \neq S_2
+\end{equation}
+
+That is, no subtyping, coercion, or implicit conversion relates two
+\Evidence{}{}{} carriers that differ only in their state parameter. The Rust
+type system enforces this through nominal typing: \texttt{Evidence<T, Raw, W>}
+and \texttt{Evidence<T, Admitted, W>} are distinct types with no common
+supertype, no \texttt{From}/\texttt{Into} implementation bridging them, and no
+public constructor on the \texttt{Admitted} variant reachable from outside the
+crate. The \emph{only} public path to admitted evidence is through
+\texttt{Admit::admit()}, which returns \texttt{Result<Admission<\ldots>,
+Refusal<R, W>>} where the reason type \texttt{R} must name a specific
+structural law.
+
+This claim is not merely theoretical. The crate's ALIVE gate
+(\S\ref{sec:intro-contributions}) provides machine-checked evidence that the
+claim holds for every law surface in the codebase.
+
+\section{The Manufacturing Doctrine}
+\label{sec:intro-doctrine}
+
+The \texttt{wasm4pm-compat} development model is governed by the
+\emph{manufacturing doctrine}: a discipline that treats code commits as
+receipts, compile-fail fixtures as proof obligations, and the ALIVE gate as the
+certification surface.
+
+Under the manufacturing doctrine:
+
+\begin{itemize}
+  \item Every commit that introduces or strengthens a type-law surface must
+        also introduce or update a trybuild fixture that proves the law is
+        enforced. A commit that adds a type restriction without a corresponding
+        compile-fail fixture is not a valid receipt.
+  \item A compile-fail fixture that fails for the wrong reason --- a missing
+        import, a typo, an unstable feature regression --- is not a valid
+        type-law receipt. The fixture must fail for the \emph{intended named
+        law}, as verified by the expected \texttt{.stderr} diagnostic.
+  \item Every lawful path must have a corresponding compile-pass fixture. A
+        type restriction that also blocks the lawful path is a defect, not a
+        feature.
+  \item The graduation boundary to the \texttt{wasm4pm} execution engine is
+        enforced by the \texttt{wasm4pm} Cargo feature. Types that bridge into
+        the execution engine are only reachable when the feature is enabled.
+        This ensures that the compatibility crate does not accidentally import
+        execution-engine concerns into the structure-only layer.
+\end{itemize}
+
+The doctrine is not a testing strategy. It is a manufacturing strategy: the
+commit history is itself an artifact, and each commit either advances the
+certification state or it does not. Reaching
+\textsc{PaperLaw Crown Alive 004} required 601~receipt-bearing commits
+manufactured across May~2026, each traceable to a specific paper, standard, or
+law in the process mining literature.
+
+\section{Contributions}
+\label{sec:intro-contributions}
+
+This work makes the following contributions:
+
+\begin{itemize}
+  \item \textbf{Evidence lifecycle type.} The \Evidence{T}{State}{W} type
+        encodes a one-way process-evidence lifecycle at the type level, with
+        zero runtime cost. State tokens and witness markers are
+        \texttt{PhantomData} fields erased at compile time.
+
+  \item \textbf{Witness-indexed admission.} The \texttt{Admit} trait couples
+        admission to a specific named witness (OCEL~2.0, XES~1849, WF-net
+        soundness, etc.), making it impossible to confuse evidence admitted
+        under one standard with evidence admitted under another.
+
+  \item \textbf{Named-law refusal.} Every refusal carries a specific named law
+        as its reason type. String-typed or catch-all refusals are rejected at
+        compile time by the type system. This ensures that diagnostic
+        information is structured and machine-readable.
+
+  \item \textbf{Loss accounting protocol.} The \texttt{Project} trait enforces
+        a \texttt{LossPolicy} decision before any lossy transformation occurs,
+        and requires a \texttt{LossReport} on every non-refusing path. Silent
+        structure loss is a compile-time defect.
+
+  \item \textbf{Const-generic law surfaces.} \texttt{WfNetConst<SOUNDNESS>},
+        \texttt{ConditionCell<BITS>}, \texttt{Between01<NUM, DEN>}, and
+        \texttt{TypedLoopNode<ARITY>} encode quantitative invariants directly
+        in const generic parameters, checked by the compiler via
+        \texttt{Require}/\texttt{IsTrue} bounds.
+
+  \item \textbf{The ALIVE gate.} A trybuild-based certification surface
+        consisting of compile-fail and compile-pass fixtures. Reaching
+        \textsc{PaperLaw Crown Alive 004}: 196~compile-fail receipts,
+        406~compile-pass receipts, 37~modules, 98~papers.
+
+  \item \textbf{The manufacturing doctrine.} A development discipline in
+        which commits are receipts, fixtures are proof obligations, and the
+        graduation boundary to the execution engine is a type contract. The
+        doctrine is the subject of Chapter~\ref{ch:doctrine}.
+\end{itemize}
+
+\section{A Motivating Example}
+\label{sec:intro-example}
+
+To make the type-law approach concrete, consider the simplest possible misuse
+of a process-evidence type: treating raw, unvalidated data as if it had already
+been admitted against a standard.
+
+In a runtime-checked library, this error is latent. The raw data may carry a
+boolean field \texttt{is\_admitted = false}, but nothing prevents a caller from
+passing the object to a function that expects admitted evidence and only
+checking the field at runtime --- or not checking it at all.
+
+In \texttt{wasm4pm-compat}, the same error is a compile-time failure:
+
+\begin{lstlisting}[language=Rust, caption={Type-level lifecycle enforcement.
+  \texttt{Evidence<T, Raw, W>} and \texttt{Evidence<T, Admitted, W>} are
+  distinct types. The compiler rejects any attempt to use one as the other.},
+  label={lst:intro-lifecycle}]
+use wasm4pm_compat::evidence::Evidence;
+use wasm4pm_compat::state::{Raw, Admitted};
+use wasm4pm_compat::witness::Ocel20;
+
+// Raw evidence: the standard has not been verified.
+let raw: Evidence<OcelLog, Raw, Ocel20> = Evidence::raw(log);
+
+// The only sanctioned path to admitted evidence:
+let admitted: Evidence<OcelLog, Admitted, Ocel20> =
+    Ocel20Admitter::admit(raw)?;
+
+// This does not compile. Raw and Admitted are distinct types.
+// let wrong: Evidence<OcelLog, Admitted, Ocel20> = raw;
+//            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// error[E0308]: mismatched types
+//   expected `Evidence<OcelLog, Admitted, Ocel20>`
+//      found `Evidence<OcelLog, Raw, Ocel20>`
+\end{lstlisting}
+
+The type-level distinction between \texttt{Raw} and \texttt{Admitted} is the
+same kind of distinction that separates an untrusted network buffer from a
+validated domain object in a security-critical system --- except that in
+\texttt{wasm4pm-compat}, the enforcer is the compiler rather than a runtime
+guard. The state token \texttt{Admitted} is a zero-sized type; it contributes
+no bytes to the memory layout of \texttt{Evidence}. The entire enforcement cost
+is paid at compile time and then erased.
+
+The same pattern extends across the full lifecycle:
+
+\begin{lstlisting}[language=Rust, caption={Full lifecycle from \texttt{Raw} to
+  \texttt{Receipted}. Each arrow is a type transition. None can be reversed or
+  skipped without a compiler error.}, label={lst:intro-full-lifecycle}]
+// Raw -> Admitted (via Admit::admit)
+let admitted = Ocel20Admitter::admit(raw)?;
+
+// Admitted -> Projected (via Project::project)
+let projected = OcelProjector::project(
+    admitted,
+    ProjectionName("flatten_to_xes"),
+    AllowNamedProjection,
+)?;
+
+// Admitted -> Receipted (via receipt issuance)
+let receipted = receipt::issue(admitted, receipt_key);
+
+// Admitted -> Refused (terminal; carries named law)
+// Only reachable through admit(), never from outside.
+\end{lstlisting}
+
+Crucially, there is no \texttt{Raw -> Receipted} path. There is no
+\texttt{Refused -> Admitted} path. The type system enforces a
+directed acyclic lifecycle: once evidence is refused, it cannot be
+rehabilitated. The only way to obtain admitted evidence is to start from raw
+evidence and pass through \texttt{Admit::admit()} with a conforming payload.
+
+\section{Paper Structure}
+\label{sec:intro-structure}
+
+The remainder of this book is organized as follows.
+
+Chapter~\ref{ch:background} provides background on process mining abstractions
+(event logs, Petri nets, workflow nets, OCEL~2.0, conformance checking) and on
+the nightly Rust type system features that make the type-law encoding possible
+(\texttt{generic\_const\_exprs}, \texttt{adt\_const\_params},
+\texttt{const\_trait\_impl}, \texttt{min\_specialization}).
+
+Chapter~\ref{ch:architecture} describes the three-layer type system in detail:
+state tokens, witness markers, and the \Evidence{}{}{} carrier. It documents
+every canon module and the invariants each module enforces.
+
+Chapter~\ref{ch:law} presents the type-law kernel: \texttt{law.rs},
+\texttt{petri.rs}, \texttt{conformance.rs}, \texttt{process\_tree.rs},
+\texttt{powl.rs}, and the const-generic bound machinery
+(\texttt{Assert}/\texttt{IsTrue}/\texttt{Require}).
+
+Chapter~\ref{ch:alive} describes the ALIVE gate: the trybuild test harness,
+the compile-fail and compile-pass fixture disciplines, the \texttt{.stderr}
+snapshot protocol, and the certification levels from
+\textsc{Alive~001} through \textsc{Crown Alive~004}.
+
+Chapter~\ref{ch:papers} maps each of the 98~source papers to the type-law
+surface it grounds: which module, which witness marker, which compile-fail
+fixture encodes its core invariant.
+
+Chapter~\ref{ch:doctrine} formalizes the manufacturing doctrine: commits as
+receipts, the ALIVE gate as the certification surface, and the graduation
+boundary to \texttt{wasm4pm}.
+
+Chapter~\ref{ch:evaluation} evaluates the approach: compile-time overhead,
+fixture maintenance burden, toolchain stability, and the cost of enforcing
+the doctrine across 601~commits.
+
+Chapter~\ref{ch:relatedwork} surveys related work in type-safe process
+representations, liquid types, dependent types, and certified program
+extraction.
+
+Chapter~\ref{ch:conclusion} concludes with open problems and directions for
+future work, including stable Rust graduation criteria and the path toward
+formal mechanization in Lean~4.

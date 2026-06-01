@@ -1,0 +1,420 @@
+\chapter{Background}
+\label{ch:background}
+
+This chapter establishes the technical foundations on which the remainder of
+this book depends. Section~\ref{sec:bg-pm} introduces process mining:
+its vocabulary, formal models, and the three-phase lifecycle of discovery,
+conformance, and enhancement. Section~\ref{sec:bg-ocpm} motivates
+object-centric process mining and presents the OCEL~2.0 formal model.
+Section~\ref{sec:bg-rust} explains the Rust type-system features that make
+compile-time law encoding feasible. Section~\ref{sec:bg-verification} surveys
+the landscape of type-based verification and locates nightly Rust within it.
+Section~\ref{sec:bg-trybuild} describes the trybuild harness and the
+type-law receipt protocol it enables.
+
+% -----------------------------------------------------------------------------
+\section{Process Mining}
+\label{sec:bg-pm}
+% -----------------------------------------------------------------------------
+
+Process mining is a discipline at the intersection of data science and process
+management that aims to discover, monitor, and improve real processes by
+extracting knowledge from \emph{event logs}~\cite{vanderaalst2016process}.
+Where classical business-process management assumes a prescribed model and
+checks whether the organisation follows it, process mining starts from
+observed behaviour --- timestamps, activity labels, case identifiers --- and
+derives models, deviations, and improvement opportunities from first
+principles.
+
+\paragraph{Event logs and traces.}
+An \emph{event} is the smallest observable unit: it records that a specific
+activity occurred at a specific time, optionally linked to a case, resource,
+and payload of typed attributes. A \emph{trace} is a finite, time-ordered
+sequence of events sharing a common case identifier. An \emph{event log} is a
+collection of traces. This vocabulary --- event, trace, log --- originated with the
+\textsc{WorkflowNet} formalism~\cite{vanderaalst1998application} and was
+standardised in the eXtensible Event Stream (\textsc{XES}) format by the
+\textsc{IEEE} Task Force on Process Mining~\cite{gunther2014xes}.
+
+\begin{definition}[Event Log]
+\label{def:event-log}
+Let $\mathcal{A}$ be a universe of \emph{activity labels} and $\mathcal{T}$ a
+totally ordered universe of \emph{timestamps}. An \emph{event} is a tuple
+$e = (a, t, \mathbf{d})$ where $a \in \mathcal{A}$, $t \in \mathcal{T}$, and
+$\mathbf{d}$ is a finite map of typed attribute data. A \emph{trace} over
+$\mathcal{A}$ is a finite sequence $\sigma = \langle e_1, e_2, \ldots, e_n
+\rangle$ of events with $t(e_1) \leq t(e_2) \leq \cdots \leq t(e_n)$.
+An \emph{event log} $L$ over a universe of events $\mathcal{E}$ is a multiset
+$L \in \mathcal{B}(\mathcal{A}^*)$ such that every element of $L$ is a trace
+over $\mathcal{A}$.
+\end{definition}
+
+The multiset formulation is important: a log may contain duplicate traces.
+This occurs whenever the same sequence of activities is observed for multiple
+cases, and collapsing duplicates would misrepresent the frequency distribution
+of process variants --- a key input to performance analysis.
+
+\paragraph{The PM lifecycle.}
+Van der Aalst identifies three phases of the process-mining
+lifecycle~\cite{vanderaalst2016process}:
+\begin{enumerate}
+  \item \textbf{Discovery.} An algorithm takes a log $L$ as input and produces
+        a process model $M$ that describes the observed behaviour.
+        The Alpha Miner~\cite{vanderaalst2004workflow}, the Inductive
+        Miner~\cite{leemans2013discovering}, and the Split
+        Miner~\cite{augusto2019split} are representative algorithms, each
+        with different guarantees on soundness, fitness, and precision.
+  \item \textbf{Conformance checking.} Given both a model $M$ and a log $L$,
+        conformance checking measures how well $M$ and $L$ agree.
+        Alignment-based techniques~\cite{adriansyah2011conformance} compute
+        an optimal alignment between each trace and the model,
+        assigning cost to deviations and producing per-event diagnostics.
+        The four quality dimensions --- fitness, precision, generalisation, and
+        simplicity~\cite{buijs2014quality} --- are the canonical scorecard.
+  \item \textbf{Enhancement.} Using both the model and the log, enhancement
+        extends or repairs the model: annotating it with performance data,
+        repairing deviating fragments, or updating it to reflect observed
+        drift~\cite{vanderaalst2016process}.
+\end{enumerate}
+
+\paragraph{XES vs OCEL~2.0.}
+The XES standard~\cite{gunther2014xes} encodes case-centric event logs in XML.
+Every event belongs to exactly one trace identified by a single case attribute.
+XES is well-supported by toolkits such as pm4py~\cite{berti2019pm4py} and
+ProM~\cite{verbeek2010prom}, and remains the dominant interchange format for
+classical process mining. Its central limitation is the \emph{single case
+notion}: real processes involve multiple interacting objects (orders, items,
+deliveries, payments) and forcing all events into a single case dimension
+requires an arbitrary choice of which object to use as the case, discarding
+relational structure in the process.
+
+The Object-Centric Event Log format (OCEL~2.0,~\cite{ocel20_2023}) replaces
+the case notion with a typed object graph. Each event may relate to any number
+of objects of any type, and objects may relate to each other.
+Section~\ref{sec:bg-ocpm} formalises this model.
+
+% -----------------------------------------------------------------------------
+\section{Object-Centric Process Mining}
+\label{sec:bg-ocpm}
+% -----------------------------------------------------------------------------
+
+Classical process mining assumes that every event belongs to exactly one case.
+This assumption is adequate when a process is genuinely case-centric ---
+insurance claims, for example, follow a single claimant through a sequence of
+activities and a single case identifier captures the trajectory cleanly.
+But most real processes involve \emph{convergence} and \emph{divergence}: a
+sales order converges onto a shipment that contains multiple items, and a
+single payment diverges to satisfy multiple invoices. Flattening such a process
+to a single case notion requires choosing one object type as the case ---
+say, the order --- and then either duplicating events (once per item in the
+order) or dropping them (once per order, ignoring per-item variation).
+Both choices introduce artefacts: duplication inflates frequency counts;
+dropping loses causal detail~\cite{ghahfarokhi2021ocel}.
+
+Object-centric process mining (OCPM) resolves this by treating the event graph
+as a first-class citizen: events relate to multiple objects across multiple
+types, and objects relate to each other, without any flattening~\cite{aalst2020ocpm}.
+The formal model is OCEL~2.0.
+
+\begin{definition}[OCEL~2.0 Event Log]
+\label{def:ocel20}
+Let $\mathcal{OT}$ be a finite universe of \emph{object types} and
+$\mathcal{A}$ a universe of \emph{activity labels}. An \emph{OCEL~2.0 event
+log} is a tuple $\mathcal{O} = (E, O, \mathit{EA}, \mathit{OA}, E_2O, O_2O)$
+where:
+\begin{itemize}
+  \item $E$ is a finite set of \emph{events}, each bearing an activity label
+        $a \in \mathcal{A}$ and a timestamp $t \in \mathcal{T}$.
+  \item $O$ is a finite set of \emph{objects}, each bearing a type
+        $\tau \in \mathcal{OT}$ and a typed attribute map.
+  \item $\mathit{EA} : E \to (\mathit{Key} \rightharpoonup \mathit{Val})$ maps
+        events to typed attribute records.
+  \item $\mathit{OA} : O \times \mathcal{T} \to (\mathit{Key}
+        \rightharpoonup \mathit{Val})$ maps objects and timestamps to attribute
+        records, capturing \emph{object change} over time.
+  \item $E_2O \subseteq E \times O \times \mathit{Qual}$ is the
+        \emph{event-to-object relation} (E2O), where $\mathit{Qual}$ is a
+        finite universe of \emph{qualifiers} naming the role of an object in
+        an event (e.g. \texttt{"item"}, \texttt{"responsible"}).
+  \item $O_2O \subseteq O \times O \times \mathit{Qual}$ is the
+        \emph{object-to-object relation} (O2O), capturing typed structural
+        relationships between objects (e.g. \texttt{"part\_of"},
+        \texttt{"follows"}).
+\end{itemize}
+The log is \emph{well-formed} if every $(e, o, q) \in E_2O$ satisfies
+$e \in E$ and $o \in O$, and every $(o_1, o_2, q) \in O_2O$ satisfies
+$o_1, o_2 \in O$.
+\end{definition}
+
+The qualification of relations --- the $\mathit{Qual}$ dimension on both $E_2O$
+and $O_2O$ --- distinguishes OCEL~2.0 from earlier object-centric proposals.
+Earlier formats~\cite{ghahfarokhi2021ocel} recorded only \emph{which} objects
+an event related to, not \emph{in what role}. Qualifiers enable richer
+downstream analysis: an alignment algorithm can distinguish events where an
+order was the \emph{target} of a payment from events where it was merely a
+\emph{reference}, without relying on event-attribute heuristics.
+
+\paragraph{The \texttt{wasm4pm-compat} representation.}
+The crate's \texttt{ocel} module gives OCEL its own genuine canon rather than
+modelling it as ``an \texttt{EventLog} with side tables''.
+\texttt{EventObjectLink} (E2O) and \texttt{ObjectObjectLink} (O2O) are
+first-class types in the module. The \texttt{OcelLog::validate} method performs
+structural integrity: every link must reference declared objects and events;
+identifiers must be unique. Validation is structural --- it does not discover
+object-centric Petri nets, compute OC-DFGs, or check conformance.
+Those functions graduate to the \texttt{wasm4pm} execution engine.
+
+The flattening trap is a named law, \texttt{OcelRefusal::FlatteningLoss}:
+any projection from OCEL to a case-centric shape must carry a
+\texttt{LossPolicy} and emit a \texttt{LossReport}. Silent structure loss
+is a compile-time defect, not a documentation note.
+
+% -----------------------------------------------------------------------------
+\section{The Rust Type System}
+\label{sec:bg-rust}
+% -----------------------------------------------------------------------------
+
+Rust is a systems programming language whose type system provides memory safety
+without a garbage collector, enforced by the \emph{ownership} and
+\emph{borrow checker} at compile time~\cite{matsakis2014rust}. For this work,
+three features of the type system are foundational: the trait system, const
+generics, and \texttt{PhantomData}. Three nightly-only extensions elevate these
+features from general-purpose machinery to a type-law enforcement substrate.
+
+\paragraph{Ownership and the borrow checker.}
+Every value in Rust has exactly one owner. Ownership may be transferred
+(\emph{move}) or temporarily lent (\emph{borrow}), but the borrow checker
+statically prevents data races and use-after-free. For process evidence, the
+ownership model has an important consequence: a value of type
+\texttt{Evidence<T, Raw, W>} cannot be ``shared'' into an
+\texttt{Evidence<T, Admitted, W>} context by accident; the types are nominal
+and distinct, and the borrow checker will not silently coerce one to the other.
+
+\paragraph{The trait system.}
+Traits are Rust's mechanism for bounded polymorphism: they name a set of
+associated types and method signatures, and a type implements a trait by
+providing concrete definitions for each. Traits support \emph{sealed} patterns:
+a trait defined in crate $C$ with no public implementation path outside $C$
+cannot be implemented by downstream crates. \texttt{wasm4pm-compat} uses sealed
+traits for the \texttt{Witness} family and for the \texttt{Admit} lifecycle
+gate, ensuring that only crate-internal paths can produce admitted evidence.
+
+\paragraph{Const generics and \texttt{PhantomData}.}
+Const generics allow integer, boolean, or enum values to appear as type
+parameters. A type \texttt{WfNetConst<SOUNDNESS: bool>} is a distinct type for
+each boolean value of \texttt{SOUNDNESS}. \texttt{PhantomData<T>} is a
+zero-sized field that makes a struct \emph{generic over} \texttt{T} without
+storing any \texttt{T} data; the distinction is entirely at the type level and
+is erased at compile time. State tokens (\texttt{Raw}, \texttt{Admitted},
+\texttt{Refused}, \ldots) and witness markers (\texttt{Ocel20},
+\texttt{Xes1849}, \ldots) are both encoded as \texttt{PhantomData}: they
+contribute zero bytes to the memory layout of \texttt{Evidence<T, S, W>}
+while remaining fully opaque to the type checker.
+
+\paragraph{Nightly features.}
+The crate requires four nightly features that are currently undergoing
+stabilisation:
+
+\begin{itemize}
+  \item \texttt{generic\_const\_exprs} --- allows boolean expressions over const
+        generic parameters in where-bounds. Without this feature, a bound such
+        as \texttt{where Require<\{ N <= 8 \}>: IsTrue} cannot be expressed.
+  \item \texttt{adt\_const\_params} --- allows arbitrary \texttt{ConstParamTy}
+        enum values as const generic parameters, not just integers and booleans.
+        This enables \texttt{WfNetConst<SOUNDNESS>} where \texttt{SOUNDNESS} is
+        an enum variant naming a specific soundness criterion.
+  \item \texttt{const\_trait\_impl} --- allows trait methods to be evaluated in
+        const contexts. This is required for the \texttt{Between01} bounds that
+        enforce metric values at const-evaluation time.
+  \item \texttt{min\_specialization} --- allows a limited form of trait
+        specialisation: a more specific impl may override a more general one.
+        Used in the conformance module to provide specialised behaviour for
+        metrics known at type level to be exact.
+\end{itemize}
+
+\paragraph{The Assert/IsTrue pattern.}
+The compile-time law kernel at the heart of \texttt{wasm4pm-compat} is the
+\texttt{Assert}/\texttt{IsTrue}/\texttt{Require} trio, shown below:
+
+\begin{lstlisting}[language=Rust, caption={Assert/IsTrue compile-time law machinery from
+  \texttt{src/law.rs}. \texttt{Assert<true>} is inhabited; \texttt{Assert<false>}
+  is not. A where-bound \texttt{Require<\{EXPR\}>: IsTrue} becomes a compile
+  error when \texttt{EXPR} evaluates to \texttt{false}.},
+  label={lst:bg-assert-istrue}]
+pub struct Assert<const OK: bool>;
+pub trait IsTrue {}
+impl IsTrue for Assert<true> {}
+pub type Require<const OK: bool> = Assert<OK>;
+\end{lstlisting}
+
+The mechanism is as follows. \texttt{Assert<true>} is an inhabited struct
+(it can be constructed as \texttt{Assert}). \texttt{Assert<false>} is also
+a valid type, but \texttt{IsTrue} is only implemented for \texttt{Assert<true>}.
+Therefore, any function \texttt{fn f<const N: usize>() where Require<\{ N > 0
+\}>: IsTrue} can only be called when $N > 0$; calling it with $N = 0$ produces
+a compile error because \texttt{Assert<false>: IsTrue} has no proof. This
+mechanism extends to arbitrarily complex const expressions:
+\texttt{ConditionCell<BITS>} uses \texttt{Require<\{ BITS <= 8 \}>: IsTrue}
+to enforce the \emph{Need9 means split} law from the Blue River Dam covenant,
+and \texttt{Between01<NUM, DEN>} uses \texttt{Require<\{ NUM <= DEN \}>: IsTrue}
+to enforce metric-range soundness. In every case, the enforcement is total and
+zero-cost: it occurs at monomorphisation time and leaves no trace at runtime.
+
+% -----------------------------------------------------------------------------
+\section{Verification in Type Systems}
+\label{sec:bg-verification}
+% -----------------------------------------------------------------------------
+
+The idea that programs should carry machine-checkable proofs of their own
+correctness has a long history. The goal of this section is not to survey that
+history exhaustively but to locate the \texttt{wasm4pm-compat} approach
+precisely within it --- explaining what it shares with and what it differs from
+the major traditions.
+
+\paragraph{Dependent types.}
+Dependently typed languages such as Coq~\cite{coq2022}, Agda~\cite{norell2009agda},
+and Idris~\cite{brady2013idris} allow types to depend on values: the type
+\texttt{Vec A n} is the type of vectors over \texttt{A} of \emph{length
+exactly} $n$, where $n$ is a runtime value that has been lifted into the type.
+This expressive power enables specifications that are virtually unlimited in
+complexity: a sorting function can be typed so that its output is not merely a
+list but a permutation of its input that is monotone with respect to a provided
+order. The cost is proof burden: every dependently typed program is simultaneously
+a proof, and the programmer must explicitly construct the proof terms. For most
+software engineering contexts, this overhead is prohibitive.
+
+\paragraph{Liquid types.}
+Liquid types~\cite{rondon2008liquid} (and their descendant, Liquid
+Haskell~\cite{vazou2014liquidhaskell}) add refinement predicates to types
+without requiring full dependent types. A liquid type \texttt{\{x : Int |
+x > 0\}} is the type of positive integers. The type checker discharges
+refinement obligations to an SMT solver, reducing the proof burden to writing
+refinement annotations rather than proof terms. Liquid types are more
+expressive than simple Hindley--Milner types and less expressive than full
+dependent types; they occupy a practical middle ground for numeric and
+container invariants.
+
+\paragraph{GADTs.}
+Generalised algebraic data types (GADTs) in Haskell~\cite{peytonjones2006gadts}
+allow constructors to return specialised instantiations of a parameterised
+type. They enable a form of typestate encoding: a value of type
+\texttt{Evidence Raw} is distinct from \texttt{Evidence Admitted}, and pattern
+matching on the constructor reveals which state the value is in. GADTs are
+expressive enough to encode lifecycle invariants but do not support the
+const-numeric properties (``this metric is between 0 and 1'',
+``this condition cell has at most 8 bits'') that \texttt{wasm4pm-compat} needs.
+
+\paragraph{The gap in process mining implementations.}
+Despite this rich landscape, most process mining implementations offer no
+compile-time verification of their structural invariants.
+pm4py~\cite{berti2019pm4py} represents a Petri net as a mutable Python object;
+nothing prevents a caller from constructing a net without a final marking,
+naming it sound, and passing it to an alignment algorithm that assumes
+soundness. The OCEL~2.0 specification~\cite{ocel20_2023} defines precise
+well-formedness conditions, but a JSON deserialiser that produces an OCEL
+object has no obligation to check them before returning. Runtime assertions
+can catch violations in test runs; they cannot guarantee that violations
+cannot occur in code paths that tests do not cover.
+
+\paragraph{How nightly Rust fills the gap.}
+Nightly Rust is not a dependently typed language, and it is not a liquid-type
+system. It cannot express arbitrary refinement predicates or term-level proofs.
+What it can express is a well-defined subset of structural invariants that are
+decidable at monomorphisation time: boolean combinations of const generic
+inequalities, closed-world trait bounds, sealed lifecycle gates, and phantom
+witness types. This subset is precisely what process-mining type law requires.
+The invariant ``a log cannot be used as admitted before being admitted against
+a named standard'' is a trait-bound invariant, not an arbitrary predicate, and
+nightly Rust enforces it completely. The invariant ``a conformance metric is in
+$[0,1]$'' is a const-generic inequality, and \texttt{Between01<NUM, DEN>}
+encodes it completely. Together, these mechanisms cover the structural core of
+OCEL~2.0, WF-net soundness, POWL tree arity, condition-cell capacity, and the
+evidence lifecycle --- all at zero runtime cost, all checked by the compiler.
+
+% -----------------------------------------------------------------------------
+\section{trybuild and Type-Law Receipts}
+\label{sec:bg-trybuild}
+% -----------------------------------------------------------------------------
+
+Unit tests and integration tests verify that a program produces the correct
+output for a given input. They cannot directly verify that a program \emph{does
+not compile} when an invariant is violated --- because by definition, a program
+that does not compile has no output to check. The trybuild
+crate~\cite{tolnay2019trybuild} fills this gap: it is a test harness for
+compile-time behaviour.
+
+\paragraph{How trybuild works.}
+A trybuild test suite consists of a collection of small Rust source files,
+each of which is compiled independently by the trybuild runner. For each file,
+the runner records whether compilation succeeded or failed, and if it failed,
+what the compiler diagnostic was. The suite declares a set of files as
+\emph{compile-fail fixtures} and a set as \emph{compile-pass fixtures}.
+A compile-fail fixture is expected to fail; if it succeeds, the test fails.
+A compile-pass fixture is expected to succeed; if it fails, the test fails.
+For compile-fail fixtures, trybuild compares the actual diagnostic against a
+\emph{golden file} (a \texttt{.stderr} snapshot) stored alongside the fixture.
+If the diagnostic changes --- because the compiler produced a different error
+message --- the test fails, and the fixture must be updated before the suite
+passes.
+
+\paragraph{The .stderr receipt protocol.}
+The \texttt{.stderr} golden file is not merely a regression guard.
+In the \texttt{wasm4pm-compat} manufacturing doctrine, it is a
+\emph{type-law receipt}: a sealed, machine-readable attestation that the
+compiler rejected a specific violation of a named law. The key property is
+specificity. A compile-fail fixture that fails because of a typo or a missing
+import is not a valid receipt: it does not demonstrate that the law is enforced,
+only that the program is malformed. The \texttt{.stderr} file pins the exact
+error code, span, and message, ensuring that if the law \emph{stops} being
+enforced --- because a type bound was accidentally weakened in a refactor --- the
+golden file no longer matches the actual diagnostic, and the test fails.
+
+\paragraph{Why compile-fail fixtures are stronger evidence than unit tests.}
+A unit test for a type-law invariant is necessarily indirect: it must reach
+the invariant through runtime code paths, which means it only tests the paths
+the test author thought to exercise. A compile-fail fixture is \emph{total}:
+if the program in the fixture compiles without error, the invariant has been
+violated for every possible use of the guarded type, not just the paths
+the test exercises. Compile-fail fixtures also survive dead-code elimination
+and test-coverage gaps because they test the type system, not the runtime.
+
+\begin{definition}[Type-Law Receipt]
+\label{def:type-law-receipt}
+A \emph{type-law receipt} $R$ for law $\mathcal{L}$ is a pair
+$(F^-, \sigma)$ where $F^-$ is a compile-fail fixture that encodes a
+violation of $\mathcal{L}$, and $\sigma$ is the sealed compiler diagnostic
+confirming the rejection, such that:
+\begin{enumerate}
+  \item $F^-$ compiles to a type error (not a syntax error, missing-import
+        error, or unrelated diagnostic);
+  \item $\sigma$ names $\mathcal{L}$ by its Rust error code and span, and
+        the expected message is a substring of the actual compiler output;
+  \item there exists a corresponding compile-pass fixture $F^+$ that encodes
+        the lawful path and compiles without error, proving that $\mathcal{L}$
+        does not over-constrain the type.
+\end{enumerate}
+A receipt is \emph{valid} if and only if all three conditions hold simultaneously.
+A receipt that satisfies only (1) and (2) but lacks a corresponding $F^+$ is
+a \emph{partial receipt}: it proves rejection but not satisfiability.
+\end{definition}
+
+\paragraph{The ALIVE gate.}
+The \texttt{wasm4pm-compat} ALIVE gate is the collection of all valid receipts
+in \texttt{tests/ui/}: compile-fail fixtures in \texttt{tests/ui/compile\_fail/}
+paired with \texttt{.stderr} golden files, and compile-pass fixtures in
+\texttt{tests/ui/compile\_pass/}. The gate is run via:
+
+\begin{lstlisting}[language=Rust, caption={Running the ALIVE gate. The
+  \texttt{--ignored} flag is required because trybuild fixtures are marked
+  \texttt{\#[ignore]} to exclude them from the fast dev-loop test run.},
+  label={lst:bg-alive-gate}]
+cargo test --test ui_tests -- --ignored
+\end{lstlisting}
+
+The gate is deliberately excluded from the default \texttt{cargo test} run
+because each fixture is an independent \texttt{rustc} invocation and the
+full suite of 602 fixtures takes several minutes to complete. It is the
+\emph{certification} surface, not the \emph{development} surface. Chapter
+\ref{ch:alive} describes the gate, its fixture disciplines, and the four
+certification levels (\textsc{Alive 001} through \textsc{Crown Alive 004})
+in detail.

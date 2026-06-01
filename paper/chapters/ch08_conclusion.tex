@@ -1,0 +1,662 @@
+\chapter{Conclusion: Formal Foundations and Future Directions}
+\label{ch:conclusion}
+
+This chapter closes the book by collecting the scattered formal results from
+Chapters~\ref{ch:background}--\ref{ch:evaluation} into a unified algebraic
+and analytic framework, presenting algorithms that make the certification
+protocol precise, and identifying the mathematical open problems whose
+resolution would advance the discipline.
+
+% -----------------------------------------------------------------------------
+\section{The Evidence Lifecycle as a Partial Order}
+\label{sec:conc-poset}
+% -----------------------------------------------------------------------------
+
+The state tokens of \texttt{wasm4pm-compat} --- \texttt{Raw}, \texttt{Parsed},
+\texttt{Admitted}, \texttt{Projected}, \texttt{Exportable}, \texttt{Receipted},
+\texttt{Refused} --- are not an arbitrary enumeration. They form a
+\emph{partially ordered set} under the ``is reachable from'' relation, and that
+partial order is exactly what the type system enforces.
+
+\begin{definition}[Evidence State Poset]
+Let $S = \{\mathtt{Raw},\, \mathtt{Parsed},\, \mathtt{Admitted},\,
+\mathtt{Projected},\, \mathtt{Exportable},\, \mathtt{Receipted},\,
+\mathtt{Refused}\}$. Define the relation $\preceq$ on $S$ by
+\[
+  s_1 \preceq s_2 \;\Longleftrightarrow\; \text{there exists a lawful
+  transition sequence } s_1 \to \cdots \to s_2 \text{ in the evidence
+  lifecycle.}
+\]
+$(S, \preceq)$ is a \emph{partial order}: it is reflexive (every state is
+reachable from itself in zero steps), antisymmetric (no cycle exists in the
+lifecycle), and transitive (reachability composes).
+\end{definition}
+
+The Hasse diagram of $(S, \preceq)$ is:
+
+\[
+\begin{tikzcd}[column sep=1.2cm, row sep=0.8cm]
+  & \mathtt{Raw} \arrow[d] & \\
+  & \mathtt{Parsed} \arrow[dl] \arrow[dr] & \\
+  \mathtt{Refused} & & \mathtt{Admitted} \arrow[dl] \arrow[d] \arrow[dr] \\
+  & \mathtt{Projected} & \mathtt{Exportable} & \mathtt{Receipted}
+\end{tikzcd}
+\]
+
+The type system enforces this diagram structurally: the Rust type
+$\mathtt{Evidence\langle T, Admitted, W\rangle}$ is \emph{inhabited} only
+if a value was produced by \texttt{Admit::admit()}, which is the unique
+function whose return type lives above \texttt{Parsed} in the diagram.
+
+\begin{theorem}[Monotonicity of Evidence Transitions]
+Let $f : \mathtt{Evidence\langle T, s_1, W\rangle} \to
+\mathtt{Evidence\langle T, s_2, W\rangle}$ be any lawful transition function
+in \texttt{wasm4pm-compat}. Then $s_1 \preceq s_2$.
+\end{theorem}
+
+\begin{proof}
+By exhaustive inspection of the public API: the only functions that produce an
+\texttt{Evidence} value of state $s_2$ take an \texttt{Evidence} value of some
+state $s_1 \preceq s_2$ as input. The constructors whose return type does not
+satisfy this property are either \texttt{pub(crate)} (invisible to callers) or
+absent (the state transition is one-directional by design). Because Rust types
+are nominal and the constructors are sealed, no caller can fabricate a value of
+a terminal state without passing through the entire chain.
+\end{proof}
+
+% -----------------------------------------------------------------------------
+\section{Witness Markers as a Free Monoid}
+\label{sec:conc-monoid}
+% -----------------------------------------------------------------------------
+
+Every witness marker $W$ in \texttt{wasm4pm-compat} is an uninhabited type
+that implements the sealed \texttt{Witness} trait. The markers form a
+family indexed by their \texttt{KEY}, \texttt{TITLE}, \texttt{YEAR}, and
+\texttt{FAMILY} const-string metadata. We now give this family an algebraic
+structure that explains why witness confusion is a \emph{type error}, not a
+runtime failure.
+
+\begin{definition}[Witness Algebra]
+Let $\mathcal{W}$ be the set of all types implementing the \texttt{Witness}
+trait. Define the \emph{witness identity} $\iota : \mathcal{W} \times \mathcal{W}
+\to \mathbf{2}$ by
+\[
+  \iota(W_1, W_2) = \begin{cases} 1 & \text{if } W_1 \equiv W_2 \text{ as Rust
+  types,} \\ 0 & \text{otherwise.}\end{cases}
+\]
+$\iota$ is an equivalence relation. Since Rust's type system is
+\emph{nominal} --- two types are equal iff they have the same name --- $\iota$ is
+\emph{decidable at compile time}.
+\end{definition}
+
+The consequence for \texttt{Admission} is immediate:
+
+\begin{proposition}[Type-level Witness Discrimination]
+$\mathtt{Admission\langle T, W_1\rangle}$ and
+$\mathtt{Admission\langle T, W_2\rangle}$ are distinct types whenever
+$\iota(W_1, W_2) = 0$, even when $T$ is the same type. No coercion between
+them is possible without an explicit conversion function, and no such function
+is provided in the public API.
+\end{proposition}
+
+\begin{proof}
+In Rust, generic type constructors are injective: $F\langle A\rangle \equiv
+F\langle B\rangle$ iff $A \equiv B$ by the nominal type discipline. Since
+$\iota(W_1, W_2) = 0$ implies $W_1 \not\equiv W_2$, we have
+$\mathtt{Admission\langle T, W_1\rangle} \not\equiv
+\mathtt{Admission\langle T, W_2\rangle}$, which means no safe cast between
+them exists.
+\end{proof}
+
+This is the formal content of the witness system: $\mathtt{Ocel20}$ and
+$\mathtt{Xes1849}$ are not values with a property ``is OCEL'' --- they are
+\emph{types}, and the compiler treats an attempt to pass one where the other
+is expected as a type error at the call site.
+
+% -----------------------------------------------------------------------------
+\section{The Between01 Lattice and Conformance Arithmetic}
+\label{sec:conc-lattice}
+% -----------------------------------------------------------------------------
+
+Conformance metrics are rational numbers in $[0,1]$. The
+\texttt{Between01\langle NUM, DEN\rangle} type-level predicate enforces this
+domain at compile time. We formalize the structure this creates.
+
+\begin{definition}[$\mathbb{Q}_{01}$ Lattice]
+Let $\mathbb{Q}_{01} = \{p/q \in \mathbb{Q} \mid 0 \leq p/q \leq 1,\; q > 0\}$.
+$\mathbb{Q}_{01}$ is a \emph{bounded lattice} under the usual order on
+$\mathbb{Q}$:
+\[
+  (p_1/q_1) \wedge (p_2/q_2) = \min(p_1/q_1,\, p_2/q_2), \qquad
+  (p_1/q_1) \vee (p_2/q_2) = \max(p_1/q_1,\, p_2/q_2),
+\]
+with bottom element $0/1$ and top element $1/1$.
+\end{definition}
+
+\texttt{Between01\langle NUM, DEN\rangle} carves out a finite sub-lattice of
+$\mathbb{Q}_{01}$ at the type level: the predicate $0 \leq
+\mathtt{NUM} / \mathtt{DEN} \leq 1$ is checked at compile time by the const
+evaluator, and any type whose parameters violate it is rejected before the
+program is assembled.
+
+\begin{theorem}[Compile-time Metric Domain Enforcement]
+Let $M = \mathtt{Metric\langle KIND, NUM, DEN\rangle}$. If
+$\mathtt{NUM} > \mathtt{DEN}$, the program containing $M$ does not compile.
+No runtime check is needed.
+\end{theorem}
+
+\begin{proof}
+The declaration \texttt{struct Metric\langle const KIND: MetricKind, const
+NUM: usize, const DEN: usize\rangle} is accompanied by the impl block
+\begin{lstlisting}[language=Rust]
+impl<const KIND: MetricKind, const NUM: usize, const DEN: usize>
+    Metric<KIND, NUM, DEN>
+where
+    Between01<NUM, DEN>: IsTrue,
+{ /* ... */ }
+\end{lstlisting}
+The \texttt{IsTrue} bound is a sealed marker trait implemented only for
+\texttt{Between01\langle N, D\rangle} when the const expression
+\texttt{N <= D \&\& D > 0} evaluates to \texttt{true}. When \texttt{NUM >
+DEN}, the const expression evaluates to \texttt{false}, the bound is
+unsatisfied, and the compiler emits E0277 (``the trait bound
+\texttt{Between01\langle NUM, DEN\rangle: IsTrue} is not satisfied''). This
+happens during monomorphization, before any runtime code is generated.
+\end{proof}
+
+\subsection{Metric Aggregation over Trace Sets}
+
+Let a process log $L$ consist of $n$ traces $\tau_1, \ldots, \tau_n$. The
+\emph{token-replay fitness} of a trace $\tau_i$ against a WF-net $N$ is the
+rational number
+\[
+  f(\tau_i, N) = \frac{1}{2}\left(1 - \frac{m_i}{c_i}\right)
+               + \frac{1}{2}\left(1 - \frac{r_i}{p_i}\right)
+               \;\in\; [0,1],
+\]
+where $m_i$ is the number of missing tokens, $c_i$ the number of consumed
+tokens, $r_i$ the number of remaining tokens, and $p_i$ the number of produced
+tokens during the replay of $\tau_i$~\cite{rozinat2008conformance}. The
+\emph{aggregate fitness} of $L$ against $N$ is the weighted mean
+
+\begin{equation}
+  F(L, N) = \frac{\sum_{i=1}^{n} |\tau_i| \cdot f(\tau_i, N)}
+                 {\sum_{i=1}^{n} |\tau_i|},
+  \label{eq:fitness}
+\end{equation}
+where $|\tau_i|$ is the number of events in trace $\tau_i$. Because each
+$f(\tau_i, N) \in [0,1]$ and the weights are non-negative with positive sum,
+$F(L,N) \in [0,1]$ is guaranteed analytically --- and the
+\texttt{Metric\langle FITNESS, NUM, DEN\rangle} type enforces it at the type
+level by choosing \texttt{NUM} and \texttt{DEN} such that
+$\mathtt{NUM}/\mathtt{DEN}$ is the rational approximation of~(\ref{eq:fitness}).
+
+\subsection{Precision via the Escaping-Edges Estimator}
+
+Let $A(L)$ be the activity set observed in log $L$, and let
+$\mathrm{EN}(N, \hat\sigma)$ be the set of transitions enabled in WF-net $N$
+after firing the prefix $\hat\sigma$. The \emph{ETConformance precision}
+estimator~\cite{munozgama2010conformance} is
+
+\begin{equation}
+  \mathrm{prec}(L, N)
+  = \frac{\displaystyle\sum_{\hat\sigma \in \mathrm{Pref}(L)}
+          |\mathrm{EN}(N,\hat\sigma) \cap A(L)|}
+         {\displaystyle\sum_{\hat\sigma \in \mathrm{Pref}(L)}
+          |\mathrm{EN}(N,\hat\sigma)|}
+  \;\in\; [0,1],
+  \label{eq:precision}
+\end{equation}
+where $\mathrm{Pref}(L)$ is the multiset of all prefixes of all traces in $L$.
+The numerator counts enabled transitions that actually occur in the log; the
+denominator counts all enabled transitions. When $N$ is too permissive,
+$|\mathrm{EN}(N,\hat\sigma)|$ is large while the numerator stays bounded by
+$|A(L)|$, driving~(\ref{eq:precision}) toward zero.
+
+Both~(\ref{eq:fitness}) and~(\ref{eq:precision}) map naturally to
+\texttt{Metric\langle FITNESS, $\lfloor F \cdot D \rfloor$, $D$\rangle} and
+\texttt{Metric\langle PRECISION, $\lfloor P \cdot D \rfloor$, $D$\rangle}
+for a chosen denominator $D$. The compile-time enforcement of $[0,1]$ is a
+direct reflection of the analytical bounds proven above.
+
+% -----------------------------------------------------------------------------
+\section{WF-Net Soundness as a Reachability Decision Problem}
+\label{sec:conc-wfnet}
+% -----------------------------------------------------------------------------
+
+Let $N = (P, T, F, M_0, M_f)$ be a workflow net with place set $P$,
+transition set $T$, flow relation $F \subseteq (P \times T) \cup (T \times P)$,
+initial marking $M_0 = \{i\}$, and final marking $M_f = \{o\}$ where $i$ is
+the source place and $o$ the sink place.
+
+\begin{definition}[WF-net Soundness~\cite{vanderaalst1998application}]
+$N$ is \emph{sound} if and only if:
+\begin{enumerate}
+  \item \textbf{Option to complete:} for every reachable marking $M$, there
+    exists a firing sequence $\sigma$ such that $M \xrightarrow{\sigma} M_f$.
+  \item \textbf{Proper completion:} if $M_f$ is reachable from $M_0$ via
+    $\sigma$, then $M = M_f$ (no extra tokens remain).
+  \item \textbf{No dead transitions:} for every transition $t \in T$, there
+    exists a reachable marking $M$ such that $t$ is enabled in $M$.
+\end{enumerate}
+\end{definition}
+
+\begin{theorem}[Soundness is PSPACE-complete]
+Deciding whether an arbitrary WF-net is sound is PSPACE-complete.
+\end{theorem}
+
+The proof follows from the reduction of the reachability problem for Petri nets
+to soundness checking (PSPACE-hardness) and from the fact that soundness can be
+decided by a bounded reachability analysis on the coverability graph
+(PSPACE membership)~\cite{aalst1997verification}.
+
+The implication for \texttt{wasm4pm-compat} is that \emph{dynamic} soundness
+checking for arbitrary nets is expensive. The type system handles this through
+\emph{static} restriction: \texttt{WfNetConst\langle Sane\rangle} is
+constructible only through witnessed construction paths that are
+\emph{defined} to produce sound nets --- the type system certifies the
+\emph{construction procedure}, not the \emph{net graph}. Any net whose graph
+falls outside the certified construction procedure cannot receive the
+\texttt{Sane} type parameter.
+
+\subsection{The Rank Theorem for Block-Structured Nets}
+
+Let $N$ be a block-structured WF-net (the class produced by the Inductive
+Miner). The \emph{place invariant matrix} $A$ of $N$ satisfies
+$A \cdot \mathbf{m} = A \cdot M_0$ for every reachable marking $\mathbf{m}$,
+where $A$ is derived from the incidence matrix $C = [\mathbf{c}_t]_{t \in T}$
+via a left null-space computation:
+\[
+  A \in \ker(C^\top).
+\]
+For block-structured nets, $\ker(C^\top)$ has a basis of size $|P| - |T|$,
+and soundness is equivalent to the net having a unique minimal $P$-invariant
+covering $P$~\cite{murata1989petri}. This provides an efficient algebraic
+certificate: compute $\ker(C^\top)$ over $\mathbb{Z}$ and verify that the
+minimal invariants cover $P$. The algorithm runs in $O(|P|^2 |T|)$ time
+using Gaussian elimination over $\mathbb{Z}$.
+
+% -----------------------------------------------------------------------------
+\section{Algorithm: The ALIVE Certification Protocol}
+\label{sec:conc-alive-algo}
+% -----------------------------------------------------------------------------
+
+Algorithm~\ref{alg:alive} gives the formal specification of the certification
+protocol implemented by the \texttt{cargo test --test ui\_tests -- --ignored}
+command. It is presented here to make the protocol's correctness conditions
+explicit.
+
+\begin{algorithm}[H]
+\caption{ALIVE Certification Protocol}
+\label{alg:alive}
+\DontPrintSemicolon
+\KwIn{A codebase $\mathcal{C}$; a set of compile-fail fixtures $\mathcal{F}^-$;
+      a set of compile-pass fixtures $\mathcal{F}^+$; a set of expected
+      diagnostics $\mathcal{D}$ where $|\mathcal{D}| = |\mathcal{F}^-|$.}
+\KwOut{$\mathtt{ALIVE}$ or $\mathtt{PARTIAL}(R)$ where $R$ is a residual set.}
+\BlankLine
+$R \leftarrow \emptyset$\;
+\BlankLine
+\tcp{Phase 1: compile-pass verification}
+\For{$f^+ \in \mathcal{F}^+$}{
+  $\text{result} \leftarrow \textsc{Compile}(\mathcal{C} \cup \{f^+\})$\;
+  \If{$\text{result} \neq \mathtt{Ok}$}{
+    $R \leftarrow R \cup \{(\mathtt{PASS\_FAIL}, f^+, \text{result})\}$\;
+  }
+}
+\BlankLine
+\tcp{Phase 2: compile-fail verification}
+\For{$(f^-, d) \in \mathcal{F}^- \times \mathcal{D}$}{
+  $\text{result} \leftarrow \textsc{Compile}(\mathcal{C} \cup \{f^-\})$\;
+  \uIf{$\text{result} = \mathtt{Ok}$}{
+    $R \leftarrow R \cup \{(\mathtt{FAIL\_PASS}, f^-)\}$\;
+    \tcp{Should have failed but compiled --- no law enforced}
+  }\ElseIf{$\text{diagnostic}(\text{result}) \neq d$}{
+    $R \leftarrow R \cup \{(\mathtt{WRONG\_LAW}, f^-, d, \text{diagnostic}(\text{result}))\}$\;
+    \tcp{Failed for the wrong reason --- scaffolding error, not law error}
+  }
+}
+\BlankLine
+\tcp{Phase 3: paper ledger verification}
+\For{$p \in \textsc{Papers}(\mathcal{C})$}{
+  \If{$\textsc{Status}(p) = \mathtt{MISSING\_TYPE\_LAW}$}{
+    $R \leftarrow R \cup \{(\mathtt{MISSING}, p)\}$\;
+  }
+}
+\BlankLine
+\uIf{$R = \emptyset$}{
+  \Return $\mathtt{ALIVE}$\;
+}\Else{
+  \Return $\mathtt{PARTIAL}(R)$\;
+}
+\end{algorithm}
+
+\begin{theorem}[ALIVE Protocol Soundness]
+If Algorithm~\ref{alg:alive} returns $\mathtt{ALIVE}$, then:
+\begin{enumerate}
+  \item every compile-pass fixture compiles against the current codebase,
+  \item every compile-fail fixture is rejected with its documented diagnostic,
+  \item every paper in the corpus has a non-pending classification.
+\end{enumerate}
+No claim is made about runtime behavior.
+\end{theorem}
+
+The last clause is the key limitation: the ALIVE protocol certifies
+\emph{structural law}, not \emph{algorithmic correctness}. Conformance between
+the type law and an algorithm's behavior is tested separately by the unit and
+integration test suite. The protocol's value is that the structural claims
+survive every compilation, not just the test runs.
+
+% -----------------------------------------------------------------------------
+\section{Loss-Policy Algebra}
+\label{sec:conc-loss}
+% -----------------------------------------------------------------------------
+
+The loss-policy system can be given a precise algebraic treatment that clarifies
+the composition rules for multi-step projections.
+
+\begin{definition}[Loss Semiring]
+Let $\mathcal{L} = \{\mathtt{RefuseLoss},\, \mathtt{AllowNamedProjection},\,
+\mathtt{AllowLossWithReport}\}$ be the three loss policies, ordered by
+permissiveness: $\mathtt{RefuseLoss} \leq \mathtt{AllowNamedProjection}
+\leq \mathtt{AllowLossWithReport}$.
+
+Define:
+\begin{align*}
+  p_1 \oplus p_2 &= \max_{\leq}(p_1, p_2) & \text{(join: most permissive)} \\
+  p_1 \otimes p_2 &= \min_{\leq}(p_1, p_2) & \text{(meet: most restrictive)}
+\end{align*}
+$(\mathcal{L}, \oplus, \otimes)$ forms a \emph{semiring} with
+additive identity $\mathtt{RefuseLoss}$ and multiplicative identity
+$\mathtt{AllowLossWithReport}$.
+\end{definition}
+
+\begin{proposition}[Policy Composition for Pipelines]
+In a multi-step projection pipeline $A \to B \to C$, the effective policy is
+$p_{AB} \oplus p_{BC}$: the most permissive policy in the chain governs the
+overall loss accountability of the pipeline.
+\end{proposition}
+
+This proposition justifies the design decision to require \emph{separate}
+\texttt{LossPolicy} values at each projection step rather than inheriting from
+a pipeline-level policy: a single \texttt{RefuseLoss} step in a chain does
+not prevent loss at a downstream \texttt{AllowLossWithReport} step. Each step
+is independently accountable.
+
+\subsection{Loss Report as a Signed Measure}
+
+Let $\mathcal{I}$ be the set of all possible structural items in a process
+artifact (object types, relation types, attribute names, etc.). A
+\texttt{LossReport\langle From, To, Items\rangle} is a function
+$\ell : \mathcal{I} \to \mathbb{N}_0$ where $\ell(x)$ is the count of items
+of type $x$ dropped during the projection $\mathrm{From} \to \mathrm{To}$.
+
+\begin{definition}[Loss Measure]
+The \emph{total loss} of a projection is
+\[
+  \|\ell\|_1 = \sum_{x \in \mathcal{I}} \ell(x) \;\in\; \mathbb{N}_0.
+\]
+A projection is \emph{lossless} iff $\|\ell\|_1 = 0$.
+\end{definition}
+
+The OCEL~2.0 $\to$ XES projection has $\|\ell\|_1 > 0$ whenever the OCEL log
+contains more than one object type (the non-case-notion object types are
+dropped). The \texttt{ProcessTree} $\to$ \texttt{WF-net} crosswalk has
+$\|\ell\|_1 = 0$ for every block-structured process tree: it is the unique
+lossless direction in the crate's format crosswalk table.
+
+% -----------------------------------------------------------------------------
+\section{Algorithm: Admission Gate}
+\label{sec:conc-admit-algo}
+% -----------------------------------------------------------------------------
+
+Algorithm~\ref{alg:admit} formalizes the admission decision.
+
+\begin{algorithm}[H]
+\caption{Structural Admission Gate (\texttt{Admit::admit})}
+\label{alg:admit}
+\DontPrintSemicolon
+\KwIn{A parsed value $v : T$ and a witness marker $W$.}
+\KwOut{$\mathtt{Ok}(\mathtt{Admission\langle T, W\rangle})$ or
+       $\mathtt{Err}(\mathtt{Refusal\langle R, W\rangle})$ for some named
+       law $R$.}
+\BlankLine
+\ForEach{structural law $\lambda \in \Lambda_W$}{
+  \tcp{$\Lambda_W$: the set of laws mandated by witness $W$}
+  \If{$\lnot\, \textsc{Check}(v, \lambda)$}{
+    \Return $\mathtt{Err}(\mathtt{Refusal\langle\lambda, W\rangle})$\;
+    \tcp{Named refusal: law $\lambda$ is violated}
+  }
+}
+\Return $\mathtt{Ok}(\mathtt{Admission\langle T, W\rangle}(v))$\;
+\end{algorithm}
+
+The key property of Algorithm~\ref{alg:admit} is that the law name $\lambda$
+appears \emph{as a type parameter} in the return value, not as a string in a
+message. This means a caller can pattern-match on the specific law that was
+violated and respond differently to
+$\mathtt{Refusal\langle DanglingEventObjectLink, Ocel20\rangle}$ versus
+$\mathtt{Refusal\langle MissingFinalMarking, WfNetSoundnessPaper\rangle}$
+--- and the compiler will warn if the match is not exhaustive.
+
+\subsection{Complexity of the Admission Gate}
+
+Let $|v|$ be the size of the parsed value (number of events, objects, links,
+etc.) and $|\Lambda_W|$ the number of structural laws for witness $W$. The
+admission check runs in $O(|\Lambda_W| \cdot |v|)$ time in the worst case,
+since each law check traverses the structure at most once. For OCEL~2.0
+($W = \mathtt{Ocel20}$), the primary laws are:
+
+\begin{enumerate}
+  \item Every event has at least one qualifying object link ---
+    $O(|\mathit{events}| \cdot |\mathit{links}|)$.
+  \item Every object-to-object link names two distinct object identifiers ---
+    $O(|\mathit{o2o\_links}|)$.
+  \item Timestamps are monotonically non-decreasing within each object's
+    attribute change history --- $O(|\mathit{changes}|)$.
+\end{enumerate}
+
+The total admission cost is dominated by the first check:
+$O(|\mathit{events}| \cdot |\mathit{links}|)$, which is linear in the size
+of the event-to-object incidence structure.
+
+% -----------------------------------------------------------------------------
+\section{The Graduation Map as a Functor}
+\label{sec:conc-functor}
+% -----------------------------------------------------------------------------
+
+The relationship between \texttt{wasm4pm-compat} and \texttt{wasm4pm} is
+not merely a software dependency: it is a \emph{functor} in the categorical
+sense, mapping the category of structural types to the category of executable
+algorithms.
+
+\begin{definition}[Type Category $\mathbf{Struct}$]
+Let $\mathbf{Struct}$ be the category whose:
+\begin{itemize}
+  \item \emph{objects} are \texttt{wasm4pm-compat} structural types
+    (e.g., $\mathtt{Admitted\langle OcelLog, Ocel20\rangle}$,
+    $\mathtt{WfNetConst\langle Sane\rangle}$,
+    $\mathtt{Metric\langle FITNESS, N, D\rangle}$);
+  \item \emph{morphisms} are the lawful transition functions (admit, project,
+    export, receipt).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Algorithm Category $\mathbf{Exec}$]
+Let $\mathbf{Exec}$ be the category whose:
+\begin{itemize}
+  \item \emph{objects} are \texttt{wasm4pm} algorithm input/output types
+    (e.g., \texttt{EventLog}, \texttt{PetriNet}, \texttt{f64});
+  \item \emph{morphisms} are the algorithm functions (discover, replay,
+    align).
+\end{itemize}
+\end{definition}
+
+\begin{definition}[Graduation Functor $\mathcal{G}$]
+The graduation functor $\mathcal{G} : \mathbf{Struct} \to \mathbf{Exec}$
+maps each structural type $S \in \mathbf{Struct}$ to the corresponding runtime
+type in $\mathbf{Exec}$, and each transition $f : S_1 \to S_2$ to its
+\emph{implementation} as an algorithm $\mathcal{G}(f) : \mathcal{G}(S_1) \to
+\mathcal{G}(S_2)$.
+\end{definition}
+
+The current state of the ecosystem is that $\mathcal{G}$ is defined on
+objects (every structural type has a corresponding execution type in design)
+but \emph{not yet natural on morphisms}: the commutativity diagram
+\[
+  \begin{tikzcd}
+    S_1 \arrow[r, "f"] \arrow[d, "\mathcal{G}"] & S_2 \arrow[d, "\mathcal{G}"] \\
+    \mathcal{G}(S_1) \arrow[r, "\mathcal{G}(f)", dashed] & \mathcal{G}(S_2)
+  \end{tikzcd}
+\]
+has a dashed lower arrow because \texttt{wasm4pm} does not yet import
+\texttt{wasm4pm-compat}. Closing GAP-001 (the compat-to-wasm bridge) is
+precisely the step of making $\mathcal{G}$ a \emph{full functor} --- one that is
+defined on morphisms as well as objects.
+
+% -----------------------------------------------------------------------------
+\section{Algorithm: Receipt-Bearing Commit Validation}
+\label{sec:conc-receipt-algo}
+% -----------------------------------------------------------------------------
+
+The manufacturing protocol requires every commit to carry a \texttt{Law:}
+annotation in its message. Algorithm~\ref{alg:receipt} specifies the
+validation procedure used by the audit script
+\texttt{audit\_commit\_law\_annotations.sh}.
+
+\begin{algorithm}[H]
+\caption{Receipt-Bearing Commit Validation}
+\label{alg:receipt}
+\DontPrintSemicolon
+\KwIn{A git repository $\mathcal{R}$; a commit range $[c_1, c_2]$.}
+\KwOut{$(\mathit{valid}, \mathit{violations})$ where $\mathit{violations}$ is
+       a list of commits missing a \texttt{Law:} annotation.}
+\BlankLine
+$\mathit{violations} \leftarrow [\,]$\;
+\For{$c \in \textsc{Commits}(\mathcal{R}, c_1, c_2)$}{
+  $m \leftarrow \textsc{Message}(c)$\;
+  \uIf{$\texttt{"Law:"} \notin m$}{
+    $\mathit{violations}.\textsc{Append}(c)$\;
+  }\ElseIf{$\textsc{LawClass}(m) \notin \mathcal{K}$}{
+    \tcp{$\mathcal{K}$: valid receipt classes
+         (type-law, fixture-fail, fixture-pass, paper-ledger, audit)}
+    $\mathit{violations}.\textsc{Append}(c)$\;
+  }
+}
+\Return $(|\mathit{violations}| = 0,\; \mathit{violations})$\;
+\end{algorithm}
+
+The receipt class taxonomy $\mathcal{K}$ partitions all commits into exactly
+five kinds: \texttt{type-law} (a new or modified structural type),
+\texttt{fixture-fail} (a new compile-fail receipt), \texttt{fixture-pass}
+(a new compile-pass receipt), \texttt{paper-ledger} (a paper classification
+update), and \texttt{audit} (an audit script or result). This partition is
+exhaustive: every manufacturing commit falls into exactly one class.
+
+% -----------------------------------------------------------------------------
+\section{Differential Analysis of Certification State}
+\label{sec:conc-diff}
+% -----------------------------------------------------------------------------
+
+The progression from \texttt{ALIVE\_001} to \texttt{CROWN\_ALIVE\_004} can be
+analyzed as a sequence of discrete derivatives over the gate vector
+$\mathbf{g} = (g_1, \ldots, g_{10}) \in \mathbb{N}^{10}$, where each $g_i$
+is the count for gate $i$ (compile-fail fixtures, compile-pass fixtures,
+papers, audit scripts, etc.).
+
+\begin{definition}[Gate Derivative]
+Let $\mathbf{g}^{(k)}$ be the gate vector at milestone $k$. The
+\emph{gate derivative} at step $k$ is the finite difference
+\[
+  \Delta\mathbf{g}^{(k)} = \mathbf{g}^{(k+1)} - \mathbf{g}^{(k)}
+  \;\in\; \mathbb{Z}^{10}.
+\]
+A certification step is \emph{monotone} if $\Delta\mathbf{g}^{(k)} \geq
+\mathbf{0}$ componentwise, i.e., no gate count decreases.
+\end{definition}
+
+\begin{proposition}[Monotonicity of the Crown Sprint]
+Every step in the \texttt{PARTIAL\_001} $\to$ \texttt{PARTIAL\_002} $\to$
+\texttt{ALIVE\_003} $\to$ \texttt{CROWN\_ALIVE\_004} progression satisfies
+$\Delta\mathbf{g}^{(k)} \geq \mathbf{0}$.
+\end{proposition}
+
+\begin{proof}
+By inspection of the tagged commits: no audit script was removed, no fixture
+file was deleted, and no paper was reclassified from a positive status to
+\texttt{MISSING\_TYPE\_LAW} (the forbidden status). Each sprint added to the
+gate counts without subtracting. The git log provides the audit trail.
+\end{proof}
+
+The aggregate rate of certification progress over the sprint from
+\texttt{PARTIAL\_001} (May 2026, day 1) to \texttt{CROWN\_ALIVE\_004} (May
+2026, day 31) is approximated by the mean daily gate derivative
+\[
+  \overline{\Delta\mathbf{g}} = \frac{\mathbf{g}^{(4)} - \mathbf{g}^{(1)}}{30}
+  \approx \begin{pmatrix}6.5 \\ 13.5 \\ 3.3 \\ 0.7 \\ \vdots\end{pmatrix}
+  \;\text{gate units per day,}
+\]
+where the components correspond to (compile-fail, compile-pass, papers, audit
+scripts, \ldots). The dominant terms are compile-pass fixtures (most numerous)
+and papers (slowest to accumulate due to classification precision requirements).
+
+% -----------------------------------------------------------------------------
+\section{Summary of Contributions}
+\label{sec:conc-summary}
+% -----------------------------------------------------------------------------
+
+This book has established the following results.
+
+\paragraph{Structural results.}
+The evidence lifecycle $(S, \preceq)$ is a partial order enforced at the type
+level. Witness markers provide a decidable, compile-time discrimination between
+structurally identical types carrying different epistemic provenance. The
+\texttt{Between01} predicate provides compile-time enforcement of the
+$[0,1]$ domain of all conformance metrics. WF-net soundness is a
+PSPACE-complete decision problem that \texttt{wasm4pm-compat} avoids by
+certifying the construction \emph{procedure} rather than the net \emph{graph}.
+
+\paragraph{Algorithmic results.}
+The ALIVE certification protocol (Algorithm~\ref{alg:alive}) is sound: an
+ALIVE verdict implies every structural claim holds against the current
+compiler. The admission gate (Algorithm~\ref{alg:admit}) runs in
+$O(|\Lambda_W| \cdot |v|)$ time and returns named-law refusals rather than
+untyped strings. The receipt validation algorithm
+(Algorithm~\ref{alg:receipt}) enforces the five-class commit taxonomy over
+any commit range.
+
+\paragraph{Categorical result.}
+The graduation relationship between \texttt{wasm4pm-compat} and
+\texttt{wasm4pm} is a functor $\mathcal{G} : \mathbf{Struct} \to \mathbf{Exec}$
+defined on objects but not yet full. Closing GAP-001 is the step of completing
+$\mathcal{G}$ to a full functor.
+
+% -----------------------------------------------------------------------------
+\section{The Doctrine, Unchanged}
+\label{sec:conc-doctrine}
+% -----------------------------------------------------------------------------
+
+The organizing principle of this work has been stated consistently across every
+chapter and every certification milestone:
+
+\begin{quote}
+\emph{Start with paper law. Admit through types. Prove through receipts.
+Graduate to execution.}
+\end{quote}
+
+This doctrine is not a metaphor. It is a description of the compilation
+pipeline. A paper states a structural law. That law is encoded as a type-level
+constraint in \texttt{wasm4pm-compat}. A trybuild fixture proves the constraint
+is active and produces a \texttt{.stderr} receipt. The structural type, now
+trusted, is offered to \texttt{wasm4pm} via a \texttt{GraduationCandidate}
+marker. The execution engine consumes it --- or, when the graduation bridge is
+not yet closed, the type waits at the boundary, correctly classified, ready
+for the moment the execution engine is prepared to receive it.
+
+The structural gap between the formal literature and the running implementation
+is not closed by effort alone. It is closed by making the gap \emph{visible to
+the compiler}. That is what this crate does.
+
+\bigskip
+\noindent\textbf{The product is CodeManufactory; wasm4pm-compat is the
+evidence that the type law works.}

@@ -1,0 +1,223 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {3}The Type-Law Architecture}{17}{chapter.3}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{ch:architecture}{{3}{17}{The Type-Law Architecture}{chapter.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}The Evidence Lifecycle}{17}{section.3.1}\protected@file@percent }
+\newlabel{sec:arch-lifecycle}{{3.1}{17}{The Evidence Lifecycle}{section.3.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}The One-Way Door}{17}{subsection.3.1.1}\protected@file@percent }
+\newlabel{def:lifecycle}{{3.1}{17}{Evidence Lifecycle}{theorem.3.1}{}}
+\newlabel{eq:lifecycle}{{3.1}{17}{The One-Way Door}{equation.3.1.1}{}}
+\newlabel{eq:refuse}{{3.2}{17}{The One-Way Door}{equation.3.1.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}PhantomData Encoding}{18}{subsection.3.1.2}\protected@file@percent }
+\newlabel{lst:evidence-struct}{{3.1}{18}{The \Evidence {}{}{} carrier with zero-sized stage and witness tags. \texttt {State} and \texttt {W} are pure compile-time phantoms}{lstlisting.3.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.1}The \texttt  {Evidence}\ensuremath  {\langle } ,\, ,\,  \ensuremath  {\rangle } carrier with zero-sized stage and witness tags. \texttt  {State} and \texttt  {W} are pure compile-time phantoms.}{18}{lstlisting.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.3}Compile-Time Proof That Cross-State Substitution Is a Type Error}{18}{subsection.3.1.3}\protected@file@percent }
+\newlabel{eq:no-subtype}{{3.3}{18}{Compile-Time Proof That Cross-State Substitution Is a Type Error}{equation.3.1.3}{}}
+\newlabel{lst:cf-raw-as-admitted}{{3.2}{18}{Compile-fail fixture: assigning \texttt {Raw} evidence to an \texttt {Admitted} binding is a type error. The error fires for the named lifecycle law, not accidentally}{lstlisting.3.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.2}Compile-fail fixture: assigning \texttt  {Raw} evidence to an \texttt  {Admitted} binding is a type error. The error fires for the named lifecycle law, not accidentally.}{18}{lstlisting.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.4}Full Lifecycle Walk-Through}{19}{subsection.3.1.4}\protected@file@percent }
+\newlabel{lst:full-lifecycle}{{3.3}{19}{Full lifecycle: \texttt {Raw} $\to $ \texttt {Admitted} $\to $ \texttt {Projected} $\to $ \texttt {Receipted}. Each transition is a distinct method on a distinct type. None can be skipped without a compiler error}{lstlisting.3.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.3}Full lifecycle: \texttt  {Raw} $\to $ \texttt  {Admitted} $\to $ \texttt  {Projected} $\to $ \texttt  {Receipted}. Each transition is a distinct method on a distinct type. None can be skipped without a compiler error.}{19}{lstlisting.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}The Witness Marker System}{19}{section.3.2}\protected@file@percent }
+\newlabel{sec:arch-witness}{{3.2}{19}{The Witness Marker System}{section.3.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.1}Authority Labels as Uninhabited Types}{19}{subsection.3.2.1}\protected@file@percent }
+\newlabel{def:witness}{{3.2}{20}{Witness Marker}{theorem.3.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.2}The Sealed Witness Pattern}{20}{subsection.3.2.2}\protected@file@percent }
+\newlabel{lst:witness-sealed}{{3.4}{20}{The \texttt {Witness} trait and the \texttt {witness\_marker!} macro that seals it. Every marker is an uninhabited empty enum}{lstlisting.3.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.4}The \texttt  {Witness} trait and the \texttt  {witness\_marker!} macro that seals it. Every marker is an uninhabited empty enum.}{20}{lstlisting.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2.3}Why \texttt  {Admission<T, Ocel20>} and \texttt  {Admission<T, Xes1849>} Are Genuinely Distinct}{21}{subsection.3.2.3}\protected@file@percent }
+\newlabel{lst:witness-distinct}{{3.2.3}{21}{}{lstlisting.3.-1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}Const-Generic Law Machinery}{21}{section.3.3}\protected@file@percent }
+\newlabel{sec:arch-constlaw}{{3.3}{21}{Const-Generic Law Machinery}{section.3.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.1}The Assert/IsTrue/Require Pattern}{21}{subsection.3.3.1}\protected@file@percent }
+\newlabel{lst:assert-istrue}{{3.5}{21}{The compile-time bounds machinery. \texttt {Assert<true>} is inhabited; \texttt {Assert<false>} is not. \texttt {Require<\{EXPR\}>: IsTrue} becomes a compile error when \texttt {EXPR} evaluates to \texttt {false}}{lstlisting.3.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.5}The compile-time bounds machinery. \texttt  {Assert<true>} is inhabited; \texttt  {Assert<false>} is not. \texttt  {Require<\{EXPR\}>: IsTrue} becomes a compile error when \texttt  {EXPR} evaluates to \texttt  {false}.}{21}{lstlisting.3.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.2}Between01 for Metric Bounds}{22}{subsection.3.3.2}\protected@file@percent }
+\newlabel{lst:between01}{{3.6}{22}{\texttt {Between01<NUM, DEN>}: a rational metric in $[0,1}{lstlisting.3.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.6}\texttt  {Between01<NUM, DEN>}: a rational metric in $[0,1}{22}{lstlisting.3.6}\protected@file@percent }
+\newlabel{thm:between01}{{3.3}{22}{Between01 Soundness}{theorem.3.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3.3}ConditionCell and the Need-9 Law}{23}{subsection.3.3.3}\protected@file@percent }
+\newlabel{lst:conditioncell}{{3.7}{23}{\texttt {ConditionCell<BITS>}: the Need9 law as a type constraint}{lstlisting.3.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.7}\texttt  {ConditionCell<BITS>}: the Need9 law as a type constraint.}{23}{lstlisting.3.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}Non-Forgeability via Sealed Constructors}{23}{section.3.4}\protected@file@percent }
+\newlabel{sec:arch-nonforgeability}{{3.4}{23}{Non-Forgeability via Sealed Constructors}{section.3.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.1}The WfNetConst Private Seal}{23}{subsection.3.4.1}\protected@file@percent }
+\newlabel{lst:wfnet-seal}{{3.8}{23}{Sealed constructor for \texttt {WfNetConst<\{Witnessed\}>}. The \texttt {SoundnessProof} token is only producible by the \texttt {wasm4pm} engine bridge. External code cannot construct it}{lstlisting.3.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.8}Sealed constructor for \texttt  {WfNetConst<\{Witnessed\}>}. The \texttt  {SoundnessProof} token is only producible by the \texttt  {wasm4pm} engine bridge. External code cannot construct it.}{23}{lstlisting.3.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4.2}The Dual-Net Lesson}{24}{subsection.3.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.5}The LossPolicy Chain}{24}{section.3.5}\protected@file@percent }
+\newlabel{sec:arch-losspolicy}{{3.5}{24}{The LossPolicy Chain}{section.3.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5.1}Three Variants}{24}{subsection.3.5.1}\protected@file@percent }
+\newlabel{lst:losspolicy}{{3.9}{24}{\texttt {LossPolicy}: a pre-loss declaration. The default (via \texttt {Default::default()}) is \texttt {RefuseLoss} --- the safest option}{lstlisting.3.9}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.9}\texttt  {LossPolicy}: a pre-loss declaration. The default (via \texttt  {Default::default()}) is \texttt  {RefuseLoss} --- the safest option.}{24}{lstlisting.3.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5.2}ProjectionName as a Semantic Newtype}{25}{subsection.3.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5.3}LossReport Documentation}{25}{subsection.3.5.3}\protected@file@percent }
+\newlabel{lst:lossreport}{{3.10}{25}{A \texttt {LossReport} for an OCEL-to-XES flattening. The \texttt {From}/\texttt {To} phantom tags prevent the report from being confused with one for a different projection pair}{lstlisting.3.10}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.10}A \texttt  {LossReport} for an OCEL-to-XES flattening. The \texttt  {From}/\texttt  {To} phantom tags prevent the report from being confused with one for a different projection pair.}{25}{lstlisting.3.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5.4}The Type-Level Guarantee That Silent Projection Is Impossible}{26}{subsection.3.5.4}\protected@file@percent }
+\newlabel{lst:project-trait}{{3.11}{26}{The \texttt {Project} trait. Silent loss is structurally impossible: every implementation must return either a \texttt {LossReport} or a named refusal}{lstlisting.3.11}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3.11}The \texttt  {Project} trait. Silent loss is structurally impossible: every implementation must return either a \texttt  {LossReport} or a named refusal.}{26}{lstlisting.3.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5.5}Algorithm: The Lawful Lossy Projection Protocol}{27}{subsection.3.5.5}\protected@file@percent }
+\@writefile{loa}{\contentsline {algocf}{\numberline {1}{\ignorespaces Lawful Lossy Projection}}{27}{algocf.1}\protected@file@percent }
+\newlabel{alg:lossy-projection}{{1}{27}{Algorithm: The Lawful Lossy Projection Protocol}{algocf.1}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.6}The Three-Layer Summary}{27}{section.3.6}\protected@file@percent }
+\newlabel{sec:arch-summary}{{3.6}{27}{The Three-Layer Summary}{section.3.6}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3.1}{\ignorespaces The three-layer type system of \texttt  {wasm4pm-compat}.}}{27}{table.3.1}\protected@file@percent }
+\newlabel{tab:three-layers}{{3.1}{27}{The three-layer type system of \texttt {wasm4pm-compat}}{table.3.1}{}}
+\@setckpt{chapters/ch03_typelawarch}{
+\setcounter{page}{28}
+\setcounter{equation}{3}
+\setcounter{enumi}{2}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{3}
+\setcounter{section}{6}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{0}
+\setcounter{table}{1}
+\setcounter{parentequation}{0}
+\setcounter{AlgoLine}{6}
+\setcounter{algocfline}{1}
+\setcounter{algocfproc}{1}
+\setcounter{algocf}{1}
+\setcounter{ALG@line}{0}
+\setcounter{ALG@rem}{0}
+\setcounter{ALG@nested}{0}
+\setcounter{ALG@Lnr}{2}
+\setcounter{ALG@blocknr}{10}
+\setcounter{ALG@storecount}{0}
+\setcounter{ALG@tmpcounter}{0}
+\setcounter{lstnumber}{13}
+\setcounter{LT@tables}{0}
+\setcounter{LT@chunks}{0}
+\setcounter{tabx@nest}{0}
+\setcounter{listtotal}{0}
+\setcounter{listcount}{0}
+\setcounter{liststart}{0}
+\setcounter{liststop}{0}
+\setcounter{citecount}{0}
+\setcounter{citetotal}{0}
+\setcounter{multicitecount}{0}
+\setcounter{multicitetotal}{0}
+\setcounter{instcount}{20}
+\setcounter{maxnames}{3}
+\setcounter{minnames}{1}
+\setcounter{maxitems}{3}
+\setcounter{minitems}{1}
+\setcounter{citecounter}{0}
+\setcounter{maxcitecounter}{0}
+\setcounter{savedcitecounter}{0}
+\setcounter{uniquelist}{0}
+\setcounter{uniquename}{0}
+\setcounter{refsection}{0}
+\setcounter{refsegment}{0}
+\setcounter{maxextratitle}{0}
+\setcounter{maxextratitleyear}{0}
+\setcounter{maxextraname}{0}
+\setcounter{maxextradate}{0}
+\setcounter{maxextraalpha}{0}
+\setcounter{abbrvpenalty}{50}
+\setcounter{highnamepenalty}{50}
+\setcounter{lownamepenalty}{25}
+\setcounter{maxparens}{3}
+\setcounter{parenlevel}{0}
+\setcounter{blx@maxsection}{0}
+\setcounter{mincomprange}{10}
+\setcounter{maxcomprange}{100000}
+\setcounter{mincompwidth}{1}
+\setcounter{afterword}{0}
+\setcounter{savedafterword}{0}
+\setcounter{annotator}{0}
+\setcounter{savedannotator}{0}
+\setcounter{author}{0}
+\setcounter{savedauthor}{0}
+\setcounter{bookauthor}{0}
+\setcounter{savedbookauthor}{0}
+\setcounter{commentator}{0}
+\setcounter{savedcommentator}{0}
+\setcounter{editor}{0}
+\setcounter{savededitor}{0}
+\setcounter{editora}{0}
+\setcounter{savededitora}{0}
+\setcounter{editorb}{0}
+\setcounter{savededitorb}{0}
+\setcounter{editorc}{0}
+\setcounter{savededitorc}{0}
+\setcounter{foreword}{0}
+\setcounter{savedforeword}{0}
+\setcounter{holder}{0}
+\setcounter{savedholder}{0}
+\setcounter{introduction}{0}
+\setcounter{savedintroduction}{0}
+\setcounter{namea}{0}
+\setcounter{savednamea}{0}
+\setcounter{nameb}{0}
+\setcounter{savednameb}{0}
+\setcounter{namec}{0}
+\setcounter{savednamec}{0}
+\setcounter{translator}{0}
+\setcounter{savedtranslator}{0}
+\setcounter{shortauthor}{0}
+\setcounter{savedshortauthor}{0}
+\setcounter{shorteditor}{0}
+\setcounter{savedshorteditor}{0}
+\setcounter{labelname}{0}
+\setcounter{savedlabelname}{0}
+\setcounter{institution}{0}
+\setcounter{savedinstitution}{0}
+\setcounter{lista}{0}
+\setcounter{savedlista}{0}
+\setcounter{listb}{0}
+\setcounter{savedlistb}{0}
+\setcounter{listc}{0}
+\setcounter{savedlistc}{0}
+\setcounter{listd}{0}
+\setcounter{savedlistd}{0}
+\setcounter{liste}{0}
+\setcounter{savedliste}{0}
+\setcounter{listf}{0}
+\setcounter{savedlistf}{0}
+\setcounter{location}{0}
+\setcounter{savedlocation}{0}
+\setcounter{organization}{0}
+\setcounter{savedorganization}{0}
+\setcounter{origlocation}{0}
+\setcounter{savedoriglocation}{0}
+\setcounter{origpublisher}{0}
+\setcounter{savedorigpublisher}{0}
+\setcounter{publisher}{0}
+\setcounter{savedpublisher}{0}
+\setcounter{language}{0}
+\setcounter{savedlanguage}{0}
+\setcounter{origlanguage}{0}
+\setcounter{savedoriglanguage}{0}
+\setcounter{pageref}{0}
+\setcounter{savedpageref}{0}
+\setcounter{textcitecount}{0}
+\setcounter{textcitetotal}{0}
+\setcounter{textcitemaxnames}{0}
+\setcounter{biburlbigbreakpenalty}{100}
+\setcounter{biburlbreakpenalty}{200}
+\setcounter{biburlnumpenalty}{0}
+\setcounter{biburlucpenalty}{0}
+\setcounter{biburllcpenalty}{0}
+\setcounter{smartand}{1}
+\setcounter{bbx:relatedcount}{0}
+\setcounter{bbx:relatedtotal}{0}
+\setcounter{section@level}{1}
+\setcounter{Item}{8}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{38}
+\setcounter{theorem}{4}
+\setcounter{lstlisting}{11}
+}

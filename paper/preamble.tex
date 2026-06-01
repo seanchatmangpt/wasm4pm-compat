@@ -1,0 +1,95 @@
+\documentclass[12pt,twoside]{book}
+
+% Core packages
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+% Math and algorithms
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathtools}
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+\usepackage{algpseudocode}
+
+% Code listings
+\usepackage{listings}
+\usepackage{xcolor}
+
+% TikZ for diagrams
+\usepackage{tikz}
+\usepackage{tikz-cd}
+\usetikzlibrary{arrows,positioning,shapes,fit,calc,automata}
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{multirow}
+\usepackage{array}
+
+% Bibliography
+\usepackage[backend=bibtex,style=numeric,sorting=nyt]{biblatex}
+\addbibresource{bibliography.bib}
+
+% Hyperlinks
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+% Theorems
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% Custom commands for type law notation
+\newcommand{\Evidence}[3]{\texttt{Evidence}\ensuremath{\langle} #1,\, #2,\, #3 \ensuremath{\rangle}}
+\newcommand{\RequireBound}[1]{\texttt{Require}\ensuremath{\langle} #1 \ensuremath{\rangle}}
+\newcommand{\IsTrue}{\texttt{IsTrue}}
+\newcommand{\Between}[2]{\texttt{Between01}\ensuremath{\langle} #2,\, #1 \ensuremath{\rangle}}
+\newcommand{\WfNet}[1]{\texttt{WfNetConst}\ensuremath{\langle} #1 \ensuremath{\rangle}}
+\newcommand{\CondCell}[1]{\texttt{ConditionCell}\ensuremath{\langle} #1 \ensuremath{\rangle}}
+\newcommand{\Witness}[1]{\texttt{#1}}
+\newcommand{\Law}[1]{\textsc{#1}}
+
+% Rust listing style
+\lstdefinelanguage{Rust}{
+  keywords={fn,let,pub,struct,enum,impl,trait,use,mod,type,const,where,for,in,if,else,match,return,self,Self,true,false,mut,ref,as,dyn,Box,Option,Result,Ok,Err,Some,None},
+  keywordstyle=\color{blue!70!black}\bfseries,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{orange!80!black},
+  string=[b]",
+  sensitive=true
+}
+\lstset{
+  language=Rust,
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  xleftmargin=2em,
+  extendedchars=true,
+  inputencoding=utf8,
+  literate=
+    {—}{{---}}1
+    {→}{{$\to$}}1
+    {←}{{$\leftarrow$}}1
+    {⟨}{{$\langle$}}1
+    {⟩}{{$\rangle$}}1
+    {≠}{{$\neq$}}1
+    {≤}{{$\leq$}}1
+    {≥}{{$\geq$}}1
+    {…}{{...}}1
+}
+
+% Title info
+\title{\Huge\bfseries Compile-Time Process Evidence:\\[0.5em]
+  \large A Nightly Rust Type-Law Foundry for\\
+  Object-Centric Process Mining}
+\author{Sean Chatman}
+\date{May 2026}

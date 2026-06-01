@@ -1,0 +1,240 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {5}Process Mining Canon as Type Law}{39}{chapter.5}\protected@file@percent }
+\@writefile{lof}{\addvspace {10\p@ }}
+\@writefile{lot}{\addvspace {10\p@ }}
+\@writefile{loa}{\addvspace {10\p@ }}
+\newlabel{ch:processcanon}{{5}{39}{Process Mining Canon as Type Law}{chapter.5}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}OCEL 2.0 Formal Objects}{39}{section.5.1}\protected@file@percent }
+\newlabel{sec:canon-ocel}{{5.1}{39}{OCEL 2.0 Formal Objects}{section.5.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.1}The OCEL 2.0 Metamodel}{39}{subsection.5.1.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.2}Zero-Cost Encoding of the Metamodel}{39}{subsection.5.1.2}\protected@file@percent }
+\newlabel{def:ocel-formal}{{5.1}{39}{OCEL 2.0 Formal Objects}{theorem.5.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5.1}{\ignorespaces The OCEL 2.0 metamodel as encoded in \texttt  {wasm4pm-compat}. Every node is a zero-cost Rust type. \texttt  {EventObjectLink} carries a qualified E2O edge; dangling links are refused at \texttt  {OcelLog::validate} time.}}{40}{figure.5.1}\protected@file@percent }
+\newlabel{fig:ocel-metamodel}{{5.1}{40}{The OCEL 2.0 metamodel as encoded in \texttt {wasm4pm-compat}. Every node is a zero-cost Rust type. \texttt {EventObjectLink} carries a qualified E2O edge; dangling links are refused at \texttt {OcelLog::validate} time}{figure.5.1}{}}
+\newlabel{lst:ocel-types}{{5.1}{40}{The five OCEL 2.0 formal objects as Rust types. Structure-only --- no engine logic, no discovery}{lstlisting.5.1}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.1}The five OCEL 2.0 formal objects as Rust types. Structure-only --- no engine logic, no discovery.}{40}{lstlisting.5.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1.3}OcelDims: Dimensional Schema Law}{41}{subsection.5.1.3}\protected@file@percent }
+\newlabel{def:ocel-dims}{{5.2}{41}{OCEL Dimensional Schema}{theorem.5.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}XES and Case-Centric Evidence}{42}{section.5.2}\protected@file@percent }
+\newlabel{sec:canon-xes}{{5.2}{42}{XES and Case-Centric Evidence}{section.5.2}{}}
+\newlabel{def:xes-separation}{{5.3}{42}{XES Type Separation}{theorem.5.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.1}The CaseCentricMarker Boundary Type}{42}{subsection.5.2.1}\protected@file@percent }
+\newlabel{lst:case-centric-marker}{{5.2}{42}{\texttt {CaseCentricMarker}: a zero-sized boundary type making the case-centric law visible in the type system. Carrying this marker in a \texttt {PhantomData} field makes case-centric evidence incompatible with object-centric slots}{lstlisting.5.2}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.2}\texttt  {CaseCentricMarker}: a zero-sized boundary type making the case-centric law visible in the type system. Carrying this marker in a \texttt  {PhantomData} field makes case-centric evidence incompatible with object-centric slots.}{42}{lstlisting.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.2}XES Extension Prefix Law}{42}{subsection.5.2.2}\protected@file@percent }
+\newlabel{lst:xes-extension}{{5.3}{42}{XES extension prefix law: an empty prefix is refused. The law is named \texttt {XesRefusal::InvalidExtension}, not a bare string error}{lstlisting.5.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.3}XES extension prefix law: an empty prefix is refused. The law is named \texttt  {XesRefusal::InvalidExtension}, not a bare string error.}{42}{lstlisting.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2.3}Compile-Fail Receipt: XesLog Cannot Substitute for OcelLog}{43}{subsection.5.2.3}\protected@file@percent }
+\newlabel{lst:ocel-as-xes-fail}{{5.4}{43}{Compile-fail receipt: \texttt {ocel\_log\_as\_xes\_log.rs}. Law: OcelLog and XesLog are distinct types; object-centric logs cannot replace case-centric logs}{lstlisting.5.4}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.4}Compile-fail receipt: \texttt  {ocel\_log\_as\_xes\_log.rs}. Law: OcelLog and XesLog are distinct types; object-centric logs cannot replace case-centric logs.}{43}{lstlisting.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}Petri Net Bipartite Arc Law}{43}{section.5.3}\protected@file@percent }
+\newlabel{sec:canon-petri}{{5.3}{43}{Petri Net Bipartite Arc Law}{section.5.3}{}}
+\newlabel{def:petri-bipartite}{{5.4}{43}{Petri Net Bipartite Arc Law (Murata 1989)}{theorem.5.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3.1}Bipartite Law as a Sealed Trait}{44}{subsection.5.3.1}\protected@file@percent }
+\newlabel{lst:petri-arcs}{{5.5}{44}{\texttt {PlaceToTransitionArc} and \texttt {TransitionToPlaceArc}: the only two arc inhabitants. No \texttt {PlaceToPlaceArc} type exists in this crate}{lstlisting.5.5}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.5}\texttt  {PlaceToTransitionArc} and \texttt  {TransitionToPlaceArc}: the only two arc inhabitants. No \texttt  {PlaceToPlaceArc} type exists in this crate.}{44}{lstlisting.5.5}\protected@file@percent }
+\newlabel{thm:petri-arc-law}{{5.5}{44}{Petri Net Arc Law Soundness}{theorem.5.5}{}}
+\newlabel{lst:petri-place-place-fail}{{5.6}{44}{Compile-fail receipt: \texttt {petri\_place\_to\_place\_arc.rs}. Law: BipartitePetriArcLaw --- P->P arcs are unconstructible (Murata 1989 S.2)}{lstlisting.5.6}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.6}Compile-fail receipt: \texttt  {petri\_place\_to\_place\_arc.rs}. Law: BipartitePetriArcLaw --- P->P arcs are unconstructible (Murata 1989 S.2).}{44}{lstlisting.5.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}WF-Net Soundness}{45}{section.5.4}\protected@file@percent }
+\newlabel{sec:canon-wfnet}{{5.4}{45}{WF-Net Soundness}{section.5.4}{}}
+\newlabel{def:wfnet-soundness}{{5.6}{45}{Non-Forgeable Soundness Witness}{theorem.5.6}{}}
+\newlabel{lst:wfnet-soundness}{{5.7}{45}{The three WF-net soundness states as a \texttt {ConstParamTy} enum in \texttt {src/law.rs}. \texttt {Witnessed} is the non-forgeable state}{lstlisting.5.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.7}The three WF-net soundness states as a \texttt  {ConstParamTy} enum in \texttt  {src/law.rs}. \texttt  {Witnessed} is the non-forgeable state.}{45}{lstlisting.5.7}\protected@file@percent }
+\newlabel{rem:soundness-claim}{{5.7}{46}{Soundness is a claim, not a result}{theorem.5.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}POWL Projection Law}{46}{section.5.5}\protected@file@percent }
+\newlabel{sec:canon-powl}{{5.5}{46}{POWL Projection Law}{section.5.5}{}}
+\newlabel{def:powl-projectable}{{5.8}{46}{Process-Tree Projectability (Kourani 2024)}{theorem.5.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.1}The Sealed Assertion Pattern}{46}{subsection.5.5.1}\protected@file@percent }
+\newlabel{lst:powl-sealed}{{5.8}{46}{The POWL projection law as a sealed trait. Only \texttt {ProcessTreeProjectable} satisfies \texttt {TreeProjectable}. \texttt {ExceedsProcessTree} is excluded from the seal, making it a compile error to project a non-projectable model}{lstlisting.5.8}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.8}The POWL projection law as a sealed trait. Only \texttt  {ProcessTreeProjectable} satisfies \texttt  {TreeProjectable}. \texttt  {ExceedsProcessTree} is excluded from the seal, making it a compile error to project a non-projectable model.}{46}{lstlisting.5.8}\protected@file@percent }
+\newlabel{lst:powl-exceeds-fail}{{5.9}{47}{Compile-fail receipt for the POWL projection law. \texttt {ExceedsProcessTree} is not \texttt {TreeProjectable}}{lstlisting.5.9}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.9}Compile-fail receipt for the POWL projection law. \texttt  {ExceedsProcessTree} is not \texttt  {TreeProjectable}.}{47}{lstlisting.5.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5.2}Acyclic Partial Order Witness}{47}{subsection.5.5.2}\protected@file@percent }
+\newlabel{rem:powl-witness}{{5.9}{47}{Witness markers record assertions, not computations}{theorem.5.9}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}Conformance Metrics}{47}{section.5.6}\protected@file@percent }
+\newlabel{sec:canon-conformance}{{5.6}{47}{Conformance Metrics}{section.5.6}{}}
+\newlabel{def:between01}{{5.10}{48}{Between01-Bounded Metric}{theorem.5.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.1}The Metric Type}{48}{subsection.5.6.1}\protected@file@percent }
+\newlabel{lst:metric-type}{{5.10}{48}{\texttt {Metric<KIND, NUM, DEN>}: conformance score with compile-time $[0,1}{lstlisting.5.10}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.10}\texttt  {Metric<KIND, NUM, DEN>}: conformance score with compile-time $[0,1}{48}{lstlisting.5.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6.2}The Metric Lattice}{48}{subsection.5.6.2}\protected@file@percent }
+\newlabel{lst:fitness-out-of-range}{{5.11}{48}{Compile-fail receipt: \texttt {FitnessConst<2, 1>} violates \texttt {Between01}. A fitness value of $2.0$ is structurally impossible}{lstlisting.5.11}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.11}Compile-fail receipt: \texttt  {FitnessConst<2, 1>} violates \texttt  {Between01}. A fitness value of $2.0$ is structurally impossible.}{48}{lstlisting.5.11}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5.2}{\ignorespaces The conformance metric lattice. Fitness and precision contribute to F1; generalization and simplicity are independent quality dimensions. All five flow into the \texttt  {ConformanceVerdict} aggregate. Every metric value is \texttt  {Between01}-bounded: a value outside $[0, 1]$ is a compile error.}}{49}{figure.5.2}\protected@file@percent }
+\newlabel{fig:metric-lattice}{{5.2}{49}{The conformance metric lattice. Fitness and precision contribute to F1; generalization and simplicity are independent quality dimensions. All five flow into the \texttt {ConformanceVerdict} aggregate. Every metric value is \texttt {Between01}-bounded: a value outside $[0, 1]$ is a compile error}{figure.5.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.7}New Modules: Process Cube, Temporal, Object Lifecycle}{49}{section.5.7}\protected@file@percent }
+\newlabel{sec:canon-new}{{5.7}{49}{New Modules: Process Cube, Temporal, Object Lifecycle}{section.5.7}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.1}Process Cube (van der Aalst 2013)}{49}{subsection.5.7.1}\protected@file@percent }
+\newlabel{def:process-cube-dim}{{5.11}{49}{Process Cube Dimension}{theorem.5.11}{}}
+\newlabel{lst:cube-dimension}{{5.12}{49}{\texttt {CubeDimension<NAME>}: a named process cube axis. The const-string parameter makes \texttt {"resource"} and \texttt {"time"} distinct types}{lstlisting.5.12}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.12}\texttt  {CubeDimension<NAME>}: a named process cube axis. The const-string parameter makes \texttt  {"resource"} and \texttt  {"time"} distinct types.}{49}{lstlisting.5.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.2}Temporal Ordering Law}{50}{subsection.5.7.2}\protected@file@percent }
+\newlabel{lst:temporal-order}{{5.13}{50}{\texttt {TemporalOrder}: the four canonical temporal relations. Deriving the ordering from event timestamps graduates to \texttt {wasm4pm}}{lstlisting.5.13}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.13}\texttt  {TemporalOrder}: the four canonical temporal relations. Deriving the ordering from event timestamps graduates to \texttt  {wasm4pm}.}{50}{lstlisting.5.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.3}Object Lifecycle Const-Generic Phase Transitions}{51}{subsection.5.7.3}\protected@file@percent }
+\newlabel{def:lifecycle-transition}{{5.12}{51}{Lawful Lifecycle Transition}{theorem.5.12}{}}
+\newlabel{lst:lifecycle-transitions}{{5.14}{51}{Object lifecycle phase transitions enforced at the type level. \texttt {LifecycledObject<T, \{Active\}>} has no \texttt {.delete()} method --- direct deletion from Active is structurally impossible}{lstlisting.5.14}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.14}Object lifecycle phase transitions enforced at the type level. \texttt  {LifecycledObject<T, \{Active\}>} has no \texttt  {.delete()} method --- direct deletion from Active is structurally impossible.}{51}{lstlisting.5.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7.4}The E0391 Type Alias Fix}{52}{subsection.5.7.4}\protected@file@percent }
+\newlabel{lst:e0391-fix}{{5.15}{52}{The E0391 type-alias fix for nightly const-generic cycles with \texttt {ConstParamTy} enums. The alias breaks the variance cycle}{lstlisting.5.15}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5.15}The E0391 type-alias fix for nightly const-generic cycles with \texttt  {ConstParamTy} enums. The alias breaks the variance cycle.}{52}{lstlisting.5.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.8}The Process Canon Surface Summary}{52}{section.5.8}\protected@file@percent }
+\newlabel{sec:canon-summary}{{5.8}{52}{The Process Canon Surface Summary}{section.5.8}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {5.1}{\ignorespaces Process mining canon: paper authority, Rust encoding, and type-law receipts.}}{54}{table.5.1}\protected@file@percent }
+\newlabel{tab:canon-surface}{{5.1}{54}{Process mining canon: paper authority, Rust encoding, and type-law receipts}{table.5.1}{}}
+\@setckpt{chapters/ch05_processcanon}{
+\setcounter{page}{55}
+\setcounter{equation}{0}
+\setcounter{enumi}{5}
+\setcounter{enumii}{0}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{5}
+\setcounter{section}{8}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{2}
+\setcounter{table}{1}
+\setcounter{parentequation}{0}
+\setcounter{AlgoLine}{18}
+\setcounter{algocfline}{2}
+\setcounter{algocfproc}{2}
+\setcounter{algocf}{2}
+\setcounter{ALG@line}{0}
+\setcounter{ALG@rem}{0}
+\setcounter{ALG@nested}{0}
+\setcounter{ALG@Lnr}{2}
+\setcounter{ALG@blocknr}{10}
+\setcounter{ALG@storecount}{0}
+\setcounter{ALG@tmpcounter}{0}
+\setcounter{lstnumber}{14}
+\setcounter{LT@tables}{0}
+\setcounter{LT@chunks}{0}
+\setcounter{tabx@nest}{0}
+\setcounter{listtotal}{0}
+\setcounter{listcount}{0}
+\setcounter{liststart}{0}
+\setcounter{liststop}{0}
+\setcounter{citecount}{0}
+\setcounter{citetotal}{0}
+\setcounter{multicitecount}{0}
+\setcounter{multicitetotal}{0}
+\setcounter{instcount}{43}
+\setcounter{maxnames}{3}
+\setcounter{minnames}{1}
+\setcounter{maxitems}{3}
+\setcounter{minitems}{1}
+\setcounter{citecounter}{0}
+\setcounter{maxcitecounter}{0}
+\setcounter{savedcitecounter}{0}
+\setcounter{uniquelist}{0}
+\setcounter{uniquename}{0}
+\setcounter{refsection}{0}
+\setcounter{refsegment}{0}
+\setcounter{maxextratitle}{0}
+\setcounter{maxextratitleyear}{0}
+\setcounter{maxextraname}{0}
+\setcounter{maxextradate}{0}
+\setcounter{maxextraalpha}{0}
+\setcounter{abbrvpenalty}{50}
+\setcounter{highnamepenalty}{50}
+\setcounter{lownamepenalty}{25}
+\setcounter{maxparens}{3}
+\setcounter{parenlevel}{0}
+\setcounter{blx@maxsection}{0}
+\setcounter{mincomprange}{10}
+\setcounter{maxcomprange}{100000}
+\setcounter{mincompwidth}{1}
+\setcounter{afterword}{0}
+\setcounter{savedafterword}{0}
+\setcounter{annotator}{0}
+\setcounter{savedannotator}{0}
+\setcounter{author}{0}
+\setcounter{savedauthor}{0}
+\setcounter{bookauthor}{0}
+\setcounter{savedbookauthor}{0}
+\setcounter{commentator}{0}
+\setcounter{savedcommentator}{0}
+\setcounter{editor}{0}
+\setcounter{savededitor}{0}
+\setcounter{editora}{0}
+\setcounter{savededitora}{0}
+\setcounter{editorb}{0}
+\setcounter{savededitorb}{0}
+\setcounter{editorc}{0}
+\setcounter{savededitorc}{0}
+\setcounter{foreword}{0}
+\setcounter{savedforeword}{0}
+\setcounter{holder}{0}
+\setcounter{savedholder}{0}
+\setcounter{introduction}{0}
+\setcounter{savedintroduction}{0}
+\setcounter{namea}{0}
+\setcounter{savednamea}{0}
+\setcounter{nameb}{0}
+\setcounter{savednameb}{0}
+\setcounter{namec}{0}
+\setcounter{savednamec}{0}
+\setcounter{translator}{0}
+\setcounter{savedtranslator}{0}
+\setcounter{shortauthor}{0}
+\setcounter{savedshortauthor}{0}
+\setcounter{shorteditor}{0}
+\setcounter{savedshorteditor}{0}
+\setcounter{labelname}{0}
+\setcounter{savedlabelname}{0}
+\setcounter{institution}{0}
+\setcounter{savedinstitution}{0}
+\setcounter{lista}{0}
+\setcounter{savedlista}{0}
+\setcounter{listb}{0}
+\setcounter{savedlistb}{0}
+\setcounter{listc}{0}
+\setcounter{savedlistc}{0}
+\setcounter{listd}{0}
+\setcounter{savedlistd}{0}
+\setcounter{liste}{0}
+\setcounter{savedliste}{0}
+\setcounter{listf}{0}
+\setcounter{savedlistf}{0}
+\setcounter{location}{0}
+\setcounter{savedlocation}{0}
+\setcounter{organization}{0}
+\setcounter{savedorganization}{0}
+\setcounter{origlocation}{0}
+\setcounter{savedoriglocation}{0}
+\setcounter{origpublisher}{0}
+\setcounter{savedorigpublisher}{0}
+\setcounter{publisher}{0}
+\setcounter{savedpublisher}{0}
+\setcounter{language}{0}
+\setcounter{savedlanguage}{0}
+\setcounter{origlanguage}{0}
+\setcounter{savedoriglanguage}{0}
+\setcounter{pageref}{0}
+\setcounter{savedpageref}{0}
+\setcounter{textcitecount}{0}
+\setcounter{textcitetotal}{0}
+\setcounter{textcitemaxnames}{0}
+\setcounter{biburlbigbreakpenalty}{100}
+\setcounter{biburlbreakpenalty}{200}
+\setcounter{biburlnumpenalty}{0}
+\setcounter{biburlucpenalty}{0}
+\setcounter{biburllcpenalty}{0}
+\setcounter{smartand}{1}
+\setcounter{bbx:relatedcount}{0}
+\setcounter{bbx:relatedtotal}{0}
+\setcounter{section@level}{1}
+\setcounter{Item}{19}
+\setcounter{Hfootnote}{0}
+\setcounter{bookmark@seq@number}{69}
+\setcounter{theorem}{12}
+\setcounter{lstlisting}{15}
+}

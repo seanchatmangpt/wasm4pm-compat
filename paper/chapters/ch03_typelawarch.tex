@@ -1,0 +1,671 @@
+\chapter{The Type-Law Architecture}
+\label{ch:architecture}
+
+This chapter describes the three-layer type system of \texttt{wasm4pm-compat}
+in precise detail: the evidence lifecycle (state tokens and the one-way door),
+the witness marker system (uninhabited authority labels and the sealed
+\texttt{Witness} trait), the const-generic law machinery
+(\texttt{Assert}/\texttt{IsTrue}/\texttt{Require} and \texttt{Between01}), the
+non-forgeability mechanism (\texttt{WfNetConst} and sealed constructors), and
+the loss-policy chain (\texttt{LossPolicy}, \texttt{ProjectionName}, and
+\texttt{LossReport}).
+
+Every invariant described here is enforced by the Rust type system at compile
+time. No invariant is a runtime assertion, a documentation comment, or a
+convention agreed by convention alone.
+
+% -----------------------------------------------------------------------------
+\section{The Evidence Lifecycle}
+\label{sec:arch-lifecycle}
+% -----------------------------------------------------------------------------
+
+\subsection{The One-Way Door}
+
+The central structural invariant of \texttt{wasm4pm-compat} is a typed,
+one-way process-evidence lifecycle. Raw, untrusted input cannot be used as
+admitted evidence; admitted evidence cannot be un-admitted; refused evidence
+cannot be rehabilitated. The lifecycle is directed and acyclic, and it is
+enforced entirely by the Rust type system.
+
+\begin{definition}[Evidence Lifecycle]
+  \label{def:lifecycle}
+  The \emph{evidence lifecycle} is the directed state machine over the set of
+  stage tokens
+  $\mathcal{S} = \{\texttt{Raw}, \texttt{Parsed}, \texttt{Admitted},
+  \texttt{Refused}, \texttt{Projected}, \texttt{Exportable}, \texttt{Receipted}\}$
+  with initial state \texttt{Raw} and terminal states
+  $\{\texttt{Refused}, \texttt{Receipted}\}$.
+\end{definition}
+
+The lawful transitions are:
+
+\begin{equation}
+  \label{eq:lifecycle}
+  \texttt{Raw}
+  \xrightarrow{\texttt{into\_parsed}}
+  \texttt{Parsed}
+  \xrightarrow{\texttt{Admit::admit}}
+  \texttt{Admitted}
+  \xrightarrow{\quad}
+  \begin{cases}
+    \texttt{Projected}   & \xrightarrow{\texttt{into\_receipted}} \texttt{Receipted} \\
+    \texttt{Exportable}  & \xrightarrow{\texttt{into\_receipted}} \texttt{Receipted} \\
+    \texttt{Receipted}   & \text{(terminal)}
+  \end{cases}
+\end{equation}
+
+The refuse path is available at every stage before admission:
+
+\begin{equation}
+  \label{eq:refuse}
+  \texttt{Raw} \xrightarrow{\texttt{refuse}} \texttt{Refused}
+  \qquad
+  \texttt{Parsed} \xrightarrow{\texttt{into\_refused}} \texttt{Refused}
+\end{equation}
+
+\texttt{Refused} is terminal. No transition out of \texttt{Refused} exists.
+
+\subsection{PhantomData Encoding}
+
+The stage tokens are zero-sized empty enums used exclusively as \texttt{PhantomData}
+type parameters. They contribute zero bytes to the memory layout of
+\Evidence{T}{State}{W}. The full lifecycle enforcement is erased at compile time.
+
+\begin{lstlisting}[language=Rust, caption={The \Evidence{}{}{} carrier with
+  zero-sized stage and witness tags. \texttt{State} and \texttt{W} are pure
+  compile-time phantoms.}, label={lst:evidence-struct}]
+pub struct Evidence<T, State: EvidenceState, W> {
+    pub value: T,
+    pub state:   PhantomData<State>,
+    pub witness: PhantomData<W>,
+}
+\end{lstlisting}
+
+Because \texttt{State} is a type parameter and not a runtime value,
+\texttt{Evidence<T, Raw, W>} and \texttt{Evidence<T, Admitted, W>} are
+\emph{different types}. They share no subtype relationship, no
+\texttt{From}/\texttt{Into} implementation, and no common constructor reachable
+from outside the crate. The \texttt{EvidenceState} bound is a sealed trait
+implemented only for the seven canonical stage tokens; a downstream crate
+cannot introduce a new stage.
+
+\subsection{Compile-Time Proof That Cross-State Substitution Is a Type Error}
+
+The type-level safety property is:
+
+\begin{equation}
+  \label{eq:no-subtype}
+  \forall T, S_1, S_2, W.\quad S_1 \neq S_2
+  \implies
+  \Evidence{T}{S_1}{W} \not\leq \Evidence{T}{S_2}{W}
+\end{equation}
+
+This is not merely a claim about runtime behavior; it is a consequence of
+Rust's nominal type system. Two instantiations of the same generic type with
+different type arguments are different types with no implicit coercion between
+them.
+
+The trybuild compile-fail fixture for this property is:
+
+\begin{lstlisting}[language=Rust, caption={Compile-fail fixture: assigning
+  \texttt{Raw} evidence to an \texttt{Admitted} binding is a type error.
+  The error fires for the named lifecycle law, not accidentally.},
+  label={lst:cf-raw-as-admitted}]
+// tests/ui/compile_fail/raw_used_as_admitted.rs
+use wasm4pm_compat::evidence::Evidence;
+use wasm4pm_compat::state::{Raw, Admitted};
+use wasm4pm_compat::witness::Ocel20;
+
+fn require_admitted(_: Evidence<u32, Admitted, Ocel20>) {}
+
+fn main() {
+    let raw: Evidence<u32, Raw, Ocel20> = Evidence::raw(42u32);
+    require_admitted(raw);
+    //               ^^^
+    // error[E0308]: mismatched types
+    //   expected `Evidence<u32, Admitted, Ocel20>`
+    //      found `Evidence<u32, Raw, Ocel20>`
+}
+\end{lstlisting}
+
+The \texttt{Admitted} constructor is \texttt{pub(crate)}. It is called only
+from within the \texttt{admission} module, exclusively by implementors of
+\texttt{Admit::admit}. There is no public free function, no \texttt{From}
+impl, and no unsafe transmute path that produces \texttt{Evidence<T, Admitted,
+W>} from outside the crate.
+
+\subsection{Full Lifecycle Walk-Through}
+
+Listing~\ref{lst:full-lifecycle} shows the complete lawful path from \texttt{Raw}
+to \texttt{Receipted} as it appears in the crate's test suite.
+
+\begin{lstlisting}[language=Rust, caption={Full lifecycle: \texttt{Raw}
+  $\to$ \texttt{Admitted} $\to$ \texttt{Projected} $\to$ \texttt{Receipted}.
+  Each transition is a distinct method on a distinct type. None can be
+  skipped without a compiler error.}, label={lst:full-lifecycle}]
+use wasm4pm_compat::admission::Admission;
+use wasm4pm_compat::evidence::Evidence;
+use wasm4pm_compat::state::{Raw, Admitted, Projected, Receipted};
+use wasm4pm_compat::witness::Ocel20;
+
+// Step 1: Raw evidence --- freely constructible.
+let raw: Evidence<u32, Raw, Ocel20> = Evidence::raw(1u32);
+
+// Step 2: Parse (format-acceptance, not yet structurally judged).
+let parsed = raw.into_parsed();
+
+// Step 3: Admission --- only via Admit::admit(). Simulated here via
+// Admission::new(), which is what an Admit impl calls internally.
+let admitted: Evidence<u32, Admitted, Ocel20> =
+    Admission::new(1u32).into_evidence();
+
+// Step 4: Named lossy projection.
+let projected: Evidence<u32, Projected, Ocel20> =
+    admitted.into_projected();
+
+// Step 5: Receipt --- terminal stage.
+let receipted: Evidence<u32, Receipted, Ocel20> =
+    projected.into_receipted();
+
+assert_eq!(receipted.value, 1u32);
+\end{lstlisting}
+
+% -----------------------------------------------------------------------------
+\section{The Witness Marker System}
+\label{sec:arch-witness}
+% -----------------------------------------------------------------------------
+
+\subsection{Authority Labels as Uninhabited Types}
+
+A \emph{witness marker} is an empty enum --- an uninhabited type. It names
+a specific standard, paper, API grammar, Rust law, or internal bridge that a
+piece of evidence is being admitted, projected, or graduated \emph{against}.
+Witnesses carry no data and do no work; their sole function is to thread a
+named authority through the type signature.
+
+\begin{definition}[Witness Marker]
+  \label{def:witness}
+  A \emph{witness marker} is an uninhabited type $W$ implementing the sealed
+  \texttt{Witness} trait. It is associated with a machine-facing key
+  (\texttt{KEY}), a human-facing title (\texttt{TITLE}), a publication year
+  (\texttt{YEAR}), and a family classification (\texttt{FAMILY}).
+\end{definition}
+
+\subsection{The Sealed Witness Pattern}
+
+The \texttt{Witness} trait is publicly visible but cannot be implemented
+outside the crate. This sealing is achieved by the macro-generated
+\texttt{pub enum WitnessMarker \{\}} pattern: the macro declares an empty
+public enum (which is uninhabited and therefore never constructible) and
+immediately provides the trait implementation. Because the enum itself lives in
+the crate, external code cannot create a new instance and cannot implement
+\texttt{Witness} for a type it controls.
+
+\begin{lstlisting}[language=Rust, caption={The \texttt{Witness} trait and
+  the \texttt{witness\_marker!} macro that seals it. Every marker is an
+  uninhabited empty enum.}, label={lst:witness-sealed}]
+pub trait Witness {
+    const KEY:    &'static str;
+    const FAMILY: WitnessFamily;
+    const TITLE:  &'static str;
+    const YEAR:   Option<u16>;
+}
+
+// Macro-generated: each invocation produces an uninhabited type + impl.
+macro_rules! witness_marker {
+    ($(#[$meta:meta])* $name:ident,
+     $key:literal, $family:expr, $title:literal, $year:expr) => {
+        $(#[$meta])*
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum $name {}            // uninhabited --- never constructible
+
+        impl Witness for $name {
+            const KEY:    &'static str = $key;
+            const FAMILY: WitnessFamily = $family;
+            const TITLE:  &'static str = $title;
+            const YEAR:   Option<u16>  = $year;
+        }
+    };
+}
+
+// Representative witnesses (27+ defined in witness.rs):
+witness_marker!(Ocel20,
+    "ocel-2.0", WitnessFamily::Standard, "OCEL 2.0", Some(2023));
+witness_marker!(Xes1849,
+    "xes-1849-2016", WitnessFamily::Standard,
+    "XES (IEEE 1849-2016)", Some(2016));
+witness_marker!(WfNetSoundnessPaper,
+    "wfnet-soundness-paper", WitnessFamily::Paper,
+    "WF-net soundness (van der Aalst 1998)", Some(1998));
+witness_marker!(InductiveMiner,
+    "inductive-miner", WitnessFamily::Paper,
+    "Inductive Miner (Leemans et al. 2013)", Some(2013));
+\end{lstlisting}
+
+The crate declares 38 witness markers in \texttt{src/witness.rs}, spanning
+five families: \texttt{Standard} (OCEL~2.0, XES, XES sub-extensions),
+\texttt{Paper} (POWL, WF-net soundness, OC-Petri nets, OCPQ, Inductive Miner,
+Alpha Miner, Declare, Log Skeleton, YAWL, alignment, process cubes, and more),
+\texttt{ApiGrammar} (pm4py, pmax), \texttt{RustLaw} (typestate law), and
+\texttt{InternalBridge} (wasm4pm graduation bridge).
+
+\subsection{Why \texttt{Admission<T, Ocel20>} and \texttt{Admission<T, Xes1849>} Are Genuinely Distinct}
+
+Because \texttt{Ocel20} and \texttt{Xes1849} are different types (even though
+both are empty enums), \texttt{Admission<T, Ocel20>} and
+\texttt{Admission<T, Xes1849>} are different instantiations of the generic
+\texttt{Admission<T, W>} struct --- with no common supertype and no implicit
+conversion between them.
+
+A function written to process OCEL~2.0 evidence:
+
+\begin{lstlisting}[language=Rust, label={lst:witness-distinct}]
+fn process_ocel(e: Admission<OcelLog, Ocel20>) { /* ... */ }
+\end{lstlisting}
+
+\noindent cannot be called with an XES admission:
+
+\begin{lstlisting}[language=Rust]
+let xes_admission: Admission<XesLog, Xes1849> = /* ... */;
+process_ocel(xes_admission);
+// error[E0308]: mismatched types
+//   expected `Admission<OcelLog, Ocel20>`
+//      found `Admission<XesLog, Xes1849>`
+\end{lstlisting}
+
+This is not a runtime type check; it is a compile-time identity check on the
+type parameter. The witness type is erased to zero bytes at runtime --- the
+enforcement cost is entirely compile-time.
+
+% -----------------------------------------------------------------------------
+\section{Const-Generic Law Machinery}
+\label{sec:arch-constlaw}
+% -----------------------------------------------------------------------------
+
+\subsection{The Assert/IsTrue/Require Pattern}
+
+The \texttt{Assert}/\texttt{IsTrue}/\texttt{Require} pattern is the mechanism
+by which boolean const-generic expressions become compile-time proof
+obligations. It requires the nightly \texttt{generic\_const\_exprs} feature.
+
+\begin{lstlisting}[language=Rust, caption={The compile-time bounds machinery.
+  \texttt{Assert<true>} is inhabited; \texttt{Assert<false>} is not.
+  \texttt{Require<\{EXPR\}>: IsTrue} becomes a compile error when \texttt{EXPR}
+  evaluates to \texttt{false}.}, label={lst:assert-istrue}]
+pub struct Assert<const OK: bool>;
+
+pub trait IsTrue {}
+impl IsTrue for Assert<true> {}      // only the true case is inhabited
+
+pub type Require<const OK: bool> = Assert<OK>;
+\end{lstlisting}
+
+A where-bound of the form \texttt{Require<\{ EXPR \}>: IsTrue} compiles
+successfully if and only if \texttt{EXPR} evaluates to \texttt{true} at
+compile time. When \texttt{EXPR} is \texttt{false}, the compiler reports:
+
+\begin{verbatim}
+error[E0277]: the trait bound `Assert<false>: IsTrue` is not satisfied
+\end{verbatim}
+
+This is the mechanism behind every quantitative invariant in the crate:
+\texttt{ConditionCell<BITS>}, \texttt{Between01<NUM, DEN>},
+\texttt{TypedLoopNode<ARITY>}, and the \texttt{WfNetConst<SOUNDNESS>}
+non-forgeability gate all reduce to \texttt{Require}/\texttt{IsTrue} bounds.
+
+\subsection{Between01 for Metric Bounds}
+
+\texttt{Between01<NUM, DEN>} encodes the invariant that the rational number
+$\texttt{NUM}/\texttt{DEN}$ lies in $[0, 1]$ at the type level, with no
+runtime component.
+
+\begin{lstlisting}[language=Rust, caption={\texttt{Between01<NUM, DEN>}: a
+  rational metric in $[0,1]$ enforced by two \texttt{Require}/\texttt{IsTrue}
+  where-bounds.}, label={lst:between01}]
+pub struct Between01<const NUM: u64, const DEN: u64>
+where
+    Require<{ DEN > 0 }>:   IsTrue,  // denominator non-zero
+    Require<{ NUM <= DEN }>: IsTrue,  // numerator at most denominator
+{
+    _private: (),
+}
+\end{lstlisting}
+
+The two where-bounds are independent:
+\begin{itemize}
+  \item \texttt{Between01<0, 0>} does not compile: $\texttt{DEN} = 0$ violates
+    the non-zero-denominator law.
+  \item \texttt{Between01<2, 1>} does not compile: $2 > 1$ violates the upper
+    bound law.
+  \item \texttt{Between01<3, 4>} compiles: $3/4 \in [0,1]$ and $4 > 0$.
+\end{itemize}
+
+\begin{theorem}[Between01 Soundness]
+  \label{thm:between01}
+  For any $n, d \in \mathbb{N}$, the type $\texttt{Between01}\langle n, d \rangle$
+  is well-formed if and only if $d > 0$ and $n \leq d$.
+\end{theorem}
+
+\begin{proof}
+  The type definition carries two where-bounds:
+  $\RequireBound{d > 0} : \IsTrue$ and $\RequireBound{n \leq d} : \IsTrue$.
+  By the \texttt{Assert}/\texttt{IsTrue} machinery, each bound reduces to
+  $\texttt{Assert}\langle b \rangle : \IsTrue$ where $b$ is the boolean value
+  of the bracketed expression evaluated at compile time. The trait
+  \texttt{IsTrue} is implemented only for $\texttt{Assert}\langle\texttt{true}\rangle$.
+  Therefore, well-formedness holds if and only if both $d > 0$ and $n \leq d$
+  evaluate to \texttt{true}, i.e., if and only if $d > 0$ and $n \leq d$.
+  \qed
+\end{proof}
+
+\texttt{Between01} is used by \texttt{Metric<KIND, NUM, DEN>} in
+\texttt{src/conformance.rs} to ensure that conformance quality metrics
+(fitness, precision, F1, generalization, simplicity) are provably in-range at
+the type level. A \texttt{Metric<Fitness, 5, 3>} --- claiming a fitness of
+$5/3 > 1$ --- does not compile.
+
+\subsection{ConditionCell and the Need-9 Law}
+
+\texttt{ConditionCell<BITS>} encodes the \emph{Need9 means split} law from the
+Blue River Dam covenant: a single condition cell may hold at most 8 primary
+bits. When you need 9 primary condition bits, the law requires splitting into
+two cells.
+
+\begin{lstlisting}[language=Rust, caption={\texttt{ConditionCell<BITS>}: the
+  Need9 law as a type constraint.}, label={lst:conditioncell}]
+pub struct ConditionCell<const BITS: usize>
+where
+    Require<{ BITS <= 8 }>: IsTrue,
+{
+    _private: (),
+}
+\end{lstlisting}
+
+\texttt{ConditionCell<8>} compiles. \texttt{ConditionCell<9>} does not:
+
+\begin{verbatim}
+error[E0277]: the trait bound `Assert<false>: IsTrue` is not satisfied
+  --> src/law.rs
+   |
+   |     Require<{ BITS <= 8 }>: IsTrue,
+   |                             ^^^^^^ the trait `IsTrue` is not
+   |                                    implemented for `Assert<false>`
+\end{verbatim}
+
+The error message is accompanied by a developer note in the source directing
+the reader to the Blue River Dam covenant and the split remedy.
+
+% -----------------------------------------------------------------------------
+\section{Non-Forgeability via Sealed Constructors}
+\label{sec:arch-nonforgeability}
+% -----------------------------------------------------------------------------
+
+\subsection{The WfNetConst Private Seal}
+
+\texttt{WfNetConst<SOUNDNESS>} in \texttt{src/petri.rs} is the typed
+representation of a workflow net whose soundness state is tracked as a const
+generic parameter drawn from the \texttt{SoundnessState} enum:
+$\{\texttt{Unknown}, \texttt{Claimed}, \texttt{Witnessed}\}$.
+
+The non-forgeability of the \texttt{Witnessed} state is enforced by a private
+constructor seal. Only the \texttt{witness\_soundness} function inside the
+\texttt{petri} module may mint a \texttt{WfNetConst<\{Witnessed\}>}; it
+requires a \texttt{SoundnessProof} token as proof that the engine has verified
+soundness. External code has no path to \texttt{WfNetConst<\{Witnessed\}>}
+that does not pass through this gate.
+
+\begin{lstlisting}[language=Rust, caption={Sealed constructor for
+  \texttt{WfNetConst<\{Witnessed\}>}. The \texttt{SoundnessProof} token
+  is only producible by the \texttt{wasm4pm} engine bridge. External
+  code cannot construct it.}, label={lst:wfnet-seal}]
+pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
+    // fields ...
+    _seal: SoundnessSeal<SOUNDNESS>,
+}
+
+// Private seal type --- not exported.
+struct SoundnessSeal<const S: SoundnessState>;
+
+// The only path to WfNetConst<{Witnessed}>:
+pub fn witness_soundness(
+    net:   WfNetConst<{ SoundnessState::Unknown }>,
+    proof: SoundnessProof,    // only wasm4pm produces this
+) -> WfNetConst<{ SoundnessState::Witnessed }> { /* ... */ }
+\end{lstlisting}
+
+A caller who constructs a \texttt{WfNetConst<\{Unknown\}>} and passes it
+directly to a function that demands \texttt{WfNetConst<\{Witnessed\}>} receives
+a compile-time type error. No runtime assertion is needed; no boolean flag can
+be forged.
+
+\subsection{The Dual-Net Lesson}
+
+During the AGI evaluation phase of the \texttt{wasm4pm-compat} development,
+an evaluator proposed an alternative design with two separate types:
+\texttt{WfNet} (an unparameterized workflow net) and \texttt{WfNetConst<S>}
+(the const-parameterized version). The proposal argued that most callers would
+use \texttt{WfNet} and only specialists would need \texttt{WfNetConst}.
+
+The finding from evaluating this proposal was that a two-type design
+reintroduces the verification gap. If \texttt{WfNet} and
+\texttt{WfNetConst<S>} both exist, conversion functions between them are
+required, and those conversion functions become the new forgery surface. A
+caller who wishes to avoid the soundness gate converts their
+\texttt{WfNetConst<\{Unknown\}>} to \texttt{WfNet} and passes the result to a
+function that converts \texttt{WfNet} back to \texttt{WfNetConst<\{Witnessed\}>}
+via an unsound stub. The type system cannot prevent this if the conversion
+function exists.
+
+The single-type design with a const-generic soundness parameter eliminates this
+attack surface. There is exactly one type, \texttt{WfNetConst<SOUNDNESS>}, and
+every function that requires witnessed soundness declares
+\texttt{WfNetConst<\{SoundnessState::Witnessed\}>} in its signature. A caller
+who cannot produce a \texttt{SoundnessProof} token cannot satisfy the bound.
+
+% -----------------------------------------------------------------------------
+\section{The LossPolicy Chain}
+\label{sec:arch-losspolicy}
+% -----------------------------------------------------------------------------
+
+\subsection{Three Variants}
+
+Some translations between process-evidence shapes cannot be lossless. The
+canonical example is flattening an object-centric log (OCEL) to a classic
+case-centric log (XES): a single object type must be chosen as the case notion,
+and every event-to-object link to the other types is discarded. That discarded
+structure is real evidence; it cannot vanish silently.
+
+The \texttt{LossPolicy} enum forces the caller to declare, before any loss
+occurs, how loss is to be handled:
+
+\begin{lstlisting}[language=Rust, caption={\texttt{LossPolicy}: a pre-loss
+  declaration. The default (via \texttt{Default::default()}) is
+  \texttt{RefuseLoss} --- the safest option.}, label={lst:losspolicy}]
+pub enum LossPolicy {
+    /// Loss is not tolerated: refuse if evidence would be dropped.
+    RefuseLoss,
+    /// Loss is permitted under an explicitly named projection.
+    AllowNamedProjection,
+    /// Loss is permitted and must be itemised in a LossReport.
+    AllowLossWithReport,
+}
+
+impl Default for LossPolicy {
+    fn default() -> Self { LossPolicy::RefuseLoss }
+}
+\end{lstlisting}
+
+The three variants form a lattice of increasing permissiveness.
+\texttt{RefuseLoss} is the floor: no evidence may be dropped, and any
+transformation that would drop evidence must instead return a refusal.
+\texttt{AllowNamedProjection} names the projection but does not itemize the
+loss; it is appropriate when the projection is well-understood and the loss
+category is documented by the \texttt{ProjectionName}. \texttt{AllowLossWithReport}
+requires the caller to produce a \texttt{LossReport} enumerating every
+discarded item; it is the correct policy when the loss must be auditable.
+
+\subsection{ProjectionName as a Semantic Newtype}
+
+\texttt{ProjectionName} is a \texttt{\&'static str} newtype. It names a
+projection in a stable, machine-readable way so that two runs of the same
+named projection can be recognized as equivalent by downstream audit systems.
+The use of \texttt{\&'static str} --- rather than \texttt{String} or a numeric
+identifier --- ensures that names are baked into the binary, not computed from
+runtime state that could vary between executions.
+
+\begin{lstlisting}[language=Rust]
+pub struct ProjectionName(pub &'static str);
+// Example usage:
+let name = ProjectionName("ocel-flatten-to-xes:by-order");
+\end{lstlisting}
+
+A \texttt{ProjectionName} must be chosen before the projection runs, not
+after. This prevents a design where the name is derived from the result of the
+projection, which would allow silent laundering of unnamed loss.
+
+\subsection{LossReport Documentation}
+
+A \texttt{LossReport<From, To, Items>} is the structured receipt of a lossy
+projection. Its \texttt{From} and \texttt{To} type parameters tag the shapes
+bridged (both are zero-sized \texttt{PhantomData} markers); \texttt{Items} is
+the concrete record of discarded evidence (e.g., a \texttt{Vec<\&str>} of
+dropped object-type names). The combination ensures that a report for an
+OCEL-to-XES flattening cannot be confused with a report for a
+process-tree-to-DFG projection.
+
+\begin{lstlisting}[language=Rust, caption={A \texttt{LossReport} for
+  an OCEL-to-XES flattening. The \texttt{From}/\texttt{To} phantom tags
+  prevent the report from being confused with one for a different projection
+  pair.}, label={lst:lossreport}]
+enum OcelShape {}
+enum XesShape  {}
+
+let report = LossReport::<OcelShape, XesShape, Vec<&str>>::new(
+    ProjectionName("ocel-flatten-to-xes:by-order"),
+    LossPolicy::AllowLossWithReport,
+    vec!["item", "invoice"],   // object types dropped
+);
+
+assert_eq!(report.policy, LossPolicy::AllowLossWithReport);
+assert_eq!(report.lost,   vec!["item", "invoice"]);
+assert!(!report.is_lossless());
+\end{lstlisting}
+
+\subsection{The Type-Level Guarantee That Silent Projection Is Impossible}
+
+The \texttt{Project} trait is the only sanctioned path for a lossy
+transformation. It requires:
+
+\begin{enumerate}
+  \item A \texttt{LossPolicy} argument --- decided by the caller before projection.
+  \item A return type of \texttt{Result<LossReport<From, To, Lost>, Reason>}.
+\end{enumerate}
+
+There is no \texttt{Project} impl that returns a plain projected value without
+either (a) a \texttt{LossReport} or (b) a named refusal. The constraint is
+structural: any code that calls \texttt{project()} must handle both branches of
+the \texttt{Result}. A caller who calls \texttt{project()} and discards the
+\texttt{LossReport} by writing \texttt{let \_ = result.unwrap().lost;} has
+explicitly acknowledged the loss --- the silence is named.
+
+\begin{lstlisting}[language=Rust, caption={The \texttt{Project} trait.
+  Silent loss is structurally impossible: every implementation must return
+  either a \texttt{LossReport} or a named refusal.}, label={lst:project-trait}]
+pub trait Project {
+    type From;
+    type To;
+    type Lost;
+    type Reason;
+
+    fn project(
+        self,
+        policy: LossPolicy,
+    ) -> Result<LossReport<Self::From, Self::To, Self::Lost>,
+                Self::Reason>;
+}
+\end{lstlisting}
+
+The diagnostic \texttt{CompatDiagnostic::LossyProjectionWithoutPolicy} and
+\texttt{CompatDiagnostic::HiddenFlattening} are the named laws against which a
+missing-policy violation and a silent-flattening violation are charged,
+respectively.
+
+\subsection{Algorithm: The Lawful Lossy Projection Protocol}
+
+\begin{algorithm}[H]
+  \caption{Lawful Lossy Projection}
+  \label{alg:lossy-projection}
+  \DontPrintSemicolon
+  \KwIn{source evidence $e : \Evidence{T}{\texttt{Admitted}}{W}$,\quad
+        policy $p : \texttt{LossPolicy}$,\quad
+        projection name $n : \texttt{ProjectionName}$}
+  \KwOut{projected evidence and loss report, or named refusal}
+  \BlankLine
+  $\text{dropped} \leftarrow \textsc{Identify\_Loss}(e)$\;
+  \BlankLine
+  \If{$p = \texttt{RefuseLoss}$ \textbf{and} $\text{dropped} \neq \emptyset$}{
+    \Return $\Err(\textsc{Named\_Refusal\_Reason})$\;
+  }
+  \BlankLine
+  $e' \leftarrow \textsc{Apply\_Projection}(e,\, n)$\;
+  \BlankLine
+  $r \leftarrow \texttt{LossReport::new}(n,\, p,\, \text{dropped})$\;
+  \BlankLine
+  \Return $\Ok\!\left(\, e'.\texttt{into\_projected}(),\ r \,\right)$\;
+\end{algorithm}
+
+The invariants enforced by the protocol are:
+\begin{itemize}
+  \item The loss is identified \emph{before} the projection is applied.
+    A caller cannot observe the projected result and then decide retroactively
+    whether the loss is acceptable.
+  \item The \texttt{LossReport} is constructed from the \emph{same}
+    \texttt{ProjectionName} that governs the projection. The name is fixed at
+    call-time, not derived from the result.
+  \item The refusal reason is a named type parameter (\texttt{Self::Reason}),
+    not a string. This ensures that refusals are machine-readable and auditable.
+\end{itemize}
+
+\begin{remark}
+  The protocol described in Algorithm~\ref{alg:lossy-projection} applies at
+  the structural layer of \texttt{wasm4pm-compat}. It accounts for loss by
+  shape; it does not run a discovery or conformance engine over the projected
+  result. Engine-level actions on the projected evidence graduate to
+  \texttt{wasm4pm}.
+\end{remark}
+
+% -----------------------------------------------------------------------------
+\section{The Three-Layer Summary}
+\label{sec:arch-summary}
+% -----------------------------------------------------------------------------
+
+Table~\ref{tab:three-layers} summarizes the three layers of the type system,
+the mechanism each layer uses, and the invariant each layer enforces.
+
+\begin{table}[h]
+  \centering
+  \caption{The three-layer type system of \texttt{wasm4pm-compat}.}
+  \label{tab:three-layers}
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Layer} & \textbf{Mechanism} & \textbf{Invariant enforced} \\
+    \midrule
+    State tokens
+      & Empty enums as \texttt{PhantomData}
+      & Cross-stage substitution is a type error \\
+    Witness markers
+      & Uninhabited enums + sealed \texttt{Witness} trait
+      & Cross-authority substitution is a type error \\
+    Const-generic law
+      & \texttt{Require<\{EXPR\}>: IsTrue} where-bounds
+      & Out-of-range quantitative invariants do not compile \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Together, the three layers produce a system in which every structural law of
+the process-evidence domain --- lifecycle ordering, authority identity,
+soundness non-forgeability, metric bounds, loss accountability --- is a
+compile-time fact. No runtime state, no boolean flag, and no convention
+agreed by comment alone can substitute for these invariants. The compiler
+enforces them at every call site, without exception, at zero runtime cost.

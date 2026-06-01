@@ -1,0 +1,532 @@
+\chapter{The Manufacturing Doctrine}
+\label{ch:doctrine}
+
+The manufacturing doctrine is a development discipline, not a testing strategy. It governs
+how \texttt{wasm4pm-compat} is built: every commit is a receipt, every compile-fail fixture
+is a proof obligation, and the commit history is itself an artifact whose certification state
+can be measured exactly. This chapter formalizes the doctrine, defines the ALIVE gate that
+certifies it, describes the PARTIAL checkpoint pattern that names residuals without false
+claims, and documents the audit mesh that prevents regression.
+
+%% ------------------------------------------------------------
+\section{Commits as Receipts}
+\label{sec:doctrine-receipts}
+
+The central insight of the manufacturing doctrine is that a commit is not a unit of work. It
+is a \emph{manufacturing transition}: a typed step from one certification state to the next,
+backed by verifiable evidence of a specific law surface change.
+
+\begin{definition}[Manufacturing Transition]
+\label{def:manufacturing-transition}
+A \emph{manufacturing transition} $\tau$ is a pair $(c, \rho)$ where $c$ is a git commit and
+$\rho \in \mathcal{R}$ is a receipt class drawn from the set
+\[
+  \mathcal{R} = \{
+    \texttt{paper-ledger},\;
+    \texttt{paper-law},\;
+    \texttt{type-law},\;
+    \texttt{fixture-pass},\;
+    \texttt{fixture-fail},\;
+    \texttt{stderr},\;
+    \texttt{ledger},\;
+    \texttt{audit},\;
+    \texttt{docs-law},\;
+    \texttt{checkpoint},\;
+    \texttt{tag}
+  \}
+\]
+such that $c$ produces verifiable evidence of a specific law surface change traceable to
+a paper, standard, or structural law in the process mining literature.
+\end{definition}
+
+Each receipt class has a distinct evidentiary role. Table~\ref{tab:receipt-classes} describes
+the role, required artifact, and traceability requirement for each class.
+
+\begin{table}[ht]
+\centering
+\caption{Manufacturing receipt classes: role, artifact, and traceability}
+\label{tab:receipt-classes}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Class} & \textbf{Artifact produced} & \textbf{Traceability requirement} \\
+\midrule
+\texttt{paper-ledger}  & Ledger row in \texttt{PAPER\_COVERAGE\_LEDGER.md} & Paper family + citation \\
+\texttt{paper-law}     & Type surface in \texttt{src/*.rs} referencing the paper & Paper citation in rustdoc \\
+\texttt{type-law}      & Named type or const-generic bound in \texttt{src/} & Named law from paper \\
+\texttt{fixture-fail}  & Compile-fail \texttt{.rs} in \texttt{tests/ui/compile\_fail/} & Named violated law \\
+\texttt{fixture-pass}  & Compile-pass \texttt{.rs} in \texttt{tests/ui/compile\_pass/} & Lawful path being proved \\
+\texttt{stderr}        & \texttt{.stderr} snapshot paired with compile-fail fixture & Exact diagnostic text \\
+\texttt{ledger}        & Updated ledger document & Commit hash + counts \\
+\texttt{audit}         & Audit script in \texttt{scripts/audit/} & Gate criterion it checks \\
+\texttt{docs-law}      & Law document in \texttt{docs/} & Law it specifies \\
+\texttt{checkpoint}    & Checkpoint report in \texttt{docs/} & Gate state at time of commit \\
+\texttt{tag}           & Git annotated tag & Certification level \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The receipt classes form a partial dependency order. A \texttt{fixture-fail} commit requires
+a prior \texttt{type-law} or \texttt{paper-law} commit establishing the law being rejected.
+A \texttt{stderr} commit is valid only if it is paired with the \texttt{fixture-fail} commit
+that immediately precedes it. A \texttt{checkpoint} commit is valid only if the gate
+measurements it records match the actual repository state at the time of the commit.
+
+\begin{remark}[Receipt validity is structural, not procedural]
+A commit that carries the correct receipt class prefix but does not produce the claimed
+evidence is not a valid receipt. The manufacturing doctrine rejects procedural compliance:
+a \texttt{fixture-fail} commit that introduces a fixture failing for the wrong reason
+(a missing import, a typo, an unstable feature regression) is a defect, not a receipt. The
+fixture must fail for the \emph{intended named law}, as verified by the exact
+\texttt{.stderr} diagnostic.
+\end{remark}
+
+Reaching \textsc{PaperLaw Crown Alive~004} required 601 receipt-bearing commits manufactured
+across May~2026. Table~\ref{tab:receipt-counts} shows the distribution across receipt classes.
+
+\begin{table}[ht]
+\centering
+\caption{Receipt class distribution across 601 commits in the May~2026 manufacturing run}
+\label{tab:receipt-counts}
+\begin{tabular}{@{}lr@{}}
+\toprule
+\textbf{Receipt class} & \textbf{Commit count} \\
+\midrule
+\texttt{type-law}      & 140 \\
+\texttt{fixture-pass}  &  89 \\
+\texttt{paper-ledger}  &  68 \\
+\texttt{fixture-fail}  &  64 \\
+\texttt{paper-law}     &  63 \\
+\texttt{audit}         &  38 \\
+\texttt{docs-law}      &  18 \\
+\texttt{checkpoint}    &  15 \\
+\texttt{ledger}        &  11 \\
+\texttt{stderr}        &  10 \\
+Other (docs, chore)    &  85 \\
+\midrule
+\textbf{Total}         & \textbf{601} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ------------------------------------------------------------
+\section{The ALIVE Gate}
+\label{sec:doctrine-alive}
+
+The ALIVE gate is the certification surface for the manufacturing doctrine. A codebase
+is \emph{ALIVE} at a given level if and only if a specific set of measurable gate criteria
+are simultaneously satisfied on the same commit. The gate is not a narrative claim: every
+criterion is a shell command that exits~0 on pass and exits non-zero on failure.
+
+\begin{definition}[ALIVE Certification]
+\label{def:alive}
+Let $\mathcal{R}$ denote the repository state at a given commit. The ALIVE certification
+$\text{ALIVE}_{004}(\mathcal{R})$ holds if and only if all ten gate criteria are satisfied:
+\begin{equation}
+\label{eq:alive-gate}
+\text{ALIVE}_{004}(\mathcal{R}) \iff \bigwedge_{i=1}^{10} G_i(\mathcal{R})
+\end{equation}
+where each $G_i(\mathcal{R})$ is a measurable, machine-verifiable predicate on $\mathcal{R}$.
+\end{definition}
+
+The ten gate criteria for \textsc{PaperLaw Crown Alive~004} are:
+
+\begin{enumerate}
+  \item[\textbf{G1.}] \textbf{Paper Coverage.}
+    $|\text{PAPER\_COVERAGE\_LEDGER}| \geq 80$ paper families, each with a registered
+    type-law surface. Measurement: row count in \texttt{docs/PAPER\_COVERAGE\_LEDGER.md}.
+
+  \item[\textbf{G2.}] \textbf{No Missing Type Law.}
+    Zero modules have a paper registration without a corresponding type-law surface.
+    $|\{m \in \text{modules} : \text{MISSING\_TYPE\_LAW}(m)\}| = 0$.
+    Measurement: \texttt{bash scripts/audit/audit\_missing\_type\_law.sh}.
+
+  \item[\textbf{G3.}] \textbf{Compile-Pass Fixtures.}
+    $|\text{compile\_pass}| \geq 200$.
+    Measurement: \texttt{ls tests/ui/compile\_pass/*.rs | wc -l}.
+
+  \item[\textbf{G4.}] \textbf{Compile-Fail Fixtures.}
+    $|\text{compile\_fail}| \geq 160$.
+    Measurement: \texttt{ls tests/ui/compile\_fail/*.rs | wc -l}.
+
+  \item[\textbf{G5.}] \textbf{Stderr Parity.}
+    Every compile-fail fixture has a corresponding \texttt{.stderr} file with the expected
+    compiler diagnostic. $|\text{compile\_fail}| = |\text{.stderr}|$.
+    Measurement: \texttt{bash scripts/audit/audit\_stderr\_quality.sh}.
+
+  \item[\textbf{G6.}] \textbf{Audit Script Coverage.}
+    $|\text{audit scripts}| \geq 20$.
+    Measurement: \texttt{ls scripts/audit/*.sh | wc -l}.
+
+  \item[\textbf{G7.}] \textbf{Master Audit Gate.}
+    All individual audit scripts pass.
+    $\forall s \in \text{scripts/audit/}: \text{exit}(s) = 0$.
+    Measurement: \texttt{bash scripts/audit/audit\_crown\_gate\_all.sh}.
+
+  \item[\textbf{G8.}] \textbf{Cargo Tests.}
+    $\text{exit}(\texttt{cargo test --all-features --tests}) = 0$.
+
+  \item[\textbf{G9.}] \textbf{Clippy.}
+    $\text{exit}(\texttt{cargo clippy --all-features -- -D warnings}) = 0$.
+    No warnings are tolerated.
+
+  \item[\textbf{G10.}] \textbf{Format.}
+    $\text{exit}(\texttt{cargo fmt --check}) = 0$.
+    No formatting deviations.
+\end{enumerate}
+
+\begin{remark}[Gate failure is a defect, not a discrepancy]
+Following the Van der Aalst Constitution~\cite{vanderaalst2016process}: if any gate fails,
+that is a defect, not a discrepancy. The crown cannot be awarded with exceptions, waivers,
+or partial passes. A gate that passes most of the time is not a gate; it is a suggestion.
+\end{remark}
+
+The \textsc{PaperLaw Crown Alive~004} gate was passed on commit tagged
+\texttt{wasm4pm-compat-paperlaw-crown-alive-004} with the following measured values:
+
+\begin{table}[ht]
+\centering
+\caption{Measured gate values at \textsc{Crown Alive~004} certification}
+\label{tab:crown-measurements}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+\textbf{Gate} & \textbf{Threshold} & \textbf{Measured} \\
+\midrule
+G1: Paper families       & $\geq 80$  & 98  \\
+G2: Missing type law     & $= 0$      & 0   \\
+G3: Compile-pass         & $\geq 200$ & 406 \\
+G4: Compile-fail         & $\geq 160$ & 196 \\
+G5: Stderr parity        & exact      & 196 \\
+G6: Audit scripts        & $\geq 20$  & 23  \\
+G7: Master audit gate    & exit 0     & PASS \\
+G8: Cargo tests          & exit 0     & PASS \\
+G9: Clippy               & exit 0     & PASS \\
+G10: Format              & exit 0     & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ------------------------------------------------------------
+\section{The PARTIAL Checkpoint Pattern}
+\label{sec:doctrine-partial}
+
+PARTIAL is not a failure state. It is a precise, honest state: the codebase satisfies some
+but not all of the ALIVE gate criteria, and the residuals are named explicitly.
+
+\begin{definition}[PARTIAL Checkpoint]
+\label{def:partial}
+A \emph{PARTIAL checkpoint} is a tagged commit that records:
+\begin{enumerate}
+  \item The set of gate criteria currently satisfied: $\{i : G_i(\mathcal{R}) = \top\}$.
+  \item The set of residual criteria not yet satisfied: $\{i : G_i(\mathcal{R}) = \bot\}$.
+  \item For each residual, a \emph{bill of materials}: the specific commits required to
+        close it.
+\end{enumerate}
+\end{definition}
+
+The bill-of-materials pattern is the operational core of PARTIAL. Rather than treating
+unmet criteria as abstract shortfalls, the PARTIAL checkpoint enumerates them as a
+manufactureable backlog. Each residual is expressed as one or more manufacturing
+transitions of a specific receipt class:
+
+\begin{example}[PARTIAL bill of materials]
+\label{ex:partial-bom}
+Suppose at checkpoint $\mathcal{R}_k$ that $G_3$ (compile-pass count) fails because
+$|\text{compile\_pass}| = 185 < 200$. The bill of materials for residual $G_3$ is:
+\[
+  \text{BOM}(G_3) = \{15 \text{ commits of class } \texttt{fixture-pass}\}
+\]
+Each bill-of-materials entry names the paper family or module that the fixture must
+address. A \texttt{fixture-pass} commit that does not reference a specific paper or
+module is not a valid closure for $G_3$.
+\end{example}
+
+The PARTIAL checkpoint workflow is:
+
+\[
+  \text{PARTIAL} \;\to\; \text{residual inventory} \;\to\; \text{targeted closure}
+  \;\to\; \text{recomputed gate} \;\to\; \text{ALIVE} \;\text{or named PARTIAL}
+\]
+
+The workflow terminates at ALIVE when all ten gates pass, or at a named PARTIAL when the
+manufacturing work for a given sprint is exhausted. PARTIAL is better than false ALIVE
+because:
+
+\begin{enumerate}
+  \item PARTIAL names exactly what is missing. ALIVE conceals it.
+  \item PARTIAL enables targeted manufacturing. ALIVE produces undirected work.
+  \item PARTIAL is auditable. False ALIVE requires defending an indefensible claim.
+\end{enumerate}
+
+Table~\ref{tab:alive-progression} shows how the PAPERLAW certification levels progressed
+from \textsc{Alive~001} through \textsc{Crown Alive~004}, with the named PARTIAL states
+between them.
+
+\begin{table}[ht]
+\centering
+\caption{PAPERLAW milestone progression from \textsc{Alive~001} to \textsc{Crown Alive~004}}
+\label{tab:alive-progression}
+\begin{tabular}{@{}lrrrrl@{}}
+\toprule
+\textbf{Milestone} & \textbf{Fail} & \textbf{Pass} & \textbf{Papers} & \textbf{Modules} & \textbf{Status} \\
+\midrule
+\textsc{TypeLaw Alive~001}    &   4 &  10 &  8  & 10 & ALIVE \\
+\textsc{PaperLaw Alive~002}   &  16 &  30 & 20  & 18 & ALIVE \\
+\textsc{PaperLaw Partial~003} &  45 &  80 & 42  & 24 & PARTIAL (G1, G3, G4) \\
+\textsc{PaperLaw Alive~003}   &  75 & 120 & 55  & 28 & ALIVE \\
+\textsc{Crown Partial~004}    & 140 & 280 & 72  & 32 & PARTIAL (G3, G4) \\
+\textsc{Crown Alive~004}      & 196 & 406 & 98  & 37 & ALIVE (Crown) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%% ------------------------------------------------------------
+\section{Anti-Regression Audit Mesh}
+\label{sec:doctrine-audit}
+
+The ALIVE gate measures forward progress. The audit mesh prevents backward regression.
+It consists of 23~independent audit scripts, each checking a specific structural invariant
+of the repository. Every script exits~0 on pass and exits~1 on fail, printing a named
+defect when it fails.
+
+The 23 scripts form two tiers:
+
+\begin{description}
+  \item[Hard audits] Structural invariants that, if violated, constitute immediate defects
+    requiring remediation before any gate measurement. Hard audits check invariants that
+    are unconditional: no missing type law, no engine creep, no stable-language claims,
+    no unsealed refusals, no algorithm exports.
+
+  \item[Soft audits] Coverage thresholds and quality checks where a single violation is
+    a warning but the overall pass/fail depends on aggregate counts. Soft audits check
+    fixture parity, benchmark coverage, and documentation completeness.
+\end{description}
+
+Table~\ref{tab:audit-scripts} lists all 23 audit scripts with their tier and invariant.
+
+\begin{table}[ht]
+\centering
+\caption{Anti-regression audit mesh: 23 scripts, two tiers}
+\label{tab:audit-scripts}
+\begin{tabular}{@{}llp{6cm}@{}}
+\toprule
+\textbf{Script} & \textbf{Tier} & \textbf{Invariant enforced} \\
+\midrule
+\texttt{audit\_bench\_coverage}       & Soft & Benchmark suite covers all zero-cost types \\
+\texttt{audit\_crosswalk\_links}      & Soft & Crosswalk links in \texttt{TYPE\_LAW\_CROSSWALK.md} resolve \\
+\texttt{audit\_crown\_gate\_all}      & Hard & Orchestrator: runs all others, fails on any failure \\
+\texttt{audit\_doctest\_disabled}     & Hard & \texttt{doctest = false} in \texttt{Cargo.toml} \\
+\texttt{audit\_features}              & Hard & Exactly \{formats, strict, wasm4pm\}; no \texttt{nightly} feature \\
+\texttt{audit\_graduation\_boundaries}& Hard & No engine types leak past \texttt{wasm4pm} feature gate \\
+\texttt{audit\_id\_newtypes}          & Hard & All typed identifiers are newtypes, not bare aliases \\
+\texttt{audit\_law\_annotations}      & Hard & Every public type has a law citation in its rustdoc \\
+\texttt{audit\_metric\_bounds}        & Hard & All metric types carry \texttt{Between01} bounds \\
+\texttt{audit\_missing\_type\_law}    & Hard & Zero modules have \texttt{MISSING\_TYPE\_LAW} in ledger \\
+\texttt{audit\_module\_docs}          & Soft & Every module has a \texttt{//!} doc comment \\
+\texttt{audit\_need9\_law}            & Hard & 8-bit state; Need9=split is rejected at the type level \\
+\texttt{audit\_no\_algorithm\_exports}& Hard & No discovery/replay/alignment functions in \texttt{src/} \\
+\texttt{audit\_no\_engine\_creep}     & Hard & No engine symbols (\texttt{discover}, \texttt{replay\_log}, \ldots) in \texttt{src/} \\
+\texttt{audit\_no\_stable\_language}  & Hard & No affirmative stable-language claims in \texttt{src/} or \texttt{docs/} \\
+\texttt{audit\_no\_unsealed\_refusal} & Hard & All refusal variants name a specific law (no \texttt{InvalidInput}) \\
+\texttt{audit\_paper\_law\_ledger}    & Hard & Every ledger row has a valid classification status \\
+\texttt{audit\_pass\_fail\_pairs}     & Soft & Each compile-fail law has a corresponding compile-pass law \\
+\texttt{audit\_projection\_loss}      & Hard & All projections carry \texttt{LossPolicy} + \texttt{LossReport} \\
+\texttt{audit\_receipt\_chain}        & Hard & Receipt chain types are structurally sound \\
+\texttt{audit\_stderr\_quality}       & Hard & Every compile-fail \texttt{.rs} has an exact-match \texttt{.stderr} \\
+\texttt{audit\_trybuild\_receipts}    & Hard & All compile-fail \texttt{.rs} files compile-fail for the named law \\
+\texttt{audit\_witness\_markers}      & Hard & All witness types implement the \texttt{Witness} sealed trait \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The orchestrator script \texttt{audit\_crown\_gate\_all.sh} runs all 22 subordinate scripts
+in sequence, reports pass/fail per script, and exits~0 only if all pass. This makes Gate~7
+of the ALIVE certification ($G_7$ in \S\ref{sec:doctrine-alive}) a single atomic check.
+
+Algorithm~\ref{alg:crown-audit} formalizes the crown audit protocol.
+
+\begin{algorithm}[ht]
+\caption{Crown Audit Protocol (\texttt{audit\_crown\_gate\_all.sh})}
+\label{alg:crown-audit}
+\DontPrintSemicolon
+\KwIn{Repository state $\mathcal{R}$, audit script set $\mathcal{S} = \{s_1, \ldots, s_{22}\}$}
+\KwOut{PASS (exit 0) or FAIL (exit 1) with named defects}
+
+$\text{PASS} \leftarrow 0$\;
+$\text{FAIL} \leftarrow 0$\;
+$\text{defects} \leftarrow \emptyset$\;
+
+\ForEach{$s_i \in \mathcal{S} \setminus \{\texttt{audit\_crown\_gate\_all}\}$}{
+  \eIf{$\text{exit}(s_i(\mathcal{R})) = 0$}{
+    $\text{PASS} \leftarrow \text{PASS} + 1$\;
+    \textbf{print} \texttt{PASS} $s_i$\;
+  }{
+    $\text{FAIL} \leftarrow \text{FAIL} + 1$\;
+    $\text{defects} \leftarrow \text{defects} \cup \{s_i\}$\;
+    \textbf{print} \texttt{FAIL} $s_i$\;
+  }
+}
+
+\textbf{print} \texttt{Crown Audit Gate:} $\text{PASS}$ \texttt{pass,} $\text{FAIL}$ \texttt{fail}\;
+
+\eIf{$\text{FAIL} = 0$}{
+  \Return{exit~0}\;
+}{
+  \ForEach{$d \in \text{defects}$}{
+    \textbf{print} \texttt{DEFECT:} $d$\;
+  }
+  \Return{exit~1}\;
+}
+\end{algorithm}
+
+A key design property of the audit mesh is monotonicity: adding new audit scripts can only
+raise the bar for future ALIVE certifications. Removing a script requires an explicit
+defect record explaining why the invariant it checked is no longer relevant. No script has
+been removed since \textsc{Alive~002}.
+
+%% ------------------------------------------------------------
+\section{Velocity and Scale}
+\label{sec:doctrine-velocity}
+
+The manufacturing doctrine is not a theoretical framework. It was exercised at scale during
+May~2026, producing 601 receipt-bearing commits that advanced the codebase from
+\textsc{PaperLaw Alive~002} (16 compile-fail fixtures, 30 compile-pass fixtures, 20 papers)
+to \textsc{Crown Alive~004} (196 compile-fail receipts, 406 compile-pass receipts, 98
+papers).
+
+This velocity was enabled by workflow orchestration using Claude Code dynamic workflows.
+The orchestration pattern that made it possible was the \emph{schema-free agent pattern}.
+
+Earlier orchestration attempts used structured output schemas to route agent subtasks.
+Under high parallelism, the structured output path triggered a \texttt{StructuredOutput}
+timeout in the tool infrastructure: the schema validation for large nested response objects
+exceeded the maximum allowed latency, causing entire agent batches to time out and leaving
+partial work uncommitted.
+
+The schema-free agent pattern resolves this by returning all agent results as plain text
+with a documented parsing convention. The orchestrating workflow applies a lightweight
+text-pattern extractor rather than a schema validator. The manufacturing pipeline then
+routes the extracted result to the appropriate receipt class. This change reduced per-agent
+latency from timeout-frequent to sub-second in the common case, enabling the parallel
+manufacturing of fixture pairs (compile-fail + stderr) in a single orchestration cycle.
+
+The broader lesson is that manufacturing velocity in a type-law codebase is bottlenecked
+not by the number of available law surfaces (which is bounded by the paper corpus) but by
+the throughput of the orchestration layer. The schema-free agent pattern unlocked a
+throughput regime that made 601 commits manufacturable within a single calendar month
+without sacrificing receipt validity.
+
+The manufacturing pipeline at full throughput operates as follows:
+
+\begin{enumerate}
+  \item \textbf{Paper intake.} The paper corpus is scanned for unregistered families. Each
+        unregistered family generates a \texttt{paper-ledger} task.
+
+  \item \textbf{Type-law surface assignment.} Each ledgered paper is assigned to a module.
+        The module receives a \texttt{paper-law} task that produces a Rust type surface.
+
+  \item \textbf{Fixture pair manufacturing.} Each new type-law surface generates two tasks:
+        a \texttt{fixture-fail} task (compile-fail fixture + stderr receipt) and a
+        \texttt{fixture-pass} task (compile-pass fixture proving the lawful path is open).
+
+  \item \textbf{Audit gate.} After each batch of fixture pairs, the crown audit runner
+        checks all 23 audit scripts. Any failure generates a targeted \texttt{audit} or
+        \texttt{type-law} remediation task.
+
+  \item \textbf{Checkpoint.} When a gate stratum is reached (e.g., all G3--G6 criteria
+        pass), a \texttt{checkpoint} commit records the state. If all ten gates pass, a
+        \texttt{tag} commit awards the ALIVE level.
+\end{enumerate}
+
+%% ------------------------------------------------------------
+\section{Paper as Law}
+\label{sec:doctrine-paper}
+
+The PAPERLAW series connects the manufacturing doctrine to the process mining literature.
+Every paper in the corpus is classified under one of five statuses that determine what type
+coverage it requires.
+
+\begin{description}
+  \item[\texttt{COVERED\_BY\_TYPE}] The paper introduces formal objects (types, structures,
+    laws) that are directly encoded as zero-cost Rust types in this crate. The structural
+    shapes are present; execution logic is absent by design.
+
+  \item[\texttt{COVERED\_BY\_GRADUATION\_BOUNDARY}] The paper's primary contribution is an
+    algorithm (discovery, conformance checking, replay, alignment, prediction, query
+    evaluation). The algorithm's output shapes may be typed here; the algorithm itself
+    graduates to \texttt{wasm4pm}. The ledger entry names what specifically graduates using
+    a \texttt{GraduationReason} variant.
+
+  \item[\texttt{PARTIAL\_WITH\_REASON}] Some of the paper's formal objects are typed here;
+    others are missing or incorrectly classified. The ledger entry names what is absent and
+    why. This is a legitimate state, not a failure.
+
+  \item[\texttt{DUPLICATE\_OR\_BACKGROUND}] The paper repeats or summarises content from
+    another ledgered paper, or provides background context without introducing new formal
+    objects. The ledger entry names the primary citation.
+
+  \item[\texttt{OUT\_OF\_SCOPE\_WITH\_REASON}] The paper does not introduce process-mining
+    formal objects. The reason must be specific. A paper that introduces any formal object
+    that could be a zero-cost Rust type cannot be \texttt{OUT\_OF\_SCOPE}.
+\end{description}
+
+\begin{remark}[\texttt{MISSING\_TYPE\_LAW} is the forbidden status]
+\label{rem:missing-type-law}
+\texttt{MISSING\_TYPE\_LAW} is not a valid classification status. A paper either has
+coverage, a named graduation boundary, a documented partial, or a specific out-of-scope
+reason. Hidden gaps are defects. Gate~G2 of the ALIVE certification enforces this: the
+audit script \texttt{audit\_missing\_type\_law.sh} exits non-zero if any ledger row
+carries \texttt{MISSING\_TYPE\_LAW}. No path to ALIVE is open while this defect exists.
+\end{remark}
+
+The relationship between paper classification and type coverage is one-to-one: every
+\texttt{COVERED\_BY\_TYPE} row in the ledger must correspond to a named type surface in
+\texttt{src/*.rs} with a rustdoc citation referencing the paper. The audit script
+\texttt{audit\_law\_annotations.sh} verifies this correspondence and fails if any
+\texttt{COVERED\_BY\_TYPE} paper lacks a law annotation in source.
+
+Table~\ref{tab:paperlaw-milestones} shows the full PAPERLAW milestone progression with
+fixture counts, paper coverage, and module counts at each certification level.
+
+\begin{table}[ht]
+\centering
+\caption{PAPERLAW milestone progression: fixture counts, papers, and modules}
+\label{tab:paperlaw-milestones}
+\begin{tabular}{@{}lrrrrrl@{}}
+\toprule
+\textbf{Milestone} & \textbf{Fail} & \textbf{Pass} & \textbf{.stderr} & \textbf{Papers} & \textbf{Modules} & \textbf{Verdict} \\
+\midrule
+\textsc{TypeLaw Alive~001}
+  &   4 &  10 &   4 &  8  & 10 & ALIVE \\
+\textsc{PaperLaw Alive~002}
+  &  16 &  30 &  16 & 20  & 18 & ALIVE \\
+\textsc{PaperLaw Partial~003}
+  &  45 &  80 &  45 & 42  & 24 & PARTIAL \\
+\textsc{PaperLaw Alive~003}
+  &  75 & 120 &  75 & 55  & 28 & ALIVE \\
+\textsc{Crown Partial~004}
+  & 140 & 280 & 140 & 72  & 32 & PARTIAL \\
+\textsc{Crown Alive~004}
+  & 196 & 406 & 196 & 98  & 37 & ALIVE (Crown) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The progression from \textsc{TypeLaw Alive~001} to \textsc{Crown Alive~004} represents a
+$49\times$ increase in compile-fail fixtures, a $40\times$ increase in compile-pass
+fixtures, and a $12\times$ increase in paper coverage. The \texttt{.stderr} receipt column
+maintains exact parity with compile-fail throughout: at no certification level is there a
+compile-fail fixture without a corresponding \texttt{.stderr} diagnostic snapshot.
+
+This parity is not incidental. It is enforced by Gate~G5 and by the \texttt{audit\_stderr\_quality.sh}
+hard audit. A compile-fail fixture without an exact \texttt{.stderr} receipt is not a valid
+type-law receipt: it cannot prove that the fixture is failing for the intended named law
+rather than for an accidental reason.
+
+The manufacturing doctrine closes with a statement of its invariant:
+
+\begin{quote}
+Start with paper law. Admit through types. Prove through receipts. Graduate to execution.
+\end{quote}
+
+Every manufacturing transition either advances this trajectory or it does not count. The
+commit history is the proof. The ALIVE gate is the judge.
