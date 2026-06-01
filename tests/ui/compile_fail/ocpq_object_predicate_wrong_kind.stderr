@@ -1,0 +1,17 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_object_predicate_wrong_kind.rs:16:36
+   |
+16 |     requires_type_equals_predicate(p);
+   |     ------------------------------ ^ expected `TypeEquals`, found `wasm4pm_compat::ocpq::ObjectPredicateKind::AttributeEquals`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `TypedObjectPredicate<TypeEquals>`
+              found struct `TypedObjectPredicate<wasm4pm_compat::ocpq::ObjectPredicateKind::AttributeEquals>`
+note: function defined here
+  --> tests/ui/compile_fail/ocpq_object_predicate_wrong_kind.rs:8:4
+   |
+ 8 | fn requires_type_equals_predicate(
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ 9 |     _p: TypedObjectPredicate<{ ObjectPredicateKind::TypeEquals }>,
+   |     -------------------------------------------------------------
