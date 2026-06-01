@@ -2017,7 +2017,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #80 — Log Skeletons: A Classification Approach (Verbeek, 2019)
+## #80 — Log Skeletons classification approach — graduation boundary (Verbeek, 2019)
 
 **Paper:** Log Skeletons: A Classification Approach to Process Discovery
 **Canon family:** `LOG_SKELETON`
