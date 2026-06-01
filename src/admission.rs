@@ -155,6 +155,27 @@ impl<R: core::fmt::Debug, W> core::fmt::Debug for Refusal<R, W> {
     }
 }
 
+// Manual `Display` — shows the human-readable law name that caused the refusal.
+// `W` is a zero-sized `PhantomData` tag and carries no displayable value.
+impl<R: core::fmt::Display, W> core::fmt::Display for Refusal<R, W> {
+    /// Formats the refusal as `"Refusal: <law-name>"`.
+    ///
+    /// The witness tag `W` is zero-sized and carries no value to display.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::Refusal;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let r = Refusal::<_, Ocel20>::new("DanglingEventObjectLink");
+    /// assert_eq!(r.to_string(), "Refusal: DanglingEventObjectLink");
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "Refusal: {}", self.reason)
+    }
+}
+
 /// The boundary verdict trait — the only sanctioned `Raw → Admitted` path.
 ///
 /// An implementor names a single boundary: it takes [`crate::state::Raw`]

@@ -445,6 +445,34 @@ impl<T, W> Evidence<T, crate::state::Refused, W> {
     }
 }
 
+// ── Debug for Evidence<T, State, W> ─────────────────────────────────────────
+
+impl<T: core::fmt::Debug, State: EvidenceState + core::fmt::Debug, W> core::fmt::Debug
+    for Evidence<T, State, W>
+{
+    /// Formats the evidence as `Evidence { value: <T>, state: <State> }`.
+    ///
+    /// The witness marker `W` is zero-sized and carries no runtime value, so it
+    /// is intentionally omitted from the output to keep diagnostics readable.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::witness::Ocel20;
+    ///
+    /// let raw = Evidence::<_, _, Ocel20>::raw(42u32);
+    /// let s = format!("{:?}", raw);
+    /// assert!(s.contains("42"));
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Evidence")
+            .field("value", &self.value)
+            .field("state", &self.state)
+            .finish()
+    }
+}
+
 impl<T, W> Evidence<T, Exportable, W> {
     /// Seals export-cleared evidence into a `Receipted` stage.
     ///
