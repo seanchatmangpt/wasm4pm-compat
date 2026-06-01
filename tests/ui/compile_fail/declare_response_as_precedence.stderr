@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/declare_response_as_precedence.rs:48:33
+   |
+48 |     admit_precedence_constraint(oc_response);
+   |     --------------------------- ^^^^^^^^^^^ expected `DeclareConstraint`, found `OcDeclareConstraint`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/declare_response_as_precedence.rs:32:4
+   |
+32 | fn admit_precedence_constraint(_c: DeclareConstraint) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---------------------
