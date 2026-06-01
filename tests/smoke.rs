@@ -99,6 +99,7 @@ fn smoke_ocel() {
 }
 
 #[test]
+#[allow(deprecated)]
 fn smoke_petri() {
     // A small WF-net: src --t--> snk, marked and with a final marking.
     let net = PetriNet::new(

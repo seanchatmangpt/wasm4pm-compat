@@ -1144,18 +1144,30 @@ impl<S> WfNet<S> {
 impl WfNet<SoundnessClaimed> {
     /// Re-type a *claimed* WF-net as **witnessed** sound.
     ///
-    /// This crate cannot produce a soundness witness itself; this method models
-    /// re-attaching a witness obtained from `wasm4pm`. It performs **no
-    /// computation** — the caller is responsible for supplying genuine evidence
-    /// out-of-band. The method exists so the *shape* "soundness is witnessed"
-    /// can travel through the compat boundary as a distinct type.
+    /// **Deprecated** — this method freely advances the typestate without a
+    /// [`SoundnessProof`] token, making the `Claimed → Witnessed` transition
+    /// forgeable from outside this module. Use [`WfNetConst::witness_soundness`]
+    /// instead, which requires a `SoundnessProof` that is only constructible
+    /// inside this module or via the `wasm4pm` graduation bridge. That path is
+    /// non-forgeable by construction.
+    ///
+    /// This method is retained for source compatibility but will be removed in a
+    /// future version. Any call site that invokes this method is relying on a
+    /// forgeability hole in the type law.
     ///
     /// ```
     /// use wasm4pm_compat::petri::{WfNet, PetriNet, Marking, SoundnessClaimed, SoundnessWitnessed};
     /// let wf = WfNet::new(PetriNet::default(), Marking::new([("snk".to_string(), 1)]))
     ///     .claim_sound();
+    /// #[allow(deprecated)]
     /// let _w: WfNet<SoundnessWitnessed> = wf.attest_witnessed();
     /// ```
+    #[deprecated(
+        note = "use WfNetConst which enforces non-forgeability: WfNetConst::witness_soundness \
+                requires a SoundnessProof token that is only constructible inside petri or via \
+                the wasm4pm graduation bridge. WfNet::attest_witnessed is freely callable and \
+                does not enforce the Claimed→Witnessed proof obligation."
+    )]
     pub fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
         WfNet {
             net: self.net,
@@ -1675,6 +1687,78 @@ impl From<MissingFinalMarkingError> for PetriRefusal {
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum SeparableWfNetMarker {}
+
+// ── Stochastic Petri net structural annotations ──────────────────────────────
+
+/// An arc weight annotation carrying a stochastic firing rate or probability.
+///
+/// In a *stochastic Petri net* (SPN), each transition is associated with a
+/// firing rate (exponentially distributed) or a weight (in Generalised SPNs,
+/// for immediate transitions). `StochasticArcWeight` wraps the `f64` rate or
+/// weight as a named structural annotation — it does **not** represent an
+/// execution probability or trigger a firing.
+///
+/// Structure-only: a rate/weight annotation. Stochastic simulation and
+/// steady-state analysis graduate to `wasm4pm`.
+///
+/// ## Paper / Reference
+///
+/// Molloy (1982) — *Performance Analysis Using Stochastic Petri Nets*.
+/// Marsan et al. (1984) — *A class of Generalised Stochastic Petri Nets*.
+///
+/// ```
+/// use wasm4pm_compat::petri::StochasticArcWeight;
+/// let w = StochasticArcWeight(0.5);
+/// assert_eq!(w.0, 0.5);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StochasticArcWeight(pub f64);
+
+/// A zero-time transition marker — an *immediate* transition in a
+/// Generalised Stochastic Petri Net (GSPN).
+///
+/// Immediate transitions fire instantaneously (zero delay) and with a
+/// priority that supersedes timed transitions when both are enabled.
+/// `ImmediateTransition` is a zero-sized structural tag applied to a
+/// [`Transition`] to assert that it is immediate. It carries no weight
+/// or priority value — those graduate to `wasm4pm`.
+///
+/// Structure-only: a zero-sized marker. Priority resolution and firing
+/// semantics graduate to `wasm4pm`.
+///
+/// ## Paper / Reference
+///
+/// Marsan et al. (1984) — GSPN Definition 2 (immediate vs. timed transitions).
+///
+/// ```
+/// use wasm4pm_compat::petri::ImmediateTransition;
+/// let _: ImmediateTransition;
+/// ```
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
+pub struct ImmediateTransition;
+
+/// A timed transition annotation carrying an exponential firing rate.
+///
+/// In a Stochastic Petri Net, a *timed* transition fires after an
+/// exponentially-distributed delay with rate λ (`self.0`). Higher rates
+/// mean shorter expected delays. `TimedTransition` wraps λ as a named
+/// structural annotation; it does **not** compute delays or trigger firings.
+///
+/// Structure-only: a rate annotation. Simulation and analysis graduate
+/// to `wasm4pm`.
+///
+/// ## Paper / Reference
+///
+/// Molloy (1982) — exponential firing-rate model. Marsan et al. (1984) —
+/// GSPN Definition 2 (timed transitions with rate λ).
+///
+/// ```
+/// use wasm4pm_compat::petri::TimedTransition;
+/// let t = TimedTransition(2.5);
+/// assert_eq!(t.0, 2.5);
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TimedTransition(pub f64);
 
 impl core::fmt::Display for PetriRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {

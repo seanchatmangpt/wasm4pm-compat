@@ -2,6 +2,7 @@
 // COMPILE-PASS: SoundnessUnknown, SoundnessClaimed, SoundnessWitnessed are
 // mutually distinct types — WfNet<Unknown>, WfNet<Claimed>, WfNet<Witnessed>
 // are three separate types that cannot be confused at the type level.
+#[allow(deprecated)]
 use wasm4pm_compat::petri::{WfNet, SoundnessUnknown, SoundnessClaimed, SoundnessWitnessed, PetriNet, Marking};
 
 fn only_unknown(_: &WfNet<SoundnessUnknown>) {}
