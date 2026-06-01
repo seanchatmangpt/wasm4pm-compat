@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/admission_refusal_as_admission.rs:13:5
+   |
+11 |     let refused: Refusal<&'static str, Ocel20> = todo!();
+   |                                                  ------- any code following this expression is unreachable
+12 |     // This must fail: Refusal is not Admission.
+13 |     requires_admission(refused);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/admission_refusal_as_admission.rs:13:24
+   |
+13 |     requires_admission(refused);
+   |     ------------------ ^^^^^^^ expected `Admission<String, Ocel20>`, found `Refusal<&str, Ocel20>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Admission<std::string::String, Ocel20>`
+              found struct `Refusal<&'static str, Ocel20>`
+note: function defined here
+  --> tests/ui/compile_fail/admission_refusal_as_admission.rs:7:4
+   |
+ 7 | fn requires_admission(_a: Admission<String, Ocel20>) {}
+   |    ^^^^^^^^^^^^^^^^^^ -----------------------------

@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/xes_trace_as_log.rs:11:22
+   |
+11 |     requires_xes_log(trace);
+   |     ---------------- ^^^^^ expected `XesLog`, found `XesTrace`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/xes_trace_as_log.rs:6:4
+   |
+ 6 | fn requires_xes_log(_l: XesLog) {}
+   |    ^^^^^^^^^^^^^^^^ ----------

@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/petri_wfnet_as_place.rs:12:20
+   |
+12 |     requires_place(wfnet);
+   |     -------------- ^^^^^ expected `Place`, found `WfNetConst<SoundnessState::Unknown>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `wasm4pm_compat::petri::Place`
+              found struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Unknown>`
+note: function defined here
+  --> tests/ui/compile_fail/petri_wfnet_as_place.rs:7:4
+   |
+ 7 | fn requires_place(_p: Place) {}
+   |    ^^^^^^^^^^^^^^ ---------

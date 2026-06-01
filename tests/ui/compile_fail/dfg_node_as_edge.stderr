@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/dfg_node_as_edge.rs:11:23
+   |
+11 |     requires_dfg_edge(node);
+   |     ----------------- ^^^^ expected `DfgEdge`, found `DfgNode`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/dfg_node_as_edge.rs:6:4
+   |
+ 6 | fn requires_dfg_edge(_e: DfgEdge) {}
+   |    ^^^^^^^^^^^^^^^^^ -----------

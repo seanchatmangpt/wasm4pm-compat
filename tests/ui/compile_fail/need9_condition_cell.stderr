@@ -11,7 +11,7 @@ note: required by a bound in `ConditionCell`
    |
    | pub struct ConditionCell<const BITS: usize>
    |            ------------- required by a bound in this struct
-   | where
+...
    |     Require<{ BITS <= 8 }>: IsTrue,
    |                             ^^^^^^ required by this bound in `ConditionCell`
 
@@ -28,7 +28,7 @@ note: required by a bound in `ConditionCell`
    |
    | pub struct ConditionCell<const BITS: usize>
    |            ------------- required by a bound in this struct
-   | where
+...
    |     Require<{ BITS <= 8 }>: IsTrue,
    |                             ^^^^^^ required by this bound in `ConditionCell`
 
@@ -62,6 +62,6 @@ note: required by a bound in `ConditionCell`
    |
    | pub struct ConditionCell<const BITS: usize>
    |            ------------- required by a bound in this struct
-   | where
+...
    |     Require<{ BITS <= 8 }>: IsTrue,
    |                             ^^^^^^ required by this bound in `ConditionCell`

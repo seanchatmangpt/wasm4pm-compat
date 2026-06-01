@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:13:5
+   |
+11 |     let pm4py_ev: Evidence<String, Admitted, Pm4pyApiGrammar> = todo!();
+   |                                                                 ------- any code following this expression is unreachable
+12 |     // This must fail: Pm4pyApiGrammar witness is not PmaxConsumerGrammar.
+13 |     requires_pmax_evidence(pm4py_ev);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:13:28
+   |
+13 |     requires_pmax_evidence(pm4py_ev);
+   |     ---------------------- ^^^^^^^^ expected `PmaxConsumerGrammar`, found `Pm4pyApiGrammar`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, PmaxConsumerGrammar>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, Pm4pyApiGrammar>`
+note: function defined here
+  --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:8:4
+   |
+ 8 | fn requires_pmax_evidence(_: Evidence<String, Admitted, PmaxConsumerGrammar>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^ --------------------------------------------------

@@ -1,0 +1,7 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/declare_unary_template_used_as_binary.rs:18:22
+   |
+18 |     let _wrong: u8 = t; // DeclareTemplate is not u8
+   |                 --   ^ expected `u8`, found `DeclareTemplate`
+   |                 |
+   |                 expected due to this

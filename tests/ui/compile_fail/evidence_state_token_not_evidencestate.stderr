@@ -1,0 +1,56 @@
+error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:16:16
+   |
+16 |         state: core::marker::PhantomData,
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `EvidenceState` is not implemented for `MyCustomStage`
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:8:1
+   |
+ 8 | struct MyCustomStage;
+   | ^^^^^^^^^^^^^^^^^^^^
+   = help: the following other types implement trait `EvidenceState`:
+             wasm4pm_compat::prelude::Admitted
+             wasm4pm_compat::prelude::Exportable
+             wasm4pm_compat::prelude::Parsed
+             wasm4pm_compat::prelude::Projected
+             wasm4pm_compat::prelude::Raw
+             wasm4pm_compat::prelude::Receipted
+             wasm4pm_compat::prelude::Refused
+note: required by a bound in `Evidence`
+  --> src/evidence.rs
+   |
+   | pub struct Evidence<T, State: EvidenceState, W> {
+   |                               ^^^^^^^^^^^^^ required by this bound in `Evidence`
+
+error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:14:29
+   |
+14 |       requires_evidence_state(Evidence::<u32, MyCustomStage, ()> {
+   |  _____-----------------------_^
+   | |     |
+   | |     required by a bound introduced by this call
+15 | |         value: 0u32,
+16 | |         state: core::marker::PhantomData,
+17 | |         witness: core::marker::PhantomData,
+18 | |     });
+   | |_____^ unsatisfied trait bound
+   |
+help: the trait `EvidenceState` is not implemented for `MyCustomStage`
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:8:1
+   |
+ 8 | struct MyCustomStage;
+   | ^^^^^^^^^^^^^^^^^^^^
+   = help: the following other types implement trait `EvidenceState`:
+             wasm4pm_compat::prelude::Admitted
+             wasm4pm_compat::prelude::Exportable
+             wasm4pm_compat::prelude::Parsed
+             wasm4pm_compat::prelude::Projected
+             wasm4pm_compat::prelude::Raw
+             wasm4pm_compat::prelude::Receipted
+             wasm4pm_compat::prelude::Refused
+note: required by a bound in `requires_evidence_state`
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:10:31
+   |
+10 | fn requires_evidence_state<S: EvidenceState>(_e: Evidence<u32, S, ()>) {}
+   |                               ^^^^^^^^^^^^^ required by this bound in `requires_evidence_state`

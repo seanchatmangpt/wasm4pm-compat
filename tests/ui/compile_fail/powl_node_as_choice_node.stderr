@@ -1,0 +1,21 @@
+error[E0599]: no variant, associated function, or constant named `Xor` found for enum `PowlNodeKind` in the current scope
+ --> tests/ui/compile_fail/powl_node_as_choice_node.rs:9:59
+  |
+9 |     let node = PowlNode::new(PowlNodeId(0), PowlNodeKind::Xor);
+  |                                                           ^^^ variant, associated function, or constant not found in `PowlNodeKind`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/powl_node_as_choice_node.rs:11:26
+   |
+11 |     requires_choice_node(node);
+   |     -------------------- ^^^^ expected `PowlChoiceNode`, found `PowlNode<_>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `PowlChoiceNode`
+              found struct `PowlNode<_>`
+note: function defined here
+  --> tests/ui/compile_fail/powl_node_as_choice_node.rs:6:4
+   |
+ 6 | fn requires_choice_node(_c: PowlChoiceNode) {}
+   |    ^^^^^^^^^^^^^^^^^^^^ ------------------

@@ -1,0 +1,26 @@
+warning: unreachable statement
+  --> tests/ui/compile_fail/witness_yawl_as_inductive_miner.rs:13:5
+   |
+11 |     let yawl_ev: Evidence<String, Admitted, YawlPaper> = todo!();
+   |                                                          ------- any code following this expression is unreachable
+12 |     // This must fail: YawlPaper witness is not InductiveMiner.
+13 |     requires_inductive_miner_evidence(yawl_ev);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
+   |
+   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/witness_yawl_as_inductive_miner.rs:13:39
+   |
+13 |     requires_inductive_miner_evidence(yawl_ev);
+   |     --------------------------------- ^^^^^^^ expected `Evidence<String, Admitted, ...>`, found `Evidence<String, Admitted, YawlPaper>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, InductiveMiner>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::prelude::Admitted, YawlPaper>`
+note: function defined here
+  --> tests/ui/compile_fail/witness_yawl_as_inductive_miner.rs:8:4
+   |
+ 8 | fn requires_inductive_miner_evidence(_: Evidence<String, Admitted, InductiveMiner>) {}
+   |    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ ---------------------------------------------

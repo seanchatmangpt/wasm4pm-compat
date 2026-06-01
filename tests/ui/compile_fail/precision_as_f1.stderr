@@ -1,0 +1,8 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/precision_as_f1.rs:13:17
+   |
+13 |     requires_f1(precision);
+   |                 ^^^^^^^^^ expected `wasm4pm_compat::law::QualityMetricKind::F1`, found `wasm4pm_compat::law::QualityMetricKind::Precision`
+   |
+   = note: expected constant `wasm4pm_compat::law::QualityMetricKind::F1`
+              found constant `wasm4pm_compat::law::QualityMetricKind::Precision`

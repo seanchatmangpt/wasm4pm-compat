@@ -1,0 +1,13 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocel_attribute_integer_as_float.rs:14:20
+   |
+14 |     requires_float(val);
+   |     -------------- ^^^ expected `f64`, found `OcelAttributeValue`
+   |     |
+   |     arguments to this function are incorrect
+   |
+note: function defined here
+  --> tests/ui/compile_fail/ocel_attribute_integer_as_float.rs:7:4
+   |
+ 7 | fn requires_float(_v: f64) {}
+   |    ^^^^^^^^^^^^^^ -------
