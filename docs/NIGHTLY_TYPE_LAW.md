@@ -2007,7 +2007,7 @@ a `Between01`-bounded const-generic param is absent from `src/conformance.rs`.
 
 ---
 
-## #77 — Predictive Business Process Monitoring — LSTM (Tax et al., 2017)
+## #77 — Predictive Business Process Monitoring LSTM — graduation boundary (Tax et al., 2017)
 
 **Paper:** Predictive Business Process Monitoring with LSTM Neural Networks
 **Canon family:** `PREDICTION_DRIFT`
