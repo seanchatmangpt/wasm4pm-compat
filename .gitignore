@@ -1,1 +1,7 @@
 /target
+
+# Claude Code / agent runtime artifacts
+.claude/
+.agents/
+*.rlib
+conformance_verdict_is_perfect
