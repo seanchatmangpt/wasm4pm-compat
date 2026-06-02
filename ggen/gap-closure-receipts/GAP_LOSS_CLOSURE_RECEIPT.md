@@ -48,3 +48,5 @@ The audit gate confirms this gap is closed by verifying:
    and report) are accepted.
 4. `cargo run --example ocel_to_xes_projection` runs without panic, demonstrating
    the full loss covenant end-to-end.
+
+verified: 2026-06-02
