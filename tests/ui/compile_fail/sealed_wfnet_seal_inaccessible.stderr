@@ -1,0 +1,11 @@
+error[E0603]: module `wfnet_seal` is private
+ --> tests/ui/compile_fail/sealed_wfnet_seal_inaccessible.rs:4:28
+  |
+4 | use wasm4pm_compat::petri::wfnet_seal;
+  |                            ^^^^^^^^^^ private module
+  |
+note: the module `wfnet_seal` is defined here
+ --> src/petri.rs
+  |
+  | mod wfnet_seal {
+  | ^^^^^^^^^^^^^^

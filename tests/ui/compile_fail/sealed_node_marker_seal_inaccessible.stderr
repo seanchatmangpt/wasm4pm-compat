@@ -1,0 +1,11 @@
+error[E0603]: module `node_marker_seal` is private
+ --> tests/ui/compile_fail/sealed_node_marker_seal_inaccessible.rs:4:28
+  |
+4 | use wasm4pm_compat::petri::node_marker_seal;
+  |                            ^^^^^^^^^^^^^^^^ private module
+  |
+note: the module `node_marker_seal` is defined here
+ --> src/petri.rs
+  |
+  | mod node_marker_seal {
+  | ^^^^^^^^^^^^^^^^^^^^

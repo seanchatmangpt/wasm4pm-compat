@@ -1,0 +1,11 @@
+error[E0603]: module `arc_seal` is private
+ --> tests/ui/compile_fail/e0425_private_arc_seal_trait.rs:6:28
+  |
+6 | use wasm4pm_compat::petri::arc_seal;
+  |                            ^^^^^^^^ private module
+  |
+note: the module `arc_seal` is defined here
+ --> src/petri.rs
+  |
+  | mod arc_seal {
+  | ^^^^^^^^^^^^
