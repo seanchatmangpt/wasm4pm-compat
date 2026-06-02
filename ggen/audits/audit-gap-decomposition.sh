@@ -54,8 +54,8 @@ FAIL_COUNT=0
 declare -A GAP_ID_TO_STATUS
 declare -A COMMIT_CLASSIFICATION
 declare -A CLOSURE_CLAIMS_UNCITED
-declare -a CRITICAL_GAPS_UNMAPPED
-declare -a AUDIT_ISSUES
+CRITICAL_GAPS_UNMAPPED=()
+AUDIT_ISSUES=()
 
 pass() { echo "PASS  $1"; (( PASS_COUNT += 1 )); }
 fail() { echo "FAIL  $1"; (( FAIL_COUNT += 1 )); }
@@ -217,7 +217,7 @@ for gap_id in "${ALL_GAP_IDS[@]}"; do
     severity="${GAP_SEVERITY[$gap_id]:-UNKNOWN}"
     if [[ "$severity" == "CRITICAL" ]] || [[ "$severity" == "HIGH" ]]; then
         # Search for gap_id in closure claims
-        if git log --all --oneline 2>/dev/null | grep -q "$gap_id"; then
+        if git log --all --oneline 2>/dev/null | grep "$gap_id" > /dev/null; then
             pass "gap-has-closure: ${gap_id} (${severity}) is cited in commit history"
         else
             fail "gap-unmapped-critical: ${gap_id} (${severity}) has NO closure claims"
@@ -232,7 +232,7 @@ info "Rule 3.2: ALIVE status must cite specific gap_id, not inferred from commit
 if grep -q "ALIVE" "${REPO_ROOT}/${LEDGER_PATH}"; then
     # Check that every ALIVE gap has explicit closure claims
     while IFS= read -r gap_id; do
-        if git log --all --oneline 2>/dev/null | grep -q "$gap_id"; then
+        if git log --all --oneline 2>/dev/null | grep "$gap_id" > /dev/null; then
             pass "alive-has-citation: gap with ALIVE status (${gap_id}) is explicitly cited"
         else
             fail "alive-uncited: gap with ALIVE status (${gap_id}) lacks citation in history"
@@ -276,7 +276,7 @@ fi
 info ""
 info "=== Gap Decomposition Audit Summary ==="
 info "Total gaps: ${#ALL_GAP_IDS[@]}"
-info "Critical/HIGH gaps without closure: ${#CRITICAL_GAPS_UNMAPPED[@]}"
+_n_unmapped="${#CRITICAL_GAPS_UNMAPPED[@]}"; info "Critical/HIGH gaps without closure: ${_n_unmapped}"
 audit_issues_count=0
 [[ -v AUDIT_ISSUES ]] && audit_issues_count="${#AUDIT_ISSUES[@]}"
 info "GAP_CLOSURE commits without gap_id: ${audit_issues_count}"
