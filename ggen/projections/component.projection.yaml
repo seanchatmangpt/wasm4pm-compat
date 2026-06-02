@@ -526,6 +526,8 @@ refusal_encoding_at_boundary:
 
 generated_wit_files:
 
+  output_dir: "generated/wasm4pm-component-model"
+
   directory: "ggen/wit"
 
   files:

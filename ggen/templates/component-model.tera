@@ -1,0 +1,348 @@
+{#-
+  component-model.tera
+  ─────────────────────────────────────────────────────────────────────────────
+  Component Model WIT template for wasm4pm-compat.
+
+  Purpose:
+    Generate a WebAssembly Interface Types (WIT) contract that exposes the core
+    process-evidence types from wasm4pm-compat to the WebAssembly Component
+    Model runtime.  Unlike wasm4pm-compat.wit.tera (which is a full 8-part
+    engineering ledger), this template is a self-contained generator: given a
+    package name, version, and optional feature gate, it emits a single valid
+    WIT file ready for wit-bindgen.
+
+  Template engine: Tera (https://tera.netlify.app/)
+  Expected context variables:
+    {{ package_name }}   — WIT package name segment, e.g. "compat"
+    {{ version }}        — Semantic version string, e.g. "0.1.0"
+    {{ feature_gate }}   — One of: "base" | "formats" | "strict" | "wasm4pm" | "all"
+    {{ types }}          — Optional list of extra record names to include in the
+                           types interface.  Defaults to [].
+
+  Output: a single .wit file (one world per feature_gate value).
+
+  Law: Every WIT interface in this file reflects structure defined in src/.
+  No execution logic.  No engine discovery, replay, or conformance checking.
+  Those graduate to wasm4pm via the graduation world.
+
+  Mapping to Rust source:
+    evidence admission  → src/admission.rs
+    loss policy         → src/loss.rs
+    graduation bridge   → src/graduation.rs  (wasm4pm feature)
+    witness metadata    → src/witness.rs
+-#}
+{%- set ns = "wasm4pm" -%}
+{%- set resolved_types = types | default(value=[]) -%}
+// ──────────────────────────────────────────────────────────────────────────────
+// GENERATED FILE — do not edit by hand.
+// Template : ggen/templates/component-model.tera
+// Package  : {{ ns }}:{{ package_name }}@{{ version }}
+// Gate     : {{ feature_gate }}
+// ──────────────────────────────────────────────────────────────────────────────
+
+package {{ ns }}:{{ package_name }}@{{ version }};
+
+// ============================================================================
+// Interface: core-types
+// Always present.  Defines the identifier primitives, lifecycle state enum,
+// and the canonical record types for event logs, OCEL, refusals, and metrics.
+// ============================================================================
+
+interface core-types {
+
+  // ── Identifier primitives ────────────────────────────────────────────────
+
+  /// Unique event identifier.
+  type event-id = string;
+
+  /// Unique object identifier.
+  type object-id = string;
+
+  /// Unique trace / case identifier.
+  type trace-id = string;
+
+  /// Nanosecond-precision Unix timestamp.
+  type timestamp-ns = u64;
+
+  /// Witness authority key (e.g. "ocel-2.0", "xes-1849").
+  type witness-id = string;
+
+  // ── Lifecycle state ──────────────────────────────────────────────────────
+
+  /// One-way lifecycle progression.  Transitions are forward-only; there is no
+  /// reverse transition.  Maps to src/state.rs state tokens.
+  enum lifecycle-state {
+    raw,
+    parsed,
+    admitted,
+    refused,
+    projected,
+    exportable,
+    receipted,
+  }
+
+  // ── Core event / trace / log records ─────────────────────────────────────
+
+  /// Single event in a trace.  Maps to src/eventlog.rs::Event.
+  record event {
+    id: event-id,
+    activity: string,
+    timestamp: timestamp-ns,
+    attributes: list<tuple<string, string>>,
+  }
+
+  /// Grouped trace.  Maps to src/eventlog.rs::Trace.
+  record trace {
+    id: trace-id,
+    events: list<event>,
+    attributes: list<tuple<string, string>>,
+  }
+
+  /// Flat event log (may also contain grouped traces).
+  /// Maps to src/eventlog.rs::EventLog.
+  record event-log {
+    events: list<event>,
+    traces: list<trace>,
+  }
+
+  // ── Refusal encoding ─────────────────────────────────────────────────────
+
+  /// Every admission failure must name the specific structural law that was
+  /// violated.  There is no bare catch-all.  Maps to src/admission.rs.
+  variant refusal-reason {
+    /// An event references an object that is not declared in the log.
+    dangling-event-object-link(record {
+      event-id: event-id,
+      object-id: object-id,
+    }),
+
+    /// A Petri net has reachable states without a final token placement.
+    missing-final-marking(record {
+      place-id: string,
+    }),
+
+    /// A Petri net violates bipartite arc structure or is disconnected.
+    invalid-petri-structure(record {
+      element-id: string,
+      violation: string,
+    }),
+
+    /// Object lifecycle contains a circular temporal / causal dependency.
+    circular-dependency(record {
+      cycle: list<string>,
+    }),
+
+    /// A lossy transformation was attempted without a matching loss policy.
+    invalid-loss-policy(record {
+      transformation: string,
+      policy-required: string,
+    }),
+
+    /// The evidence witness does not match the expected witness for the
+    /// requested operation.
+    witness-mismatch(record {
+      expected: witness-id,
+      found: witness-id,
+    }),
+  }
+
+  // ── Optional extra record types requested by caller ──────────────────────
+  {%- for type_name in resolved_types %}
+
+  /// Extra record type: {{ type_name }} (caller-requested extension).
+  record {{ type_name }} {
+    id: string,
+    label: string,
+  }
+  {%- endfor %}
+}
+
+// ============================================================================
+// Interface: evidence-admission
+// Always present.  The only sanctioned Raw → Admitted path.
+// Maps to src/admission.rs::Admit.
+// ============================================================================
+
+interface evidence-admission {
+  use core-types.{ event-log, refusal-reason };
+
+  /// Admit a raw event log.
+  ///
+  /// - Success: structurally sound event log ready for projection or export.
+  /// - Failure: named refusal-reason variant; no generic error strings.
+  admit-event-log: func(raw: event-log) -> result<event-log, refusal-reason>;
+}
+
+{%- if feature_gate == "formats" or feature_gate == "all" %}
+
+// ============================================================================
+// Interface: loss-policy
+// Emitted when feature_gate is "formats" or "all".
+// Maps to src/loss.rs::LossPolicy and src/loss.rs::LossReport.
+// ============================================================================
+
+interface loss-policy {
+  use core-types.{ event-log, refusal-reason };
+
+  /// Audit trail for a lossy transformation.
+  record loss-report {
+    from-format: string,
+    to-format: string,
+    items-lost: u32,
+    summary: string,
+  }
+
+  /// How much loss to permit.
+  variant policy {
+    /// Reject any data loss.
+    refuse-loss,
+    /// Allow named loss; emit a LossReport identifying every lost item.
+    allow-named-projection(record { name: string }),
+    /// Accept loss unconditionally; always emit a LossReport.
+    allow-loss-with-report,
+  }
+
+  /// Result of a lossy projection: the projected log plus mandatory audit.
+  record projection-result {
+    projected-log: event-log,
+    report: loss-report,
+  }
+
+  /// Apply a lossy projection under the stated policy.
+  ///
+  /// - refuse-loss policy: fails if any structure would be dropped.
+  /// - allow-* policies: always emits a LossReport.
+  /// - Law: every non-trivial projection must emit a LossReport.
+  apply-projection: func(
+    admitted: event-log,
+    p: policy,
+  ) -> result<projection-result, refusal-reason>;
+}
+{%- endif %}
+
+{%- if feature_gate == "strict" or feature_gate == "all" %}
+
+// ============================================================================
+// Interface: strict-boundary
+// Emitted when feature_gate is "strict" or "all".
+// Maps to src/strict.rs::StrictCheck.
+// ============================================================================
+
+interface strict-boundary {
+  /// Declared process boundary (discovery, conformance, replay context).
+  record process-boundary {
+    kind: string,
+    name: string,
+    has-witness: bool,
+    has-round-trip: bool,
+  }
+
+  /// Diagnostic when a boundary attestation fails.
+  variant strict-violation {
+    missing-witness-marker(string),
+    missing-loss-policy(string),
+    missing-round-trip(string),
+    hidden-process-mining-growth(string),
+  }
+
+  /// Attest that the boundary satisfies the strict judgment:
+  /// witness present, loss policy declared, round-trip attested.
+  check-strict-boundary: func(
+    boundary: process-boundary,
+  ) -> result<bool, strict-violation>;
+}
+{%- endif %}
+
+{%- if feature_gate == "wasm4pm" or feature_gate == "all" %}
+
+// ============================================================================
+// Interface: graduation-bridge
+// Emitted when feature_gate is "wasm4pm" or "all".
+// Maps to src/graduation.rs::GraduateToWasm4pm.
+//
+// Law: compat enforces structure; wasm4pm engine enforces semantics.  Both must
+// pass.  Graduation is the one-way door between them.
+// ============================================================================
+
+interface graduation-bridge {
+  use core-types.{ event-log, refusal-reason, witness-id };
+
+  /// A candidate for crossing the compat → engine boundary.
+  record graduation-candidate {
+    /// "discovery" | "conformance" | "replay" | "ocel-lifecycle" | "petri-soundness"
+    kind: string,
+    /// true → engine can execute; false → missing required grounding.
+    is-grounded: bool,
+    /// Non-empty when is-grounded is false.
+    reason: option<string>,
+    /// Witness authority that grounds this candidate.
+    witness: witness-id,
+  }
+
+  /// Attempt to graduate fully admitted evidence to the wasm4pm engine.
+  ///
+  /// - Grounded result: engine will accept and execute.
+  /// - Ungrounded result: caller must resolve missing annotations before retry.
+  graduate-to-wasm4pm: func(
+    admitted: event-log,
+  ) -> result<graduation-candidate, refusal-reason>;
+}
+{%- endif %}
+
+// ============================================================================
+// World definitions
+// ============================================================================
+
+{%- if feature_gate == "base" %}
+
+/// Base world: evidence admission only.
+/// No lossy projections, no strict boundary, no engine graduation.
+world compat-base {
+  export core-types;
+  export evidence-admission;
+}
+{%- endif %}
+
+{%- if feature_gate == "formats" %}
+
+/// Formats world: admission + lossy projection with mandatory loss accounting.
+world compat-formats {
+  export core-types;
+  export evidence-admission;
+  export loss-policy;
+}
+{%- endif %}
+
+{%- if feature_gate == "strict" %}
+
+/// Strict world: admission + boundary attestation.
+world compat-strict {
+  export core-types;
+  export evidence-admission;
+  export strict-boundary;
+}
+{%- endif %}
+
+{%- if feature_gate == "wasm4pm" %}
+
+/// Graduation world: admission + one-way engine bridge.
+world compat-wasm4pm {
+  export core-types;
+  export evidence-admission;
+  export graduation-bridge;
+}
+{%- endif %}
+
+{%- if feature_gate == "all" %}
+
+/// All-features world: admission + loss + strict boundary + graduation bridge.
+world compat-all {
+  export core-types;
+  export evidence-admission;
+  export loss-policy;
+  export strict-boundary;
+  export graduation-bridge;
+}
+{%- endif %}
+
+// ── End of generated WIT ─────────────────────────────────────────────────────
