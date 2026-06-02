@@ -53,3 +53,5 @@ The audit gate confirms GAP_001 is closed when all of the following hold:
 3. `src/wasm/boundary.rs` implements `GraduateToWasm4pm` for at least one admitted evidence type.
 4. `ggen/projections/wasm.projection.yaml` and `ggen/projections/ts.projection.yaml` are present and parseable by the ggen toolchain.
 5. No path exists from `Evidence<T, Raw, W>` directly to the wasm ABI — the only lawful route passes through `Admit::admit()` first (enforced by `pub(crate)` on the `Admitted` constructor).
+
+verified: 2026-06-02
