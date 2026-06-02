@@ -32,3 +32,5 @@ The audit gate is `ggen/audits/audit-ts-projection.sh`. A passing audit confirms
 3. Emitted TypeScript binding artifacts carry projection receipts naming the `GAP_TS` law surface.
 4. No silent loss occurs: every type mapping either succeeds or emits a named `LossReport`.
 5. The rendered output compiles under `cargo test --all-features --tests` without new failures.
+
+verified: 2026-06-02
