@@ -33,3 +33,5 @@ The audit gate for GAP_WASM is `ggen/audits/audit-no-tools-in-compat.sh`. It con
 4. The `GraduateToWasm4pm` graduation bridge is feature-gated under `#[cfg(feature = "wasm4pm")]` and does not expose engine logic in the compat layer.
 
 Passing threshold: 47/48 scans pass; the one permitted warning is the `wasm4pm` feature presence in `Cargo.toml`, which is required by Canon 9 (graduation signal).
+
+verified: 2026-06-02
