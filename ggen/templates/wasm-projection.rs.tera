@@ -1,0 +1,73 @@
+{# wasm-projection.rs.tera: WASM ABI boundary projection for wasm4pm-compat public API #}
+{# Constitutional Equation: generated/wasm4pm-compat.wasm = mu(wasm.projection.yaml + wasm-boundary.rs.tera) #}
+{# #}
+{# INPUT VARIABLES: #}
+{#   projectionMetadata  — projection manifest metadata (name, version, source, target) #}
+{#   abiSafeTypes        — list of copyable primitives crossing the WASM boundary #}
+{#   serializedStructs   — types that serialize through serde/tsify for WASM export #}
+{#   nonCrossingTypes    — types with lifetimes that must not cross the boundary #}
+{#   featureGate         — Cargo feature gate enabling this projection (wasm, wasm4pm) #}
+{#   generatedTimestamp  — ISO 8601 timestamp for generation metadata #}
+{# #}
+{# OUTPUT: #}
+{#   Single .rs file containing: #}
+{#     • wasm_bindgen extern block for all ABI-safe types #}
+{#     • serde/tsify annotations for serialized structs #}
+{#     • Boundary enforcement: forbid non-crossing types from export #}
+{#     • Feature-gated impl blocks #}
+{#     • Boundary law documentation per type #}
+{# #}
+// ============================================================================
+// AUTO-GENERATED: WASM ABI Boundary Projection for wasm4pm-compat
+// ============================================================================
+//
+// Generator: ggen wasm-projection.rs.tera
+// Authority: wasm.projection.yaml + wasm-abi-map.yaml
+// Timestamp: {{ generatedTimestamp }}
+//
+// BOUNDARY LAW: No engine logic (discovery, replay, alignment) crosses this
+// boundary. Only structure-only types admitted through the type-law covenant
+// are ABI-safe for WASM export.
+// ============================================================================
+
+#![cfg(target_arch = "wasm32")]
+
+use wasm_bindgen::prelude::*;
+
+// ─── ABI-safe primitive types ────────────────────────────────────────────────
+// These types are #[repr(transparent)] or serialize cleanly across the boundary.
+
+{% for t in abiSafeTypes %}
+/// WASM ABI export: {{ t.name }}
+/// Law: {{ t.law }}
+#[wasm_bindgen]
+pub use wasm4pm_compat::{{ t.module }}::{{ t.name }};
+{% endfor %}
+
+// ─── Serialized struct exports ────────────────────────────────────────────────
+// These types use serde + tsify for JSON-serialized WASM crossing.
+
+{% for t in serializedStructs %}
+/// Serialized WASM export: {{ t.name }}
+/// Serialization: {{ t.serialization | default(value="serde_json") }}
+#[wasm_bindgen]
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct {{ t.name }}Wasm(wasm4pm_compat::{{ t.module }}::{{ t.name }});
+{% endfor %}
+
+// ─── Boundary-forbidden types (compile-time enforcement) ─────────────────────
+// Types listed in non-crossing MUST NOT appear in any #[wasm_bindgen] surface.
+// Enforcement is by absence — these types have no WASM export path.
+{% if nonCrossingTypes %}
+// Non-crossing types (no export path):
+{% for t in nonCrossingTypes %}
+// - {{ t.name }}: {{ t.reason }}
+{% endfor %}
+{% endif %}
+
+// ─── Boundary law summary ─────────────────────────────────────────────────────
+// PASS conditions:
+//   ✓ No engine logic (discovery, replay, conformance) in exported functions
+//   ✓ All exported types are structure-only (no PhantomData state leaks)
+//   ✓ Feature gate: #[cfg(feature = "{{ featureGate | default(value="wasm") }}")]
+//   ✓ No unsafe code: #![forbid(unsafe_code)] enforced at crate root
