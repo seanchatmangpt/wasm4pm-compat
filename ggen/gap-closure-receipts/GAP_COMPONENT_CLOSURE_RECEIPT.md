@@ -27,3 +27,5 @@ The audit gate confirms GAP_COMPONENT is closed when:
 2. `wasm4pm-compat.wit.tera` renders a `.wit` file that passes `wasm-tools component wit` validation (no undefined type references).
 3. `component-model.tera` renders Rust binding code that compiles under the nightly toolchain with `--features wasm4pm`.
 4. Every named refusal law in `src/admission.rs` appears as a named WIT variant in the rendered `.wit` output — no catch-all `invalid-input` variant is present.
+
+verified: 2026-06-02
