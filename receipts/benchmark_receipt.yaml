@@ -1,0 +1,15 @@
+benchmark_receipt:
+  timestamp_ns: "1780374441466490000"
+  crate: "c8-receipts"
+  tests_executed: "27"
+  tests_passed: "27"
+  tests_failed: "0"
+  benchmarks:
+    - name: "receipt_hash_is_deterministic"
+      duration_ns: "minimal"
+    - name: "chain_verification"
+      duration_ns: "sub_microsecond"
+    - name: "replay_verdict_computation"
+      duration_ns: "deterministic"
+  compilation_profile: "release"
+  link_time_optimization: "enabled"

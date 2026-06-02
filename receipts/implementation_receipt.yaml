@@ -1,0 +1,32 @@
+implementation_receipt:
+  product: "Construct8 Compatibility Layer"
+  rustc_version: "rustc 1.97.0-nightly (cb40c25f6 2026-05-04)"
+  crates:
+    - name: "wasm4pm-compat"
+      version: "0.1.0"
+    - name: "c8-receipts"
+      version: ""
+    - name: "c8-market"
+      status: "present"
+    - name: "c8-time"
+      status: "present"
+    - name: "c8-instruments"
+      status: "present"
+    - name: "c8-adversary"
+      status: "present"
+  features_enabled:
+    - "formats"
+    - "strict"
+    - "wasm4pm"
+  compiled_at_ns: "1780374441461835000"
+  receipt_count: "4"
+  examples_ran:
+    - "c8_market_planck_demo"
+    - "c8_event_horizon_demo"
+    - "c8_collider_demo"
+    - "c8_adversary_gap_demo"
+  constraints_upheld:
+    - "no_unsafe_code"
+    - "receipt_hash_deterministic"
+    - "chain_verification_sound"
+    - "boundary_proofs_valid"

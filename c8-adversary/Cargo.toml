@@ -1,0 +1,14 @@
+[package]
+name = "c8-adversary"
+version = "0.1.0"
+edition = "2021"
+description = "Adversarial game theory for market structure: logic players, graph players, prophecy illusions."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/wasm4pm/wasm4pm-compat"
+
+[dependencies]
+c8-time = { path = "../c8-time" }
+c8-market = { path = "../c8-market" }
+c8-instruments = { path = "../c8-instruments" }
+
+[dev-dependencies]

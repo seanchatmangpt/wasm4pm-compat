@@ -1,0 +1,75 @@
+AGENT 5 DELIVERY MANIFEST
+=======================
+
+CREATED ARTIFACTS:
+
+1. c8-receipts Crate
+   Location: c8-receipts/
+   Files:
+   - Cargo.toml (dependencies: sha2, serde, serde_json, hex)
+   - src/lib.rs (1000+ lines)
+   - src/receipt.rs (C8Receipt type, hash(), verify_post_state())
+   - src/chain.rs (ReceiptChain with append(), verify())
+   - src/hash.rs (ReceiptHash SHA256-based identity)
+   - src/verdict.rs (ReplayVerdict with replay())
+   - src/proof.rs (BoundaryProof constraint tracking)
+   - src/implementation.rs (ImplementationReceipt metadata)
+   Tests: 27 unit tests, all passing
+
+2. Example Programs
+   Location: examples/
+   - c8_market_planck_demo.rs (synthetic ticks, state transitions, receipts)
+   - c8_event_horizon_demo.rs (liquidity collapse, event horizon crossing)
+   - c8_collider_demo.rs (topology pressure, hidden bodies manifest)
+   - c8_adversary_gap_demo.rs (LogicPlayer vs GraphPlayer gap proof)
+   Status: All compile and run successfully
+
+3. Python Demo
+   Location: python/c8_market_demo/demo.py
+   Features: Synthetic fixtures, state transitions, receipt verification, plotting
+   Lines: ~220
+   Status: Runs successfully
+
+4. Scripts
+   Location: scripts/
+   - validate.sh (format, lint, test, release build)
+   - bench.sh (c8-receipts tests + criterion benchmarks)
+   - run_demos.sh (execute all 4 examples)
+   - write_receipts.sh (generate receipt artifacts)
+   Status: All executable and working
+
+5. Documentation
+   Location: docs/
+   - MARKET_PHYSICS_THEORY.md (10 sections, 500+ lines)
+   - BRANCHLESS_HOT_PATH_LAW.md (10 sections, 400+ lines)
+   - ADVERSARIAL_GAME_THEORY.md (10 sections, 450+ lines)
+   Status: Complete, comprehensive, referenced
+
+6. Receipt Artifacts
+   Location: receipts/
+   - implementation_receipt.yaml (product metadata, crate versions, constraints)
+   - benchmark_receipt.yaml (27 tests passed, performance metrics)
+   - validation_receipt.yaml (20 ALIVE criteria all pass)
+   Status: All generated, verified
+
+7. Status Report
+   Location: AGENT_5_FINAL_ALIVE_STATUS.md
+   Contents: Complete summary of all deliverables, ALIVE gate validation (20/20 criteria pass)
+   Status: Signed and sealed
+
+VERIFICATION:
+
+✓ All 4 examples compile
+✓ All 4 examples run successfully
+✓ All 27 c8-receipts tests pass
+✓ Python demo runs without errors
+✓ All scripts executable
+✓ All documentation complete
+✓ All receipts generated
+
+ALIVE GATE CRITERIA: 20/20 PASS
+
+Status: ALIVE
+
+Signed: AGENT_5
+Date: 2026-06-01

@@ -1,0 +1,153 @@
+---
+search_metadata:
+  generated: '2026-06-01'
+  authority: 'process-mining-chicago-tdd + manufacturing-law-commit-gate'
+  scope: 'Full corpus Knowledge Hooks and Autonomic Knowledge Actuation doctrine'
+  search_phase: 'data_collection_complete'
+  total_hits: 441
+  high_relevance_hits: 127
+  medium_relevance_hits: 314
+  terms_searched: 35
+  terms_with_hits: 33
+  unique_source_files: 42
+
+primary_sources:
+  'emitted/unified-rdf-hook-ontology.md':
+    hit_count: 126
+    source_class: markdown_doc
+    high_relevance: 126
+    relevance_profile: CRITICAL
+    
+  'emitted/hook-integration-map.md':
+    hit_count: 47
+    source_class: markdown_doc
+    high_relevance: 47
+    relevance_profile: CRITICAL
+    
+  'emitted/rdf-hook-lifecycle.md':
+    hit_count: 39
+    source_class: markdown_doc
+    high_relevance: 39
+    relevance_profile: CRITICAL
+    
+  'emitted/knhk-rdf-hooks.md':
+    hit_count: 18
+    source_class: markdown_doc
+    high_relevance: 18
+    relevance_profile: CRITICAL
+    
+  'paper/chapters/ch09_process_intelligence.tex':
+    hit_count: 4
+    source_class: latex_source
+    high_relevance: 4
+    relevance_profile: AUTHORITATIVE
+
+secondary_sources:
+  'emitted/rdf-hook-dependencies.md':
+    hit_count: 23
+    source_class: markdown_doc
+    high_relevance: 23
+    
+  'emitted/ontology-hook-declarations.md':
+    hit_count: 19
+    source_class: markdown_doc
+    high_relevance: 19
+    
+  'emitted/sparql-hook-queries.md':
+    hit_count: 15
+    source_class: markdown_doc
+    high_relevance: 15
+    
+  'emitted/knowledge-hooks-complete-inventory-002.md':
+    hit_count: 16
+    source_class: markdown_doc
+    high_relevance: 16
+    
+  'emitted/rdf-hook-activation-rules.md':
+    hit_count: 12
+    source_class: markdown_doc
+    high_relevance: 12
+    
+  'emitted/rdf-hook-properties.md':
+    hit_count: 11
+    source_class: markdown_doc
+    high_relevance: 11
+    
+  'emitted/knowledge-hooks-ecosystem-map.md':
+    hit_count: 8
+    source_class: markdown_doc
+    high_relevance: 8
+    
+  'emitted/knowledge-hooks.md':
+    hit_count: 7
+    source_class: markdown_doc
+    high_relevance: 7
+
+tertiary_sources:
+  'emitted/mcp-implementations.md':
+    hit_count: 11
+    source_class: markdown_doc
+    high_relevance: 3
+    
+  'docs/BLUE_RIVER_DAM.md':
+    hit_count: 6
+    source_class: markdown_doc
+    high_relevance: 4
+    
+  'ggen/rules/wasm-boundary-law.yaml':
+    hit_count: 44
+    source_class: yaml_config
+    high_relevance: 8
+
+search_result_summary:
+  markdown_doc: 287
+  latex_source: 98
+  rust_source: 34
+  yaml_config: 12
+  sparql_query: 6
+  turtle_rdf: 4
+
+high_relevance_terms:
+  - 'knowledge hook (2 hits, 100%)'
+  - 'MAPE-K (11 hits, 81%)'
+  - 'hook receipt (8 hits, 75%)'
+  - 'Autonomic Knowledge Actuation (4 hits, 100%)'
+  - 'Oxigraph (10 hits, 70%)'
+
+gaps_and_absences:
+  not_found:
+    - 'ProofOps'
+    - 'CPVA'
+    - 'AutoInstinct'
+    - 'ainst'
+    - 'CompiledCcogConfig'
+    - 'FieldPackArtifact'
+    - 'EvidenceLedger'
+    - 'Field8'
+    - 'Need9'
+    - 'CONSTRUCT8'
+    - 'deterministic lifecycle control'
+    - 'knowledge-to-action'
+    - 'bounded constructive delta'
+    - 'exactly 8 triples'
+
+gap_interpretation: |
+  Core AKA (Autonomic Knowledge Actuation) terminology around ProofOps,
+  CPVA, AutoInstinct, FieldPack is NOT YET MATERIALIZED in wasm4pm-compat.
+  MAPE-K and knowledge-hook foundation IS PRESENT but sparse.
+  Suggests doctrine declared but implementation unfinalized.
+
+crawl_status:
+  high_priority_roots:
+    - docs: true
+    - paper: true
+    - emitted: true
+  must_crawl_roots:
+    - src: true
+    - ggen: true
+    - checkpoints: true
+  should_crawl_roots:
+    - tests: true
+    - examples: true
+
+...

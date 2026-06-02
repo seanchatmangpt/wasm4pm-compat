@@ -1,0 +1,11 @@
+[package]
+name = "c8-time"
+version = "0.1.0"
+edition = "2021"
+description = "Vector clock (8 lanes) and monotonic timestamp primitives for market causality."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/wasm4pm/wasm4pm-compat"
+
+[dependencies]
+
+[dev-dependencies]

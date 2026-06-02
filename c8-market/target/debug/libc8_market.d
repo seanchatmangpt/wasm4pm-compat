@@ -1,0 +1,1 @@
+/Users/sac/wasm4pm-compat/c8-market/target/debug/libc8_market.rlib: /Users/sac/wasm4pm-compat/c8-market/README.md /Users/sac/wasm4pm-compat/c8-market/src/lib.rs /Users/sac/wasm4pm-compat/c8-time/README.md /Users/sac/wasm4pm-compat/c8-time/src/lib.rs
