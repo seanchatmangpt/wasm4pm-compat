@@ -54,3 +54,5 @@ Compile-pass receipts (each must compile successfully, proving the lawful path i
 ## Audit Gate
 
 `cargo test --test ui_tests -- --ignored` must pass with all `process_tree_*` and relevant `powl_*` fixtures green: compile-fail fixtures reject illegal arity at the `Require<{ ARITY == 2 }>: IsTrue` bound site, and compile-pass fixtures confirm that `TypedLoopNode<_, 2>` and sibling typed operator nodes are constructible on the lawful path. A fixture that fails for any reason other than the named arity law (e.g. missing import, toolchain drift) is not a valid receipt and must be corrected before this gap may remain closed.
+
+verified: 2026-06-02
