@@ -47,14 +47,22 @@
 /// let _: CausalNet;
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct CausalNet;
+pub struct CausalNet {
+    /// The activity tasks that form the nodes of the causal net.
+    pub nodes: Vec<String>,
+    /// Dependency measures between tasks: (source_task, target_task, score).
+    pub dependency_measures: Vec<(String, String, f64)>,
+    /// The input binding obligations for each task.
+    pub inputs: Vec<CausalBinding>,
+    /// The output binding obligations for each task.
+    pub outputs: Vec<CausalBinding>,
+}
 
 /// A causal binding: an input/output set of tasks that form a binding obligation.
 ///
 /// In a C-net, each task has a set of *input bindings* (which predecessors must
 /// have fired to activate this task) and *output bindings* (which successors this
-/// task activates). A `CausalBinding` names that the binding relationship exists
-/// as a structural shape; it does not fire transitions or evaluate completeness.
+/// task activates).
 ///
 /// Structure-only: a binding shape. Graduate to `wasm4pm` for binding evaluation.
 ///
@@ -63,7 +71,13 @@ pub struct CausalNet;
 /// let _: CausalBinding;
 /// ```
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct CausalBinding;
+pub struct CausalBinding {
+    /// The source tasks in the binding.
+    pub source_tasks: Vec<String>,
+    /// The target tasks in the binding.
+    pub target_tasks: Vec<String>,
+}
+
 
 /// An input binding: a conjunction of predecessor tasks that must have fired to
 /// activate the task that owns this binding.
@@ -129,3 +143,30 @@ pub struct OutputBinding<A, B>(pub A, pub B);
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct DependencyMeasure(pub f64);
+
+/// First-class refusal law for Causal Net shapes.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum CausalNetRefusal {
+    /// A task has an empty/missing activity label.
+    MissingActivity,
+    /// An arc has a dependency measure score outside the valid range [0, 1].
+    InvalidDependencyScore,
+    /// The graph is structurally disconnected.
+    DisconnectedGraph,
+}
+
+impl core::fmt::Display for CausalNetRefusal {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            CausalNetRefusal::MissingActivity => write!(f, "Causal net refused: MissingActivity"),
+            CausalNetRefusal::InvalidDependencyScore => {
+                write!(f, "Causal net refused: InvalidDependencyScore")
+            }
+            CausalNetRefusal::DisconnectedGraph => {
+                write!(f, "Causal net refused: DisconnectedGraph")
+            }
+        }
+    }
+}
+

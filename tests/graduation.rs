@@ -60,13 +60,14 @@ mod ts_tests {
         assert!(ts_output.contains("export type ReceiptShapeTs"));
         assert!(ts_output.contains("export type OcelBrand"));
 
-        // Write generated TypeScript bindings to the visualizer directory for compile checks
-        let path = "/Users/sac/process-intelligence/experiments/visualizer/bindings.d.ts";
-        std::fs::write(path, &ts_output).unwrap();
-        println!(
-            "Successfully generated and wrote TypeScript bindings to {}",
-            path
-        );
+        // Optionally write generated TypeScript bindings to external paths if configured.
+        // Uses env vars so the test is portable across machines.
+        if let Ok(path1) = std::env::var("VISUALIZER_BINDINGS_PATH") {
+            std::fs::write(&path1, &ts_output).ok();
+        }
+        if let Ok(path2) = std::env::var("PCP_BINDINGS_PATH") {
+            std::fs::write(&path2, &ts_output).ok();
+        }
     }
 }
 

@@ -547,7 +547,8 @@ impl Powl {
                     }
                 }
                 PowlNodeKind::Loop { body, redo } => {
-                    let node_ids: std::collections::HashSet<usize> = self.nodes.iter().map(|n| n.id.0).collect();
+                    let node_ids: std::collections::HashSet<usize> =
+                        self.nodes.iter().map(|n| n.id.0).collect();
                     if !node_ids.contains(&body.0) {
                         return Err(PowlRefusal::InvalidLoop);
                     }
@@ -558,28 +559,31 @@ impl Powl {
                     }
                 }
                 PowlNodeKind::PartialOrder(children) => {
-                    let child_set: std::collections::HashSet<PowlNodeId> = children.iter().cloned().collect();
-                    let mut adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
-                    let mut in_degree: std::collections::HashMap<PowlNodeId, usize> = std::collections::HashMap::new();
-                    
+                    let child_set: std::collections::HashSet<PowlNodeId> =
+                        children.iter().cloned().collect();
+                    let mut adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> =
+                        std::collections::HashMap::new();
+                    let mut in_degree: std::collections::HashMap<PowlNodeId, usize> =
+                        std::collections::HashMap::new();
+
                     for &c in children {
                         adj.entry(c).or_default();
                         in_degree.entry(c).or_insert(0);
                     }
-                    
+
                     for edge in &self.edges {
                         if child_set.contains(&edge.from) && child_set.contains(&edge.to) {
                             adj.entry(edge.from).or_default().push(edge.to);
                             *in_degree.entry(edge.to).or_insert(0) += 1;
                         }
                     }
-                    
+
                     let mut queue: std::collections::VecDeque<PowlNodeId> = children
                         .iter()
                         .copied()
                         .filter(|c| in_degree.get(c).copied().unwrap_or(0) == 0)
                         .collect();
-                    
+
                     let mut visited = 0;
                     while let Some(u) = queue.pop_front() {
                         visited += 1;
@@ -594,32 +598,38 @@ impl Powl {
                             }
                         }
                     }
-                    
+
                     if visited != children.len() {
                         return Err(PowlRefusal::CyclicPartialOrder);
                     }
                 }
-                PowlNodeKind::ChoiceGraph { nodes: cg_nodes, edges: cg_edges } => {
+                PowlNodeKind::ChoiceGraph {
+                    nodes: cg_nodes,
+                    edges: cg_edges,
+                } => {
                     if cg_nodes.len() < 2 {
                         return Err(PowlRefusal::ChoiceGraphDisconnected);
                     }
                     let start = cg_nodes[0];
                     let end = cg_nodes[cg_nodes.len() - 1];
-                    
-                    let node_set: std::collections::HashSet<PowlNodeId> = cg_nodes.iter().cloned().collect();
+
+                    let node_set: std::collections::HashSet<PowlNodeId> =
+                        cg_nodes.iter().cloned().collect();
                     for edge in cg_edges {
                         if !node_set.contains(&edge.from) || !node_set.contains(&edge.to) {
                             return Err(PowlRefusal::ChoiceGraphDisconnected);
                         }
                     }
-                    
-                    let mut forward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
-                    let mut backward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> = std::collections::HashMap::new();
+
+                    let mut forward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> =
+                        std::collections::HashMap::new();
+                    let mut backward_adj: std::collections::HashMap<PowlNodeId, Vec<PowlNodeId>> =
+                        std::collections::HashMap::new();
                     for edge in cg_edges {
                         forward_adj.entry(edge.from).or_default().push(edge.to);
                         backward_adj.entry(edge.to).or_default().push(edge.from);
                     }
-                    
+
                     let mut forward_visited = std::collections::HashSet::new();
                     let mut queue = std::collections::VecDeque::new();
                     queue.push_back(start);
@@ -633,7 +643,7 @@ impl Powl {
                             }
                         }
                     }
-                    
+
                     let mut backward_visited = std::collections::HashSet::new();
                     queue.clear();
                     queue.push_back(end);
@@ -647,7 +657,7 @@ impl Powl {
                             }
                         }
                     }
-                    
+
                     for &node in cg_nodes {
                         if !forward_visited.contains(&node) || !backward_visited.contains(&node) {
                             return Err(PowlRefusal::ChoiceGraphDisconnected);
@@ -882,14 +892,20 @@ mod tests {
     #[test]
     fn test_powl_validate_invalid_choice() {
         let mut p = Powl::new();
-        p.nodes.push(PowlNode::new(PowlNodeId(0), PowlNodeKind::Choice(vec![PowlNodeId(1)])));
+        p.nodes.push(PowlNode::new(
+            PowlNodeId(0),
+            PowlNodeKind::Choice(vec![PowlNodeId(1)]),
+        ));
         assert_eq!(p.validate(), Err(PowlRefusal::InvalidChoice));
     }
 
     #[test]
     fn test_powl_validate_cyclic_partial_order() {
         let mut p = Powl::new();
-        p.nodes.push(PowlNode::new(PowlNodeId(0), PowlNodeKind::PartialOrder(vec![PowlNodeId(1), PowlNodeId(2)])));
+        p.nodes.push(PowlNode::new(
+            PowlNodeId(0),
+            PowlNodeKind::PartialOrder(vec![PowlNodeId(1), PowlNodeId(2)]),
+        ));
         p.edges.push(OrderEdge::new(PowlNodeId(1), PowlNodeId(2)));
         p.edges.push(OrderEdge::new(PowlNodeId(2), PowlNodeId(1)));
         assert_eq!(p.validate(), Err(PowlRefusal::CyclicPartialOrder));
