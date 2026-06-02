@@ -17,7 +17,7 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Admission<std::string::String, Ocel20>`
+   = note: expected struct `Admission<std::string::String, wasm4pm_compat::witness::Ocel20>`
               found struct `Admission<std::string::String, std::string::String>`
 note: function defined here
   --> tests/ui/compile_fail/receipt_admission_wrong_witness_type.rs:11:4

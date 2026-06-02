@@ -16,8 +16,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Admission<wasm4pm_compat::OcelLog, Xes1849>`
-              found struct `Admission<wasm4pm_compat::OcelLog, Ocel20>`
+   = note: expected struct `Admission<wasm4pm_compat::OcelLog, wasm4pm_compat::witness::Xes1849>`
+              found struct `Admission<wasm4pm_compat::OcelLog, wasm4pm_compat::witness::Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/admission_wrong_witness_ocel_as_xes.rs:8:4
    |

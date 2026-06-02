@@ -1,15 +1,15 @@
-error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
+error[E0277]: the trait bound `MyCustomStage: wasm4pm_compat::state::EvidenceState` is not satisfied
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:16:16
    |
 16 |         state: core::marker::PhantomData,
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
    |
-help: the trait `EvidenceState` is not implemented for `MyCustomStage`
+help: the trait `wasm4pm_compat::state::EvidenceState` is not implemented for `MyCustomStage`
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:8:1
    |
  8 | struct MyCustomStage;
    | ^^^^^^^^^^^^^^^^^^^^
-   = help: the following other types implement trait `EvidenceState`:
+   = help: the following other types implement trait `wasm4pm_compat::state::EvidenceState`:
              wasm4pm_compat::Admitted
              wasm4pm_compat::Exportable
              wasm4pm_compat::Parsed
@@ -23,7 +23,7 @@ note: required by a bound in `Evidence`
    | pub struct Evidence<T, State: EvidenceState, W> {
    |                               ^^^^^^^^^^^^^ required by this bound in `Evidence`
 
-error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
+error[E0277]: the trait bound `MyCustomStage: wasm4pm_compat::state::EvidenceState` is not satisfied
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:14:29
    |
 14 |       requires_evidence_state(Evidence::<u32, MyCustomStage, ()> {
@@ -36,12 +36,12 @@ error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
 18 | |     });
    | |_____^ unsatisfied trait bound
    |
-help: the trait `EvidenceState` is not implemented for `MyCustomStage`
+help: the trait `wasm4pm_compat::state::EvidenceState` is not implemented for `MyCustomStage`
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:8:1
    |
  8 | struct MyCustomStage;
    | ^^^^^^^^^^^^^^^^^^^^
-   = help: the following other types implement trait `EvidenceState`:
+   = help: the following other types implement trait `wasm4pm_compat::state::EvidenceState`:
              wasm4pm_compat::Admitted
              wasm4pm_compat::Exportable
              wasm4pm_compat::Parsed

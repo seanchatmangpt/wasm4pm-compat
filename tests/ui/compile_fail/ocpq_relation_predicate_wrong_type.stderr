@@ -2,12 +2,12 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/ocpq_relation_predicate_wrong_type.rs:41:27
    |
 41 |     register_o2o_relation(e2o);
-   |     --------------------- ^^^ expected `O2O`, found `E2O`
+   |     --------------------- ^^^ expected `wasm4pm_compat::ocpq::RelationPredicateKind::O2O`, found `wasm4pm_compat::ocpq::RelationPredicateKind::E2O`
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `TypedRelationPredicate<O2O>`
-              found struct `TypedRelationPredicate<E2O>`
+   = note: expected struct `TypedRelationPredicate<wasm4pm_compat::ocpq::RelationPredicateKind::O2O>`
+              found struct `TypedRelationPredicate<wasm4pm_compat::ocpq::RelationPredicateKind::E2O>`
 note: function defined here
   --> tests/ui/compile_fail/ocpq_relation_predicate_wrong_type.rs:29:4
    |
