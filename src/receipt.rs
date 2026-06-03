@@ -101,6 +101,23 @@ impl Digest {
     }
 }
 
+/// Type alias bridging wasm4pm-types `Blake3Hash` to compat's `Digest`.
+/// Both are newtype wrappers over a hex-encoded hash string.
+///
+/// `wasm4pm-types` exposes `Blake3Hash(String)` with `from_hex`/`as_hex`
+/// methods that enforce 64-character lowercase hex. This alias lets compat
+/// consumers refer to `Blake3Hash` without taking a hard dependency on
+/// `wasm4pm-types`, while making the semantic equivalence explicit.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::{Blake3Hash, Digest};
+/// let d: Blake3Hash = Digest::new("a".repeat(64));
+/// assert_eq!(d.0.len(), 64);
+/// ```
+pub type Blake3Hash = Digest;
+
 /// A replay hint carried by a receipt.
 ///
 /// `#[repr(transparent)]` over `String`: an opaque pointer/recipe describing how
@@ -1423,4 +1440,62 @@ impl WellShaped for GraduationReceipt {
     fn well_shaped(&self) -> bool {
         self.is_well_shaped()
     }
+}
+
+// ── ProvenanceChain ──────────────────────────────────────────────────────────
+
+/// A flat, field-level provenance record capturing hashes for a single algorithm run.
+///
+/// This is a structural carrier only; it does not verify any hash.
+/// Graduate to `wasm4pm` for hash computation and chain verification.
+///
+/// ## Relationship to [`ReceiptChain`]
+///
+/// [`ReceiptChain`] models provenance as a multi-step trail of
+/// [`ReceiptEnvelope`]s. `ProvenanceChain` is a flat record capturing the
+/// ten named hash/identifier fields emitted by a single algorithm run. These
+/// are semantically distinct: use [`ReceiptChain`] for multi-stage trails, and
+/// `ProvenanceChain` for bridging flat provenance records produced by
+/// `wasm4pm-types`.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::receipt::ProvenanceChain;
+/// let pc = ProvenanceChain {
+///     input_hash: "a".repeat(64),
+///     config_hash: "b".repeat(64),
+///     plan_hash: "c".repeat(64),
+///     output_hash: "d".repeat(64),
+///     combined_hash: "e".repeat(64),
+///     algorithm_id: "dfg".to_string(),
+///     algorithm_version: "26.4.10".to_string(),
+///     backend_id: "wasm".to_string(),
+///     kernel_version: "26.4.10".to_string(),
+///     wasm_build_hash: "f".repeat(64),
+/// };
+/// assert_eq!(pc.algorithm_id, "dfg");
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ProvenanceChain {
+    /// BLAKE3 hash of the input event log (64 hex chars).
+    pub input_hash: String,
+    /// BLAKE3 hash of the resolved configuration (64 hex chars).
+    pub config_hash: String,
+    /// BLAKE3 hash of the execution plan (64 hex chars).
+    pub plan_hash: String,
+    /// BLAKE3 hash of the output payload (64 hex chars).
+    pub output_hash: String,
+    /// BLAKE3 hash combining input, config, plan, and output (64 hex chars).
+    pub combined_hash: String,
+    /// Algorithm identifier (e.g. `"dfg"`, `"inductive_miner"`).
+    pub algorithm_id: String,
+    /// Algorithm version (semver or CalVer).
+    pub algorithm_version: String,
+    /// Backend identifier (e.g. `"wasm"`, `"pm4wasm"`).
+    pub backend_id: String,
+    /// Kernel/orchestration version.
+    pub kernel_version: String,
+    /// Content hash of the WASM binary (64 hex chars).
+    pub wasm_build_hash: String,
 }

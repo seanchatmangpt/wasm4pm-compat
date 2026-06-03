@@ -846,3 +846,43 @@ impl core::fmt::Display for ConformanceRefusal {
         write!(f, "conformance verdict refused: {law}")
     }
 }
+
+// ── Token-replay statistics shape ───────────────────────────────────────────
+
+/// Shape of a token-replay fitness result — produced/consumed/missing/remaining
+/// token counts plus the derived fitness score.
+///
+/// This is **structure only**; no token game is played here. The five fields
+/// mirror the `TokenReplayResult` in `wasm4pm-types` so that callers can pass
+/// raw replay statistics across the compat boundary without depending on the
+/// full `wasm4pm` engine.
+///
+/// Graduate to `wasm4pm` for actual token-replay computation.
+///
+/// ## Examples
+///
+/// ```
+/// use wasm4pm_compat::conformance::TokenReplayResult;
+/// let r = TokenReplayResult {
+///     fitness: 0.9,
+///     produced_tokens: 10,
+///     consumed_tokens: 9,
+///     missing_tokens: 1,
+///     remaining_tokens: 0,
+/// };
+/// assert_eq!(r.fitness, 0.9);
+/// assert_eq!(r.missing_tokens, 1);
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct TokenReplayResult {
+    /// Token-replay fitness score in `[0, 1]`.
+    pub fitness: f64,
+    /// Total tokens produced (fired) during replay.
+    pub produced_tokens: usize,
+    /// Total tokens consumed during replay.
+    pub consumed_tokens: usize,
+    /// Tokens that were missing (model required, log did not provide).
+    pub missing_tokens: usize,
+    /// Tokens remaining in the final marking after replay.
+    pub remaining_tokens: usize,
+}

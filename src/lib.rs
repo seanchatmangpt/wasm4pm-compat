@@ -198,6 +198,8 @@ pub mod ocpq;
 pub mod petri;
 /// POWL (partially ordered workflow language) shape.
 pub mod powl;
+/// POWL8 operator discriminant — compact `u8` wire-format companion to [`powl::PowlNodeKind`].
+pub mod powl8_op;
 /// Prediction problem shape (structure only — no predictor).
 pub mod prediction;
 /// Core adoption surface — re-exports the most-needed shapes and laws.
@@ -265,12 +267,14 @@ pub mod nightly_foundry;
 // `wasm4pm_compat::ids::EventId`. They do not replace the submodule paths.
 
 pub use crate::admission::{Admission, Admit, Refusal};
-pub use crate::eventlog::{Event, EventLog, Trace};
+pub use crate::eventlog::{Event, EventLog, EventLogClassifier, Trace};
 pub use crate::evidence::Evidence;
 pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
 pub use crate::loss::{LossPolicy, ProjectionName};
 pub use crate::ocel::OcelLog;
 pub use crate::petri::{PetriNet, WfNet, WfNetConst};
+pub use crate::receipt::Blake3Hash;
+pub use crate::receipt::ProvenanceChain;
 pub use crate::receipt::ReceiptEnvelope;
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
 pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
@@ -278,4 +282,5 @@ pub use crate::workflow::{
     BranchToken, Canceled, Completed, CompletedWorkflow, JoinPoint, ParallelWorkflow, Pending,
     Running,
 };
+pub use crate::powl8_op::{Powl8Op, Powl8OpError};
 pub use crate::xes::XesLog;

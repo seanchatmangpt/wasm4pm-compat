@@ -742,6 +742,154 @@ impl core::fmt::Display for PowlRefusal {
     }
 }
 
+// ── Standalone ChoiceGraph (mirrors wasm4pm-types choice_graph.rs) ──────────
+
+/// A node in a standalone [`ChoiceGraph`].
+///
+/// Mirrors `wasm4pm_types::ChoiceGraphNode`. The [`PowlNodeKind::ChoiceGraph`]
+/// variant embeds choice-graph nodes by [`PowlNodeId`] reference; this enum is
+/// used when representing a *self-contained* choice graph outside a [`Powl`]
+/// arena (e.g. for serialisation, standalone traversal, or interop with the
+/// wasm4pm-types crate).
+///
+/// Variants follow the wasm4pm-types definition:
+/// - `Start` / `End` are the unique boundary markers required by Definition 1
+///   (Kourani et al., arXiv:2505.07052).
+/// - `Activity` is an inline activity label.
+/// - `SubModel` references a sub-model by arena index (`u32`), matching the
+///   `SubModel(u32)` variant in wasm4pm-types.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StandaloneChoiceGraphNode {
+    /// Unique start marker — no incoming edges.
+    Start,
+    /// Unique end marker — no outgoing edges.
+    End,
+    /// Inline activity by label.
+    Activity(String),
+    /// Reference to a sub-model by arena root index.
+    SubModel(u32),
+}
+
+/// A standalone choice graph: nodes plus directed index-pair edges, with
+/// explicit `start_idx` / `end_idx` fields.
+///
+/// This type mirrors `wasm4pm_types::ChoiceGraph` and supports standalone graph
+/// traversal via [`ChoiceGraph::successors`], [`ChoiceGraph::predecessors`], and
+/// [`ChoiceGraph::has_empty_path`].
+///
+/// It is **distinct** from the inline [`PowlNodeKind::ChoiceGraph`] variant,
+/// which references nodes by [`PowlNodeId`] inside a [`Powl`] arena. Use this
+/// type when you need a self-contained, arena-free choice graph — e.g. for
+/// direct construction, serialisation, or round-tripping through wasm4pm-types.
+///
+/// ## Validity
+///
+/// The struct carries no construction-time validation (unlike the
+/// `wasm4pm_types::ChoiceGraph::new` constructor which enforces Definition 1).
+/// Validated construction, cycle-detection, and replay graduate to `wasm4pm`.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
+///
+/// let cg = ChoiceGraph {
+///     nodes: vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
+///     edges: vec![(0, 1)],
+///     start_idx: 0,
+///     end_idx: 1,
+/// };
+/// assert!(cg.has_empty_path());
+/// assert_eq!(cg.successors(0), vec![1]);
+/// assert_eq!(cg.predecessors(1), vec![0]);
+/// ```
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ChoiceGraph {
+    /// The node list. `nodes[start_idx]` is the unique start; `nodes[end_idx]`
+    /// is the unique end.
+    pub nodes: Vec<StandaloneChoiceGraphNode>,
+    /// Directed edges as `(from_index, to_index)` pairs into `nodes`.
+    pub edges: Vec<(usize, usize)>,
+    /// Index of the unique start node in `nodes`.
+    pub start_idx: usize,
+    /// Index of the unique end node in `nodes`.
+    pub end_idx: usize,
+}
+
+impl ChoiceGraph {
+    /// Collect the indices of all direct successors of `node_idx`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
+    /// let cg = ChoiceGraph {
+    ///     nodes: vec![
+    ///         StandaloneChoiceGraphNode::Start,
+    ///         StandaloneChoiceGraphNode::Activity("a".into()),
+    ///         StandaloneChoiceGraphNode::End,
+    ///     ],
+    ///     edges: vec![(0, 1), (1, 2)],
+    ///     start_idx: 0,
+    ///     end_idx: 2,
+    /// };
+    /// assert_eq!(cg.successors(0), vec![1]);
+    /// assert_eq!(cg.successors(1), vec![2]);
+    /// ```
+    pub fn successors(&self, node_idx: usize) -> Vec<usize> {
+        self.edges
+            .iter()
+            .filter_map(|&(a, b)| if a == node_idx { Some(b) } else { None })
+            .collect()
+    }
+
+    /// Collect the indices of all direct predecessors of `node_idx`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
+    /// let cg = ChoiceGraph {
+    ///     nodes: vec![
+    ///         StandaloneChoiceGraphNode::Start,
+    ///         StandaloneChoiceGraphNode::Activity("a".into()),
+    ///         StandaloneChoiceGraphNode::End,
+    ///     ],
+    ///     edges: vec![(0, 1), (1, 2)],
+    ///     start_idx: 0,
+    ///     end_idx: 2,
+    /// };
+    /// assert_eq!(cg.predecessors(2), vec![1]);
+    /// ```
+    pub fn predecessors(&self, node_idx: usize) -> Vec<usize> {
+        self.edges
+            .iter()
+            .filter_map(|&(a, b)| if b == node_idx { Some(a) } else { None })
+            .collect()
+    }
+
+    /// Returns `true` iff there is a direct edge from `start_idx` to `end_idx`
+    /// (the empty path — a choice that can be skipped entirely).
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
+    /// let cg = ChoiceGraph {
+    ///     nodes: vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
+    ///     edges: vec![(0, 1)],
+    ///     start_idx: 0,
+    ///     end_idx: 1,
+    /// };
+    /// assert!(cg.has_empty_path());
+    /// ```
+    pub fn has_empty_path(&self) -> bool {
+        self.edges
+            .iter()
+            .any(|&(a, b)| a == self.start_idx && b == self.end_idx)
+    }
+}
+
 // ── RefusedProjection marker ──────────────────────────────────────────────────
 
 /// Typed marker carrying the **named reason** a POWL projection was refused.
@@ -827,6 +975,30 @@ impl core::fmt::Display for RefusedProjection {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         core::fmt::Display::fmt(&self.reason, f)
     }
+}
+
+/// The eight POWL operator kinds (POWL8 — van der Aalst 2023 full set).
+///
+/// Variants beyond the original four (Sequence, XorChoice, Parallel, Loop) add
+/// StrictPartialOrder, ChoiceGraph, Silent, and Activity.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Powl8Op {
+    /// Strict sequential composition.
+    Sequence,
+    /// Exclusive (XOR) choice.
+    XorChoice,
+    /// Parallel (AND) split-join.
+    Parallel,
+    /// Redo loop: body then optional redo branch.
+    Loop,
+    /// Strict partial order over sub-models.
+    StrictPartialOrder,
+    /// Non-block-structured choice over a directed acyclic graph of sub-models.
+    ChoiceGraph,
+    /// Silent (tau) step — no observable activity.
+    Silent,
+    /// Leaf atom naming a single activity.
+    Activity,
 }
 
 /// Graduation witness: a `WfNetConst` has been successfully converted to a

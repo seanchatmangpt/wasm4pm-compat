@@ -1785,3 +1785,26 @@ impl core::fmt::Display for PetriRefusal {
         write!(f, "Petri-net refused by law: {law}")
     }
 }
+
+// ── FlatIncidenceMatrix ───────────────────────────────────────────────────────
+
+/// A flat (row-major) incidence matrix for a Petri net.
+///
+/// Rows are places, columns are transitions. Value at
+/// `[place_idx * transitions_count + transition_idx]` is the net token change
+/// (+1 produced, -1 consumed, 0 no arc).
+///
+/// This is structure only — it carries a precomputed matrix, never derives one.
+/// Corresponds to `FlatIncidenceMatrix` in `wasm4pm-types::models`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct FlatIncidenceMatrix {
+    pub data: Vec<i32>,
+    pub places_count: usize,
+    pub transitions_count: usize,
+}
+
+impl FlatIncidenceMatrix {
+    pub fn get(&self, place_idx: usize, transition_idx: usize) -> i32 {
+        self.data[place_idx * self.transitions_count + transition_idx]
+    }
+}

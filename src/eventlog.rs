@@ -472,6 +472,40 @@ impl EventStream {
     }
 }
 
+/// A classifier declaration from a XES log header — names the key(s) that identify activity.
+///
+/// XES logs may declare one or more classifiers in their header. Each classifier
+/// names an activity-identification strategy: the `keys` list the XES attribute
+/// keys whose concatenated values form the activity label for that classifier.
+/// The most common classifier is `{"name": "concept:name", "keys": ["concept:name"]}`.
+///
+/// This is structural metadata about the log schema; it carries no judgment and
+/// is not Evidence-wrapped.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct EventLogClassifier {
+    /// Human-readable name for this classifier (e.g. `"concept:name"`).
+    pub name: String,
+    /// Ordered list of XES attribute keys whose values form the activity label.
+    pub keys: Vec<String>,
+}
+
+impl EventLogClassifier {
+    /// Construct a classifier from a name and an iterator of keys.
+    ///
+    /// ```
+    /// use wasm4pm_compat::eventlog::EventLogClassifier;
+    /// let c = EventLogClassifier::new("concept:name", ["concept:name"]);
+    /// assert_eq!(c.name, "concept:name");
+    /// assert_eq!(c.keys, ["concept:name"]);
+    /// ```
+    pub fn new(name: impl Into<String>, keys: impl IntoIterator<Item = impl Into<String>>) -> Self {
+        EventLogClassifier {
+            name: name.into(),
+            keys: keys.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
 /// The specific, named laws under which case-centric event-log structure is
 /// refused.
 ///
@@ -587,3 +621,10 @@ impl From<crate::xes::XesEvent> for Event {
         ev
     }
 }
+
+/// A XES extension declaration — name, prefix, and namespace URI.
+///
+/// This is a type alias for [`crate::xes::XesExtension`], which carries the
+/// same three fields. It mirrors the `EventLogExtension` shape in
+/// `wasm4pm-types` so that compat achieves superset coverage.
+pub type EventLogExtension = crate::xes::XesExtension;
