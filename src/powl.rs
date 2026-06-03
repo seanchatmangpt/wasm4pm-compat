@@ -770,6 +770,10 @@ pub enum StandaloneChoiceGraphNode {
     SubModel(u32),
 }
 
+/// Backward-compatible alias — consumers can use `ChoiceGraphNode` after
+/// switching to `wasm4pm_compat::powl`. Identical to [`StandaloneChoiceGraphNode`].
+pub type ChoiceGraphNode = StandaloneChoiceGraphNode;
+
 /// A standalone choice graph: nodes plus directed index-pair edges, with
 /// explicit `start_idx` / `end_idx` fields.
 ///
@@ -817,6 +821,29 @@ pub struct ChoiceGraph {
 }
 
 impl ChoiceGraph {
+    /// Construct from nodes and index-pair edges.
+    ///
+    /// `start_idx` defaults to 0 (first node); `end_idx` defaults to
+    /// `nodes.len() - 1` (last node). Pass `start_idx`/`end_idx` explicitly
+    /// via struct literal when the boundary nodes are not at the endpoints.
+    ///
+    /// ```
+    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
+    /// let cg = ChoiceGraph::new(
+    ///     vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
+    ///     vec![(0, 1)],
+    /// );
+    /// assert_eq!(cg.start_idx, 0);
+    /// assert_eq!(cg.end_idx, 1);
+    /// ```
+    pub fn new(
+        nodes: Vec<StandaloneChoiceGraphNode>,
+        edges: Vec<(usize, usize)>,
+    ) -> Self {
+        let end_idx = nodes.len().saturating_sub(1);
+        ChoiceGraph { nodes, edges, start_idx: 0, end_idx }
+    }
+
     /// Collect the indices of all direct successors of `node_idx`.
     ///
     /// # Examples

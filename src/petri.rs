@@ -1808,3 +1808,197 @@ impl FlatIncidenceMatrix {
         self.data[place_idx * self.transitions_count + transition_idx]
     }
 }
+
+// ── Van der Aalst mutable Petri net construction ──────────────────────────────
+//
+// PM4Py (van der Aalst's reference implementation) constructs Petri nets by
+// creating an empty net, then adding places, transitions, and arcs one at a
+// time:
+//
+//   net = PetriNet()
+//   source = PetriNet.Place("source"); net.places.add(source)
+//   t = PetriNet.Transition("t_A", "A"); net.transitions.add(t)
+//   petri_utils.add_arc_from_to(source, t, net)
+//
+// PetriNetBuilder mirrors that API in Rust. Algorithms in `wasm4pm` that
+// produce Petri nets (Alpha, Alpha++, Heuristics Miner, Inductive Miner) use
+// this builder rather than constructing the final tuple in one shot.
+
+/// Mutable Petri net builder — van der Aalst's PM4Py construction pattern in Rust.
+///
+/// Construct a net by adding places, transitions, and arcs incrementally, then
+/// call [`build`](PetriNetBuilder::build) to obtain a validated [`PetriNet`].
+///
+/// ## Example
+///
+/// ```
+/// use wasm4pm_compat::petri::PetriNetBuilder;
+///
+/// let net = PetriNetBuilder::new()
+///     .place("source")
+///     .place("p1")
+///     .place("sink")
+///     .transition("t_A", "register")
+///     .transition("t_B", "approve")
+///     .p_to_t("source", "t_A")
+///     .t_to_p("t_A", "p1")
+///     .p_to_t("p1", "t_B")
+///     .t_to_p("t_B", "sink")
+///     .initial_tokens([("source", 1)])
+///     .build()
+///     .expect("valid net");
+///
+/// assert!(net.validate().is_ok());
+/// assert_eq!(net.places().len(), 3);
+/// assert_eq!(net.transitions().len(), 2);
+/// ```
+#[derive(Debug, Default)]
+pub struct PetriNetBuilder {
+    places: Vec<Place>,
+    transitions: Vec<Transition>,
+    arcs: Vec<Arc>,
+    initial_tokens: Vec<(String, u32)>,
+}
+
+impl PetriNetBuilder {
+    /// Create an empty builder.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Add a place by id. Builder-style (returns `&mut Self`).
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::PetriNetBuilder;
+    /// let net = PetriNetBuilder::new().place("p1").place("p2").build_unchecked();
+    /// assert_eq!(net.places().len(), 2);
+    /// ```
+    pub fn place(&mut self, id: impl Into<String>) -> &mut Self {
+        self.places.push(Place::new(id));
+        self
+    }
+
+    /// Add a visible (labeled) transition.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::PetriNetBuilder;
+    /// let net = PetriNetBuilder::new()
+    ///     .place("p").transition("t", "A")
+    ///     .build_unchecked();
+    /// assert!(!net.transitions()[0].is_silent());
+    /// ```
+    pub fn transition(&mut self, id: impl Into<String>, label: impl Into<String>) -> &mut Self {
+        self.transitions.push(Transition::new(id, label));
+        self
+    }
+
+    /// Add a silent (tau / invisible) transition.
+    ///
+    /// Silent transitions model routing decisions without corresponding
+    /// log events — van der Aalst's τ-transitions.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::PetriNetBuilder;
+    /// let net = PetriNetBuilder::new()
+    ///     .place("p").silent("tau_split")
+    ///     .build_unchecked();
+    /// assert!(net.transitions()[0].is_silent());
+    /// ```
+    pub fn silent(&mut self, id: impl Into<String>) -> &mut Self {
+        self.transitions.push(Transition::silent(id));
+        self
+    }
+
+    /// Add a place-to-transition arc (van der Aalst: `p → t`, input arc).
+    ///
+    /// Corresponds to `petri_utils.add_arc_from_to(place, transition, net)`.
+    pub fn p_to_t(
+        &mut self,
+        place_id: impl Into<String>,
+        transition_id: impl Into<String>,
+    ) -> &mut Self {
+        self.arcs
+            .push(Arc::place_to_transition(place_id, transition_id));
+        self
+    }
+
+    /// Add a transition-to-place arc (van der Aalst: `t → p`, output arc).
+    ///
+    /// Corresponds to `petri_utils.add_arc_from_to(transition, place, net)`.
+    pub fn t_to_p(
+        &mut self,
+        transition_id: impl Into<String>,
+        place_id: impl Into<String>,
+    ) -> &mut Self {
+        self.arcs
+            .push(Arc::transition_to_place(transition_id, place_id));
+        self
+    }
+
+    /// Add a weighted place-to-transition arc.
+    pub fn p_to_t_w(
+        &mut self,
+        place_id: impl Into<String>,
+        transition_id: impl Into<String>,
+        weight: u32,
+    ) -> &mut Self {
+        self.arcs.push(
+            Arc::place_to_transition(place_id, transition_id).with_weight(weight),
+        );
+        self
+    }
+
+    /// Add a weighted transition-to-place arc.
+    pub fn t_to_p_w(
+        &mut self,
+        transition_id: impl Into<String>,
+        place_id: impl Into<String>,
+        weight: u32,
+    ) -> &mut Self {
+        self.arcs.push(
+            Arc::transition_to_place(transition_id, place_id).with_weight(weight),
+        );
+        self
+    }
+
+    /// Set initial token counts for places.
+    ///
+    /// Each item is a `(place_id, token_count)` pair. A workflow net (WF-net)
+    /// typically has exactly one token in the source place.
+    pub fn initial_tokens<I, S>(&mut self, tokens: I) -> &mut Self
+    where
+        I: IntoIterator<Item = (S, u32)>,
+        S: Into<String>,
+    {
+        self.initial_tokens
+            .extend(tokens.into_iter().map(|(p, c)| (p.into(), c)));
+        self
+    }
+
+    /// Build the [`PetriNet`], validating structural shape.
+    ///
+    /// Returns [`PetriRefusal`] if any arc references an undeclared place or
+    /// transition.
+    pub fn build(self) -> Result<PetriNet, PetriRefusal> {
+        let marking = Marking::new(self.initial_tokens);
+        let net = PetriNet::new(self.places, self.transitions, self.arcs, marking);
+        net.validate()?;
+        Ok(net)
+    }
+
+    /// Build without validation — for cases where the caller guarantees structure.
+    ///
+    /// Prefer [`build`](Self::build) for externally-supplied data.
+    pub fn build_unchecked(self) -> PetriNet {
+        let marking = Marking::new(self.initial_tokens);
+        PetriNet::new(self.places, self.transitions, self.arcs, marking)
+    }
+
+    /// Build a workflow net (WF-net) with a declared final marking.
+    ///
+    /// Structural shape is validated before returning.
+    pub fn build_wf(self, final_marking: Marking) -> Result<WfNet<SoundnessUnknown>, PetriRefusal> {
+        let net = self.build()?;
+        Ok(WfNet::new(net, final_marking))
+    }
+}

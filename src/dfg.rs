@@ -1038,3 +1038,326 @@ impl DfgEdgeKey {
         }
     }
 }
+
+// ── Van der Aalst mined DFG ───────────────────────────────────────────────────
+//
+// Van der Aalst (2016) §7.2: "Process Mining: Data Science in Action"
+// The directly-follows relation ›_L and its frequency counters are the
+// substrate of every discovery algorithm. This section provides:
+//
+//   DirectlyFollowsGraph  — the mined DFG value (data, not algorithm)
+//   DfgMiner              — incremental accumulator: feeds traces, emits DFG
+//
+// DFG *discovery* (reading an EventLog, iterating traces) stays in `wasm4pm`.
+// These types are the DATA CONTRACT that discovery algorithms fill and
+// conformance algorithms consume.
+
+use std::collections::HashMap;
+
+/// A mined directly-follows graph as defined by van der Aalst (2016 §7.2).
+///
+/// Formally: `(Σ, →_L, #_Σ(L), start_L, end_L)` where
+/// - `Σ`         = set of activities
+/// - `→_L`       = directly-follows relation (present as a key in `arcs`)
+/// - `#_Σ(L)`    = activity frequency function
+/// - `start_L`   = start-activity frequency function
+/// - `end_L`     = end-activity frequency function
+///
+/// This is the *discovery result* — the value that DFG mining algorithms
+/// produce. It is distinct from [`Dfg`], which is the *structural* type used
+/// for conformance checking (shape only, no frequencies).
+///
+/// ## Construction
+///
+/// Build via [`DfgMiner`]:
+///
+/// ```
+/// use wasm4pm_compat::dfg::{DfgMiner, DirectlyFollowsGraph};
+///
+/// let mut miner = DfgMiner::new();
+/// miner.record_trace(&["register", "check", "approve"]);
+/// miner.record_trace(&["register", "reject"]);
+/// let dfg = miner.build();
+///
+/// assert_eq!(dfg.activity_count("register"), 2);
+/// assert_eq!(dfg.arc_count("register", "check"), 1);
+/// assert_eq!(dfg.start_count("register"), 2);
+/// assert_eq!(dfg.end_count("approve"), 1);
+/// assert_eq!(dfg.end_count("reject"), 1);
+/// ```
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct DirectlyFollowsGraph {
+    /// Activity occurrence frequencies: `#_Σ(L)` — how often each activity
+    /// appeared across all traces.
+    pub activities: HashMap<String, u64>,
+    /// Directly-follows arc frequencies: for each `(a, b) ∈ →_L`, how often
+    /// `b` directly followed `a` in a trace.
+    pub arcs: HashMap<(String, String), u64>,
+    /// Start activity frequencies: `start_L(a)` — how often activity `a`
+    /// was the first activity in a trace.
+    pub start_activities: HashMap<String, u64>,
+    /// End activity frequencies: `end_L(a)` — how often activity `a` was
+    /// the last activity in a trace.
+    pub end_activities: HashMap<String, u64>,
+    /// Number of traces processed.
+    pub trace_count: u64,
+}
+
+impl DirectlyFollowsGraph {
+    /// Construct an empty DFG (zero traces, no activities or arcs).
+    ///
+    /// Prefer [`DfgMiner`] for incremental construction from traces.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Activity occurrence count (0 if not present).
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    /// let dfg = DfgMiner::from_traces([&["A", "B"][..]]);
+    /// assert_eq!(dfg.activity_count("A"), 1);
+    /// assert_eq!(dfg.activity_count("X"), 0);
+    /// ```
+    pub fn activity_count(&self, activity: &str) -> u64 {
+        self.activities.get(activity).copied().unwrap_or(0)
+    }
+
+    /// Directly-follows arc frequency (`a → b`). 0 if the arc does not exist.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    /// let dfg = DfgMiner::from_traces([&["A", "B", "B"][..]]);
+    /// assert_eq!(dfg.arc_count("A", "B"), 1);
+    /// assert_eq!(dfg.arc_count("B", "B"), 1);
+    /// assert_eq!(dfg.arc_count("B", "A"), 0);
+    /// ```
+    pub fn arc_count(&self, from: &str, to: &str) -> u64 {
+        self.arcs
+            .get(&(from.to_string(), to.to_string()))
+            .copied()
+            .unwrap_or(0)
+    }
+
+    /// How often `activity` started a trace.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    /// let dfg = DfgMiner::from_traces([&["A", "B"][..], &["A", "C"][..]]);
+    /// assert_eq!(dfg.start_count("A"), 2);
+    /// assert_eq!(dfg.start_count("B"), 0);
+    /// ```
+    pub fn start_count(&self, activity: &str) -> u64 {
+        self.start_activities.get(activity).copied().unwrap_or(0)
+    }
+
+    /// How often `activity` ended a trace.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    /// let dfg = DfgMiner::from_traces([&["A", "B"][..], &["A", "C"][..]]);
+    /// assert_eq!(dfg.end_count("B"), 1);
+    /// assert_eq!(dfg.end_count("C"), 1);
+    /// assert_eq!(dfg.end_count("A"), 0);
+    /// ```
+    pub fn end_count(&self, activity: &str) -> u64 {
+        self.end_activities.get(activity).copied().unwrap_or(0)
+    }
+
+    /// Whether arc `a → b` exists in the directly-follows relation.
+    ///
+    /// Van der Aalst (2016): `a >_L b` iff `arc_count(a, b) > 0`.
+    pub fn follows(&self, from: &str, to: &str) -> bool {
+        self.arc_count(from, to) > 0
+    }
+
+    /// Causality: `a → b` if `a >_L b` and NOT `b >_L a`.
+    ///
+    /// Van der Aalst's α-algorithm (2004): the causal relation used to
+    /// identify sequential pairs in the Alpha algorithm.
+    pub fn causes(&self, a: &str, b: &str) -> bool {
+        self.follows(a, b) && !self.follows(b, a)
+    }
+
+    /// Parallel: `a || b` if `a >_L b` AND `b >_L a`.
+    ///
+    /// Van der Aalst's α-algorithm (2004): parallel activities that can
+    /// co-occur and thus appear in both orders.
+    pub fn parallel(&self, a: &str, b: &str) -> bool {
+        self.follows(a, b) && self.follows(b, a)
+    }
+
+    /// Choice: `a # b` (exclusive) if NOT `a >_L b` AND NOT `b >_L a`.
+    ///
+    /// Van der Aalst's α-algorithm (2004): activities that never directly
+    /// follow each other are in exclusive choice.
+    pub fn exclusive(&self, a: &str, b: &str) -> bool {
+        !self.follows(a, b) && !self.follows(b, a)
+    }
+
+    /// Sorted activity names for deterministic iteration.
+    pub fn activities_sorted(&self) -> Vec<&str> {
+        let mut v: Vec<&str> = self.activities.keys().map(String::as_str).collect();
+        v.sort_unstable();
+        v
+    }
+
+    /// Convert to the structural [`Dfg`] shape (for conformance checking).
+    ///
+    /// Frequency information is preserved in arc weights; start/end activities
+    /// and per-node frequencies are dropped (structural shape only).
+    /// Returns `None` if the DFG is empty (no activities).
+    pub fn to_structural_dfg(&self) -> Option<Dfg> {
+        if self.activities.is_empty() {
+            return None;
+        }
+        let nodes: Vec<DfgNode> = {
+            let mut names: Vec<&str> = self.activities.keys().map(String::as_str).collect();
+            names.sort_unstable();
+            names.iter().map(|a| DfgNode::new(*a)).collect()
+        };
+        let edges: Vec<DfgEdge> = {
+            let mut arcs: Vec<_> = self.arcs.iter().collect();
+            arcs.sort_unstable_by_key(|((f, t), _)| (f.as_str(), t.as_str()));
+            arcs.iter()
+                .map(|((f, t), &w)| DfgEdge::new(f.as_str(), t.as_str(), w))
+                .collect()
+        };
+        Some(Dfg::new(nodes, edges))
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Incremental DFG miner — van der Aalst's directly-follows extraction operator.
+///
+/// Processes traces one at a time, maintaining running frequency counts for
+/// activities, arcs, start activities, and end activities. This is the
+/// O(|L|) inner loop of Algorithm 7.1 in van der Aalst (2016).
+///
+/// ## Usage
+///
+/// ```
+/// use wasm4pm_compat::dfg::DfgMiner;
+///
+/// let mut miner = DfgMiner::new();
+/// miner.record_trace(&["A", "B", "C"]);
+/// miner.record_trace(&["A", "C"]);
+/// let dfg = miner.build();
+///
+/// assert_eq!(dfg.trace_count, 2);
+/// assert_eq!(dfg.activity_count("A"), 2);
+/// assert_eq!(dfg.arc_count("A", "B"), 1);
+/// assert_eq!(dfg.arc_count("A", "C"), 1);
+/// assert_eq!(dfg.start_count("A"), 2);
+/// assert_eq!(dfg.end_count("C"), 2);
+/// ```
+#[derive(Debug, Default)]
+pub struct DfgMiner {
+    dfg: DirectlyFollowsGraph,
+}
+
+impl DfgMiner {
+    /// Create a new miner with zero traces recorded.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Process a single trace and update all frequency counters.
+    ///
+    /// This is O(|trace|): one pass that updates activity counts, arc counts,
+    /// start activity, and end activity. Empty traces are silently skipped.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    /// let mut m = DfgMiner::new();
+    /// m.record_trace(&["A", "B"]);
+    /// m.record_trace(&["A", "B"]);
+    /// let dfg = m.build();
+    /// assert_eq!(dfg.arc_count("A", "B"), 2);
+    /// ```
+    pub fn record_trace(&mut self, activities: &[impl AsRef<str>]) {
+        if activities.is_empty() {
+            return;
+        }
+        self.dfg.trace_count += 1;
+
+        // Start activity
+        *self
+            .dfg
+            .start_activities
+            .entry(activities[0].as_ref().to_string())
+            .or_insert(0) += 1;
+
+        // End activity
+        *self
+            .dfg
+            .end_activities
+            .entry(activities[activities.len() - 1].as_ref().to_string())
+            .or_insert(0) += 1;
+
+        // Activity counts + directly-follows arcs (single O(n) pass)
+        for i in 0..activities.len() {
+            let a = activities[i].as_ref();
+            *self.dfg.activities.entry(a.to_string()).or_insert(0) += 1;
+            if i + 1 < activities.len() {
+                let b = activities[i + 1].as_ref();
+                *self
+                    .dfg
+                    .arcs
+                    .entry((a.to_string(), b.to_string()))
+                    .or_insert(0) += 1;
+            }
+        }
+    }
+
+    /// Number of traces recorded so far.
+    pub fn trace_count(&self) -> u64 {
+        self.dfg.trace_count
+    }
+
+    /// Borrow the accumulated DFG without consuming the miner.
+    pub fn as_dfg(&self) -> &DirectlyFollowsGraph {
+        &self.dfg
+    }
+
+    /// Consume the miner and return the final [`DirectlyFollowsGraph`].
+    pub fn build(self) -> DirectlyFollowsGraph {
+        self.dfg
+    }
+
+    /// Discover a DFG from a collection of activity-sequence traces in one call.
+    ///
+    /// Each item in `traces` is an iterable of activity names. This is the
+    /// standard entry point for DFG discovery in `wasm4pm`; the miner is a
+    /// lower-level building block for streaming and incremental use cases.
+    ///
+    /// ```
+    /// use wasm4pm_compat::dfg::DfgMiner;
+    ///
+    /// let dfg = DfgMiner::from_traces([
+    ///     vec!["register", "check", "approve"],
+    ///     vec!["register", "reject"],
+    /// ]);
+    /// assert_eq!(dfg.trace_count, 2);
+    /// assert_eq!(dfg.activity_count("register"), 2);
+    /// assert_eq!(dfg.arc_count("register", "check"), 1);
+    /// assert_eq!(dfg.arc_count("register", "reject"), 1);
+    /// assert_eq!(dfg.start_count("register"), 2);
+    /// assert_eq!(dfg.end_count("approve"), 1);
+    /// assert_eq!(dfg.end_count("reject"), 1);
+    /// ```
+    pub fn from_traces<I, T, S>(traces: I) -> DirectlyFollowsGraph
+    where
+        I: IntoIterator<Item = T>,
+        T: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        let mut miner = Self::new();
+        for trace in traces {
+            let acts: Vec<S> = trace.into_iter().collect();
+            miner.record_trace(&acts);
+        }
+        miner.build()
+    }
+}
