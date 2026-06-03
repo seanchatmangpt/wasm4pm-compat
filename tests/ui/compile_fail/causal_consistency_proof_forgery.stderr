@@ -1,0 +1,5 @@
+error[E0451]: field `_seal` of struct `ConsistencyProof` is private
+  --> tests/ui/compile_fail/causal_consistency_proof_forgery.rs:15:20
+   |
+15 |     ConsistencyProof { _seal: () }
+   |                    ^^^^^^^^^^^ private field

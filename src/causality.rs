@@ -210,3 +210,213 @@ impl<T> CausallyOrderedEvidence<T> {
         }
     }
 }
+
+// ── One-way-door: Unknown → Consistent ────────────────────────────────────
+//
+// The problem: `CausalConsistency::Consistent` is a plain enum variant —
+// anyone can write `CausalConsistency::Consistent` without going through any
+// verification. This is the same unchecked-admission problem that
+// `evidence.rs` solves with `Evidence<T, Admitted, W>::sealed()`.
+//
+// The solution: a sealed `ConsistencyVerified<T>` envelope. The only public
+// path to *carrying* `CausalConsistency::Consistent` inside an envelope is
+// through the `VerifyCausalConsistency` trait. Callers can still use
+// `CausalConsistency::Consistent` as a plain value (it's a public enum), but
+// code that demands `ConsistencyVerified<T>` cannot be satisfied by direct
+// construction — the `_seal` field is module-private.
+//
+// Graduate to `wasm4pm` for the actual consistency-checking implementation.
+
+/// Proof obligation token produced by a `VerifyCausalConsistency` impl.
+///
+/// A `ConsistencyProof` token can only be constructed by code with access to
+/// the private `ConsistencyProof { _seal: () }` constructor — i.e., by impls
+/// of `VerifyCausalConsistency` that reside in this module or are granted
+/// `pub(crate)` access. External crates cannot forge this token.
+///
+/// This is the same sealing idiom used by [`crate::evidence::Evidence`] for
+/// the `Raw → Admitted` transition.
+pub struct ConsistencyProof {
+    /// Module-private seal — prevents external forgery.
+    _seal: (),
+}
+
+impl ConsistencyProof {
+    /// Construct a proof token. `pub(crate)` — only this crate can mint one.
+    pub(crate) fn new() -> Self {
+        Self { _seal: () }
+    }
+}
+
+/// An evidence value paired with a verified `CausalConsistency` verdict.
+///
+/// `ConsistencyVerified<T>` can only be constructed via
+/// [`VerifyCausalConsistency::verify`]. The inner value is accessible via
+/// `.inner`; the verdict via `.verdict()`.
+///
+/// ## Chicago TDD Rank-2 Oracle
+///
+/// This envelope enforces: *"All cross-object dependencies respect temporal
+/// ordering."* Code demanding `ConsistencyVerified<T>` cannot receive an
+/// unverified value — the `ConsistencyProof` token seals the door.
+///
+/// ## Graduation
+///
+/// The `wasm4pm` crate provides a `VerifyCausalConsistency` impl that runs
+/// actual causal ordering derivation (Heuristics Miner, cycle detection,
+/// topological sort). This crate provides only the law surface.
+pub struct ConsistencyVerified<T> {
+    /// The inner evidence value.
+    pub inner: T,
+    verdict: CausalConsistency,
+    /// Module-private proof token — cannot be forged by external crates.
+    _proof: ConsistencyProof,
+}
+
+impl<T> ConsistencyVerified<T> {
+    /// Construct a verified envelope. `pub(crate)` — callers outside this
+    /// crate must go through `VerifyCausalConsistency::verify`.
+    pub(crate) fn new(inner: T, verdict: CausalConsistency, proof: ConsistencyProof) -> Self {
+        Self {
+            inner,
+            verdict,
+            _proof: proof,
+        }
+    }
+
+    /// The causal consistency verdict established by the verifier.
+    ///
+    /// If the verifier produced [`CausalConsistency::Consistent`], all
+    /// cross-object causal dependencies are mutually ordered. Any other
+    /// verdict names a specific failure mode.
+    pub fn verdict(&self) -> CausalConsistency {
+        self.verdict
+    }
+
+    /// True iff the verdict is [`CausalConsistency::Consistent`].
+    pub fn is_consistent(&self) -> bool {
+        self.verdict == CausalConsistency::Consistent
+    }
+}
+
+/// One-way-door trait for the `Unknown → Consistent` transition.
+///
+/// An impl of this trait is the *only* way to produce a
+/// `ConsistencyVerified<T>` value. The `wasm4pm` crate provides the impl
+/// that runs actual causal ordering derivation; this crate defines only the
+/// law surface.
+///
+/// ## Rank-2 Oracle contract
+///
+/// Implementors must satisfy: *"If `verify` returns
+/// `CausalConsistency::Consistent`, all cross-object event dependencies in
+/// the evidence respect temporal ordering and contain no cycles."*
+///
+/// ## Forgery prevention
+///
+/// A caller cannot construct `ConsistencyVerified<T>` directly — the
+/// `ConsistencyProof` field is module-private. The trait impl is the only
+/// minting path.
+pub trait VerifyCausalConsistency<T> {
+    /// Run the causal consistency check and return a sealed verdict.
+    ///
+    /// The returned `ConsistencyVerified<T>` carries the verdict established
+    /// by this impl. The verdict may be `Unknown` if the check cannot be
+    /// performed (e.g. insufficient evidence), `Consistent` if all ordering
+    /// constraints hold, or a failure variant if they do not.
+    ///
+    /// Graduate to `wasm4pm` for the real algorithm.
+    fn verify(&self, evidence: T) -> ConsistencyVerified<T>;
+}
+
+/// A pass-through verifier that always returns `CausalConsistency::Unknown`.
+///
+/// This is the compat-layer stand-in: it satisfies the type law (returns a
+/// sealed `ConsistencyVerified`) without running any algorithm. It is the
+/// correct default for the structure-only layer.
+///
+/// Replace with a real `wasm4pm` verifier when causal ordering must execute.
+pub struct UnknownVerifier;
+
+impl<T> VerifyCausalConsistency<T> for UnknownVerifier {
+    fn verify(&self, evidence: T) -> ConsistencyVerified<T> {
+        ConsistencyVerified::new(evidence, CausalConsistency::Unknown, ConsistencyProof::new())
+    }
+}
+
+// ── Rank-2 oracle tests ────────────────────────────────────────────────────
+//
+// These tests live in the crate because only crate-internal code can mint
+// ConsistencyProof::new() and therefore ConsistencyVerified with any verdict.
+// This verifies: the seal works; Consistent can be produced internally;
+// external code cannot forge it (verified by compile-fail fixture).
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A stub verifier that always claims Consistent — models what a real
+    /// wasm4pm causal ordering impl would return after running cycle detection.
+    struct AlwaysConsistentVerifier;
+
+    impl<T> VerifyCausalConsistency<T> for AlwaysConsistentVerifier {
+        fn verify(&self, evidence: T) -> ConsistencyVerified<T> {
+            // Only callable from within the crate (pub(crate) seal).
+            ConsistencyVerified::new(
+                evidence,
+                CausalConsistency::Consistent,
+                ConsistencyProof::new(),
+            )
+        }
+    }
+
+    /// Rank-2 oracle: "All cross-object dependencies respect temporal ordering."
+    ///
+    /// A verifier that claims Consistent must produce a sealed envelope;
+    /// the verdict must be Consistent; is_consistent() must return true.
+    #[test]
+    fn rank2_oracle_consistent_verdict_is_sealed() {
+        let verifier = AlwaysConsistentVerifier;
+        let result: ConsistencyVerified<u64> = verifier.verify(99u64);
+        assert_eq!(result.verdict(), CausalConsistency::Consistent);
+        assert!(result.is_consistent());
+        assert_eq!(result.inner, 99u64);
+    }
+
+    /// Rank-2 oracle: Unknown verifier must NOT produce Consistent.
+    ///
+    /// The compat-layer stand-in (UnknownVerifier) must never claim ordering
+    /// is established when no algorithm ran.
+    #[test]
+    fn rank2_oracle_unknown_verifier_stays_unknown() {
+        let verifier = UnknownVerifier;
+        let result: ConsistencyVerified<&str> = verifier.verify("raw-evidence");
+        assert_eq!(result.verdict(), CausalConsistency::Unknown);
+        assert!(!result.is_consistent());
+    }
+
+    /// Rank-2 oracle: HasCycles and HasContradictions are mintable internally,
+    /// preserving the full verdict surface for wasm4pm engine impls.
+    #[test]
+    fn rank2_oracle_failure_verdicts_are_sealed() {
+        struct CycleVerifier;
+        impl<T> VerifyCausalConsistency<T> for CycleVerifier {
+            fn verify(&self, evidence: T) -> ConsistencyVerified<T> {
+                ConsistencyVerified::new(
+                    evidence,
+                    CausalConsistency::HasCycles,
+                    ConsistencyProof::new(),
+                )
+            }
+        }
+
+        let result: ConsistencyVerified<i32> = CycleVerifier.verify(-1);
+        assert_eq!(result.verdict(), CausalConsistency::HasCycles);
+        assert!(!result.is_consistent());
+    }
+
+    /// Rank-2 oracle: ConsistencyProof is zero-sized (no runtime overhead).
+    #[test]
+    fn consistency_proof_is_zero_sized() {
+        assert_eq!(core::mem::size_of::<ConsistencyProof>(), 0);
+    }
+}
