@@ -17,6 +17,7 @@ K = {
   TemplateAuthority,
   Consumer,
   ConsumerInstantiation,
+  ConsumerInternal,
   RenderedSource,
   AssertedWitness,
   EarnedWitness,
@@ -25,12 +26,11 @@ K = {
   Receipt_v1,
   Receipt_v2,
   Replay,
-  OrphanOutput,
-  SecondClassOutput,
-  CompetingAuthority,
   UNKNOWN
 }
 ```
+
+**Refusal is not a kind.** `OrphanOutput`, `SecondClassOutput`, `CompetingAuthority` were removed from K — they are *statuses*, not kinds. A defective rendered file is still κ = RenderedSource; its defect lives in σ(a). Refusal is a condition an artifact is *in*, never what it *is*.
 
 **UNKNOWN ∈ K is a valid Day 3 ledger classification, not a failure.**
 
@@ -55,20 +55,29 @@ K is partitioned into disjoint classes:
 
 ```
 K_valid   = {Substrate, Pack, TemplateAuthority, Consumer, ConsumerInstantiation,
-              RenderedSource, UseSite, Evidence, Replay}
+              ConsumerInternal, RenderedSource, UseSite, Evidence, Replay}
 
 K_claim   = {AssertedWitness, EarnedWitness}
 
 K_receipt = {Receipt_v1, Receipt_v2}
 
-K_refuse  = {OrphanOutput, SecondClassOutput, CompetingAuthority}
-
 K_unknown = {UNKNOWN}
 
-K = K_valid ⊔ K_claim ⊔ K_receipt ⊔ K_refuse ⊔ K_unknown
+K = K_valid ⊔ K_claim ⊔ K_receipt ⊔ K_unknown
 ```
 
-**K_refuse** contains error states, not weaker valid kinds. Refusal kinds are not below valid kinds in a lattice. They are orthogonal — they classify artifacts that violate the operating chain.
+**There is no K_refuse.** Refusal is not a kind — it is a status. An artifact that violates the operating chain keeps its kind (e.g. a defective rendered file is still κ = RenderedSource) and carries a refusal *status* in σ(a). This is the cleaner model: refusal is a condition, not a category of thing.
+
+### Refusal as Status (not Kind)
+
+```
+Σ_refuse = {ORPHAN, SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION}
+
+Refuse(a) := σ(a) ∩ Σ_refuse ≠ ∅
+
+An artifact is refused when its status set intersects the refusal statuses.
+Refuse(a) does not change κ(a). It records that σ(a) contains a chain violation.
+```
 
 ### Manufacturing Flow Preorder ≼_flow
 
@@ -327,48 +336,48 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 
 ---
 
-### CLASS 15: Orphan Output
+### CLASS 15: Orphan Status (ORPHAN ∈ Σ_refuse)
+
+**This is a status, not a kind.** An orphaned file keeps its kind (typically RenderedSource); ORPHAN is a value of σ(a).
 
 | Field | Value |
 |---|---|
-| **Kind** | `OrphanOutput` |
-| **Layer** | ERROR (violates the chain) |
-| **Owner** | Nobody — an orphan has no operational owner |
-| **Algebraic form** | O(a) ∧ ¬U(a) ⇒ Orphan(a); Orphan(a) ⇒ R(a) = ∅ |
-| **Admissible relations** | OrphanOutput → DELETE (the only admissible relation is deletion) |
-| **Forbidden relations** | Orphan ≠ Evidence; Orphan ≠ ConsumerInstantiation |
-| **Closure condition** | Orphan is closed when deleted and its receipt is revoked |
-| **Current state** | `wasm4pm/wasm4pm/src/generated/witnesses.rs` IS an orphan — classified OrphanOutput |
+| **Status** | `ORPHAN` ∈ Σ_refuse |
+| **Carried by kind** | RenderedSource (the file is still source-kind; it is merely unused) |
+| **Algebraic form** | O(a) ∧ ¬U(a) ⇒ ORPHAN ∈ σ(a); ORPHAN ∈ σ(a) ⇒ R_valid(a) = ∅ |
+| **Admissible transition** | Repair_error: DELETE (the only admissible operation for an orphan) |
+| **Closure condition** | ORPHAN cleared from σ(a) when the file is deleted (or given a use-site) |
+| **Current carrier** | `wasm4pm/wasm4pm/src/generated/witnesses.rs`: κ = RenderedSource, ORPHAN ∈ σ(a) |
 
 ---
 
-### CLASS 16: Second-Class Output
+### CLASS 16: Second-Class Status (SECOND_CLASS ∈ Σ_refuse)
+
+**This is a status, not a kind.** A file in `src/generated/` keeps its kind (RenderedSource); SECOND_CLASS is a value of σ(a).
 
 | Field | Value |
 |---|---|
-| **Kind** | `SecondClassOutput` |
-| **Layer** | ERROR (ontological error) |
-| **Owner** | Nobody — the classification itself is the defect |
-| **Algebraic form** | ∃a ∈ src/generated ⇒ SecondClass(a) = 1; Source(a) = 1 ∧ EditForbidden(a) = 1 ⇒ ⊥ |
-| **Admissible relations** | SecondClassOutput → RECLASSIFY as RenderedSource (by removing generated/ and DO NOT EDIT) |
-| **Forbidden relations** | SecondClassOutput ≠ ConsumerInstantiation until reclassified |
-| **Closure condition** | Closed by moving file to non-generated/ path, removing banner, importing operationally |
-| **Current state** | `wasm4pm/wasm4pm/src/generated/witnesses.rs` = SecondClassOutput ∧ OrphanOutput (double violation) |
+| **Status** | `SECOND_CLASS` ∈ Σ_refuse |
+| **Carried by kind** | RenderedSource (rendered source is source; the defect is the segregation) |
+| **Algebraic form** | "generated/" ∈ path(a) ⇒ SECOND_CLASS ∈ σ(a); Source(a) ∧ EditForbidden(a) ⇒ ⊥ |
+| **Admissible transition** | Repair_error: reclassify as first-class source (move out of generated/, remove banner, import) OR delete |
+| **Closure condition** | SECOND_CLASS cleared when the file is at a non-generated/ path, has no banner, and is imported |
+| **Current carrier** | `wasm4pm/wasm4pm/src/generated/witnesses.rs`: κ = RenderedSource, σ = {ORPHAN, SECOND_CLASS} |
 
 ---
 
-### CLASS 17: Competing Authority
+### CLASS 17: Competing-Authority Status (COMPETING_AUTHORITY ∈ Σ_refuse)
+
+**This is a status, not a kind.** Each competing manifest keeps its kind (Pack); COMPETING_AUTHORITY is a *relational* status on each.
 
 | Field | Value |
 |---|---|
-| **Kind** | `CompetingAuthority` |
-| **Layer** | ERROR |
-| **Owner** | Undefined — competing authority is undefined ownership |
-| **Algebraic form** | ∃M1, M2: output(M1) ∩ output(M2) ≠ ∅ ⇒ CompetingAuthority |
-| **Admissible relations** | CompetingAuthority → CONSOLIDATE (exactly one manifest per output) |
-| **Forbidden relations** | Two manifests cannot govern the same output |
-| **Closure condition** | ∀output: |{manifests claiming output}| = 1 |
-| **Current state** | `wasm4pm/ggen.toml` (root) and `wasm4pm/ggen/ggen.toml` (nested) both claim witness output — CompetingAuthority |
+| **Status** | `COMPETING_AUTHORITY` ∈ Σ_refuse |
+| **Carried by kind** | Pack (both manifests are valid Pack artifacts; the defect is the relation between them) |
+| **Algebraic form** | ∃M1, M2 ∈ Pack: output(M1) ∩ output(M2) ≠ ∅ ⇒ COMPETING_AUTHORITY ∈ σ(M1) ∧ σ(M2) |
+| **Admissible transition** | CONSOLIDATE: reduce to exactly one manifest per output |
+| **Closure condition** | COMPETING_AUTHORITY cleared when ∀output: |{manifests claiming output}| = 1 |
+| **Current carriers** | `wasm4pm/ggen.toml` and `wasm4pm/ggen/ggen.toml`: both κ = Pack, both σ = {COMPETING_AUTHORITY} |
 
 ---
 
