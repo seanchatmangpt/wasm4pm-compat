@@ -268,4 +268,24 @@ This receipt records kind closure for **one operating cell**: `wasm4pm-compat �
 
 ---
 
+## EOD Seal — contrib → wasm4pm Transition Closed
+
+**`DAY3_CONTRIB_TO_WASM4PM_TRANSITION_READY`** (recorded in `docs/foundation/DAY3_CONTRIB_TO_WASM4PM_TRANSITION.md`).
+
+The `wasm4pm-contrib → wasm4pm` transition is sealed as a Day 3 authority/provision transition. contrib provides seed / substrate / pack authority; ggen provides after kind; wasm4pm receives as consumer / cultivation / judgment surface. The first seed-bearing provision form after kind exists (`DAY3_FIRSTFRUIT_PROVISION_READY`). No live migration occurred. No downstream consequence is claimed.
+
+The Day 3 ground is complete:
+
+```
+Kind → ggen (Provision) → Surface → Process Evidence → Receipt → Replay
+         ↑
+contrib provides the substrate.
+ggen traverses it into source after kind.
+wasm4pm receives, cultivates, judges.
+```
+
+Day 4 begins when a bound work order is issued for the first cultivation operation — the witness-marker provision slice. The stewards tend what Day 3 seeded; they do not create the garden.
+
+---
+
 *This receipt is the Day 3 kind closure record. No gap closure is admissible without referencing the kind assignments in this receipt and the Kind Ledger. No plan is lawful without disclosing branch ownership per the Branch Disclosure Discipline document.*
