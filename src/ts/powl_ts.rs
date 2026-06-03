@@ -83,4 +83,3 @@ pub enum CausalNetRefusalTs {
     InvalidDependencyScore,
     DisconnectedGraph,
 }
-

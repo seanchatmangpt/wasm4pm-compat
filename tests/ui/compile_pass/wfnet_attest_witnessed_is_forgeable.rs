@@ -16,7 +16,8 @@ fn main() {
         vec![],
         vec![],
         vec![],
-    ).unwrap();
+        Marking::default(),
+    );
 
     let mut claimed: WfNet<SoundnessClaimed> = WfNet::with_soundness_claim(net, Some(Marking::default()));
 

@@ -238,4 +238,3 @@ pub enum ConformanceRefusal {
     GeneralizationUnavailable,
     SimplicityUnavailable,
 }
-

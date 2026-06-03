@@ -47,7 +47,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<EventLogRefusal>(&config).unwrap(),
         specta::ts::export::<OcelRefusal>(&config).unwrap(),
         specta::ts::export::<ConformanceRefusal>(&config).unwrap(),
-
         // BPMN
         specta::ts::export::<BpmnGatewayTs>(&config).unwrap(),
         specta::ts::export::<BpmnEventTs>(&config).unwrap(),
@@ -57,14 +56,12 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<BpmnEdgeTs>(&config).unwrap(),
         specta::ts::export::<BpmnProcessTs>(&config).unwrap(),
         specta::ts::export::<BpmnRefusalTs>(&config).unwrap(),
-
         // ProcessTree
         specta::ts::export::<ProcessTreeOperatorTs>(&config).unwrap(),
         specta::ts::export::<ProcessTreeNodeIdTs>(&config).unwrap(),
         specta::ts::export::<ProcessTreeNodeTs>(&config).unwrap(),
         specta::ts::export::<ProcessTreeTs>(&config).unwrap(),
         specta::ts::export::<ProcessTreeRefusalTs>(&config).unwrap(),
-
         // PetriNet
         specta::ts::export::<ArcDirectionTs>(&config).unwrap(),
         specta::ts::export::<PlaceTs>(&config).unwrap(),
@@ -74,7 +71,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<InitialFinalMarkingPairTs>(&config).unwrap(),
         specta::ts::export::<PetriNetTs>(&config).unwrap(),
         specta::ts::export::<PetriRefusalTs>(&config).unwrap(),
-
         // Declare & DFG
         specta::ts::export::<ActivityTs>(&config).unwrap(),
         specta::ts::export::<DeclareTemplateTs>(&config).unwrap(),
@@ -85,7 +81,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<DfgEdgeTs>(&config).unwrap(),
         specta::ts::export::<DfgTs>(&config).unwrap(),
         specta::ts::export::<DfgRefusalTs>(&config).unwrap(),
-
         // POWL & CausalNet
         specta::ts::export::<PowlNodeIdTs>(&config).unwrap(),
         specta::ts::export::<OrderEdgeTs>(&config).unwrap(),
@@ -97,7 +92,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<CausalBindingTs>(&config).unwrap(),
         specta::ts::export::<CausalNetTs>(&config).unwrap(),
         specta::ts::export::<CausalNetRefusalTs>(&config).unwrap(),
-
         // Causality & Correlation
         specta::ts::export::<CausalLinkTs>(&config).unwrap(),
         specta::ts::export::<CausalChainTs>(&config).unwrap(),
@@ -105,7 +99,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<CorrelationSchemaTs>(&config).unwrap(),
         specta::ts::export::<CorrelationKeyTs>(&config).unwrap(),
         specta::ts::export::<CorrelatedLogTs>(&config).unwrap(),
-
         // Multiperspective & ProcessCube
         specta::ts::export::<ProcessPerspectiveTs>(&config).unwrap(),
         specta::ts::export::<PerspectiveRefusalTs>(&config).unwrap(),
@@ -114,14 +107,12 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<CubeCellTs>(&config).unwrap(),
         specta::ts::export::<ProcessCubeTs>(&config).unwrap(),
         specta::ts::export::<ProcessCubeRefusalTs>(&config).unwrap(),
-
         // Streaming & Temporal
         specta::ts::export::<EventWindowTs>(&config).unwrap(),
         specta::ts::export::<StreamingRefusalTs>(&config).unwrap(),
         specta::ts::export::<TemporalOrderTs>(&config).unwrap(),
         specta::ts::export::<TemporalProfileTs>(&config).unwrap(),
         specta::ts::export::<TemporalRefusalTs>(&config).unwrap(),
-
         // ParallelWorkflow & ObjectLifecycle
         specta::ts::export::<WorkflowBranchStateTs>(&config).unwrap(),
         specta::ts::export::<BranchTokenTs>(&config).unwrap(),
@@ -131,7 +122,6 @@ pub fn export_ts_bindings() -> String {
         specta::ts::export::<ObjectStateTs>(&config).unwrap(),
         specta::ts::export::<ObjectLifecycleTs>(&config).unwrap(),
         specta::ts::export::<LifecycleRefusalTs>(&config).unwrap(),
-
         // Prediction & Diagnostics & OCPQ
         specta::ts::export::<PredictionHorizonTs>(&config).unwrap(),
         specta::ts::export::<ComplianceKindTs>(&config).unwrap(),
@@ -160,5 +150,4 @@ pub fn export_ts_bindings() -> String {
         "/* Generated compile-time TypeScript type definitions (WASM Boundary Law) */\n\n{}",
         body
     )
-
 }

@@ -78,7 +78,6 @@ pub struct CausalBinding {
     pub target_tasks: Vec<String>,
 }
 
-
 /// An input binding: a conjunction of predecessor tasks that must have fired to
 /// activate the task that owns this binding.
 ///
@@ -169,4 +168,3 @@ impl core::fmt::Display for CausalNetRefusal {
         }
     }
 }
-
