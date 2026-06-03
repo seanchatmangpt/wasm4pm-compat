@@ -162,21 +162,50 @@ The Day 4 program is now exactly: **Clear(σ(a)) without corrupting κ(a)**, for
 
 ---
 
+## B_user Branch Decisions (recorded)
+
+The three user-owned branches were decided by the user. They are now closed:
+
+1. **`DecisionGraphNode` vs `ChoiceGraph`** — Keep distinct, but as representation. `ChoiceGraph` (substrate) is the POWL paper-law object; `DecisionGraphNode` (ConsumerInternal) is an arena *representation* of it with no independent paper authority. `Represents(DecisionGraphNode, ChoiceGraph) = true`. This preserves the useful arena/wasm-boundary structure while removing the duplicate-authority defect.
+
+2. **`ChoiceGraphNode` alias** — `ChoiceGraphNode` is the canonical public API name; `StandaloneChoiceGraphNode` is the deprecated/internal historical name. `Canonical(ChoiceGraphNode) = true`.
+
+3. **open-ontologies pack** — Remote ontology fetch is not admissible in the replay chain. Lawful pack-use requires local committed snapshots or removal of the pack declaration. `Replayable(Pack) ⇒ RemoteFetch = false`; `OntologyInput ∈ RepoSnapshot`. Until conversion, `σ(open-ontologies) = {REMOTE_FETCH_PROHIBITED}`.
+
+These decisions are formalized in `DAY3_ALGEBRA_OF_KINDS.md` §13 and recorded as resolved in `DAY3_BRANCH_DISCLOSURE_DISCIPLINE.md`.
+
+## The BranchDiscipline Law (elevated to law this session)
+
+```
+BranchDiscipline(b) =
+  Apply + Record            if b ∈ B_known
+  ResolveBySystem           if b ∈ B_system
+  Disclose + Stop           if b ∈ B_user
+  ReadAuthority + Classify   if b ∈ B_external
+  Refuse                    if b ∈ B_forbidden
+```
+
+> Over-caution on a known branch wastes a turn just as surely as over-reach on a user branch breaches trust.
+
+---
+
 ## Verdict
 
-**`DAY3_KIND_CLOSURE_PARTIAL`** (healthy partial — algebraic confusion resolved; only the 3 B_user UNKNOWN branches remain open)
+**`DAY3_KIND_CLOSURE_READY`**
 
-Day 3 kind closure is substantially complete. 27 of 30 artifact classes have been assigned definite, non-UNKNOWN kinds. The kind lattice L_K is defined. The algebra is formalized. The calculus of change is declared. Branch ownership is disclosed.
+Every artifact class in A_scope has a closed, non-UNKNOWN kind. `Close_K(A_scope) = TRUE`. `UNKNOWN = ∅`.
 
-The three UNKNOWN artifacts (DecisionGraphNode, ChoiceGraphNode alias, open-ontologies) represent genuine user-owned decisions, not system analysis failures. They are honestly classified as UNKNOWN and disclosed as B_user branches.
+The kind partition is defined and refusal-free (refusal is σ, not κ). The κ/σ split is installed (κ is what a thing IS, invariant; σ is its condition, the repair target). The algebra agrees with the ledger. The calculus governs permission, not execution. Branch ownership is fully disclosed and the three B_user branches are resolved by user decision.
 
-The verdict is not `DAY3_KIND_CLOSURE_READY` because Close_K(A) = True requires ALL artifacts to have non-UNKNOWN kinds. Three remain UNKNOWN. This is correct — not every question has been answered, but every question has been named.
+The Day 3 court is complete. The Day 4 program is exactly:
 
-The verdict is not `DAY3_KIND_CLOSURE_BLOCKED` because the three UNKNOWN artifacts do not block the primary Day 4 operations (delete, rename, v2 receipt, witness-marker proof slice, BinaryRelation migration, PowlArena declaration). They block only their own resolution paths.
+```
+D₄ = Clear(σ(a)) without corrupting κ(a)
+```
 
-**Day 4 begins with the partial order of admissible operations listed above.**
+Every Day 4 operation is `PotentiallyAdmissible_D4` (its kind is closed) but requires a bound work order before execution — PotentiallyAdmissible_D4 ≠ Execute.
 
-**Day 4 requires user decisions on the three B_user branches before it can complete in full.**
+**Recommended first Day 4 work order: the witness-marker proof slice** (implement v2 receipt → ggen sync to `src/witnesses.rs` → mod declaration → v2 pack-use receipt → replay), **not POWL migration.** Prove the pack-use chain end-to-end on the smallest surface first.
 
 ---
 

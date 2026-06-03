@@ -576,7 +576,8 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 Σ = {OK, PARTIAL, HAND_CARVED, DUPLICATE_AUTHORITY, ORPHAN,
      SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION,
      ONTOLOGY_MISSING, RECEIPT_MISSING, REPLAY_MISSING,
-     NAMING_UNRESOLVED, NOT_IMPLEMENTED, INCOMPLETE}
+     NAMING_UNRESOLVED, NOT_IMPLEMENTED, INCOMPLETE,
+     REMOTE_FETCH_PROHIBITED}
 ```
 
 **Status names are not kinds.** `HAND_CARVED`, `SUBSTRATE_PARTIAL`, `DUPLICATE_AUTHORITY`, `COMPETING_AUTHORITY` are values of σ(a), never κ(a). An agent repairs σ(a); it never "repairs" κ(a). See `DAY3_CALCULUS_OF_CHANGE.md` §0 for the full kind/status separation.
@@ -589,6 +590,9 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 | `wasm4pm-compat/src/witness.rs` | Substrate | Layer0 | {OK} |
 | `wasm4pm-compat/src/powl.rs` (PowlNode<W>) | Substrate | Layer0 | {OK} |
 | `wasm4pm-compat/src/powl.rs` (ChoiceGraph) | Substrate | Layer0 | {ONTOLOGY_MISSING} |
+| `ChoiceGraphNode` (canonical public name) | Substrate | Layer0 | {OK} |
+| `StandaloneChoiceGraphNode` (deprecated) | Substrate | Layer0 | {NAMING_UNRESOLVED → deprecated alias} |
+| `wasm4pm-compat/ggen/` open-ontologies pack | Pack | Layer1 | {REMOTE_FETCH_PROHIBITED} (local snapshot or removal required) |
 | `wasm4pm-compat/src/dfg.rs` | Substrate | Layer0 | {ONTOLOGY_MISSING} (partial coverage) |
 | `wasm4pm-compat/src/petri.rs` | Substrate | Layer0 | {ONTOLOGY_MISSING} (partial coverage) |
 | `wasm4pm-compat/ggen/` | Pack | Layer1 | {PARTIAL} |
@@ -597,7 +601,7 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 | `wasm4pm/src/powl_arena.rs` (PowlNode enum) | ConsumerInternal | Layer2 | {DUPLICATE_AUTHORITY} |
 | `wasm4pm/src/powl_arena.rs` (FrequentTransitionNode) | ConsumerInstantiation | Layer2 | {HAND_CARVED, ONTOLOGY_MISSING} |
 | `wasm4pm/src/powl_arena.rs` (OperatorPowlNode) | ConsumerInstantiation | Layer2 | {HAND_CARVED, ONTOLOGY_MISSING} |
-| `wasm4pm/src/powl_arena.rs` (DecisionGraphNode) | **UNKNOWN** | ⊥ | {HAND_CARVED, NAMING_UNRESOLVED} |
+| `wasm4pm/src/powl_arena.rs` (DecisionGraphNode) | ConsumerInternal (represents ChoiceGraph) | Layer2 | {ONTOLOGY_MISSING, RECEIPT_MISSING} |
 | `wasm4pm/src/generated/witnesses.rs` | RenderedSource (defective) | ERROR | {ORPHAN, SECOND_CLASS} |
 | `wasm4pm/ggen.toml` (root) | Pack (consumer manifest) | Layer1 | {COMPETING_AUTHORITY} |
 | `wasm4pm/ggen/ggen.toml` (nested) | Pack (consumer manifest) | Layer1 | {COMPETING_AUTHORITY} |
@@ -608,26 +612,28 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 
 ---
 
-## Remaining UNKNOWN
+## Resolved Branches (formerly UNKNOWN)
 
-| Artifact | Why UNKNOWN | Required resolution |
+The three B_user branches are now closed by user decision (recorded in `DAY3_BRANCH_DISCLOSURE_DISCIPLINE.md` and `DAY3_KIND_CLOSURE_RECEIPT.md`):
+
+| Artifact | Decision | Resulting κ / σ |
 |---|---|---|
-| `DecisionGraphNode` | Dual-representation with ChoiceGraph; unclear if same concept or distinct | Day 4 decision: merge into ChoiceGraph (if same concept) OR declare separately (if distinct) |
-| `ChoiceGraphNode` alias | Unclear if canonical public name or migration shim | Day 4 decision: commit to one name in ontology |
-| open-ontologies pack | Declared but never fetched; unclear if it should be local snapshot or remain remote | Day 4 decision: local snapshot or remove declaration |
+| `DecisionGraphNode` | Keep distinct, but as a ConsumerInternal arena *representation* of the substrate `ChoiceGraph` law. Must NOT claim independent POWL paper authority. `Represents(DecisionGraphNode, ChoiceGraph) = true`. | κ = ConsumerInternal; σ = {ONTOLOGY_MISSING, RECEIPT_MISSING} |
+| `ChoiceGraphNode` alias | `ChoiceGraphNode` is the canonical public API name. `StandaloneChoiceGraphNode` is the deprecated/internal historical name. | κ = Substrate (canonical); the alias is deprecated |
+| open-ontologies pack | Remote fetch is not admissible in the replay chain. Lawful pack-use requires local committed ontology snapshots, or removal of the pack declaration. `Replayable(Pack) ⇒ RemoteFetch = false`. | κ = Pack; σ = {REMOTE_FETCH_PROHIBITED} until converted to local snapshot or removed |
 
-**UNKNOWN is not a blocker to truth.** It is the truthful classification. UNKNOWN is a blocker to implementation. These three artifacts remain UNKNOWN until the user provides the required decisions (they are B_user branches, not system-resolvable).
+**No artifact in A_scope remains UNKNOWN.** UNKNOWN = ∅ for the Day 3 ledger scope.
 
 ---
 
 ## Day 3 Kind Closure Predicate
 
 ```
-A_scope = artifacts assigned kinds in this ledger (30 classes)
+A_scope = artifacts assigned kinds in this ledger
 A_next  = artifacts participating in the next proposed Day 4 operation
 
 Close_K(A_scope) := ∀a ∈ A_scope: κ(a) ≠ UNKNOWN
-  → Currently FALSE (DecisionGraphNode, ChoiceGraphNode alias, open-ontologies pack remain UNKNOWN)
+  → NOW TRUE. All artifacts have non-UNKNOWN kinds.
 
 Admit_D4(A_next) := ∀a ∈ A_next:
   κ(a) ≠ UNKNOWN
@@ -635,20 +641,18 @@ Admit_D4(A_next) := ∀a ∈ A_next:
   ∧ ω(a) defined
   ∧ Adm(a) non-empty
   ∧ Forbid(a) non-empty
-  → Partially TRUE for Day 4 operations that do not touch the three UNKNOWN artifacts
 ```
 
-**A Day 4 operation is admissible when Admit_D4(A_next) holds for the specific artifacts it touches.**
-UNKNOWN may remain in A_scope (the global ledger) while Day 4 proceeds on the non-UNKNOWN artifacts.
+**Close_K(A_scope) = TRUE.** Every artifact in the ledger has a closed kind. Day 4 operations are now bounded only by Admit_D4(A_next) per-operation scope and by the lawful work-order discipline — not by any remaining kind ambiguity.
 
 ---
 
 ## Ledger Verdict
 
-**`DAY3_KIND_LEDGER_PARTIAL`**
+**`DAY3_KIND_LEDGER_READY`**
 
-27 of 30 artifact classes have non-UNKNOWN kinds. The kind partition is defined. The manufacturing flow preorder is distinguished from the kind partition. The UNKNOWN dual law (valid in ledger, stop condition for implementation) is stated. The Close_K scoping is declared.
+Every artifact class has a closed, non-UNKNOWN kind. The kind partition is defined and refusal-free (refusal is σ, not κ). The manufacturing flow preorder is distinguished from the kind partition. The κ/σ split is installed. The three B_user branches are resolved by user decision. Close_K(A_scope) = TRUE.
 
-Remaining: 3 UNKNOWN artifacts (B_user branches — require user decisions to close).
+The Day 4 program is exactly: **Clear(σ(a)) without corrupting κ(a)**.
 
-*This ledger is the Day 3 kind map. No implementation may touch an artifact before Admit_D4 holds for that artifact.*
+*This ledger is the Day 3 kind map. Kind closure is complete. No implementation may touch an artifact before a Day 4 work order binds its scope, use-sites, tests, receipt, and replay.*

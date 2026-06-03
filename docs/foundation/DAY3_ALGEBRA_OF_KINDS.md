@@ -150,7 +150,8 @@ Lawfulness requires both a valid kind AND a clean status.
 Σ = {OK, PARTIAL, HAND_CARVED, DUPLICATE_AUTHORITY, ORPHAN,
      SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION,
      ONTOLOGY_MISSING, RECEIPT_MISSING, REPLAY_MISSING,
-     NAMING_UNRESOLVED, NOT_IMPLEMENTED, INCOMPLETE}
+     NAMING_UNRESOLVED, NOT_IMPLEMENTED, INCOMPLETE,
+     REMOTE_FETCH_PROHIBITED}
 
 κ(a) is what an artifact IS (kind — invariant under repair).
 σ(a) is what condition it is IN (status — what repair changes).
@@ -313,7 +314,7 @@ A_scope  = artifacts assigned kinds in the current Day 3 ledger (30 classes)
 A_next   = artifacts participating in the next proposed Day 4 operation
 
 Close_K(A_scope) := ∀a ∈ A_scope: κ(a) ≠ UNKNOWN
-  (currently FALSE — 3 of 30 classes remain UNKNOWN)
+  (NOW TRUE — all classes have non-UNKNOWN kinds; the three B_user branches are resolved, §13)
 
 Admit_D4(A_next) := ∀a ∈ A_next:
   κ(a) ≠ UNKNOWN
@@ -361,11 +362,60 @@ Each false equality is a place where the system treated a necessary condition as
 
 ---
 
+## 13. Resolved-Branch Relations (B_user decisions)
+
+The three B_user branches are closed by user decision. Their resolutions introduce three relations into the algebra:
+
+### Representation relation
+```
+Represents: A × A → Bool
+
+Represents(DecisionGraphNode, ChoiceGraph) = true
+
+κ(ChoiceGraph) = Substrate          (the paper-law object — POWL Definition 1 authority)
+κ(DecisionGraphNode) = ConsumerInternal  (an arena representation of the law)
+
+Constraint: a representation may NOT claim the represented object's authority.
+  Represents(x, y) ∧ Authority(y, paper) ⇒ ¬Authority(x, paper)
+
+So DecisionGraphNode carries no independent POWL paper authority. The authority
+stays on ChoiceGraph (substrate). DecisionGraphNode is a carrier, not a claimant.
+```
+
+### Canonical-name relation
+```
+Canonical: Name → Bool
+DeprecatedAlias: Name → Bool
+
+Canonical(ChoiceGraphNode) = true
+DeprecatedAlias(StandaloneChoiceGraphNode) = true
+
+The canonical public API name is ChoiceGraphNode. StandaloneChoiceGraphNode is the
+deprecated historical/internal name. Both refer to the same substrate kind; only the
+naming authority is resolved.
+```
+
+### Replay-fixity relation
+```
+Replayable(Pack) ⇒ RemoteFetch(Pack) = false
+OntologyInput ∈ RepoSnapshot
+
+A pack that participates in a pack-use receipt must have fixed, local inputs. Remote
+ontology fetch is prohibited in the replay chain because the source can change,
+disappear, redirect, or fail — breaking bit-identity on replay. Remote sources may be
+*update* inputs (offline, deliberate, reviewed), but never *replay* inputs.
+
+Until the open-ontologies pack is converted to a local snapshot (or removed):
+  REMOTE_FETCH_PROHIBITED ∈ σ(open-ontologies pack)
+```
+
+---
+
 ## Algebra Verdict
 
-**`DAY3_ALGEBRA_REFINED_PARTIAL`**
+**`DAY3_ALGEBRA_REFINED_READY`**
 
-The algebra is now internally consistent. The structural corrections have been applied:
+The algebra is internally consistent, agrees with the Kind Ledger, and all three B_user branches are resolved (UNKNOWN = ∅ for A_scope). The structural corrections have been applied:
 - Kind partition and manufacturing flow preorder are separated
 - Symbol collision between Rel and Rec resolved (using Rel, Rec, ϱ)
 - Layer codomain extended to L⁺ to include ERROR
@@ -382,6 +432,12 @@ The algebra is now internally consistent. The structural corrections have been a
 - χ_lawful(a) requires ¬Refuse(a) (valid kind is necessary but not sufficient).
 - This algebra now agrees with DAY3_KIND_LEDGER.md.
 
-Remaining PARTIAL: the algebra describes 3 UNKNOWN artifact classes (DecisionGraphNode, ChoiceGraphNode alias, open-ontologies). These are correctly classified UNKNOWN and are implementation stop conditions per the UNKNOWN dual law.
+**Branch closure applied (B_user resolved):**
+- Represents(DecisionGraphNode, ChoiceGraph) = true; DecisionGraphNode is ConsumerInternal with no independent paper authority.
+- Canonical(ChoiceGraphNode) = true; StandaloneChoiceGraphNode deprecated.
+- Replayable(Pack) ⇒ RemoteFetch = false; open-ontologies pack requires local snapshot or removal.
+- UNKNOWN = ∅ for A_scope. Close_K(A_scope) = TRUE.
+
+No artifact in A_scope remains UNKNOWN. The three former B_user branches are resolved by user decision (§13). Close_K(A_scope) = TRUE. The algebra is the clean, complete formal court for Day 4 work orders, which remain bounded by Admit_D4(A_next) per-operation.
 
 *This document is the formal court. All implementation proposals must be admissible under Admit_D4.*

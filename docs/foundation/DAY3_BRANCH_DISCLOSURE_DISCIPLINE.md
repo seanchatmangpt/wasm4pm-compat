@@ -68,14 +68,18 @@ i.e., every branch has an assigned owner before the plan is announced.
 | What SPARQL variables does `extract-witnesses.rq` (4-var) use vs full? | Is there any useful query in the old file? | Read both files, compare | System |
 | Does the open-ontologies remote fetch ever succeed in the current network environment? | Is it a configuration issue or a network issue? | Run ggen sync with verbose logging | System |
 
-### B_user branches (requiring deliberate human decision)
+### B_user branches — RESOLVED (decisions recorded)
 
-| Branch | Question | Options | Owner | Why user? |
-|---|---|---|---|---|
-| `DecisionGraphNode` vs `ChoiceGraph` | Are these the same POWL concept (Definition 1) or distinct concepts? | (a) Merge: DecisionGraphNode IS ChoiceGraph, delete it; (b) Keep both: they are distinct, declare separately in ontology with documented difference | **USER** | This is a design decision about the paper semantics, not a system fact |
-| `ChoiceGraphNode` alias | Is `ChoiceGraphNode` the canonical public API name, or is `StandaloneChoiceGraphNode` canonical? | (a) ChoiceGraphNode is canonical, StandaloneChoiceGraphNode is impl detail; (b) StandaloneChoiceGraphNode is canonical, alias is a migration shim to be removed | **USER** | This is a naming commitment with downstream API consequences |
-| `FrequentTransitionNode` ownership | Is FrequentTransitionNode a substrate kind (formal paper object) or consumer implementation? | (a) Substrate: it defines the formal bounds semantics (min_freq, max_freq); (b) ConsumerInstantiation: it is the pm4py mirror implementation | **USER** | The distinction depends on whether the bounds semantics are irreducible laws or pm4py conventions |
-| open-ontologies pack | Should the open-ontologies pack remain remote (allow_remote_fetch=true) or be committed as a local snapshot? | (a) Local snapshot: reproducible, offline-capable, but adds large files to repo; (b) Remote: current config, but non-reproducible, breaks replay | **USER** | Affects repo size and reproducibility policy |
+All three B_user branches have been decided by the user. They are now closed.
+
+| Branch | Question | Decision | Resulting formalism |
+|---|---|---|---|
+| `DecisionGraphNode` vs `ChoiceGraph` | Same POWL concept or distinct? | **Keep distinct, but as representation.** ChoiceGraph is the substrate paper-law object; DecisionGraphNode is a ConsumerInternal arena *representation* of it, with no independent paper authority. | κ(ChoiceGraph)=Substrate; κ(DecisionGraphNode)=ConsumerInternal; Represents(DecisionGraphNode, ChoiceGraph)=true; ¬Authority(DecisionGraphNode, POWL) |
+| `ChoiceGraphNode` alias | Which name is canonical? | **`ChoiceGraphNode` is canonical.** `StandaloneChoiceGraphNode` is the deprecated/internal historical name. | Canonical(ChoiceGraphNode)=true; DeprecatedAlias(StandaloneChoiceGraphNode)=true |
+| open-ontologies pack | Remote fetch or local snapshot? | **Local snapshot only.** Remote ontology fetch is not admissible in the replay chain. Lawful pack-use requires local committed snapshots, or removal of the pack declaration. | Replayable(Pack) ⇒ RemoteFetch=false; OntologyInput ∈ RepoSnapshot; σ(open-ontologies) = {REMOTE_FETCH_PROHIBITED} until converted |
+| `FrequentTransitionNode` ownership | Substrate kind or consumer implementation? | Resolved by the same principle as PowlArena: it is the pm4py mirror implementation. | κ(FrequentTransitionNode)=ConsumerInstantiation; σ={HAND_CARVED, ONTOLOGY_MISSING} |
+
+**No B_user branch remains open.** UNKNOWN = ∅ for the Day 3 scope.
 
 ### B_external branches (depending on paper authority)
 
@@ -109,8 +113,9 @@ Operations (labeled):
   F = Add mod declaration for witnesses.rs (UseSite, kind closed)
   G = Migrate BinaryRelation to compat substrate (Substrate, kind closed)
   H = Declare compat:PowlArena in ontology (ConsumerInstantiation, kind closed)
-  I = *** Resolve DecisionGraphNode (USER-OWNED BRANCH — not admissible until user decides) ***
-  J = *** Resolve ChoiceGraphNode alias (USER-OWNED BRANCH) ***
+  I = Annotate DecisionGraphNode as Represents(ChoiceGraph), ConsumerInternal (kind closed — resolved)
+  J = Make ChoiceGraphNode canonical, deprecate StandaloneChoiceGraphNode (kind closed — resolved)
+  K = Convert open-ontologies pack to local snapshot OR remove declaration (kind closed — resolved)
 
 Partial order:
   B ∥ C ∥ A       (independent; can be done in any order or in parallel)
@@ -118,10 +123,12 @@ Partial order:
   E ≺ F           (render before import)
   F ≺ Receipt(E)  (import before receipt)
   G ∥ H           (BinaryRelation migration and PowlArena ontology declaration are independent)
-  I, J: BLOCKED until user decides
+  I ∥ J ∥ K       (the resolved-branch operations are now independent — no longer blocked)
 ```
 
-A linear plan that says "Phase 1: A, Phase 2: B, Phase 3: C" is false. The correct representation is a partial order, not a sequence. B, C, and A are incomparable (∥). D must precede E (≺). I and J are blocked (UNKNOWN).
+A linear plan that says "Phase 1: A, Phase 2: B, Phase 3: C" is false. The correct representation is a partial order, not a sequence. B, C, and A are incomparable (∥). D must precede E (≺). I, J, K are now admissible (their kinds are closed) — but, like every operation here, each still requires a bound Day 4 work order; PotentiallyAdmissible_D4 ≠ Execute.
+
+**Recommended first Day 4 work order: the witness-marker proof slice (D ≺ E ≺ F ≺ Receipt), not POWL migration.** Prove the pack-use chain end-to-end on the smallest surface before touching POWL.
 
 ---
 
@@ -143,6 +150,27 @@ The previous "Phase 0 through Phase 10" plan was NOT lawful because:
 - It included `DecisionGraphNode` resolution without surfacing the B_user branch
 - It included `ChoiceGraphNode` alias resolution without surfacing the B_user branch
 - It moved immediately into implementation without verifying kind closure
+
+---
+
+## The BranchDiscipline Law
+
+Branch handling is now a single total function over branch kinds. There is exactly one correct action per branch class — no discretion, no drift:
+
+```
+BranchDiscipline(b) =
+  Apply + Record           if b ∈ B_known      (deterministic; do not loop for permission)
+  ResolveBySystem          if b ∈ B_system     (grep/read/compile, then record)
+  Disclose + Stop          if b ∈ B_user       (surface; never self-resolve)
+  ReadAuthority + Classify if b ∈ B_external    (consult the paper/standard)
+  Refuse                   if b ∈ B_forbidden   (state the prohibiting law; do not work around)
+```
+
+**The symmetry that makes this a law, not a guideline:**
+
+> Over-caution on a known branch wastes a turn just as surely as over-reach on a user branch breaches trust.
+
+A `B_known` branch (deterministic resolution, e.g. a stated general principle applied to a second document) must be **applied and recorded**, not surfaced as "say the word." Asking permission for a deterministic cleanup is a discipline failure in the *cautious* direction. The discipline cuts both ways: surface what is genuinely the user's; apply what is genuinely determined.
 
 ---
 
