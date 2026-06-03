@@ -1,4 +1,4 @@
-#![feature(generic_const_exprs, adt_const_params)]
+#![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 // Law: CausalConsistencyLaw — CausalChain<N>, CausalLink<From,To>, and
 // CausallyOrderedEvidence<T> carry causal ordering at the type level.

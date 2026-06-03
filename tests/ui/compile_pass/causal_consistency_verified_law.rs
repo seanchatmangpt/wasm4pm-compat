@@ -1,4 +1,4 @@
-#![feature(generic_const_exprs, adt_const_params)]
+#![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 // Law: CausalConsistencyLaw — the Unknown → Consistent transition is one-way.
 //
@@ -9,7 +9,6 @@
 use wasm4pm_compat::causality::{
     CausalConsistency,
     ConsistencyVerified,
-    ConsistencyProof,
     UnknownVerifier,
     VerifyCausalConsistency,
 };
