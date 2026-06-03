@@ -56,6 +56,63 @@ The sleepable formula:
 
 ---
 
+## The Inflection Point — The First Manufacturing Chain
+
+The `ggen → wasm4pm-compat → wasm4pm` chain is the inflection: the first place where the whole order becomes legible as a manufacturing chain rather than three loosely related repos.
+
+**The old category (a misread):**
+```
+wasm4pm has code.
+wasm4pm-compat has supporting types.
+ggen helps make files.
+```
+
+**The new category (the kind):**
+```
+ggen provides lawful source after kind.
+wasm4pm-compat is the seed / substrate / pack authority boundary.
+wasm4pm consumes that provision and proves whether it became consequence.
+```
+
+The inflection is not "we found missing code." The inflection is: **source is no longer merely written — it becomes provided after kind.**
+
+**Why it matters — it reverses the order of software civilization:**
+```
+old:  write code → test code → document code → ship code
+new:  name kind → declare law → provide source → bind use-site
+                → judge motion → receipt → replay
+```
+
+**How — the exact chain:**
+```
+1. Kind is named.
+2. ggen reads declared law.
+3. ggen projects lawful source.
+4. wasm4pm-compat carries the substrate / pack / ontology authority.
+5. wasm4pm consumes the surface.
+6. use-sites make it live.
+7. process intelligence judges motion.
+8. receipt proves the act.
+9. replay witnesses it.
+
+K → ggen(TTL, Q, T, Manifest) → Source → U → E → Receipt → Replay
+```
+
+Role assignment, sharp:
+```
+ggen           = provision
+wasm4pm-compat = seed / substrate / pack authority
+wasm4pm        = consumer + process-evidence court
+```
+
+**The inflection sentence:**
+
+> The `ggen → wasm4pm-compat → wasm4pm` chain is the first place where software stops being hand-carved text and becomes **provided source after kind**, carried by substrate law, judged by process intelligence, proved by receipt, and witnessed by replay.
+
+Not codegen. Not shared-library extraction. Not CI. Not process mining. It is the first working bridge from **declared law** to **receipted consequence** without pretending the middle is just "code."
+
+---
+
 ## Definitions
 
 ### Substrate

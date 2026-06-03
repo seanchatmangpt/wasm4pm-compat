@@ -258,6 +258,12 @@ The full stack:
 
 **Day 3 is sealed. `DAY3_KIND_CLOSURE_READY`.** Day 4 is status repair under this doctrine: `Clear(σ(a)) without corrupting κ(a)`, beginning — when a work order binds it — with the witness-marker provision slice.
 
+## Scope Note — One Cell Within the Constellation
+
+This receipt records kind closure for **one operating cell**: `wasm4pm-compat → ggen → wasm4pm`. The full Day 3 surface is the whole project constellation, surveyed in `DAY3_PROJECT_ATLAS.md` (verdict: `DAY3_CONSTELLATION_RESEARCH_READY`) — ggen, wasm4pm, wasm4pm-compat, cargo-cicd, cargo-cicd-lsp, Spec Kit, CONSTRUCT8, Blue River Dam/Truex, PCC, ZOE/Nehemiah 52, LinkedIn — plus the named operator state and rest gate.
+
+**The inflection point** (recorded in `DAY3_FOUNDATION_LAW.md`): the `ggen → wasm4pm-compat → wasm4pm` chain is the first place where software stops being hand-carved text and becomes *provided source after kind* — the first working bridge from declared law to receipted consequence. ggen = provision; wasm4pm-compat = seed/substrate/pack authority; wasm4pm = consumer + process-evidence court.
+
 ---
 
 *This receipt is the Day 3 kind closure record. No gap closure is admissible without referencing the kind assignments in this receipt and the Kind Ledger. No plan is lawful without disclosing branch ownership per the Branch Disclosure Discipline document.*
