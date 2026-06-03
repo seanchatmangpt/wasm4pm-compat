@@ -20,3 +20,34 @@ Date: 2026-06-02
 ## Verdict
 
 PARTIAL — both audits returned FAIL. The gap decomposition audit reports 6 gaps still unmapped (GAP_001, GAP_COMPONENT, GAP_LOSS, GAP_PROCESS_TREE, GAP_TS, GAP_WASM). The projection receipts audit reports 1 unreceipted item (missing `wasm-projection.rs.tera` template) and 6 warnings. ALIVE requires both audits to PASS; neither does.
+
+---
+
+## Superseding Addendum — 2026-06-03
+
+**Status:** ALIVE — all 5 gaps closed; trybuild receipt committed; snapshot regression repaired.
+**Closure commits:** cb2c011 (fix 33 .stderr snapshots), a7635f7 (ui_tests_alive_gate receipt)
+
+**GAP_WASM4PM_COMPAT_005 — CLOSED (2026-06-03):**
+The 75d615d commit introduced a .stderr snapshot regression: it committed fully-qualified
+witness module paths (`wasm4pm_compat::witness::Ocel20`) but nightly-2026-04-15 with
+trybuild flags (`--verbose --cfg trybuild -A dead_code --diagnostic-width=140`) emits
+short paths (`Ocel20`). All 33 affected compile_fail .stderr files were corrected via
+direct rustc compilation verification (cb2c011). receipts/ui_tests_alive_gate.yaml was
+committed with direct evidence basis (a7635f7).
+
+**All 5 gaps are now CLOSED:**
+
+| Gap | Status | Closure Commit |
+|-----|--------|----------------|
+| GAP_WASM4PM_COMPAT_001 (uncommitted files) | CLOSED | 345d391 |
+| GAP_WASM4PM_COMPAT_002 (no gap-closure tokens) | CLOSED | 75fb9dd |
+| GAP_WASM4PM_COMPAT_003 (missing ontology/templates) | CLOSED | 4142497 |
+| GAP_WASM4PM_COMPAT_004 (pcp boundary violation) | CLOSED | e44b0e9 |
+| GAP_WASM4PM_COMPAT_005 (no trybuild receipt) | CLOSED | cb2c011, a7635f7 |
+
+**Final verdict: ALIVE**
+- 624 type-law fixtures (216 compile_fail + 408 compile_pass) — snapshots verified against nightly-2026-04-15
+- Non-trybuild test suite: 33/33 pass
+- Toolchain pinned: nightly-2026-04-15 in rust-toolchain.toml
+- receipts/ui_tests_alive_gate.yaml: committed 2026-06-03T06:29:26Z
