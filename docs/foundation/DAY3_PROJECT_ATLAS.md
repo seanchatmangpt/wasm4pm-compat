@@ -38,6 +38,7 @@ Every ground answers the same structural question, whether or not it has ggen:
 | Ground | Provides | Judges | Proves | Witnesses |
 |---|---|---|---|---|
 | `ggen` | lawful source | pack-use rules | receipt (v2) | replay |
+| **`ggen-lsp`** | **author-time witness of provision legality** | **GGEN-YIELD-001..006 diagnostics** | **σ-violation signals before yield** | **editor state / pre-yield** |
 | `wasm4pm` | process court | conformance / admission | verdict / receipt | replay |
 | `wasm4pm-compat` | substrate types (seed bank) | type law / soundness | superset audit / tests | compile fixtures |
 | `cargo-cicd` | local work commands | check / doctor / pipeline gates | evidence artifacts | CLI / LSP results |
