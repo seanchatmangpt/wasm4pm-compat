@@ -365,14 +365,22 @@ Each false equality is a place where the system treated a necessary condition as
 
 **`DAY3_ALGEBRA_REFINED_PARTIAL`**
 
-The algebra is now internally consistent. The seven structural corrections have been applied:
+The algebra is now internally consistent. The structural corrections have been applied:
 - Kind partition and manufacturing flow preorder are separated
 - Symbol collision between Rel and Rec resolved (using Rel, Rec, ϱ)
 - Layer codomain extended to L⁺ to include ERROR
 - Receipt_v1 and Receipt_v2 are different proof species, not the same proof at different strengths
-- OrphanOutput is a refusal state, not a lattice position below Receipt_v1
+- Refusal is a status (Σ_refuse), not a lattice position
 - ConsumerInstantiation kind assignment and LawfulConsumerInstantiation are distinguished
 - Close_K is scoped to A_scope and Admit_D4 is scoped to A_next
+
+**Final consistency cleanup applied:**
+- K_refuse removed from the kind partition. K = K_valid ⊔ K_claim ⊔ K_receipt ⊔ K_unknown.
+- ConsumerInternal added to K_valid.
+- Refusal now lives entirely in Σ_refuse = {ORPHAN, SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION}.
+- Refuse(a) := σ(a) ∩ Σ_refuse ≠ ∅. Refuse(a) does not change κ(a).
+- χ_lawful(a) requires ¬Refuse(a) (valid kind is necessary but not sufficient).
+- This algebra now agrees with DAY3_KIND_LEDGER.md.
 
 Remaining PARTIAL: the algebra describes 3 UNKNOWN artifact classes (DecisionGraphNode, ChoiceGraphNode alias, open-ontologies). These are correctly classified UNKNOWN and are implementation stop conditions per the UNKNOWN dual law.
 

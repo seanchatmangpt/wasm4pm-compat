@@ -138,9 +138,33 @@ Not in partial order (BLOCKED):
 
 ---
 
+## Final Consistency Cleanup (recorded)
+
+After the initial kind closure, two refinement passes were applied across the court so all documents agree:
+
+1. **Kind/Status split (κ vs σ).** A second function σ: A → 2^Σ was introduced. κ(a) is what an artifact IS (invariant under repair); σ(a) is what condition it is IN (the repair target). Status names (HAND_CARVED, DUPLICATE_AUTHORITY, SUBSTRATE_PARTIAL) are values of σ, never κ. Applied to the Kind Ledger, Algebra, and Calculus.
+
+2. **Refusal moved from kind-space to status-space (K_refuse → Σ_refuse).** OrphanOutput, SecondClassOutput, CompetingAuthority were removed from K. ConsumerInternal was added. Refusal is now:
+   ```
+   Σ_refuse = {ORPHAN, SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION}
+   Refuse(a) := σ(a) ∩ Σ_refuse ≠ ∅   (does not change κ(a))
+   ```
+   Applied to both the Kind Ledger and the Algebra (the formal court); the two now agree (Algebra ≡ Ledger).
+
+Resulting artifact assignments (stable):
+- `witnesses.rs`: κ = RenderedSource, σ = {ORPHAN, SECOND_CLASS}
+- both `ggen.toml`: κ = Pack, σ = {COMPETING_AUTHORITY}
+- `BinaryRelation`: κ = Substrate, σ = {LAYER_VIOLATION}
+- `PowlArena`: κ = ConsumerInstantiation, σ = {HAND_CARVED, ONTOLOGY_MISSING, RECEIPT_MISSING}
+- consumer `PowlNode` enum: κ = ConsumerInternal, σ = {DUPLICATE_AUTHORITY}
+
+The Day 4 program is now exactly: **Clear(σ(a)) without corrupting κ(a)**, for artifacts where κ(a) ≠ UNKNOWN.
+
+---
+
 ## Verdict
 
-**`DAY3_KIND_CLOSURE_PARTIAL`**
+**`DAY3_KIND_CLOSURE_PARTIAL`** (healthy partial — algebraic confusion resolved; only the 3 B_user UNKNOWN branches remain open)
 
 Day 3 kind closure is substantially complete. 27 of 30 artifact classes have been assigned definite, non-UNKNOWN kinds. The kind lattice L_K is defined. The algebra is formalized. The calculus of change is declared. Branch ownership is disclosed.
 
