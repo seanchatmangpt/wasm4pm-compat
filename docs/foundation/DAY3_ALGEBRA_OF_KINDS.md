@@ -19,7 +19,7 @@
 ```
 K    = set of kinds (enumerated below)
 A    = set of artifacts (every file, type, rule, manifest in the system)
-L⁺   = {Layer0, Layer1, Layer2, Layer3, Layer4, Layer5, ERROR}
+L⁺   = {Layer0, Layer1, Layer1_5, Layer2, Layer3, Layer4, Layer5, ERROR}
 O    = set of owners (crate paths, directory paths)
 Rel  = set of admissible relations between artifact classes
 Forb = set of forbidden relations
@@ -80,7 +80,7 @@ Expected layer by kind:
     Evidence        → Layer3
     Replay          → Layer5
 
-  κ(a) ∈ K_claim:   → Layer1.5 (between pack authority and consumer surface)
+  κ(a) ∈ K_claim:   → Layer1_5 (between pack authority and consumer surface)
   κ(a) ∈ K_receipt: → Layer4
   κ(a) ∈ K_refuse:  → ERROR  (refusal states have no valid layer)
   κ(a) = UNKNOWN:   → ⊥ (undefined, not yet determinable)
