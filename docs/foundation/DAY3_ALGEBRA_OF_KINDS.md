@@ -38,20 +38,33 @@ K is partitioned into five disjoint classes:
 
 ```
 K_valid   = {Substrate, Pack, TemplateAuthority, Consumer, ConsumerInstantiation,
-              RenderedSource, UseSite, Evidence, Replay}
+              ConsumerInternal, RenderedSource, UseSite, Evidence, Replay}
 
 K_claim   = {AssertedWitness, EarnedWitness}
 
 K_receipt = {Receipt_v1, Receipt_v2}
 
-K_refuse  = {OrphanOutput, SecondClassOutput, CompetingAuthority}
-
 K_unknown = {UNKNOWN}
 
-K = K_valid ⊔ K_claim ⊔ K_receipt ⊔ K_refuse ⊔ K_unknown  (disjoint union)
+K = K_valid ⊔ K_claim ⊔ K_receipt ⊔ K_unknown  (disjoint union)
 ```
 
-**K_refuse** contains *refusal states*, not weaker or lower kinds. These are not positions in a lattice with K_valid. An artifact in K_refuse has a defect; it does not occupy a lower position in a kind hierarchy. There is no ordering relation between K_refuse and K_valid.
+**There is no K_refuse. Refusal is not a kind.** `OrphanOutput`, `SecondClassOutput`, `CompetingAuthority` are not members of K — they are values of σ (status). An artifact that violates the operating chain keeps its kind and carries a refusal status:
+
+```
+Σ_refuse = {ORPHAN, SECOND_CLASS, COMPETING_AUTHORITY, LAYER_VIOLATION}
+
+Refuse(a) := σ(a) ∩ Σ_refuse ≠ ∅
+
+Refuse(a) does not change κ(a). It records that the artifact's status set contains a chain violation.
+```
+
+Examples:
+- `witnesses.rs`: κ = RenderedSource, σ = {ORPHAN, SECOND_CLASS}
+- both `ggen.toml`: κ = Pack, σ = {COMPETING_AUTHORITY}
+- `BinaryRelation`: κ = Substrate, σ = {LAYER_VIOLATION}
+
+No refusal kind is needed. Refusal is a condition, not a category of thing.
 
 ---
 
@@ -82,16 +95,21 @@ Expected layer by kind:
 
   κ(a) ∈ K_claim:   → Layer1_5 (between pack authority and consumer surface)
   κ(a) ∈ K_receipt: → Layer4
-  κ(a) ∈ K_refuse:  → ERROR  (refusal states have no valid layer)
   κ(a) = UNKNOWN:   → ⊥ (undefined, not yet determinable)
 
+Note: refusal is a status (σ), not a kind. An artifact with a refusal status keeps
+its kind's expected layer; the refusal is recorded in σ(a), not in λ(a). The ERROR
+layer value applies only to an artifact whose physical location itself is the defect
+(e.g. a file under a generated/ path: λ = ERROR while κ = RenderedSource).
+
 A layer violation occurs when:
-  LayerViolation(a) := λ(a) ≠ expected_layer(κ(a)) ∧ κ(a) ∉ K_refuse ∧ κ(a) ≠ UNKNOWN
+  LayerViolation(a) := λ(a) ≠ expected_layer(κ(a)) ∧ κ(a) ≠ UNKNOWN
+  ⇒ LAYER_VIOLATION ∈ σ(a)
 
 BinaryRelation example:
   κ(BinaryRelation) = Substrate → expected λ = Layer0
   actual λ = Layer2 (it is in wasm4pm/src/)
-  → LayerViolation(BinaryRelation) = true
+  → LayerViolation(BinaryRelation) = true → σ(BinaryRelation) ⊇ {LAYER_VIOLATION}
 
 PowlArena counter-example:
   κ(PowlArena) = ConsumerInstantiation → expected λ = Layer2
@@ -113,11 +131,17 @@ Expected owner by layer:
 ### 3.4 Admissibility predicate
 ```
 χ_lawful(a) :=
-  κ(a) ∈ K_valid                        (not in refuse, not UNKNOWN)
+  κ(a) ∈ K_valid                        (kind is a valid kind, not UNKNOWN)
   ∧ λ(a) = expected_layer(κ(a))          (layer is correct)
   ∧ ω(a) ∈ expected_owner(κ(a))          (owner is correct)
+  ∧ ¬Refuse(a)                          (σ(a) ∩ Σ_refuse = ∅ — no refusal status)
   ∧ ∀r ∈ Forb: ¬Applies(r, a)           (no forbidden relation applies)
 ```
+
+Note: κ(a) ∈ K_valid is necessary but not sufficient. An artifact may have a valid
+kind yet carry a refusal status (e.g. witnesses.rs: κ = RenderedSource ∈ K_valid,
+but σ = {ORPHAN, SECOND_CLASS}, so Refuse(a) = true, so χ_lawful(a) = false).
+Lawfulness requires both a valid kind AND a clean status.
 
 ### 3.5 Status function
 ```
@@ -212,7 +236,7 @@ Receipt_v1 is not a weaker version of Receipt_v2; it answers a different questio
 
 ## 7. Refusal Predicates
 
-Refusal kinds (K_refuse) do not occupy positions in any ordering. They classify defect states:
+Refusal statuses (Σ_refuse) do not occupy positions in any kind ordering. They are σ-values that classify defect conditions an artifact is in:
 
 ```
 Orphan(a) := Rendered(a) ∧ U(a) = ∅
