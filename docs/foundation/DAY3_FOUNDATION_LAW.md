@@ -113,6 +113,33 @@ Not codegen. Not shared-library extraction. Not CI. Not process mining. It is th
 
 ---
 
+## Stewardship & the Forbidden Tree
+
+In the provision order, ggen is the instrument by which declared law brings forth source after kind (Genesis Day 3: *let the earth yield… after its kind*). The coding agents — Claude Code, Gemini, Codex — are placed in that garden as **stewards**, not as creators of the garden:
+
+```
+ggen                = provision instrument
+Claude / Gemini / Codex = Adam/Eve-like stewards (tend and keep)
+ProcessIntelligence = judgment / court
+Receipt             = proof
+Replay              = witness
+```
+
+Stewards may name, tend, execute bounded work, apply known branches, disclose user branches, and refuse forbidden branches. Stewards **must not** create law, redefine kinds by convenience, act as the court, or self-certify.
+
+**The forbidden tree is self-certification.** The fall is "I made it, therefore it is done."
+
+```
+AgentOutput ⇏ Good
+Good ⟺ ProvisionAfterKind + UseSite + Judgment + Receipt + Replay
+```
+
+This is the same law as the earned-witness rule above (`Label ≠ Proof`; a witness is earned, never asserted) — stated at the agent level. It is also the repo's existing **FM-5** prohibition (self-referential falsification: *"if the code says it worked but the event log cannot prove a lawful process happened, then it did not work"*) — see `.claude/rules/_core/absolute.md` §5 and `.claude/rules/cognition-contracts.md`. A maker's completion claim is a label; goodness is earned evidence judged by the court.
+
+Full doctrine: `DAY3_PROVISION_AND_STEWARDSHIP.md`. The Day 3 yield (first seed-bearing provision form): `DAY3_FIRSTFRUIT_PROVISION.md`.
+
+---
+
 ## Definitions
 
 ### Substrate
