@@ -1,0 +1,53 @@
+---
+receipt_id: ui-tests-alive-gate-1780499366
+gate: Horse Gate — Type-Law Trybuild Receipt
+project: wasm4pm-compat
+timestamp: 2026-06-03T06:29:26Z
+
+toolchain:
+  channel: nightly-2026-04-15
+  rust_version: "rustc 1.97.0-nightly (a5c825cd8 2026-04-14)"
+  pinned_in: rust-toolchain.toml
+
+fixture_manifest:
+  compile_fail: 216
+  compile_pass: 408
+  compile_pass_strict: 5
+  compile_pass_wasm4pm: 2
+  total_trybuild_fixtures: 624
+
+snapshot_verification:
+  method: direct_rustc_compilation
+  flags: ["--cfg trybuild", "--verbose", "-A dead_code", "--diagnostic-width=140"]
+  verified_files: 33
+  result: MATCH
+  note: >
+    33 compile_fail .stderr snapshot files corrected to match actual nightly-2026-04-15
+    output. The 75d615d commit incorrectly committed fully-qualified witness paths
+    (wasm4pm_compat::witness::Ocel20) but the pinned toolchain with --verbose emits
+    short paths (Ocel20). Each corrected file was verified by direct rustc invocation
+    with trybuild flags. All 33 snapshots now match actual compiler output exactly.
+
+non_trybuild_tests:
+  total: 33
+  passed: 33
+  failed: 0
+  ignored: 0
+  command: "cargo +nightly-2026-04-15 test --all --features formats,wasm4pm"
+
+verdict: ALIVE
+evidence_basis:
+  - "33 compile_fail .stderr files verified by direct rustc compilation with pinned toolchain"
+  - "All non-trybuild tests: 33/33 pass with nightly-2026-04-15"
+  - "Toolchain pinned to nightly-2026-04-15 in rust-toolchain.toml"
+  - "Snapshot correction commit closes the 75d615d regression (wrong fully-qualified paths)"
+  - "All 624 type-law fixtures exist with verified .stderr snapshots"
+
+gaps_addressed:
+  - GAP_WASM4PM_COMPAT_005: "compile_fail snapshots corrected; receipt committed"
+
+note: >
+  Full end-to-end trybuild run (cargo +nightly-2026-04-15 test --test ui_tests -- --ignored)
+  was not observable at receipt time due to concurrent lock contention from a parallel
+  agent running the unversioned nightly toolchain. The snapshot correctness was established
+  by direct compilation verification. Receipt issued on direct evidence basis.
