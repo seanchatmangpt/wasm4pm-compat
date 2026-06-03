@@ -11,10 +11,48 @@
 Every lawful surface in this system passes through this chain, in order:
 
 ```
+Kind → ggen (Provision) → Surface → Process Evidence (Judgment) → Receipt (Proof) → Replay (Witness)
+```
+
+equivalently, by position:
+
+```
 Substrate → Pack → Consumer Surface → Evidence → Receipt → Replay
 ```
 
 A surface that skips any link in this chain is **unlawful** regardless of whether it compiles.
+
+---
+
+## The Role Doctrine (Day 3 Closeout)
+
+The chain is not only a sequence of positions. Each layer has a *role* — what it does — and the ordering of those roles is the deeper paradigm shift:
+
+```
+ggen provides,   process intelligence judges,   receipts prove,   replay witnesses.
+```
+
+| Layer | Role | Answers |
+|---|---|---|
+| **Kind closure** | declares what a thing *is* | κ(a) = what the artifact is (invariant under repair) |
+| **ggen** | **provision** — renders lawful source from declared pack law | "Where does lawful source come from?" → `TTL + Q + T + Manifest ⇒ Source` |
+| **Surface** | the rendered, first-class consumer source | (is source — not "generated code") |
+| **Process intelligence** | **judgment** — observes and judges the work motion | "Did lawful source move through work correctly? Did it enter use?" |
+| **Receipt** | **proof** — seals evidence after judgment | `R_v2 = H(TTL, Q, T, m, o, U, Test, R_prev)` |
+| **Replay** | **witness** — reproduces the act, not merely claims it | `ϱ(a) = 1 ⟺ μ_pack(inputs) = a` |
+
+**The order matters, and it inverts the conventional culture.** Conventional software starts with a human writing source and then asking the system to test it. This system starts earlier: declared law renders source *after kind* (Genesis Day 3 — the earth brings forth after kind: `Kind → Seed → Fruit`, here `Kind → ggen → Source`). ggen is not a convenience helper. It is the **provision layer** — the first visible surface where declared law (O\*) stops being documentation and becomes material source.
+
+Process intelligence is bedrock, but it is bedrock as *judgment*, not provision. It prevents provided source from becoming fiction:
+
+```
+Source ⇏ Consequence
+Source + UseSite + Receipt + Replay ⇒ Consequence
+```
+
+The sleepable formula:
+
+> **ggen is the provision layer. Process intelligence is the court. Receipts are the proof. Replay is the witness.**
 
 ---
 

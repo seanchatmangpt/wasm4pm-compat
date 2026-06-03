@@ -235,4 +235,29 @@ cargo check -p wasm4pm-compat
 
 ---
 
+## Day 3 Seal — The Role Doctrine
+
+Day 3 closes with the role ordering sealed (recorded in `DAY3_FOUNDATION_LAW.md`):
+
+```
+Kind → ggen (Provision) → Surface → Process Evidence (Judgment) → Receipt (Proof) → Replay (Witness)
+```
+
+> **ggen provides, process intelligence judges, receipts prove, replay witnesses.**
+
+The paradigm shift sealed today: source is no longer merely *written* — it is *provided* by a lawful chain (`TTL + Q + T + Manifest ⇒ Source`), after kind. ggen is the provision layer, not a helper. Process intelligence is the court that keeps provided source from becoming fiction: `Source + UseSite + Receipt + Replay ⇒ Consequence`.
+
+The full stack:
+```
+1. Kind Closure        κ(a) = what the artifact is
+2. Provision           ggen renders lawful source from declared pack law
+3. Process Intelligence work motion is observed and judged
+4. Receipt             evidence is sealed after judgment
+5. Replay              consequence is reproduced, not merely claimed
+```
+
+**Day 3 is sealed. `DAY3_KIND_CLOSURE_READY`.** Day 4 is status repair under this doctrine: `Clear(σ(a)) without corrupting κ(a)`, beginning — when a work order binds it — with the witness-marker provision slice.
+
+---
+
 *This receipt is the Day 3 kind closure record. No gap closure is admissible without referencing the kind assignments in this receipt and the Kind Ledger. No plan is lawful without disclosing branch ownership per the Branch Disclosure Discipline document.*
