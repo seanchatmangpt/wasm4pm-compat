@@ -43,9 +43,9 @@ output_dir = ".."
 # ---------------------------------------------------------------------------
 [[generation.rules]]
 name = "witness-markers"
-query = { file = "queries/extract-witnesses.rq" }
+query = { file = "queries/extract-witnesses-full.rq" }
 template = { file = "templates/witness-marker.tera" }
-output_file = "src/generated/witnesses.rs"
+output_file = "src/witnesses.rs"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
@@ -143,11 +143,12 @@ template = { file = "templates/open-ontologies-integration.tera" }
 output_file = "src/generated/open_ontologies_integration.rs"
 mode = "Overwrite"
 
-[[generation.rules]]
-name = "open-ontologies-merged-ontology"
-query = { file = "queries/construct-integrated-ontology.rq" }
-output_file = "ontology/integrated-open-ontologies.ttl"
-mode = "Overwrite"
+# [[generation.rules]]
+# name = "open-ontologies-merged-ontology"
+# query = { file = "queries/construct-integrated-ontology.rq" }
+# output_file = "ontology/integrated-open-ontologies.ttl"
+# mode = "Overwrite"
+# (disabled: CONSTRUCT rule has no template field — ggen requires template for generation rules)
 
 # ---------------------------------------------------------------------------
 
