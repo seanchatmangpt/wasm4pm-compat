@@ -156,5 +156,5 @@ mode = "Overwrite"
 [inference]
 enabled = true
 rules = [
-  { name = "alive-gate", construct = "queries/construct-alive-gate.rq" }
+  { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1" }
 ]

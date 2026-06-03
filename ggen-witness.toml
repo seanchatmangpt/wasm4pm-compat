@@ -1,0 +1,28 @@
+[project]
+name = "wasm4pm-compat-witness-yield"
+version = "0.1.0"
+description = "Witness-marker first-fruit yield — Day 3 EOD"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ggen/ontology/wasm4pm-compat.ttl"
+additional = [
+  "ggen/ontology/papers.ttl",
+  "ggen/ontology/ggen-substrate.ttl",
+  "ggen/ontology/audit-machinery.ttl"
+]
+standard_only = false
+
+[inference]
+enabled = true
+rules = [
+  { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1" }
+]
+
+[[generation.rules]]
+name = "witness-markers"
+query = { file = "ggen/queries/extract-witnesses-full.rq" }
+template = { file = "ggen/templates/witness-marker.tera" }
+output_file = "src/witnesses.rs"
+mode = "Overwrite"
