@@ -2,12 +2,12 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/ocpq_event_predicate_wrong_kind.rs:16:34
    |
 16 |     requires_timestamp_predicate(p);
-   |     ---------------------------- ^ expected `wasm4pm_compat::ocpq::EventPredicateKind::TimestampInRange`, found `wasm4pm_compat::ocpq::EventPredicateKind::ActivityEquals`
+   |     ---------------------------- ^ expected `TimestampInRange`, found `ActivityEquals`
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `TypedEventPredicate<wasm4pm_compat::ocpq::EventPredicateKind::TimestampInRange>`
-              found struct `TypedEventPredicate<wasm4pm_compat::ocpq::EventPredicateKind::ActivityEquals>`
+   = note: expected struct `TypedEventPredicate<TimestampInRange>`
+              found struct `TypedEventPredicate<ActivityEquals>`
 note: function defined here
   --> tests/ui/compile_fail/ocpq_event_predicate_wrong_kind.rs:8:4
    |

@@ -6,8 +6,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Admission<std::string::String, wasm4pm_compat::witness::Xes1849>`
-              found struct `Admission<std::string::String, wasm4pm_compat::witness::Ocel20>`
+   = note: expected struct `Admission<std::string::String, Xes1849>`
+              found struct `Admission<std::string::String, Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/admission_wrong_witness_lawful_path.rs:21:4
    |

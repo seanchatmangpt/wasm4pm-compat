@@ -14,8 +14,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Projected, wasm4pm_compat::witness::Ocel20>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::Raw, wasm4pm_compat::witness::Ocel20>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Projected, Ocel20>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Raw, Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/evidence_raw_as_projected.rs:8:4
    |

@@ -2,12 +2,12 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/lifecycle_wrong_phase_const.rs:16:28
    |
 16 |     requires_active_object(created);
-   |     ---------------------- ^^^^^^^ expected `wasm4pm_compat::object_lifecycle::ObjectLifecyclePhase::Active`, found `wasm4pm_compat::object_lifecycle::ObjectLifecyclePhase::Created`
+   |     ---------------------- ^^^^^^^ expected `Active`, found `Created`
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `LifecycledObject<&str, wasm4pm_compat::object_lifecycle::ObjectLifecyclePhase::Active>`
-              found struct `LifecycledObject<&str, wasm4pm_compat::object_lifecycle::ObjectLifecyclePhase::Created>`
+   = note: expected struct `LifecycledObject<&str, Active>`
+              found struct `LifecycledObject<&str, Created>`
 note: function defined here
   --> tests/ui/compile_fail/lifecycle_wrong_phase_const.rs:9:4
    |

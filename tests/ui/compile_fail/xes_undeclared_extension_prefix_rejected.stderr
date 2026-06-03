@@ -7,7 +7,7 @@ error[E0308]: mismatched types
    |     arguments to this function are incorrect
    |
    = note: expected enum `Result<(), XesRefusal>`
-              found enum `Result<(), wasm4pm_compat::ocel::OcelRefusal>`
+              found enum `Result<(), OcelRefusal>`
 note: function defined here
   --> tests/ui/compile_fail/xes_undeclared_extension_prefix_rejected.rs:20:4
    |

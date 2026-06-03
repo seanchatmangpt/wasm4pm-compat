@@ -6,9 +6,9 @@ error[E0308]: mismatched types
    |             |
    |             arguments to this enum variant are incorrect
    |
-   = note: expected struct `Refusal<&str, wasm4pm_compat::witness::Xes1849>`
-              found struct `Refusal<&str, wasm4pm_compat::witness::Ocel20>`
-help: the type constructed contains `Refusal<&str, wasm4pm_compat::witness::Ocel20>` due to the type of the argument passed
+   = note: expected struct `Refusal<&str, Xes1849>`
+              found struct `Refusal<&str, Ocel20>`
+help: the type constructed contains `Refusal<&str, Ocel20>` due to the type of the argument passed
   --> tests/ui/compile_fail/refusal_without_named_law.rs:35:13
    |
 35 |             Err(Refusal::<_, Ocel20>::new("InvalidInput"))

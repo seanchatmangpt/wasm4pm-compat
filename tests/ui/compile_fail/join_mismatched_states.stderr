@@ -6,8 +6,8 @@ error[E0308]: mismatched types
    |                      |
    |                      arguments to this function are incorrect
    |
-   = note: expected struct `ParallelWorkflow<_, _, wasm4pm_compat::Completed, wasm4pm_compat::Completed>`
-              found struct `ParallelWorkflow<TaskA, TaskB, wasm4pm_compat::Completed, wasm4pm_compat::Running>`
+   = note: expected struct `ParallelWorkflow<_, _, Completed, Completed>`
+              found struct `ParallelWorkflow<TaskA, TaskB, Completed, Running>`
 note: associated function defined here
   --> src/workflow.rs
    |

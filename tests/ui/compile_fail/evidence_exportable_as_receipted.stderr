@@ -17,8 +17,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Receipted, wasm4pm_compat::witness::Ocel20>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::Exportable, wasm4pm_compat::witness::Ocel20>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Receipted, Ocel20>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Exportable, Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/evidence_exportable_as_receipted.rs:8:4
    |
