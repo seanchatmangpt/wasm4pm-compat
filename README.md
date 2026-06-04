@@ -1,4 +1,4 @@
-# wasm4pm-compat
+# wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
 
 ![nightly-only](https://img.shields.io/badge/toolchain-nightly--only-orange)
 ![no-unsafe](https://img.shields.io/badge/unsafe-forbid%28unsafe__code%29-red)
@@ -6,322 +6,206 @@
 
 > **Nightly Rust required. Applications conform upward to future type law.**
 
-> *Start with compatibility. Graduate to execution.*
+---
 
-A **nightly-only, paper-complete, feature-capped** Rust crate that defines the
-*structure* of process-mining evidence — and the *laws* of how that evidence
-crosses boundaries. It is the on-ramp to the [`wasm4pm`] execution engine.
+## Version Mapping and Cargo.toml Discrepancy
 
-**This crate requires nightly Rust.** The `rust-toolchain.toml` pins to nightly.
-The crate root declares `#![feature(generic_const_exprs, adt_const_params,
-const_trait_impl, min_specialization, portable_simd)]`. There is no stable
-build target and no MSRV. Applications must conform upward to the type law,
-not the other way around.
+To satisfy specific user package constraints, local integration environments, and downstream compatibility checks, the version field in the root `Cargo.toml` is set to `0.1.0`. However, the logical system version, target specification, and documented release standard for this codebase is `26.6.4`. All API behaviors, validation logic, and diagnostic receipts in this repository are designed to conform to the **`wasm4pm-compat v26.6.4`** standard.
 
 ---
 
-## What this crate **is**
+## Toolchain & Runtime Constraints
 
-- A **structure-only standard** for process evidence. It knows the full canon:
-  events, traces, logs, **OCEL**, **XES**, **BPMN**, **Petri nets**, **WF-nets**,
-  **OC-Petri-nets**, **POWL**, **process trees**, **Declare**, **OC-Declare**,
-  **OCPQ**, **DFG**, **conformance verdicts**, **prediction problems**, and
-  **receipt-shaped evidence**.
-- A **boundary layer**. External formats are *admitted* into typed compat
-  values, then *exported* back out — or *graduated* to `wasm4pm`.
-- A crate where **refusal is first-class**. Every serious surface refuses with a
-  *specific named law* (e.g. `DanglingEventObjectLink`, `FlatteningLoss`,
-  `MissingFinalMarking`, `UnsoundWfNet`) — never a bare `InvalidInput`.
-- Built from **small, transparent, strongly-named types**: `PhantomData`
-  witness/state markers and zero-cost `#[repr(transparent)]` ID wrappers.
+This crate provides no Minimum Supported Rust Version (MSRV) guarantees and contains no stable Rust fallback mechanisms. It is designed and implemented exclusively for the nightly compiler toolchain.
 
-## What this crate is **NOT**
+Applications using this library **must run under nightly Rust (refer to docs/explanation/why-nightly.md)**. 
 
-- **Not** a lite `wasm4pm`. It contains **no engines** — no discovery, no
-  conformance checking, no replay, no alignment, no optimization, no
-  visualization.
-- **Not** a raw format-to-format laundromat. There is no path from one external
-  format directly to another. The only legal route is:
-
-  ```text
-  external  →  typed admitted compat  →  external  |  wasm4pm
-  ```
-
-- **Not** a place where loss is silent. Lossy projection always requires a
-  named projection **plus** a loss policy, a loss report, and a refusal path.
+The toolchain is pinned via `rust-toolchain.toml` to a specific nightly release. The crate root declares `#![feature(generic_const_exprs, adt_const_params, const_trait_impl, min_specialization, portable_simd)]` without conditional gates. This design ensures that the compiler's monomorphization and const-evaluation engines enforce domain-specific type laws before runtime code generation occurs.
 
 ---
 
-## Key Concepts
+## Architectural Mandate: What this Crate IS and IS NOT
 
-### Evidence lifecycle
+### What this Crate IS
 
-The central invariant is a typed, one-way lifecycle enforced by the type system:
+`wasm4pm-compat` is a zero-cost structural boundary and verification interface for process mining artifacts. It is defined by the following characteristics:
+
+*   **Process-Evidence Focused**: It specializes in modeling and verifying process artifacts (event logs, Petri nets, process trees) as formal, cryptographic evidence.
+*   **Structure-Only**: It defines the data schemas, type parameters, and conversion laws for process-evidence structures, but performs no execution or calculation.
+*   **Paper-Complete**: It implements structures representing the entire theoretical canon of process mining and process query formalisms from literature (including Petri nets, WF-nets, BPMN, OCEL 2.0, IEEE XES 1849, POWL, process trees, Declare, OCPQ, DFGs, and conformance alignments).
+*   **Feature-Capped**: The crate API is strictly limited to structural validation, import/export contracts, and graduation prep. It does not grow to incorporate runtime solvers.
+*   **Refusal-First**: It models boundary rejections as first-class, strongly-typed values (`Refusal`) carrying named structural laws rather than generic runtime strings or raw parse errors.
+*   **Loss-Aware**: Any lossy projection is explicitly tracked, governed by a caller-supplied `LossPolicy`, and documented using a detailed, typed `LossReport` containing a static `ProjectionName`.
+*   **Receipt-Shaped**: It models the structural envelope, witness metadata, and cryptographic digest shapes for provenance receipts.
+*   **Graduation-Ready**: It implements the bridge traits and candidates needed to safely graduate static evidence to the execution engine.
+
+### What this Crate IS NOT
+
+To maintain a clean architectural boundary, `wasm4pm-compat` is:
+
+*   **Not a lite wasm4pm**: It is not a subset or stripped-down version of the execution engine.
+*   **Not an engine**: It contains no execution environment, solver, or simulation runtime.
+*   **Not a conformance checker**: It does not compute fitness, precision, generalization, or trace alignment scores. It only models their static verdict structures.
+*   **Not a replay/discovery engine**: It does not execute discovery algorithms (such as Alpha, Inductive, or Heuristics miners) or replay logs against models.
+*   **Not a TypeScript/Zod generator**: It does not generate serialization wrappers or frontend interface schemas.
+*   **Not a WASM ABI crate**: It does not define low-level WASM linear memory layouts or foreign function interfaces (FFIs).
+*   **Not a format laundromat**: It forbids direct, unmonitored format-to-format conversion. Translating data requires admitting the input into a typed compat value under a witness, resolving any data loss under an explicit policy, and then exporting or graduating the result.
+
+---
+
+## Evidence Lifecycle
+
+The central invariant of `wasm4pm-compat` is a typed, one-way lifecycle tracked at compile time using zero-cost typestate markers.
 
 ```text
-Raw ──parse──▶ Parsed ──admit──▶ Admitted ──▶ {Projected | Exportable | Receipted}
-  │                                  ▲
-  └────────────── refuse ────────────┴──▶ Refused  (terminal; carries a named law)
+  Raw ──parse──▶ Parsed ──admit──▶ Admitted ──▶ {Projected | Exportable | Receipted}
+    │                                  ▲
+    └────────────── refuse ────────────┴──▶ Refused (terminal; carries a named law)
 ```
 
-`Evidence<T, State, W>` is the universal carrier. `State` and `W` are
-`PhantomData` tags — zero-cost at runtime. `Evidence<T, Raw, W>` and
-`Evidence<T, Admitted, W>` are **different types**. A function demanding
-admitted evidence cannot be called with raw evidence.
+The universal carrier struct `Evidence<T, State: EvidenceState, W>` wraps the process payload `T` with two phantom type parameters: `State` representing the lifecycle stage and `W` representing the governing witness. Because `Evidence<T, Raw, W>` and `Evidence<T, Admitted, W>` are distinct types at compile time, functions demanding admitted evidence cannot compile if passed raw inputs.
 
-### Witness markers
+1.  **Raw**: Untrusted data directly from the boundary.
+2.  **Parsed**: Structurally decoded into memory, but not yet evaluated against type law.
+3.  **Admitted**: Formally validated against a specific witness standard. This state cannot be constructed directly from outside the crate; it is only reachable by resolving the `Admit` trait.
+4.  **Projected**: The result of a named, accounted lossy transformation.
+5.  **Exportable**: Approved for conversion back into external serialization formats.
+6.  **Receipted**: Sealed inside a provenance-bearing cryptographic receipt envelope.
+7.  **Graduation Candidate**: Prepared to exit the compat boundary and pass to the execution engine.
 
-A witness (e.g. `Ocel20`, `Xes1849`, `WfNetSoundnessPaper`) is a zero-sized
-empty enum that names *which authority* a piece of evidence answers to.
-`Admission<T, Ocel20>` and `Admission<T, Xes1849>` are different types — the
-type system prevents silent confusion between standards.
-
-### LossPolicy
-
-Lossy projection requires a `LossPolicy` decided **before** any loss occurs:
-
-| Variant | Meaning |
-|---|---|
-| `RefuseLoss` | Loss is not tolerated; projection must refuse |
-| `AllowNamedProjection` | Loss is permitted under a named `ProjectionName` |
-| `AllowLossWithReport` | Loss is permitted and a `LossReport` enumerating dropped items is required |
-
-### ALIVE gate
-
-`cargo test --test ui_tests -- --ignored` runs trybuild fixtures:
-
-- **compile-fail fixtures** — each must fail for the *intended named law*, not
-  accidentally. A fixture that fails for the wrong reason is not a valid
-  type-law receipt.
-- **compile-pass fixtures** — each must compile successfully, proving the lawful
-  path is open.
-
-The ALIVE gate is the certification that the type law is structurally sound.
+Transitions between states consume the carrier struct by-value (`self`), preventing use-after-move defects at compile time.
 
 ---
 
-## Quick Example
+## Witness Markers
 
-The full `Raw → Admitted` path, using the `Admit` trait:
+Witnesses are zero-sized empty enums implementing the `Witness` trait (e.g., `Ocel20` for OCEL 2.0, `Xes1849` for IEEE XES 1849, `WfNetSoundnessPaper` for Workflow Net soundness). They serve as type-level markers indicating which authority standard or academic publication governs the validation and formatting laws of a piece of evidence.
 
-```rust,ignore
-use wasm4pm_compat::admission::{Admit, Admission, Refusal};
-use wasm4pm_compat::evidence::Evidence;
-use wasm4pm_compat::state::Raw;
-use wasm4pm_compat::witness::Ocel20;
-
-/// Admit a bool that represents "has at least one object link".
-enum LinkedOcel {}
-
-impl Admit for LinkedOcel {
-    type Raw = bool;
-    type Admitted = bool;
-    type Reason = &'static str;
-    type Witness = Ocel20;
-
-    fn admit(
-        raw: Evidence<bool, Raw, Ocel20>,
-    ) -> Result<Admission<bool, Ocel20>, Refusal<&'static str, Ocel20>> {
-        if raw.value {
-            Ok(Admission::new(true))
-        } else {
-            Err(Refusal::new("DanglingEventObjectLink"))
-        }
-    }
-}
-
-// Raw evidence enters at the boundary.
-let raw: Evidence<bool, Raw, Ocel20> = Evidence::raw(true);
-
-// The only way to reach Admitted is through Admit::admit.
-let admitted = LinkedOcel::admit(raw).unwrap().into_evidence();
-
-// Admitted evidence can now proceed to Projected, Exportable, or Receipted.
-let exportable = admitted.into_exportable();
-assert_eq!(exportable.value, true);
-```
-
-For runnable examples, see the `examples/` directory.
+Because witnesses are part of the type signature, `Evidence<T, Admitted, Ocel20>` and `Evidence<T, Admitted, Xes1849>` are incompatible types. This prevents the silent mixing of standards. The library tracks witness validation status monotonically using a Join-Semilattice representation (`WitnessState<W: Witness>` with states `Unknown`, `Satisfied`, `Violated`, and `Contradiction`).
 
 ---
 
-## What's In The Box
+## Boundary Laws
 
-Always-on modules (the canon — present with `--no-default-features`):
+### The Admission/Refusal Law
 
-| Module | What it provides |
-|---|---|
-| `law` | Compile-time law kernel: `Assert`/`IsTrue`/`Require` bounds, `ConditionCell<BITS>`, `Between01<NUM,DEN>`, `ConstParamTy` enum set |
-| `evidence` | `Evidence<T, State, W>` — the universal lifecycle carrier |
-| `state` | Lifecycle stage tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, `Exportable`, `Receipted` |
-| `witness` | `Witness` trait and all named authority markers (`Ocel20`, `Xes1849`, `WfNetSoundnessPaper`, …) |
-| `admission` | `Admit` trait, `Admission<T,W>`, `Refusal<R,W>` — the only `Raw → Admitted` path |
-| `loss` | `Project` trait, `LossPolicy`, `LossReport`, `ProjectionName`, `NamedLoss` |
-| `eventlog` | `Event`, `Trace`, `EventLog`, `EventStream` — case-centric shapes with builder APIs |
-| `ocel` | `OcelLog`, `OcelEvent`, `Object`, `EventObjectLink`, `ObjectObjectLink`, `ObjectChange` |
-| `xes` | XES interchange shape |
-| `bpmn` | BPMN model shape |
-| `petri` | Petri net and WF-net shapes, `WfNetConst<SOUNDNESS>` |
-| `powl` | POWL shape, `TreeProjectable` sealed trait |
-| `process_tree` | Process tree shape, `TypedLoopNode<ARITY>` with compile-time arity law |
-| `declare` | Declare and OC-Declare constraint shapes |
-| `ocpq` | Object-centric process query shape |
-| `dfg` | Directly-follows graph (DFG) shape |
-| `conformance` | Conformance verdict shape, `Metric<KIND, NUM, DEN>` with `Between01` bounds |
-| `prediction` | Prediction problem shape |
-| `receipt` | Receipt-shaped provenance envelope |
-| `ids` | Zero-cost `#[repr(transparent)]` identifier wrappers |
-| `diagnostic` | Named diagnostic codes for all boundary violations |
-| `interop` | Import/export/round-trip plumbing traits, `Pm4pyShape` |
-| `causal_net` | Causal net structural shape (Heuristics Miner output) |
-| `prelude` | Re-exports of the most-needed shapes and laws |
-| `nightly_foundry` | Always-on staging area: `petri_law`, `powl_law`, `evidence_law`, `token_law` |
+Boundary validation is governed by the `Admit` trait, which evaluates raw evidence against a witness and returns `Result<Admission<T, W>, Refusal<R, W>>`. A `Refusal` cannot contain generic error messages or raw strings. Its `R` parameter must be a domain-specific enum variant representing the exact structural law that was violated:
 
-Feature-gated modules:
+*   **OCEL**: `DanglingEventObjectLink`, `DuplicateObjectId`, `UnqualifiedObjectRelation`.
+*   **WF-net**: `MissingFinalMarking`, `UnsoundWfNet`, `DeadTransition`.
+*   **XES**: `MissingConceptName`, `NonMonotonicTimestamps`.
+*   **POWL**: `CyclicPartialOrder`, `DanglingOperatorChild`.
 
-| Module | Feature | What it adds |
-|---|---|---|
-| `formats` | `formats` (default on) | `ImportFormat`, `ExportFormat`, `FormatExport`, `FormatKind`, `RoundTripClaim`, `LossyFormatExport` |
-| `strict` | `strict` | `ProcessBoundary`, `StrictCheck`, `StrictViolation`, `ExportBoundaryConst<HAS_WITNESS, HAS_ROUND_TRIP>` |
-| `graduation` | `wasm4pm` | `GraduateToWasm4pm`, `GraduationCandidate`, `GraduationReason` |
+This ensures that all boundary rejections are typed, auditable, and testable.
+
+### The Loss Law
+
+Transformations that discard evidence (such as flattening multi-perspective OCEL logs into single-perspective XES logs) must implement the `Project` trait. Projection enforces a three-type lock:
+
+$$\text{LossPolicy} \longrightarrow \text{ProjectionName} \longrightarrow \text{LossReport}$$
+
+1.  **LossPolicy**: The caller must explicitly select the loss policy before projection:
+    *   `RefuseLoss`: The projection fails and returns a named refusal (e.g., `FlatteningLoss`) if any evidence would be dropped.
+    *   `AllowNamedProjection`: The projection is permitted under a static `ProjectionName`.
+    *   `AllowLossWithReport`: The projection is permitted and produces a `LossReport` itemizing the discarded items.
+2.  **ProjectionName**: A newtype wrapper of a `&'static str` (e.g., `ProjectionName("ocel-flatten-to-xes:by-case")`) representing a static, hardcoded transformation name.
+3.  **LossReport**: A structured record containing the projection name, policy, and the itemized collection of lost items, parameterized by the source and target shape tags.
 
 ---
 
-## Not In The Box
+## Receipt-Shaped Evidence & The Graduation Path
 
-These capabilities belong in `wasm4pm`, not here:
+When a host needs to perform active computation (such as model discovery or conformance checking), the evidence must graduate:
 
-| Capability | Why it graduates |
-|---|---|
-| Process discovery (Alpha, Inductive, Heuristic miners) | Requires log replay and causal matrix computation |
-| Conformance checking (alignments, token replay) | Requires model + log execution |
-| Performance/variant mining | Requires aggregation over full event data |
-| Log-model fitness/precision scores | Engine computation over the admitted log |
-| WF-net soundness verification | Reachability analysis — engine work |
-| POWL language-equivalence proof | Tree projection and language containment |
-| OCPQ query execution | Object graph traversal |
-| Predictive monitoring | ML inference over event sequences |
-
-The graduation path: admit your evidence here, then hand the `GraduationCandidate`
-(via the `wasm4pm` feature's bridge traits) to the engine.
+*   **Receipt-Shaped Evidence**: Modeled via `ReceiptShape` and `ReceiptEnvelope`. These structures represent the cryptographic metadata, digests, and replay hints, but perform no actual hashing or signing.
+*   **Graduation Bridge**: Decoupled from the execution engine, the `GraduateToWasm4pm` trait (enabled under the `wasm4pm` feature) allows structural shapes to compile a `GraduationCandidate`.
+*   **GraduationCandidate**: A structural wrapper containing a `GraduationReason` (such as `NeedsDiscovery`, `NeedsConformanceExecution`, `NeedsReplay`, or `RebuildingProcessMiningLocally`), the subject name, and a hash reference to the grounding evidence. The external engine consumes these candidates to perform the actual process mining calculations.
 
 ---
 
-## Test Surfaces
+## Feature Contract
 
-| Surface | Purpose | Command | Cadence |
-|---|---|---|---|
-| Unit + integration tests | Fast behavior checks | `cargo test --all-features --tests` | Sub-second after first build; run every change |
-| ALIVE gate (trybuild) | Type-law receipts — compile-fail and compile-pass fixtures | `cargo test --test ui_tests -- --ignored` | Explicit opt-in; ~4 min cold |
-| Documentation audit | Verify every public doctest compiles | `cargo test --doc --all-features` | Explicit opt-in; slow on nightly |
+The public feature surface of `wasm4pm-compat` is **exactly three** features. Features control boundary capability stages rather than core domain knowledge — the base profile (compiled with `--no-default-features`) always knows the complete canon of process-evidence structures.
 
-**Rule:** Doctests teach usage. Trybuild proves law.
+| Feature | Default | Capability Added |
+|---|:---:|---|
+| `formats` | **Yes** | Enables import/export traits, format covenants, and loss-policy interfaces. |
+| `strict` | No | Enables strict boundary checks, `ProcessBoundary`, and `StrictViolation` diagnostic markers. |
+| `wasm4pm` | No | Enables the graduation bridge, `GraduateToWasm4pm`, and `GraduationCandidate` types. |
 
-Doctests are disabled in the default test run (`doctest = false` in `Cargo.toml`).
-Every doctest touching `generic_const_exprs` or `adt_const_params` types triggers
-a separate nightly `rustc` invocation — 200+ such invocations make `cargo test`
-take minutes. Doc examples are still rendered by `cargo doc`.
+There are no per-format features (e.g., no `ocel` or `xes` flags). The entire canon is always compiled. Nightly is not a cargo feature; it is the toolchain requirement.
 
 ---
 
-## Feature model
+## ggen Ecosystem Projection
 
-The public feature surface is **exactly three**. Features control *capability
-stages*, not *canon knowledge* — the base profile already knows every shape.
+`ggen` (the Ostar generative pipeline/stewardship compiler) operates as a provision instrument that translates ontologies (e.g., `wasm4pm-compat.ttl` defining the 37 canonical witnesses) and manifests into Rust source definitions, witness registries (`src/witnesses.rs`), and negative verification fixtures. `wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
 
-| Feature    | Default | What it adds                                                       |
-|------------|:-------:|--------------------------------------------------------------------|
-| `formats`  |   yes   | import/export contracts, round-trip claims, loss-policy surfaces    |
-| `strict`   |   no    | opt-in boundary judgment: strict admission/refusal declaration      |
-| `wasm4pm`  |   no    | graduation bridge traits toward the `wasm4pm` execution engine      |
-
-There are **no per-format flags** (no `ocel`/`xes`/`bpmn`/`petri`/`powl`/…).
-**Nightly is not a Cargo feature**: nightly toolchain is the requirement. The
-crate is `#![forbid(unsafe_code)]` and has zero runtime dependencies.
+wasm4pm-compat defines the Rust process-evidence court.
+ggen will later project into that court.
+wasm4pm will later execute judgment after graduation.
 
 ---
 
-## Base profile knows the canon
+## Verification Commands
 
-Disabling every optional feature does **not** make the crate forget any shape.
-With `--no-default-features`, the always-on modules still define the complete
-canon of process-evidence structure. Features add *what you may do at the
-boundary*, not *what the crate knows*.
-
-## Format covenant
-
-Importers and exporters are **contracts**, not converters. An import produces a
-typed, admitted compat value; an export consumes one. A round-trip claim is a
-structured assertion that `export(import(x))` preserves the relevant structure —
-or that it cannot, in which case the loss is *named and reported*, never hidden.
-
-## Refusal law
-
-Refusal is a value, not a panic. Each refusal carries a **specific named law**
-identifying *which* structural obligation was violated. Bare `InvalidInput` is
-forbidden. This is what makes admission auditable.
-
-## Loss law
-
-A lossy projection must declare its `ProjectionName`, obey a `LossPolicy`, and
-emit a `LossReport`. If the policy forbids the loss, the projection refuses.
-There is no way to drop structure quietly.
-
-## Graduation path
-
-When you need to *run* something — discover a model, check conformance, replay a
-log — you graduate. With the `wasm4pm` feature, bridge traits hand your typed
-compat evidence to the execution engine. The compat crate stays structure-only;
-the engine does the work.
-
----
-
-## Examples
-
-```rust,ignore
-use wasm4pm_compat::prelude::*;
-
-let event = Event::new("place_order");
-let trace = Trace::from_events([event]);
-let log = EventLog::from_traces([trace]);
-assert_eq!(log.trace_count(), 1);
-```
-
-Runnable examples in `examples/`:
-
-| Example | Feature | What it demonstrates |
-|---|---|---|
-| `basic_eventlog` | (none) | Build `Event`/`Trace`/`EventLog` with builder API, validate structure, use `EventStream` |
-| `basic_ocel` | (none) | Build `OcelLog` with E2O and O2O links, object changes, validate structural integrity |
-| `ocel_to_xes_projection` | `formats` | Full OCEL → XES loss-covenant flow: `ProjectionName`, `LossPolicy`, `LossReport`, named refusal |
-| `strict_boundary_claim` | `strict` | Declare a `ProcessBoundary`, run `StrictCheck`, observe named `StrictViolation` law codes |
-| `graduation_candidate` | `wasm4pm` | Implement `GraduateToWasm4pm`, produce a `GraduationCandidate`, verify grounded/ungrounded |
-
----
-
-## Verification commands
-
-**Nightly toolchain required** (`rust-toolchain.toml` pins it; bare `cargo` is nightly).
+To verify that the compatibility core compiles, conforms to all type-law covenants, and passes all tests, execute the following commands in order:
 
 ```bash
-# Dev loop — sub-second after initial build.
-cargo build --all-features
-cargo test  --all-features --tests
-cargo clippy --all-features -- -D warnings
+# Code formatting check
 cargo fmt --check
 
-# ALIVE gate — type-law receipts (explicit opt-in, ~4 min cold).
+# Clippy lints with all features enabled
+cargo clippy --all-features -- -D warnings
+
+# Build the codebase with all features
+cargo build --all-features
+
+# Run standard unit and integration tests
+cargo test --all-features --tests
+
+# Run the ALIVE gate (trybuild compile-pass and compile-fail fixtures)
 cargo test --test ui_tests -- --ignored
 
-# Documentation audit (explicit opt-in).
+# Run all public documentation tests
 cargo test --doc --all-features
+
+# Verify packaging list
+cargo package --list
+
+# Verify crate publishability via a dry run
+cargo publish --dry-run
 ```
+
+---
+
+## Documentation Structure
+
+The documentation for `wasm4pm-compat` is organized according to the [Diátaxis](https://diataxis.fr) framework:
+
+*   **Explanations (Process Theory and Design)**:
+    *   [Rust Typestate and Process Theory](docs/explanation/rust-typestate-and-process-theory.md) - Deep dive into typestates, affine types, and token conservation.
+    *   [Genesis Thursday: Day Five Conceptual Framing](docs/explanation/genesis-thursday.md) - Conceptual framing of compile-time structures vs runtime execution.
+    *   [Process-Evidence Domain Glossary](docs/explanation/glossary.md) - Mathematical and crate definitions of key terms.
+*   **Reference**:
+    *   [Public API for ggen](docs/reference/public-api-for-ggen.md) - Target surface for `ggen` integration.
+    *   [Module Map & Layout](docs/reference/module-map.md) - Mapping of Rust modules to physical files.
+    *   [Evidence Lifecycle States](docs/reference/lifecycle-states.md) - Detail on lifecycle state transitions.
+    *   [Feature Model](docs/reference/feature-model.md) - Details of the strict three-feature limit.
+    *   [Publish Readiness Checklist](docs/reference/publish-checklist.md) - Release checklist before publishing.
+*   **How-To Guides**:
+    *   [Preparing for a Crates.io Release](docs/how-to/prepare-crates-io-publish.md) - Release preparation steps.
+*   **Research & Reports**:
+    *   [Process Theory Alignment](research/process-theory-alignment.md) - Mathematical alignment with literature.
+    *   [Verification Report](docs/reports/v26.6.4-verification-report.md) - Status of mandatory verification gates.
 
 ---
 
 ## License
 
-Licensed under either of [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE) at
-your option.
+This project is licensed under either of:
 
-[`wasm4pm`]: https://github.com/wasm4pm
+*   Apache License, Version 2.0 ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+*   MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.

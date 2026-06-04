@@ -17,8 +17,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, OcpqPaper>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, DeclareFamily>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::OcpqPaper>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::DeclareFamily>`
 note: function defined here
   --> tests/ui/compile_fail/witness_declare_as_ocpq.rs:9:4
    |

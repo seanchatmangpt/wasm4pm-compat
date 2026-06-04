@@ -114,10 +114,335 @@ Compile early research experiments under `experiments/` and perform a final self
 - [ ] The folder `/Users/sac/process-intelligence` contains all 12 requested research directories.
 - [ ] A root `README.md` is present detailing the mission, directory structure, and downstream project roles.
 
-### Commit History Sequential Transition
 - [ ] The repository has been initialized with a Git history tracing clean, sequential commits mapping to the research progress (following the requested vocabulary prefixes, e.g., `research-init:`, `doctrine:`, `research-paper:`).
 
 ### Document Completeness & Mathematical Rigor
 - [ ] M&A diligence taxonomy files detail the slide-to-receipt mapping and board-admissible evidence criteria.
 - [ ] Literature review maps at least 4 papers (including YAWL, PMAx, OCPQ) with formal objects, inputs, outputs, and failure conditions.
 - [ ] A final verdict file (`PROCESS_INTELLIGENCE_ALIVE_001.md` or `PROCESS_INTELLIGENCE_PARTIAL_001.md`) exists in the `checkpoints/` directory.
+
+## Follow-up — 2026-06-04T20:17:45Z
+
+# MISSION: wasm4pm-compat v26.6.4 Documentation Rebase
+# MODE: Google Antigravity CLI — 10 Subagent Team
+# TARGET REPO: wasm4pm-compat
+# GOAL: Prepare publish-grade documentation for crates.io/docs.rs without changing the crate’s architectural law or modifying the package version in Cargo.toml.
+
+Working directory: /Users/sac/wasm4pm-compat
+Integrity mode: demo
+
+You are a 10-subagent documentation and verification team operating on `wasm4pm-compat`.
+
+This crate is being prepared for publication as:
+  wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
+
+The purpose of this mission is to update the README, Diátaxis documentation set, crate docs, examples index, release notes, and publish-readiness docs so that the project is internally consistent, crates.io-ready, docs.rs-ready, and aligned with Process Intelligence.
+
+CRITICAL INSTRUCTIONS:
+- Do NOT modify the version field in Cargo.toml. Keep it at `0.1.0`. All documentation, checklists, and reports must refer to the targeted release version `26.6.4`. Explain this manifest version discrepancy in the audit/verification/final review reports.
+- Do not publish the crate.
+- Do not run `cargo publish`.
+- Do not refactor the crate with ggen.
+- Do not add ggen-specific machinery.
+- Do not add engines.
+- Do not add codegen.
+- Do not add TypeScript/Zod/WASM projection ownership.
+- Do not weaken type law to make docs easier.
+
+This is a documentation rebase plus consistency verification pass.
+
+---
+
+# CORE DOCTRINE
+
+`wasm4pm-compat` is:
+- nightly-only
+- structure-only
+- paper-complete
+- feature-capped
+- process-evidence focused
+- refusal-first
+- loss-aware
+- receipt-shaped
+- graduation-ready toward `wasm4pm`
+
+It is not:
+- a lite `wasm4pm`
+- a process-mining engine
+- a conformance checker
+- a replay engine
+- a discovery engine
+- a ggen plugin
+- a marketplace/pack system
+- a TypeScript/Zod generator
+- a WASM ABI crate
+- a format laundromat
+
+The invariant:
+  external evidence
+  → typed admitted compat value
+  → exportable / projected / receipted / graduation candidate
+
+Never:
+  raw external format
+  → raw external format
+
+---
+
+# RELEASE VERSION
+
+All documentation must consistently refer to:
+  wasm4pm-compat v26.6.4
+
+Not:
+  v0.1.0
+  MVP
+  prototype
+  stable-first
+  MSRV
+  stable compatible
+
+Allowed release phrase:
+  wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
+
+---
+
+# PUBLIC FEATURE LAW
+
+The public feature surface is exactly three:
+  formats
+  strict
+  wasm4pm
+
+Docs must not describe public `ts` or `wasm` features.
+TypeScript, Zod, browser, and WASM projection surfaces belong to future ggen projection work, not the publishable compat core.
+
+Every relevant doc must agree:
+  README
+  src/lib.rs crate docs
+  Diátaxis docs
+  publish checklist
+  examples index
+  release notes
+
+---
+
+# TEAM STRUCTURE: 10 SUBAGENTS
+
+## Agent 01 — Repository Auditor
+Role: Inspect the repo and create a documentation inventory.
+Tasks:
+- Identify README, docs, examples, crate docs, release notes, publishing docs.
+- Find all stale references to: version 0.1.0, stable/MSRV, ts feature, wasm feature, generated/source-caste language, engine behavior inside compat, ggen-specific implementation.
+- Produce a short findings note in `docs/reports/v26.6.4-doc-audit.md`.
+
+## Agent 02 — README Owner
+Role: Rewrite/update the root README for crates.io and GitHub.
+README must include:
+1. Title and release identity
+2. Nightly-only statement
+3. What this crate is
+4. What this crate is not
+5. Evidence lifecycle
+6. Witness markers
+7. Admission/refusal law
+8. Loss law
+9. Receipt-shaped evidence
+10. Graduation path to `wasm4pm`
+11. Feature model with exactly three features
+12. What ggen will do later, without making compat depend on ggen
+13. Examples index
+14. Verification commands
+15. crates.io publish readiness note
+16. License
+
+Tone: precise, research-grade, not marketing fluff, no overclaiming, no “unhackable”, no stable/MSRV claims.
+Required core sentence:
+  wasm4pm-compat defines the Rust process-evidence court.
+  ggen will later project into that court.
+  wasm4pm will later execute judgment after graduation.
+
+## Agent 03 — Diátaxis Architect
+Role: Create or reorganize docs according to Diátaxis.
+Required structure:
+  docs/
+    tutorials/
+    how-to/
+    reference/
+    explanation/
+
+Minimum docs:
+Tutorials:
+- `docs/tutorials/first-event-log.md`
+- `docs/tutorials/admit-ocel-evidence.md`
+- `docs/tutorials/loss-policy-projection.md`
+
+How-to:
+- `docs/how-to/verify-the-crate.md`
+- `docs/how-to/run-the-alive-gate.md`
+- `docs/how-to/prepare-crates-io-publish.md`
+- `docs/how-to/use-strict-boundaries.md`
+- `docs/how-to/graduate-to-wasm4pm.md`
+
+Reference:
+- `docs/reference/feature-model.md`
+- `docs/reference/module-map.md`
+- `docs/reference/lifecycle-states.md`
+- `docs/reference/refusal-laws.md`
+- `docs/reference/loss-policy.md`
+- `docs/reference/public-api-for-ggen.md`
+
+Explanation:
+- `docs/explanation/why-nightly.md`
+- `docs/explanation/structure-only-not-engine.md`
+- `docs/explanation/refusal-first-design.md`
+- `docs/explanation/no-format-laundering.md`
+- `docs/explanation/process-intelligence-compatibility-core.md`
+
+Each doc must have a clear purpose and must not mix Diátaxis modes unnecessarily.
+
+## Agent 04 — Crate Docs Owner
+Role: Update `src/lib.rs` crate-level docs.
+Requirements:
+- Must match README doctrine.
+- Must say v26.6.4 (while acknowledging Cargo.toml version field is currently locked at 0.1.0).
+- Must describe nightly-only status.
+- Must describe exactly three public features.
+- Must describe Raw → Parsed → Admitted → Projected/Exportable/Receipted and Refused.
+- Must say compat is structure-only and not an engine.
+- Must explain graduation to `wasm4pm`.
+- Must not reference removed public `ts`/`wasm` features.
+- Must keep examples as `ignore` unless they are guaranteed to compile under doctest conditions.
+
+## Agent 05 — Examples and Tutorials Owner
+Role: Audit examples and make documentation point to real runnable examples.
+Tasks:
+- Verify examples listed in README exist.
+- Ensure tutorial examples match current public API.
+- Ensure examples do not imply engine behavior.
+- Ensure examples demonstrate: event log shape, OCEL shape, admission/refusal, loss policy, strict boundary, graduation candidate if feature `wasm4pm` is enabled.
+- If an example is missing: create a small documentation-only tutorial referencing conceptual usage, or create/update the example only if it is straightforward and does not alter architecture.
+
+## Agent 06 — Feature and Manifest Consistency Agent
+Role: Ensure docs and manifest agree.
+Tasks:
+- Confirm docs state exactly: `formats`, `strict`, `wasm4pm`.
+- Remove public documentation references to `ts` and `wasm` as current crate features.
+- Confirm README and docs do not claim zero runtime dependencies if Cargo dependencies contradict that.
+- Output: Update `docs/reference/feature-model.md` and add a “Feature Contract” section to README.
+
+## Agent 07 — Crates.io / docs.rs Publish Readiness Agent
+Role: Prepare publish documentation and checklist.
+Create/update:
+  docs/how-to/prepare-crates-io-publish.md
+  docs/reference/publish-checklist.md
+
+Checklist must include:
+- version is `26.6.4` (noting that Cargo.toml remains at `0.1.0` due to user constraint)
+- repository URL correct
+- readme metadata explicit
+- license files included
+- feature model exactly three
+- README and crate docs agree
+- no stale stable/MSRV framing
+- no ggen-specific machinery
+- no engine behavior
+- `cargo package --list` reviewed
+- `cargo publish --dry-run` reviewed (note expected failure/warnings due to version discrepancy, which must be clearly explained in reports)
+- do not run `cargo publish` without human authorization
+
+Include commands:
+  cargo fmt --check
+  cargo clippy --all-features -- -D warnings
+  cargo build --all-features
+  cargo test --all-features --tests
+  cargo test --test ui_tests -- --ignored
+  cargo test --doc --all-features
+  cargo package --list
+  cargo publish --dry-run
+
+## Agent 08 — Research/Terminology Guardian
+Role: Protect terminology and doctrine.
+Tasks:
+- Remove or correct sloppy terms.
+- Ensure docs consistently use: structure-only, admission, refusal, loss policy, witness, receipt, graduation, process evidence, process intelligence compatibility core.
+- Add/update `docs/explanation/glossary.md` with: Evidence, Admission, Refusal, Witness, LossPolicy, LossReport, ProjectionName, Receipt, Graduation, Compatibility, Engine, Structure-only.
+
+## Agent 09 — Verification Agent
+Role: Run verification and report results.
+Commands:
+  cargo fmt --check
+  cargo clippy --all-features -- -D warnings
+  cargo build --all-features
+  cargo test --all-features --tests
+  cargo test --test ui_tests -- --ignored
+  cargo test --doc --all-features
+  cargo package --list
+  cargo publish --dry-run
+
+Classify failures: manifest_failure, feature_contract_failure, nightly_gate_failure, type_law_failure, doctest_failure, trybuild_fixture_failure, lint_failure, package_contents_failure, publish_dry_run_failure.
+Write `docs/reports/v26.6.4-verification-report.md`. Indicate that package version mismatch (0.1.0 vs 26.6.4) is a known constraint.
+
+## Agent 10 — Integration Editor / Final Reviewer
+Role: Make the documentation set coherent.
+Tasks:
+- Review all docs touched by other agents.
+- Remove duplication where harmful.
+- Ensure README links to Diátaxis docs.
+- Ensure Diátaxis docs link back to README where appropriate.
+- Ensure release identity is consistent.
+- Ensure no contradiction remains.
+- Ensure docs do not promise future ggen refactor as already done.
+- Ensure docs do not claim wasm4pm execution inside compat.
+- Ensure publish gate is clearly marked “human authorization required.”
+- Create/update `docs/reports/v26.6.4-final-doc-review.md`. Final review must state `READY_FOR_HUMAN_REVIEW` or `BLOCKED` with reasons.
+
+---
+
+# REQUIRED OUTPUT FILES
+At minimum, produce or update:
+  README.md
+  src/lib.rs
+  docs/tutorials/first-event-log.md
+  docs/tutorials/admit-ocel-evidence.md
+  docs/tutorials/loss-policy-projection.md
+  docs/how-to/verify-the-crate.md
+  docs/how-to/run-the-alive-gate.md
+  docs/how-to/prepare-crates-io-publish.md
+  docs/how-to/use-strict-boundaries.md
+  docs/how-to/graduate-to-wasm4pm.md
+  docs/reference/feature-model.md
+  docs/reference/module-map.md
+  docs/reference/lifecycle-states.md
+  docs/reference/refusal-laws.md
+  docs/reference/loss-policy.md
+  docs/reference/public-api-for-ggen.md
+  docs/reference/publish-checklist.md
+  docs/explanation/why-nightly.md
+  docs/explanation/structure-only-not-engine.md
+  docs/explanation/refusal-first-design.md
+  docs/explanation/no-format-laundering.md
+  docs/explanation/process-intelligence-compatibility-core.md
+  docs/explanation/glossary.md
+  docs/reports/v26.6.4-doc-audit.md
+  docs/reports/v26.6.4-verification-report.md
+  docs/reports/v26.6.4-final-doc-review.md
+
+---
+
+# HARD REFUSAL CONDITIONS
+Stop and report BLOCKED if:
+- version cannot be reconciled as `26.6.4` (except for Cargo.toml version field which MUST remain 0.1.0 as requested)
+- Cargo features cannot be reconciled with docs
+- README and crate docs contradict each other
+- doctest/docs cannot be truthfully represented
+- publish dry-run fails and cannot be fixed without code architecture changes
+- existing public API does not match documented examples
+- any doc implies compat is an execution engine
+- any doc implies ggen refactor is already complete
+- any doc says stable/MSRV
+
+---
+
+# FINAL SUMMARY FORMAT
+At the end, produce a concise final report matching the required template.

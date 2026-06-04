@@ -23,39 +23,17 @@ Manufacture audit for feature isolation conformance. Verifies that Cargo feature
 - ✗ FAIL: `src/*.rs` files must not import or use `wasm_bindgen` or `tsify`
 - ✓ PASS: No wasm-bindgen or tsify usage in always-on modules
 
-### Rule 3: TypeScript Feature Isolation
-**Check:** `ts` feature is properly gated and isolated from WASM bindings unless paired.
-
-- ✓ PASS: `ts` feature does not directly enable `wasm-bindgen`
-- ✓ PASS: `ts` module is gated by `#[cfg(feature = "ts")]` in lib.rs
-- ⚠ WARN: Submodules may not be explicitly gated (they inherit from parent)
-
-### Rule 4: WASM Feature Engine Isolation
-**Check:** `wasm` feature does not import engine-facing modules.
-
-- ✗ FAIL: `src/wasm/*` must not import `engine_bridge`, `graduation`, `discovery`, `conformance_engine`, or `replay` modules
-- ✓ PASS: WASM modules do not import engine-facing modules
-- ✓ PASS: `wasm` module is gated by `#[cfg(feature = "wasm")]` in lib.rs
-
-### Rule 5: WASM4PM Feature Gating
+### Rule 3: WASM4PM Feature Gating
 **Check:** `wasm4pm` feature is properly gated and engine types are isolated.
 
 - ✓ PASS: `engine_bridge` module is gated by `#[cfg(feature = "wasm4pm")]` in lib.rs
 - ✓ PASS: `engine_bridge.rs` declares the feature gate at the top
 - ⚠ WARN: Always-on modules must not reference `GraduationReason` or `GraduationCandidate` without feature gates
 
-### Cross-Feature Integrity Checks
-**Check:** All feature-gated dependencies are declared as optional.
-
-- ✓ PASS: `serde` is `optional = true`
-- ✓ PASS: `specta` is `optional = true`
-- ✓ PASS: `tsify` is `optional = true`
-- ✓ PASS: `wasm-bindgen` is `optional = true`
-
 ### Feature Model Integrity
 **Check:** Feature count and gating in lib.rs.
 
-- ✓ PASS: Feature count >= 3 (formats, strict, wasm4pm, ts, wasm)
+- ✓ PASS: Feature count is exactly 3 (formats, strict, wasm4pm)
 - ✓ PASS: Each feature has a corresponding `#[cfg(feature = "...")]` gate in lib.rs
 
 ## Exit Codes

@@ -39,8 +39,6 @@ Three public Cargo features control **capability stages** (not canon knowledge):
 | `formats` | yes | import/export contracts, `src/formats.rs` module, loss surfaces |
 | `strict` | no | opt-in boundary judgment, `src/strict.rs` module |
 | `wasm4pm` | no | graduation bridge traits, `src/engine_bridge.rs` module |
-| `ts` | no | TypeScript law projections, `src/ts/` module, requires `specta`, `serde`, `tsify`, `wasm-bindgen` |
-| `wasm` | no | WASM-safe boundary projection, `src/wasm/` module, requires `wasm-bindgen`, `serde-wasm-bindgen`, `specta`, `serde`, `tsify` |
 
 **Note:** There is no `nightly` feature. Nightly is required unconditionally (pinned via `rust-toolchain.toml`).
 
@@ -55,12 +53,6 @@ pub mod formats;
 
 #[cfg(feature = "strict")]
 pub mod strict;
-
-#[cfg(feature = "ts")]
-pub mod ts;
-
-#[cfg(feature = "wasm")]
-pub mod wasm;
 ```
 
 **Always-On Modules** (line 157 comment):
@@ -185,8 +177,6 @@ All audit scripts in `scripts/audit/` and `scripts/` are **stateless**. They per
 | `formats` | `src/formats.rs` | `#[cfg(feature = "formats")]` |
 | `strict` | `src/strict.rs` | `#[cfg(feature = "strict")]` |
 | `wasm4pm` | `src/engine_bridge.rs` | `#[cfg(feature = "wasm4pm")]` |
-| `ts` | `src/ts/` | `#[cfg(feature = "ts")]` |
-| `wasm` | `src/wasm/` | `#[cfg(feature = "wasm")]` |
 
 **None of these gating directives** are conditional on environment variables. All feature resolution happens at Cargo manifest time.
 
@@ -237,7 +227,7 @@ cargo doc --no-deps
 ```
 
 **Effect:**
-- All features enabled (`formats`, `strict`, `wasm4pm`, `ts`, `wasm`)
+- All features enabled (`formats`, `strict`, `wasm4pm`)
 - All tests run except `#[ignore]` marked tests
 - No environment variables; deterministic Cargo feature resolution
 
@@ -250,7 +240,7 @@ cargo test --no-default-features --tests
 
 **Effect:**
 - Only always-on modules compile
-- No `formats`, `strict`, `wasm4pm`, `ts`, or `wasm` modules
+- No `formats`, `strict`, or `wasm4pm` modules
 - Verifies base type law is feature-independent
 
 ### Per-Feature Isolation
@@ -325,7 +315,7 @@ RUN ./scripts/crown_audit_runner.sh          # Audit mesh
 | Hook Type | Name/Pattern | Scope | Environment-Driven? |
 |-----------|--------------|-------|:---:|
 | **Toolchain** | `rust-toolchain.toml` | Nightly unconditional | No |
-| **Feature Gating** | `Cargo.toml` features | `formats`, `strict`, `wasm4pm`, `ts`, `wasm` | No (Cargo manifest) |
+| **Feature Gating** | `Cargo.toml` features | `formats`, `strict`, `wasm4pm` | No (Cargo manifest) |
 | **Module Gating** | `#[cfg(feature = "...")]` | Per-module export | No (compile-time) |
 | **Test Ignore** | `#[ignore]` markers | ALIVE gate, docs audit | No (explicit invocation) |
 | **Doctest Disable** | `Cargo.toml` line 17 | Default test run | No (manifest) |

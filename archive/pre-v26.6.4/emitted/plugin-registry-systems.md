@@ -33,8 +33,6 @@ default = ["formats"]
 formats = []       # Import/export contracts
 strict = []        # Opt-in boundary judgment
 wasm4pm = []       # Graduation bridge traits
-ts = [...]         # TypeScript law projection
-wasm = [...]       # WebAssembly boundary
 ```
 
 **No registry.** Features are **compile-time gates** that conditionally include entire modules, not runtime plugins:
@@ -49,12 +47,6 @@ pub mod formats;
 
 #[cfg(feature = "strict")]
 pub mod strict;
-
-#[cfg(feature = "ts")]
-pub mod ts;
-
-#[cfg(feature = "wasm")]
-pub mod wasm;
 ```
 
 This is **fundamentally different** from a plugin system: modules are either compiled in or compiled out at build time. There is no runtime lookup, no plugin loading, no registration callback.
@@ -277,14 +269,11 @@ These are extensibility points — but they are **static, monomorphic** (no regi
 - `formats`: unlocks `ImportFormat`/`ExportFormat` trait implementations
 - `strict`: adds stricter boundary judgment
 - `wasm4pm`: adds graduation bridge
-- `ts`/`wasm`: adds language bindings
 
 ### Feature-Gated (cfg-conditional)
 - `#[cfg(feature = "wasm4pm")] pub mod engine_bridge;`
 - `#[cfg(feature = "formats")] pub mod formats;`
 - `#[cfg(feature = "strict")] pub mod strict;`
-- `#[cfg(feature = "ts")] pub mod ts;`
-- `#[cfg(feature = "wasm")] pub mod wasm;`
 
 ---
 
@@ -299,12 +288,6 @@ formats = []
 
 # strict: Opt-in boundary judgment with stricter admission/refusal surfaces.
 strict = []
-
-# ts: Expose TypeScript law projection for browsers.
-ts = ["dep:specta", "dep:serde", "dep:tsify", "dep:wasm-bindgen"]
-
-# wasm: Expose WASM-safe boundary projection and validations.
-wasm = ["dep:wasm-bindgen", "dep:serde-wasm-bindgen", "dep:tsify", "dep:serde", "dep:specta"]
 
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
@@ -341,7 +324,7 @@ The crate explicitly avoids per-format flags; instead, it requires adopters to *
    - Each adopter owns their implementation in their own crate
 
 5. **Feature Gates for Capability Stages**
-   - `formats`, `strict`, `wasm4pm`, `ts`, `wasm` are capability **tiers**, not **plugins**
+   - `formats`, `strict`, and `wasm4pm` are capability **tiers**, not **plugins**
    - They bundle coherent sets of types and traits
    - They cannot be mixed-and-matched or loaded selectively
 

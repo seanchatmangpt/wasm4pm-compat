@@ -6,8 +6,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `FormatEnvelope<Xes1849>`
-              found struct `FormatEnvelope<Ocel20>`
+   = note: expected struct `FormatEnvelope<wasm4pm_compat::witness::Xes1849>`
+              found struct `FormatEnvelope<wasm4pm_compat::witness::Ocel20>`
 note: function defined here
   --> tests/ui/compile_fail/formats_envelope_wrong_witness.rs:8:4
    |

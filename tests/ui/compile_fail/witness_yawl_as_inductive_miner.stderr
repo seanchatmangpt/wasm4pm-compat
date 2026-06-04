@@ -17,8 +17,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, InductiveMiner>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, YawlPaper>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::InductiveMiner>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::YawlPaper>`
 note: function defined here
   --> tests/ui/compile_fail/witness_yawl_as_inductive_miner.rs:8:4
    |

@@ -13,12 +13,12 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:13:28
    |
 13 |     requires_pmax_evidence(pm4py_ev);
-   |     ---------------------- ^^^^^^^^ expected `PmaxConsumerGrammar`, found `Pm4pyApiGrammar`
+   |     ---------------------- ^^^^^^^^ expected `PmaxConsumerGrammar`, found `wasm4pm_compat::witness::Pm4pyApiGrammar`
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, PmaxConsumerGrammar>`
-              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, Pm4pyApiGrammar>`
+   = note: expected struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::PmaxConsumerGrammar>`
+              found struct `Evidence<std::string::String, wasm4pm_compat::Admitted, wasm4pm_compat::witness::Pm4pyApiGrammar>`
 note: function defined here
   --> tests/ui/compile_fail/witness_pm4py_as_pmax.rs:8:4
    |
