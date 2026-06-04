@@ -132,7 +132,7 @@ mode = "Overwrite"
 # Rule: open-ontologies-integration
 # Validates and integrates open-ontologies pack with wasm4pm-compat canon.
 # Produces:
-#   1. src/generated/open_ontologies_integration.rs — type bindings
+#   1. src/open_ontologies_integration.rs — type bindings
 #   2. ontology/integrated-open-ontologies.ttl — merged ontology
 # Ensures round-trip compatibility with OCEL/XES/BPMN/Petri formats.
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ mode = "Overwrite"
 name = "open-ontologies-integration"
 query = { file = "queries/integrate-open-ontologies.rq" }
 template = { file = "templates/open-ontologies-integration.tera" }
-output_file = "src/generated/open_ontologies_integration.rs"
+output_file = "src/open_ontologies_integration.rs"
 mode = "Overwrite"
 
 # [[generation.rules]]
