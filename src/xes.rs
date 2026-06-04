@@ -829,7 +829,8 @@ impl core::fmt::Display for XesExtensionPrefixWitness {
 /// use wasm4pm_compat::xes::XesLifecycleTransition;
 /// assert_eq!(XesLifecycleTransition::Complete.as_str(), "complete");
 /// assert_eq!(XesLifecycleTransition::parse("start"), Some(XesLifecycleTransition::Start));
-/// assert_eq!(XesLifecycleTransition::parse("unknown"), None);
+/// assert_eq!(XesLifecycleTransition::parse("unknown"), Some(XesLifecycleTransition::Unknown));
+/// assert_eq!(XesLifecycleTransition::parse("notavalue"), None);
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum XesLifecycleTransition {

@@ -812,12 +812,12 @@ impl<const KIND: OcpqScopeKind> OcpqQueryConst<KIND> {
     ///
     /// ```
     /// use wasm4pm_compat::ocpq::{
-    ///     OcpqQueryConst, ObjectScopeConst, OcpqScopeKind, Predicate, PredicateKind, EventPredicate,
+    ///     OcpqQueryConst, ObjectScopeConst, OcpqScopeKind, Predicate, PredicateKind,
     /// };
     /// let q = OcpqQueryConst::<{ OcpqScopeKind::Closed }>::new(
     ///     ObjectScopeConst::new(["order"]),
     /// )
-    /// .with_predicate(Predicate::<EventPredicate>::new(PredicateKind::Event("activity = pay".into())));
+    /// .with_predicate(Predicate::new(PredicateKind::Event("activity = pay".into())));
     /// assert_eq!(q.predicates().len(), 1);
     /// ```
     pub fn with_predicate(mut self, predicate: Predicate) -> Self {

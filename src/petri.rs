@@ -247,7 +247,7 @@ impl<const DIR: crate::law::ArcDirectionConst, Weight: Copy> BipartiteArcConst<D
     /// ```
     /// use wasm4pm_compat::petri::BipartiteArcConst;
     /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let post = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u32>::new("t0", "p1", 2);
+    /// let post = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u32>::new("p1", "t0", 2);
     /// assert_eq!(post.transition_id(), "t0");
     /// assert_eq!(post.place_id(), "p1");
     /// ```
@@ -501,7 +501,7 @@ impl WfNetConst<{ SoundnessState::Claimed }> {
 /// ```
 /// use wasm4pm_compat::petri::{WfNetConst, WfNetQuery};
 /// use wasm4pm_compat::law::SoundnessState;
-/// let wf = WfNetConst::<{ SoundnessState::Claimed }>::new().claim_sound();
+/// let wf = WfNetConst::<{ SoundnessState::Unknown }>::new().claim_sound();
 /// assert_eq!(wf.soundness_state(), SoundnessState::Claimed);
 /// ```
 pub trait WfNetQuery {
@@ -1160,7 +1160,9 @@ impl WfNet<SoundnessClaimed> {
     /// future version. Any call site that invokes this method is relying on a
     /// forgeability hole in the type law.
     ///
-    /// ```
+    /// ```rust,ignore
+    /// // pub(crate): cannot be called from doctests. Use WfNetConst<Sane> and
+    /// // its sealed construction path for the non-forgeable witnessed state.
     /// use wasm4pm_compat::petri::{WfNet, PetriNet, Marking, SoundnessClaimed, SoundnessWitnessed};
     /// let wf = WfNet::new(PetriNet::default(), Marking::new([("snk".to_string(), 1)]))
     ///     .claim_sound();
@@ -1834,19 +1836,18 @@ impl FlatIncidenceMatrix {
 /// ```
 /// use wasm4pm_compat::petri::PetriNetBuilder;
 ///
-/// let net = PetriNetBuilder::new()
-///     .place("source")
-///     .place("p1")
-///     .place("sink")
-///     .transition("t_A", "register")
-///     .transition("t_B", "approve")
-///     .p_to_t("source", "t_A")
-///     .t_to_p("t_A", "p1")
-///     .p_to_t("p1", "t_B")
-///     .t_to_p("t_B", "sink")
-///     .initial_tokens([("source", 1)])
-///     .build()
-///     .expect("valid net");
+/// let mut b = PetriNetBuilder::new();
+/// b.place("source")
+///  .place("p1")
+///  .place("sink")
+///  .transition("t_A", "register")
+///  .transition("t_B", "approve")
+///  .p_to_t("source", "t_A")
+///  .t_to_p("t_A", "p1")
+///  .p_to_t("p1", "t_B")
+///  .t_to_p("t_B", "sink")
+///  .initial_tokens([("source", 1)]);
+/// let net = b.build().expect("valid net");
 ///
 /// assert!(net.validate().is_ok());
 /// assert_eq!(net.places().len(), 3);
@@ -1870,7 +1871,9 @@ impl PetriNetBuilder {
     ///
     /// ```
     /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let net = PetriNetBuilder::new().place("p1").place("p2").build_unchecked();
+    /// let mut b = PetriNetBuilder::new();
+    /// b.place("p1").place("p2");
+    /// let net = b.build_unchecked();
     /// assert_eq!(net.places().len(), 2);
     /// ```
     pub fn place(&mut self, id: impl Into<String>) -> &mut Self {
@@ -1882,9 +1885,9 @@ impl PetriNetBuilder {
     ///
     /// ```
     /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let net = PetriNetBuilder::new()
-    ///     .place("p").transition("t", "A")
-    ///     .build_unchecked();
+    /// let mut b = PetriNetBuilder::new();
+    /// b.place("p").transition("t", "A");
+    /// let net = b.build_unchecked();
     /// assert!(!net.transitions()[0].is_silent());
     /// ```
     pub fn transition(&mut self, id: impl Into<String>, label: impl Into<String>) -> &mut Self {
@@ -1899,9 +1902,9 @@ impl PetriNetBuilder {
     ///
     /// ```
     /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let net = PetriNetBuilder::new()
-    ///     .place("p").silent("tau_split")
-    ///     .build_unchecked();
+    /// let mut b = PetriNetBuilder::new();
+    /// b.place("p").silent("tau_split");
+    /// let net = b.build_unchecked();
     /// assert!(net.transitions()[0].is_silent());
     /// ```
     pub fn silent(&mut self, id: impl Into<String>) -> &mut Self {
