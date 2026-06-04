@@ -238,12 +238,6 @@ pub mod formats;
 /// Opt-in boundary judgment: strict admission/refusal declaration surfaces.
 #[cfg(feature = "strict")]
 pub mod strict;
-/// Browser TypeScript law projections.
-#[cfg(feature = "ts")]
-pub mod ts;
-/// WebAssembly boundary projections and ABI bindings.
-#[cfg(feature = "wasm")]
-pub mod wasm;
 
 // ── Test helper builders (test-only) ────────────────────────────────────────
 
@@ -271,13 +265,14 @@ pub mod nightly_foundry;
 // `wasm4pm_compat::ids::EventId`. They do not replace the submodule paths.
 
 pub use crate::admission::{Admission, Admit, Refusal};
+pub use crate::dfg::{DfgMiner, DirectlyFollowsGraph};
 pub use crate::eventlog::{Event, EventLog, EventLogClassifier, Trace};
 pub use crate::evidence::Evidence;
 pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
 pub use crate::loss::{LossPolicy, ProjectionName};
 pub use crate::ocel::OcelLog;
-pub use crate::dfg::{DirectlyFollowsGraph, DfgMiner};
 pub use crate::petri::{PetriNet, PetriNetBuilder, WfNet, WfNetConst};
+pub use crate::powl8_op::{Powl8Op, Powl8OpError};
 pub use crate::receipt::Blake3Hash;
 pub use crate::receipt::ProvenanceChain;
 pub use crate::receipt::ReceiptEnvelope;
@@ -287,5 +282,4 @@ pub use crate::workflow::{
     BranchToken, Canceled, Completed, CompletedWorkflow, JoinPoint, ParallelWorkflow, Pending,
     Running,
 };
-pub use crate::powl8_op::{Powl8Op, Powl8OpError};
 pub use crate::xes::XesLog;

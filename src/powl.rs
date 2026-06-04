@@ -836,12 +836,14 @@ impl ChoiceGraph {
     /// assert_eq!(cg.start_idx, 0);
     /// assert_eq!(cg.end_idx, 1);
     /// ```
-    pub fn new(
-        nodes: Vec<StandaloneChoiceGraphNode>,
-        edges: Vec<(usize, usize)>,
-    ) -> Self {
+    pub fn new(nodes: Vec<StandaloneChoiceGraphNode>, edges: Vec<(usize, usize)>) -> Self {
         let end_idx = nodes.len().saturating_sub(1);
-        ChoiceGraph { nodes, edges, start_idx: 0, end_idx }
+        ChoiceGraph {
+            nodes,
+            edges,
+            start_idx: 0,
+            end_idx,
+        }
     }
 
     /// Collect the indices of all direct successors of `node_idx`.

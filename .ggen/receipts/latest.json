@@ -1,8 +1,10 @@
 {
-  "operation_id": "f5fa8ed5-510e-425a-9757-ec48c8cd41b9",
-  "timestamp": "2026-06-01T19:30:48.298667Z",
+  "operation_id": "26346073-5abc-4c0b-bb32-e411b0ebbf86",
+  "timestamp": "2026-06-03T23:55:57.565979Z",
   "input_hashes": [],
-  "output_hashes": [],
-  "signature": "be498c4eb3ac8811b3b0d0a940b5c6a3921c387cb3013e9a066eb53d51508f5794b7c50e3528e17f3d6dbf9c707c81890d25136501df62120d512d76fddf4006",
-  "previous_receipt_hash": null
+  "output_hashes": [
+    "./src/witnesses.rs:415bed3265e95f1068aa453a97f4cd82cfa94044f915d637198076ec99f4fc1d"
+  ],
+  "signature": "c36a2bfd9ad72a8d8c641a8c6be7e117bdd30d70779546b073a85a285baf2f1f10215bdff0f728feefbd110b390ca221113a2e4d9d16e7a951a60fa9b2afb30a",
+  "previous_receipt_hash": "f2c6241f6b8647fe92d1757c123b7af2e5be45331d7d96f1cb82c24a6576bd47"
 }

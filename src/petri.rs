@@ -1942,9 +1942,8 @@ impl PetriNetBuilder {
         transition_id: impl Into<String>,
         weight: u32,
     ) -> &mut Self {
-        self.arcs.push(
-            Arc::place_to_transition(place_id, transition_id).with_weight(weight),
-        );
+        self.arcs
+            .push(Arc::place_to_transition(place_id, transition_id).with_weight(weight));
         self
     }
 
@@ -1955,9 +1954,8 @@ impl PetriNetBuilder {
         place_id: impl Into<String>,
         weight: u32,
     ) -> &mut Self {
-        self.arcs.push(
-            Arc::transition_to_place(transition_id, place_id).with_weight(weight),
-        );
+        self.arcs
+            .push(Arc::transition_to_place(transition_id, place_id).with_weight(weight));
         self
     }
 

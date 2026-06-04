@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 //! Witness marker declarations — compiled from `wasm4pm-compat.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` instance in the ontology.
@@ -19,7 +8,6 @@
 
 use crate::witness::{Witness, WitnessFamily};
 // witness_marker! is available via #[macro_use] on `mod witness` in lib.rs
-
 
 witness_marker!(
     /// Aggregation view witness — process cube projection to the aggregated (statistical/summary) perspective: summary metrics or aggregate results over a cell.
@@ -443,4 +431,3 @@ witness_marker!(
     "YAWL: Yet Another Workflow Language",
     Some(2004)
 );
-

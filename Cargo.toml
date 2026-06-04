@@ -4,12 +4,26 @@ version = "0.1.0"
 edition = "2021"
 description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
-repository = "https://github.com/wasm4pm/wasm4pm-compat"
+repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
 keywords = ["process-mining", "ocel", "event-log", "evidence", "conformance"]
 categories = ["science", "data-structures"]
+readme = "README.md"
+documentation = "https://docs.rs/wasm4pm-compat"
+exclude = [
+  ".ggen/**",
+  "ggen/**",
+  "checkpoints/**",
+  "AGENT_*",
+  "AGENT_REPORTS/**",
+  ".DS_Store",
+  "docs/.DS_Store",
+  "Cargo.lock",
+  "c8-adversary/**",
+  "emitted/**",
+]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+crate-type = ["rlib"]
 # Doctests require per-doctest nightly feature flags (generic_const_exprs,
 # adt_const_params) that don't propagate from the crate root. Running them
 # as the default incurs 200+ separate rustc invocations on a nightly compiler.
@@ -25,32 +39,10 @@ formats = []
 # strict: Opt-in boundary judgment with stricter admission/refusal surfaces.
 strict = []
 
-# ts: Expose TypeScript law projection for browsers.
-ts = [
-  "dep:specta",
-  "dep:serde",
-  "dep:tsify",
-  "dep:wasm-bindgen",
-]
-
-# wasm: Expose WASM-safe boundary projection and validations.
-wasm = [
-  "dep:wasm-bindgen",
-  "dep:serde-wasm-bindgen",
-  "dep:tsify",
-  "dep:serde",
-  "dep:specta",
-]
-
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"], optional = true }
-specta = { version = "1.0.5", optional = true }
-tsify = { version = "0.4.5", features = ["js"], optional = true }
-wasm-bindgen = { version = "0.2.92", optional = true }
-serde-wasm-bindgen = { version = "0.6", optional = true }
 
 [dev-dependencies]
 trybuild = "1"

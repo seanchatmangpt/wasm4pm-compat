@@ -340,7 +340,11 @@ pub struct UnknownVerifier;
 
 impl<T> VerifyCausalConsistency<T> for UnknownVerifier {
     fn verify(&self, evidence: T) -> ConsistencyVerified<T> {
-        ConsistencyVerified::new(evidence, CausalConsistency::Unknown, ConsistencyProof::new())
+        ConsistencyVerified::new(
+            evidence,
+            CausalConsistency::Unknown,
+            ConsistencyProof::new(),
+        )
     }
 }
 
