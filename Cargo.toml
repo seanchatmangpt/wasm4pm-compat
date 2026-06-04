@@ -20,6 +20,7 @@ exclude = [
   "Cargo.lock",
   "c8-adversary/**",
   "emitted/**",
+  "archive/**",
 ]
 
 [lib]
