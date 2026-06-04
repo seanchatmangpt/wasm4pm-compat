@@ -1,0 +1,122 @@
+[config]
+default_to_workspace = false
+
+# ---------------------------------------------------------------------------
+# Core dev loop
+# ---------------------------------------------------------------------------
+
+[tasks.check]
+description = "Fast type check — default profile (formats feature on)"
+command = "cargo"
+args = ["check"]
+
+[tasks.check-all]
+description = "Type check all features"
+command = "cargo"
+args = ["check", "--all-features"]
+
+[tasks.build]
+description = "Build — default profile"
+command = "cargo"
+args = ["build"]
+
+[tasks.build-all]
+description = "Build — all features"
+command = "cargo"
+args = ["build", "--all-features"]
+
+[tasks.test]
+description = "Run unit + integration tests — default profile"
+command = "cargo"
+args = ["test", "--tests"]
+
+[tasks.test-all]
+description = "Run unit + integration tests — all features"
+command = "cargo"
+args = ["test", "--all-features", "--tests"]
+
+[tasks.test-minimal]
+description = "Run tests — base profile only (no Cargo features)"
+command = "cargo"
+args = ["test", "--no-default-features", "--tests"]
+
+# ---------------------------------------------------------------------------
+# Explicit opt-in surfaces (not part of daily dev loop)
+# ---------------------------------------------------------------------------
+
+[tasks.alive]
+description = "ALIVE gate — type-law receipt tests (trybuild compile-fail/pass fixtures)"
+command = "cargo"
+args = ["test", "--test", "ui_tests", "--", "--ignored"]
+
+[tasks.doc-test]
+description = "Documentation audit — explicit opt-in (slow on nightly)"
+command = "cargo"
+args = ["test", "--doc", "--all-features"]
+
+[tasks.doc]
+description = "Build documentation — all features"
+command = "cargo"
+args = ["doc", "--all-features", "--no-deps"]
+
+# ---------------------------------------------------------------------------
+# Lint and format
+# ---------------------------------------------------------------------------
+
+[tasks.clippy]
+description = "Clippy — all features, deny warnings"
+command = "cargo"
+args = ["clippy", "--all-features", "--", "-D", "warnings"]
+
+[tasks.fmt]
+description = "Check formatting"
+command = "cargo"
+args = ["fmt", "--check"]
+
+[tasks.fmt-fix]
+description = "Apply formatting"
+command = "cargo"
+args = ["fmt"]
+
+# ---------------------------------------------------------------------------
+# Feature-specific builds (for CI verification)
+# ---------------------------------------------------------------------------
+
+[tasks.build-formats]
+description = "Build — formats feature only"
+command = "cargo"
+args = ["build", "--no-default-features", "--features", "formats"]
+
+[tasks.build-strict]
+description = "Build — strict feature only"
+command = "cargo"
+args = ["build", "--no-default-features", "--features", "strict"]
+
+[tasks.build-wasm4pm]
+description = "Build — wasm4pm feature only"
+command = "cargo"
+args = ["build", "--no-default-features", "--features", "wasm4pm"]
+
+# ---------------------------------------------------------------------------
+# ggen provision
+# ---------------------------------------------------------------------------
+
+[tasks.ggen-witnesses]
+description = "Render src/witnesses.rs from ontology via ggen (witness-markers rule)"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "witness-markers", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-dry]
+description = "Dry run — preview witness-markers render without writing"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "witness-markers", "--dry_run", "true", "--manifest", "ggen.toml"]
+
+# ---------------------------------------------------------------------------
+# CI aggregate
+# ---------------------------------------------------------------------------
+
+[tasks.ci]
+description = "Full CI: check-all, test-all, clippy, fmt, alive"
+dependencies = ["check-all", "test-all", "clippy", "fmt", "alive"]

@@ -11,13 +11,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Run only the witness-markers rule** (the only first-class source rule — others write to `audits/`, `tests/`, `scripts/`):
 
 ```bash
-cd ggen && ggen sync --rule witness-markers --manifest ggen.toml
-```
-
-Dry run first to preview without writing:
-
-```bash
-cd ggen && ggen sync --rule witness-markers --dry_run true --manifest ggen.toml
+cargo make ggen-witnesses       # render src/witnesses.rs
+cargo make ggen-witnesses-dry   # dry run — preview without writing
 ```
 
 **Known issue (fixed 2026-06-03):** `inference enabled = false` in `ggen/ggen.toml` — the alive-gate inline SPARQL was broken and has been replaced with a file reference; inference remains disabled as it is not required for the witness-markers rule.
@@ -59,40 +54,42 @@ Doctests are **disabled in the default test run** (`doctest = false` in `Cargo.t
 
 ## Build and verification commands
 
-All verification uses bare `cargo` (rust-toolchain.toml makes it nightly):
+**Always use `cargo make`.** Never direct `cargo` commands.
 
 ```bash
-# Default profile (formats feature on).
-cargo build
-cargo test --tests
-cargo doc --no-deps
+# Dev loop
+cargo make check          # fast type check — default profile
+cargo make check-all      # type check — all features
+cargo make test           # unit + integration — default profile
+cargo make test-all       # unit + integration — all features
+cargo make test-minimal   # base profile only (no features)
 
-# Minimal canon: base profile only, no Cargo features.
-cargo build --no-default-features
-cargo test  --no-default-features --tests
+# Lint and format
+cargo make clippy         # deny warnings, all features
+cargo make fmt            # check formatting
+cargo make fmt-fix        # apply formatting
 
-# Each optional capability stage individually.
-cargo build --no-default-features --features formats
-cargo build --no-default-features --features strict
-cargo build --no-default-features --features wasm4pm
+# Documentation
+cargo make doc            # build docs — all features
+cargo make doc-test       # doctest audit (slow — explicit opt-in)
 
-# All features together.
-cargo build --all-features
-cargo test  --all-features --tests
-cargo doc   --all-features --no-deps
+# Type-law receipt gate (ALIVE gate — explicit opt-in, not daily dev loop)
+cargo make alive          # runs trybuild compile-fail/pass fixtures
 
-# Lint and format.
-cargo clippy --all-features -- -D warnings
-cargo fmt --check
+# Feature-specific CI verification
+cargo make build-formats
+cargo make build-strict
+cargo make build-wasm4pm
 
-# Type-law receipt gates (ALIVE gate — explicit opt-in, not part of daily dev loop).
-cargo test --test ui_tests -- --ignored
+# Full CI
+cargo make ci             # check-all + test-all + clippy + fmt + alive
 
-# Documentation audit (explicit opt-in — not part of daily dev loop).
-cargo test --doc --all-features
+# ggen provision
+cargo make ggen-witnesses      # render src/witnesses.rs
+cargo make ggen-witnesses-dry  # dry run, preview only
 ```
 
-Run a single test by name:
+Run a single test by name (one case where bare cargo is needed):
 
 ```bash
 cargo test <test_name>
