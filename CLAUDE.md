@@ -8,6 +8,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **ggen-lsp is wired.** When you open `.ttl`, `.rq`, `.tera`, or `ggen.toml`, diagnostics push automatically as `<new-diagnostics>`. `GGEN-TPL-001` means a template/query variable mismatch — the provision chain is broken. **Stop and resolve before running `ggen sync`.**
 
+**`src/witnesses.rs` is first-class source.** It is provided by ggen, but it is source.
+- If a defect is a local source shape issue: repair it as source.
+- If a defect belongs to the pack law (TTL/query/template/manifest): repair the seed and re-run ggen.
+- If a direct source patch breaks replay: back-propagate into the seed or ledger the divergence.
+- Never refuse to inspect or reason about the file because ggen provided it.
+
 **Run only the witness-markers rule** (the only first-class source rule — others write to `audits/`, `tests/`, `scripts/`):
 
 ```bash
