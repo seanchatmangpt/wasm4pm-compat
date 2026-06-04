@@ -2,6 +2,32 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ggen provision (CRITICAL — read before touching src/witnesses.rs)
+
+**`src/witnesses.rs` is ggen-rendered source.** Do not hand-edit it. To change a witness, edit the TTL and run `ggen sync`.
+
+**ggen-lsp is wired.** When you open `.ttl`, `.rq`, `.tera`, or `ggen.toml`, diagnostics push automatically as `<new-diagnostics>`. `GGEN-TPL-001` means a template/query variable mismatch — the provision chain is broken. **Stop and resolve before running `ggen sync`.**
+
+**Run only the witness-markers rule** (the only first-class source rule — others write to `audits/`, `tests/`, `scripts/`):
+
+```bash
+cd ggen && ggen sync --rule witness-markers --manifest ggen.toml
+```
+
+Dry run first to preview without writing:
+
+```bash
+cd ggen && ggen sync --rule witness-markers --dry_run true --manifest ggen.toml
+```
+
+**Known issue (fixed 2026-06-03):** `inference enabled = false` in `ggen/ggen.toml` — the alive-gate inline SPARQL was broken and has been replaced with a file reference; inference remains disabled as it is not required for the witness-markers rule.
+
+**Four templates currently have `GGEN-TPL-001` diagnostics** (template/query variable mismatches — do not run those rules until resolved):
+- `compile-fail-fixture.tera` — expects `processFormType`, `rustType`, `witnessA`, `witnessB`
+- `compile-pass-fixture.tera` — expects `description`, `lawName`, `processFormType`, `witnessType`
+- `audit-script.tera` — expects `index`, `moduleName`
+- `open-ontologies-integration.tera` — expects `index`
+
 ## Nightly Rust is required
 
 This crate is **nightly-only**. The `rust-toolchain.toml` pins the toolchain to `nightly`. There is no stable build target, no MSRV, and no stable fallback. Applications must conform upward to this crate's type law, not the other way around.
