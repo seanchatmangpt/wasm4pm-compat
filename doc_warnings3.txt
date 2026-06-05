@@ -1,6 +1,6 @@
     Blocking waiting for file lock on package cache
     Blocking waiting for file lock on package cache
     Blocking waiting for file lock on package cache
- Documenting wasm4pm-compat v26.6.4 (/Users/sac/wasm4pm-compat)
+ Documenting wasm4pm-compat v26.6.5 (/Users/sac/wasm4pm-compat)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 1m 27s
    Generated /Users/sac/wasm4pm-compat/target/doc/wasm4pm_compat/index.html

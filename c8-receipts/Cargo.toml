@@ -1,6 +1,6 @@
 [package]
 name = "c8-receipts"
-version = "0.1.0"
+version = "26.6.5"
 edition = "2021"
 description = "Receipt, proof, and integrity sealing for Construct8 market physics"
 license = "MIT OR Apache-2.0"

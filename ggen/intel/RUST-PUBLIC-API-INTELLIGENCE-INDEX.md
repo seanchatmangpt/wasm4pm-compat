@@ -1,7 +1,7 @@
 # Rust Public API Surface Intelligence Index
 
 **Extraction Date:** 2026-06-01  
-**Crate:** wasm4pm-compat v0.1.0  
+**Crate:** wasm4pm-compat v26.6.5  
 **Toolchain:** nightly (5 unconditional features)  
 **Total Public Modules:** 37 (42 files including ts/ and wasm/ subdirs)
 

@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 ## Prerequisites
 
 - Nightly Rust toolchain.
-- `wasm4pm-compat` version `26.6.4` included in your workspace dependencies.
+- `wasm4pm-compat` version `26.6.5` included in your workspace dependencies.
 
 ---
 

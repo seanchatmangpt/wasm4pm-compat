@@ -1,6 +1,6 @@
 {
   "crate": "wasm4pm-compat",
-  "version": "0.1.0",
+  "version": "26.6.5",
   "description": "Nightly-only, paper-complete, structure-only Rust process-evidence standard",
   "toolchain": "nightly (generic_const_exprs, adt_const_params, const_trait_impl, min_specialization, portable_simd)",
   "extraction_date": "2026-06-01",

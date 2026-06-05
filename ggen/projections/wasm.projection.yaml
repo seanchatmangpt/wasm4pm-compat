@@ -1,5 +1,5 @@
 # WASM Projection Manifest
-# wasm4pm-compat v0.1.0
+# wasm4pm-compat v26.6.5
 # Generated: 2026-06-01
 
 ---
@@ -317,7 +317,7 @@ generated_artifacts:
       contains: |
         {
           "name": "wasm4pm-compat",
-          "version": "0.1.0",
+          "version": "26.6.5",
           "main": "wasm4pm_compat.js",
           "types": "wasm4pm_compat.d.ts",
           "files": ["*.wasm", "*.js", "*.d.ts"],

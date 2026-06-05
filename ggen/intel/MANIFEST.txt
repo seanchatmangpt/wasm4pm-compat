@@ -1,6 +1,6 @@
 ================================================================================
 CARGO FEATURE LAW INTELLIGENCE MANIFEST
-wasm4pm-compat v0.1.0
+wasm4pm-compat v26.6.5
 Generated: 2026-06-01
 ================================================================================
 
@@ -231,7 +231,7 @@ VERSION & AUDIT LOG
 Intelligence Version:   1.0 (initial audit)
 Audit Date:             2026-06-01
 Auditor:                Claude Code (haiku-4-5)
-wasm4pm-compat Version: 0.1.0 (at time of audit)
+wasm4pm-compat Version: 26.6.5 (at time of audit)
 Rust Toolchain:         nightly (unconditional, no MSRV)
 
 Audit Scope:

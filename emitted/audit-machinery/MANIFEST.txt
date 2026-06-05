@@ -154,7 +154,7 @@ Manifest: /Users/sac/wasm4pm-compat/emitted/audit-machinery/MANIFEST.txt
 
 VERSION:
 ========
-Ontology Version: 0.1.0
+Ontology Version: 26.6.5
 Generated: 2026-06-01
-Report Version: 0.1.0
-Integration Version: 0.1.0
+Report Version: 26.6.5
+Integration Version: 26.6.5

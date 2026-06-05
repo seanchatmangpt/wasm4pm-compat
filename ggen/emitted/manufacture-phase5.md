@@ -209,7 +209,7 @@ wasm4pm-compat/
 
 ggen.toml configuration:
 - **Project name:** wasm4pm-compat
-- **Version:** 0.1.0
+- **Version:** 26.6.5
 - **Output directory:** `..` (parent of ggen/)
 - **Inference enabled:** false
 - **Sync enabled:** true (on-change: manual, validate-after: true)

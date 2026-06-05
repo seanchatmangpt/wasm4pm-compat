@@ -459,6 +459,6 @@ Use this checklist to verify audit machinery is correctly integrated:
 
 ---
 
-**Document Version:** 0.1.0  
+**Document Version:** 26.6.5  
 **Last Updated:** 2026-06-01  
 **Maintainer:** SPARC Audit Machinery

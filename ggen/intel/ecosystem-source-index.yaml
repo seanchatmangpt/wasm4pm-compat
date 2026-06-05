@@ -10,7 +10,7 @@
 
 metadata:
   project: wasm4pm-compat
-  version: 0.1.0
+  version: 26.6.5
   census_date: "2026-06-01"
   census_scope: "Projection manufacturing ecosystem: tools, crates, standards, documentation"
   authority: "Sean Chatman"

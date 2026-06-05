@@ -22,7 +22,7 @@ substrate:GgenSubstrate
     a owl:Ontology ;
     rdfs:label "wasm4pm-compat ggen substrate" ;
     rdfs:comment "Meta-ontology: the ggen generation pipeline described as RDF triples. Every rule wiring a query to a template and an output is an instance of substrate:GenerationRule." ;
-    owl:versionInfo "0.1.0" .
+    owl:versionInfo "26.6.5" .
 
 # ============================================================================
 # CLASSES

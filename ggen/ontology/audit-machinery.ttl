@@ -31,7 +31,7 @@
     rdfs:label "SPARC Audit Machinery Ontology" ;
     rdfs:comment "Machine-readable specification of audit law surfaces for the wasm4pm-compat nightly-first crate. Represents audit specifications, enforcement templates, executable audit gates, forbidden patterns, gaps, and evidence collection machinery. Integration point with wasm4pm-compat type law and process-mining-chicago-tdd hostile assumptions." ;
     owl:imports <https://wasm4pm-compat.rs/ontology> ;
-    owl:versionInfo "0.1.0" ;
+    owl:versionInfo "26.6.5" ;
     dct:created "2026-06-01"^^xsd:date ;
     dct:creator "SPARC Audit Machinery" .
 

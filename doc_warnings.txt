@@ -1,5 +1,5 @@
     Blocking waiting for file lock on build directory
- Documenting wasm4pm-compat v26.6.4 (/Users/sac/wasm4pm-compat)
+ Documenting wasm4pm-compat v26.6.5 (/Users/sac/wasm4pm-compat)
 warning: unresolved link to `BpmnProcess`
   |
   = note: the link appears in this line:

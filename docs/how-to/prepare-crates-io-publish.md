@@ -4,14 +4,14 @@ This guide outlines the step-by-step procedure required to prepare the `wasm4pm-
 
 ---
 
-## 1. Context & Manifest Version Discrepancies
+## 1. Context & Manifest Version Alignment
 
-A known constraint in the `wasm4pm-compat` workspace is the **version discrepancy** between the root crate and the workspace subcrates:
-- **Root Crate (`wasm4pm-compat`)**: Configured at version `26.6.4` in the root `Cargo.toml`.
-- **Subcrates (`c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`, `c8-adversary`)**: Frozen at version `0.1.0` due to historical integration constraints.
-- **Derived Manifests (`ggen-witness.toml`, `ggen/package.toml`)**: Also frozen at version `0.1.0`.
+The `wasm4pm-compat` workspace maintains strict version alignment across the root crate and all subcrates:
+- **Root Crate (`wasm4pm-compat`)**: Configured at version `26.6.5` in the root `Cargo.toml`.
+- **Subcrates (`c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`, `c8-adversary`)**: Configured at version `26.6.5`.
+- **Derived Manifests (`ggen-witness.toml`, `ggen/package.toml`)**: Also at version `26.6.5`.
 
-When preparing the release, the publisher must ensure this discrepancy does not trigger unexpected compilation or resolution failures.
+When preparing the release, the publisher must ensure all crates are consistently bumped.
 
 ---
 
@@ -84,4 +84,4 @@ Do not execute the final publish command unless you have received clear, written
 
 - Back to [README](../../README.md)
 - [Publish Readiness Checklist](../reference/publish-checklist.md)
-- [Verification Report](../reports/v26.6.4-verification-report.md)
+- [Verification Report](../reports/v26.6.5-verification-report.md)

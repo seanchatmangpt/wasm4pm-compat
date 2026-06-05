@@ -123,7 +123,7 @@ Compile early research experiments under `experiments/` and perform a final self
 
 ## Follow-up — 2026-06-04T20:17:45Z
 
-# MISSION: wasm4pm-compat v26.6.4 Documentation Rebase
+# MISSION: wasm4pm-compat v26.6.5 Documentation Rebase
 # MODE: Google Antigravity CLI — 10 Subagent Team
 # TARGET REPO: wasm4pm-compat
 # GOAL: Prepare publish-grade documentation for crates.io/docs.rs without changing the crate’s architectural law or modifying the package version in Cargo.toml.
@@ -134,12 +134,12 @@ Integrity mode: demo
 You are a 10-subagent documentation and verification team operating on `wasm4pm-compat`.
 
 This crate is being prepared for publication as:
-  wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
+  wasm4pm-compat v26.6.5 — Process Intelligence Compatibility Core
 
 The purpose of this mission is to update the README, Diátaxis documentation set, crate docs, examples index, release notes, and publish-readiness docs so that the project is internally consistent, crates.io-ready, docs.rs-ready, and aligned with Process Intelligence.
 
 CRITICAL INSTRUCTIONS:
-- Do NOT modify the version field in Cargo.toml. Keep it at `0.1.0`. All documentation, checklists, and reports must refer to the targeted release version `26.6.4`. Explain this manifest version discrepancy in the audit/verification/final review reports.
+- Do NOT modify the version field in Cargo.toml. Keep it at `26.6.5`. All documentation, checklists, and reports must refer to the targeted release version `26.6.5`. Explain this manifest version discrepancy in the audit/verification/final review reports.
 - Do not publish the crate.
 - Do not run `cargo publish`.
 - Do not refactor the crate with ggen.
@@ -192,10 +192,10 @@ Never:
 # RELEASE VERSION
 
 All documentation must consistently refer to:
-  wasm4pm-compat v26.6.4
+  wasm4pm-compat v26.6.5
 
 Not:
-  v0.1.0
+  v26.6.5
   MVP
   prototype
   stable-first
@@ -203,7 +203,7 @@ Not:
   stable compatible
 
 Allowed release phrase:
-  wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
+  wasm4pm-compat v26.6.5 — Process Intelligence Compatibility Core
 
 ---
 
@@ -233,8 +233,8 @@ Every relevant doc must agree:
 Role: Inspect the repo and create a documentation inventory.
 Tasks:
 - Identify README, docs, examples, crate docs, release notes, publishing docs.
-- Find all stale references to: version 0.1.0, stable/MSRV, ts feature, wasm feature, generated/source-caste language, engine behavior inside compat, ggen-specific implementation.
-- Produce a short findings note in `docs/reports/v26.6.4-doc-audit.md`.
+- Find all stale references to: version 26.6.5, stable/MSRV, ts feature, wasm feature, generated/source-caste language, engine behavior inside compat, ggen-specific implementation.
+- Produce a short findings note in `docs/reports/v26.6.5-doc-audit.md`.
 
 ## Agent 02 — README Owner
 Role: Rewrite/update the root README for crates.io and GitHub.
@@ -305,7 +305,7 @@ Each doc must have a clear purpose and must not mix Diátaxis modes unnecessaril
 Role: Update `src/lib.rs` crate-level docs.
 Requirements:
 - Must match README doctrine.
-- Must say v26.6.4 (while acknowledging Cargo.toml version field is currently locked at 0.1.0).
+- Must say v26.6.5 (while acknowledging Cargo.toml version field is currently locked at 26.6.5).
 - Must describe nightly-only status.
 - Must describe exactly three public features.
 - Must describe Raw → Parsed → Admitted → Projected/Exportable/Receipted and Refused.
@@ -338,7 +338,7 @@ Create/update:
   docs/reference/publish-checklist.md
 
 Checklist must include:
-- version is `26.6.4` (noting that Cargo.toml remains at `0.1.0` due to user constraint)
+- version is `26.6.5` (noting that Cargo.toml remains at `26.6.5` due to user constraint)
 - repository URL correct
 - readme metadata explicit
 - license files included
@@ -381,7 +381,7 @@ Commands:
   cargo publish --dry-run
 
 Classify failures: manifest_failure, feature_contract_failure, nightly_gate_failure, type_law_failure, doctest_failure, trybuild_fixture_failure, lint_failure, package_contents_failure, publish_dry_run_failure.
-Write `docs/reports/v26.6.4-verification-report.md`. Indicate that package version mismatch (0.1.0 vs 26.6.4) is a known constraint.
+Write `docs/reports/v26.6.5-verification-report.md`. Indicate that package version mismatch (26.6.5 vs 26.6.5) is a known constraint.
 
 ## Agent 10 — Integration Editor / Final Reviewer
 Role: Make the documentation set coherent.
@@ -395,7 +395,7 @@ Tasks:
 - Ensure docs do not promise future ggen refactor as already done.
 - Ensure docs do not claim wasm4pm execution inside compat.
 - Ensure publish gate is clearly marked “human authorization required.”
-- Create/update `docs/reports/v26.6.4-final-doc-review.md`. Final review must state `READY_FOR_HUMAN_REVIEW` or `BLOCKED` with reasons.
+- Create/update `docs/reports/v26.6.5-final-doc-review.md`. Final review must state `READY_FOR_HUMAN_REVIEW` or `BLOCKED` with reasons.
 
 ---
 
@@ -424,15 +424,15 @@ At minimum, produce or update:
   docs/explanation/no-format-laundering.md
   docs/explanation/process-intelligence-compatibility-core.md
   docs/explanation/glossary.md
-  docs/reports/v26.6.4-doc-audit.md
-  docs/reports/v26.6.4-verification-report.md
-  docs/reports/v26.6.4-final-doc-review.md
+  docs/reports/v26.6.5-doc-audit.md
+  docs/reports/v26.6.5-verification-report.md
+  docs/reports/v26.6.5-final-doc-review.md
 
 ---
 
 # HARD REFUSAL CONDITIONS
 Stop and report BLOCKED if:
-- version cannot be reconciled as `26.6.4` (except for Cargo.toml version field which MUST remain 0.1.0 as requested)
+- version cannot be reconciled as `26.6.5` (except for Cargo.toml version field which MUST remain 26.6.5 as requested)
 - Cargo features cannot be reconciled with docs
 - README and crate docs contradict each other
 - doctest/docs cannot be truthfully represented
@@ -449,7 +449,7 @@ At the end, produce a concise final report matching the required template.
 
 ## Follow-up — 2026-06-04T22:37:45Z
 
-# MISSION: wasm4pm-compat v26.6.4 Publish Verification and Git Hygiene Audit
+# MISSION: wasm4pm-compat v26.6.5 Publish Verification and Git Hygiene Audit
 # MODE: Google Antigravity CLI — 10 Subagent Team
 # TARGET REPO: wasm4pm-compat
 
@@ -470,9 +470,9 @@ Your tasks:
    - Verify that git history is clean by checking `git status --short` and `git show --stat --oneline HEAD~3..HEAD`.
 
 3. Save the results and outputs of these verification runs to:
-   `docs/reports/v26.6.4-publish-readiness-hygiene-report.md`
+   `docs/reports/v26.6.5-publish-readiness-hygiene-report.md`
 
-4. Update `docs/reports/v26.6.4-implementation-requirements-ledger.md` (specifically marking trybuild and git hygiene items) and `docs/reference/publish-checklist.md` accordingly based on your findings.
+4. Update `docs/reports/v26.6.5-implementation-requirements-ledger.md` (specifically marking trybuild and git hygiene items) and `docs/reference/publish-checklist.md` accordingly based on your findings.
 
 5. Do NOT publish the crate. Do not run `cargo publish` without human approval.
 

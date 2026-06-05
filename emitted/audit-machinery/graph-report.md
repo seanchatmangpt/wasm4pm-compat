@@ -550,5 +550,5 @@ ORDER BY ?timestamp DESC
 ---
 
 **Report Generated:** 2026-06-01 by SPARC Audit Machinery  
-**Ontology Version:** 0.1.0  
+**Ontology Version:** 26.6.5  
 **License:** Same as wasm4pm-compat (nightly-first, zero-cost type law)

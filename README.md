@@ -1,4 +1,4 @@
-# wasm4pm-compat v26.6.4 — Process Intelligence Compatibility Core
+# wasm4pm-compat v26.6.5 — Process Intelligence Compatibility Core
 
 ![nightly-only](https://img.shields.io/badge/toolchain-nightly--only-orange)
 ![no-unsafe](https://img.shields.io/badge/unsafe-forbid%28unsafe__code%29-red)
@@ -8,9 +8,9 @@
 
 ---
 
-## Version Mapping and Cargo.toml Discrepancy
+## Version Alignment
 
-To satisfy specific user package constraints, local integration environments, and downstream compatibility checks, the version field in the root `Cargo.toml` is set to `0.1.0`. However, the logical system version, target specification, and documented release standard for this codebase is `26.6.4`. All API behaviors, validation logic, and diagnostic receipts in this repository are designed to conform to the **`wasm4pm-compat v26.6.4`** standard.
+The logical system version, target specification, and documented release standard for this codebase is `26.6.5`. All API behaviors, validation logic, and diagnostic receipts in this repository are designed to conform to the **`wasm4pm-compat v26.6.5`** standard. The root crate, workspace subcrates, and derived manifests are all natively configured to `26.6.5`.
 
 ---
 
@@ -197,7 +197,7 @@ The documentation for `wasm4pm-compat` is organized according to the [Diátaxis]
     *   [Preparing for a Crates.io Release](docs/how-to/prepare-crates-io-publish.md) - Release preparation steps.
 *   **Research & Reports**:
     *   [Process Theory Alignment](research/process-theory-alignment.md) - Mathematical alignment with literature.
-    *   [Verification Report](docs/reports/v26.6.4-verification-report.md) - Status of mandatory verification gates.
+    *   [Verification Report](docs/reports/v26.6.5-verification-report.md) - Status of mandatory verification gates.
 
 ---
 

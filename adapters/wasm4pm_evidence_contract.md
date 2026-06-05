@@ -608,7 +608,7 @@ Create a new crate `wasm4pm-market-evidence` shared by both when:
 # wasm4pm-market-evidence/Cargo.toml
 [package]
 name = "wasm4pm-market-evidence"
-version = "0.1.0"
+version = "26.6.5"
 edition = "2021"
 
 [features]

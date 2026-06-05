@@ -14,7 +14,7 @@
   Template engine: Tera (https://tera.netlify.app/)
   Expected context variables:
     {{ package_name }}   — WIT package name segment, e.g. "compat"
-    {{ version }}        — Semantic version string, e.g. "0.1.0"
+    {{ version }}        — Semantic version string, e.g. "26.6.5"
     {{ feature_gate }}   — One of: "base" | "formats" | "strict" | "wasm4pm" | "all"
     {{ types }}          — Optional list of extra record names to include in the
                            types interface.  Defaults to [].

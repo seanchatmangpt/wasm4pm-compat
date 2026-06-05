@@ -1,6 +1,6 @@
 # How-To: Running the ALIVE Gate (Trybuild Verification)
 
-This guide shows you how to run and manage the ALIVE Gate UI compilation test suite for `wasm4pm-compat` version `26.6.4`. 
+This guide shows you how to run and manage the ALIVE Gate UI compilation test suite for `wasm4pm-compat` version `26.6.5`. 
 
 ---
 

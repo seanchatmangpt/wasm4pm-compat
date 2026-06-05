@@ -235,7 +235,7 @@ impl OcelObject {
 /// Existing code using `Object` continues to compile. New code should prefer
 /// [`OcelObject`].
 #[deprecated(
-    since = "0.1.0",
+    since = "26.6.5",
     note = "use `OcelObject` — the unambiguous name for the OCEL object shape"
 )]
 pub type Object = OcelObject;

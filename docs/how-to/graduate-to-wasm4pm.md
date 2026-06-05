@@ -1,6 +1,6 @@
 # How-To: Graduating to the wasm4pm Execution Engine
 
-This guide demonstrates how to declare a graduation candidate, implement the `GraduateToWasm4pm` trait, and bridge your process-evidence data from the structure-only compatibility layer to the `wasm4pm` execution engine in version `26.6.4`.
+This guide demonstrates how to declare a graduation candidate, implement the `GraduateToWasm4pm` trait, and bridge your process-evidence data from the structure-only compatibility layer to the `wasm4pm` execution engine in version `26.6.5`.
 
 ---
 
@@ -16,7 +16,7 @@ To compile the graduation traits and structures, enable the `wasm4pm` feature fl
 
 ```toml
 [dependencies]
-wasm4pm-compat = { version = "0.1.0", features = ["wasm4pm"] }
+wasm4pm-compat = { version = "26.6.5", features = ["wasm4pm"] }
 ```
 
 ---
