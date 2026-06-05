@@ -20,9 +20,9 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **Styling & Fmt** | `cargo fmt --check` |  | Adheres to rustfmt rules. |
-| **Static Analysis** | `cargo clippy --all-features -- -D warnings` |  | Clean compilation under warnings-as-errors. |
-| **Library Build** | `cargo build --all-features` |  | Compiles successfully. |
+| **Styling & Fmt** | `cargo fmt --check` | PASS | Adheres to rustfmt rules. |
+| **Static Analysis** | `cargo clippy --all-features -- -D warnings` | PASS | Clean compilation under warnings-as-errors. |
+| **Library Build** | `cargo build --all-features` | PASS | Compiles successfully. |
 
 ---
 
@@ -30,9 +30,9 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **Unit & Integration** | `cargo test --all-features --tests` |  | All 132 logical boundary tests must pass. |
-| **Doctests** | `cargo test --doc --all-features` |  | Standard inline doc examples must compile and pass. |
-| **Trybuild (UI)** | `cargo test --test ui_tests -- --ignored` |  | Compile-time negative and positive boundary law checks. |
+| **Unit & Integration** | `cargo test --all-features --tests` | PASS | All 132 logical boundary tests passed. |
+| **Doctests** | `cargo test --doc --all-features` | PASS | Standard inline doc examples compile and pass (exactly zero warnings). |
+| **Trybuild (UI)** | `cargo test --test ui_tests -- --ignored` | PASS | All 409 UI tests compiled and passed. |
 
 ---
 
@@ -40,8 +40,8 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **File Exclusions** | `cargo package --list` |  | Ensure no `.agents/` or `target/` directories are listed. |
-| **Dry-Run Publish** | `cargo publish --dry-run` |  | Simulates registry packaging and checks dependencies. |
+| **File Exclusions** | `cargo package --list` | PASS | Tracked .DS_Store untracked and LSP build directories ignored. |
+| **Dry-Run Publish** | `cargo publish --dry-run` | PASS | Passes cleanly with dry-run upload aborted. |
 
 ---
 

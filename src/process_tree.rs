@@ -6,9 +6,9 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of process trees: [`ProcessTree`],
-//!   [`ProcessTreeNode`], and the closed [`ProcessTreeOperator`] enumeration.
-//! - A first-class [`ProcessTreeRefusal`] surface naming exactly why a tree
+//! - The structural vocabulary of process trees: [`crate::process_tree::ProcessTree`],
+//!   [`crate::process_tree::ProcessTreeNode`], and the closed [`crate::process_tree::ProcessTreeOperator`] enumeration.
+//! - A first-class [`crate::process_tree::ProcessTreeRefusal`] surface naming exactly why a tree
 //!   shape is inadmissible.
 //!
 //! ## What this module is **NOT**

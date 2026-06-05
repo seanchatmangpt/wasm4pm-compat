@@ -8,9 +8,9 @@
 //!
 //! - Structure-only typed shapes for causal links, causal chains, and the
 //!   causal consistency verdict of an object-centric log.
-//! - A zero-cost [`CausalOrderWitness`] tag that names the authority under
+//! - A zero-cost [`crate::causality::CausalOrderWitness`] tag that names the authority under
 //!   which causal ordering has been established.
-//! - A [`CausallyOrderedEvidence`] envelope that distinguishes evidence with
+//! - A [`crate::causality::CausallyOrderedEvidence`] envelope that distinguishes evidence with
 //!   verified causal ordering from evidence without it at the type level.
 //!
 //! ## What this module is NOT
@@ -144,13 +144,13 @@ impl<const LENGTH: usize> Default for CausalChain<LENGTH> {
 ///
 /// ## Variants
 ///
-/// - [`Consistent`](CausalConsistency::Consistent) — all cross-object causal
-///   links are mutually consistent; no cycles, no contradictions.
-/// - [`HasCycles`](CausalConsistency::HasCycles) — at least one causal cycle
-///   was detected in the cross-object ordering.
-/// - [`HasContradictions`](CausalConsistency::HasContradictions) — at least
-///   one contradictory causal ordering claim was found.
-/// - [`Unknown`](CausalConsistency::Unknown) — causal consistency has not yet
+/// - [`Consistent`](crate::causality::CausalConsistency::Consistent) — all cross-object causal
+///   chains form a strict, cycle-free partial order.
+/// - [`HasCycles`](crate::causality::CausalConsistency::HasCycles) — at least one causal cycle
+///   was detected (e.g. `e1 → e2 → e1`), violating the posets constraint.
+/// - [`HasContradictions`](crate::causality::CausalConsistency::HasContradictions) — at least
+///   two causal links contradict each other.
+/// - [`Unknown`](crate::causality::CausalConsistency::Unknown) — causal consistency has not yet
 ///   been established (the log has not been mined).
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CausalConsistency {
@@ -251,7 +251,7 @@ impl ConsistencyProof {
 /// An evidence value paired with a verified `CausalConsistency` verdict.
 ///
 /// `ConsistencyVerified<T>` can only be constructed via
-/// [`VerifyCausalConsistency::verify`]. The inner value is accessible via
+/// [`crate::causality::VerifyCausalConsistency::verify`]. The inner value is accessible via
 /// `.inner`; the verdict via `.verdict()`.
 ///
 /// ## Chicago TDD Rank-2 Oracle
@@ -286,14 +286,26 @@ impl<T> ConsistencyVerified<T> {
 
     /// The causal consistency verdict established by the verifier.
     ///
-    /// If the verifier produced [`CausalConsistency::Consistent`], all
-    /// cross-object causal dependencies are mutually ordered. Any other
-    /// verdict names a specific failure mode.
+    /// If the verifier produced [`crate::causality::CausalConsistency::Consistent`], all
+    /// cross-object causal chains are certified cycle-free.
+    ///
+    /// ## Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::causality::{CausalConsistency, VerifyCausalConsistency, UnknownVerifier};
+    ///
+    /// let verifier = UnknownVerifier;
+    /// let verified = verifier.verify(true);
+    /// assert_eq!(verified.verdict(), CausalConsistency::Unknown);
+    /// assert!(!verified.is_consistent());
+    /// ```
+    ///
+    /// True iff the verdict is [`crate::causality::CausalConsistency::Consistent`].
     pub fn verdict(&self) -> CausalConsistency {
         self.verdict
     }
 
-    /// True iff the verdict is [`CausalConsistency::Consistent`].
+    /// True iff the verdict is [`crate::causality::CausalConsistency::Consistent`].
     pub fn is_consistent(&self) -> bool {
         self.verdict == CausalConsistency::Consistent
     }

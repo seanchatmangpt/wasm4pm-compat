@@ -1,0 +1,1352 @@
+    Blocking waiting for file lock on build directory
+ Documenting wasm4pm-compat v26.6.4 (/Users/sac/wasm4pm-compat)
+warning: unresolved link to `BpmnProcess`
+  |
+  = note: the link appears in this line:
+          
+          language. This module models its *graph shape*: a [`BpmnProcess`] is a set of
+                                                             ^^^^^^^^^^^^^
+  = note: no item named `BpmnProcess` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+  = note: `#[warn(rustdoc::broken_intra_doc_links)]` on by default
+
+warning: unresolved link to `BpmnNode`
+  |
+  = note: the link appears in this line:
+          
+          [`BpmnNode`]s (each a [`BpmnTask`], [`BpmnGateway`], or [`BpmnEvent`])
+           ^^^^^^^^^^
+  = note: no item named `BpmnNode` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `BpmnTask`
+  |
+  = note: the link appears in this line:
+          
+          [`BpmnNode`]s (each a [`BpmnTask`], [`BpmnGateway`], or [`BpmnEvent`])
+                                 ^^^^^^^^^^
+  = note: no item named `BpmnTask` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `BpmnGateway`
+  |
+  = note: the link appears in this line:
+          
+          [`BpmnNode`]s (each a [`BpmnTask`], [`BpmnGateway`], or [`BpmnEvent`])
+                                               ^^^^^^^^^^^^^
+  = note: no item named `BpmnGateway` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `BpmnEvent`
+  |
+  = note: the link appears in this line:
+          
+          [`BpmnNode`]s (each a [`BpmnTask`], [`BpmnGateway`], or [`BpmnEvent`])
+                                                                   ^^^^^^^^^^^
+  = note: no item named `BpmnEvent` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `BpmnEdge`
+  |
+  = note: the link appears in this line:
+          
+          connected by directed [`BpmnEdge`]s (sequence flows).
+                                 ^^^^^^^^^^
+  = note: no item named `BpmnEdge` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `BpmnProcess::validate`
+  |
+  = note: the link appears in this line:
+          
+          analysis. [`BpmnProcess::validate`] checks only *graph* laws: nodes are
+                     ^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `BpmnProcess` in scope
+
+warning: unresolved link to `BpmnProcess`
+  |
+  = note: the link appears in this line:
+          
+          An admitted [`BpmnProcess`] is a well-shaped model graph. Soundness analysis,
+                       ^^^^^^^^^^^^^
+  = note: no item named `BpmnProcess` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `CausalOrderWitness`
+  |
+  = note: the link appears in this line:
+          
+          - A zero-cost [`CausalOrderWitness`] tag that names the authority under
+                         ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `CausalOrderWitness` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `CausallyOrderedEvidence`
+  |
+  = note: the link appears in this line:
+          
+          - A [`CausallyOrderedEvidence`] envelope that distinguishes evidence with
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `CausallyOrderedEvidence` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Fitness`
+  |
+  = note: the link appears in this line:
+          
+          - Bounded `[0, 1]` newtypes [`Fitness`], [`Precision`], [`F1`] that *carry* a
+                                       ^^^^^^^^^
+  = note: no item named `Fitness` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Precision`
+  |
+  = note: the link appears in this line:
+          
+          - Bounded `[0, 1]` newtypes [`Fitness`], [`Precision`], [`F1`] that *carry* a
+                                                    ^^^^^^^^^^^
+  = note: no item named `Precision` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `F1`
+  |
+  = note: the link appears in this line:
+          
+          - Bounded `[0, 1]` newtypes [`Fitness`], [`Precision`], [`F1`] that *carry* a
+                                                                   ^^^^
+  = note: no item named `F1` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Deviation`
+  |
+  = note: the link appears in this line:
+          
+          - The [`Deviation`] shape and the alignment move markers [`SyncMove`],
+                 ^^^^^^^^^^^
+  = note: no item named `Deviation` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SyncMove`
+  |
+  = note: the link appears in this line:
+          
+          - The [`Deviation`] shape and the alignment move markers [`SyncMove`],
+                                                                    ^^^^^^^^^^
+  = note: no item named `SyncMove` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LogOnlyMove`
+  |
+  = note: the link appears in this line:
+          
+            [`LogOnlyMove`], [`ModelOnlyMove`].
+             ^^^^^^^^^^^^^
+  = note: no item named `LogOnlyMove` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ModelOnlyMove`
+  |
+  = note: the link appears in this line:
+          
+            [`LogOnlyMove`], [`ModelOnlyMove`].
+                              ^^^^^^^^^^^^^^^
+  = note: no item named `ModelOnlyMove` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ConformanceVerdict`
+  |
+  = note: the link appears in this line:
+          
+          - The aggregate [`ConformanceVerdict`] shape.
+                           ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ConformanceVerdict` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ConformanceRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`ConformanceRefusal`] surface naming exactly why a verdict
+                           ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ConformanceRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `CorrelationWitness`
+  |
+  = note: the link appears in this line:
+          
+          - A zero-cost [`CorrelationWitness`] tag that names the authority under
+                         ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `CorrelationWitness` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `CorrelatedLog`
+  |
+  = note: the link appears in this line:
+          
+          - A [`CorrelatedLog`] envelope that distinguishes a merged log (produced
+               ^^^^^^^^^^^^^^^
+  = note: no item named `CorrelatedLog` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Activity`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of Declare: [`Activity`], [`DeclareTemplate`],
+                                                   ^^^^^^^^^^
+  = note: no item named `Activity` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DeclareTemplate`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of Declare: [`Activity`], [`DeclareTemplate`],
+                                                                 ^^^^^^^^^^^^^^^^^
+  = note: no item named `DeclareTemplate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DeclareScope`
+  |
+  = note: the link appears in this line:
+          
+            [`DeclareScope`], and [`DeclareConstraint`].
+             ^^^^^^^^^^^^^^
+  = note: no item named `DeclareScope` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DeclareConstraint`
+  |
+  = note: the link appears in this line:
+          
+            [`DeclareScope`], and [`DeclareConstraint`].
+                                   ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `DeclareConstraint` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DeclareRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`DeclareRefusal`] surface naming exactly why a constraint
+                           ^^^^^^^^^^^^^^^^
+  = note: no item named `DeclareRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Dfg`
+  |
+  = note: the link appears in this line:
+          
+          often. This module models the *graph value*: a [`Dfg`] is a set of
+                                                          ^^^^^
+  = note: no item named `Dfg` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DfgNode`
+  |
+  = note: the link appears in this line:
+          
+          [`DfgNode`]s (activities) joined by weighted [`DfgEdge`]s, each carrying a
+           ^^^^^^^^^
+  = note: no item named `DfgNode` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DfgEdge`
+  |
+  = note: the link appears in this line:
+          
+          [`DfgNode`]s (activities) joined by weighted [`DfgEdge`]s, each carrying a
+                                                        ^^^^^^^^^
+  = note: no item named `DfgEdge` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DfgWeight`
+  |
+  = note: the link appears in this line:
+          
+          [`DfgWeight`] (a directly-follows frequency).
+           ^^^^^^^^^^^
+  = note: no item named `DfgWeight` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DfgRefusal::DiscoveryRequired`
+  |
+  = note: the link appears in this line:
+          
+          [`DfgRefusal::DiscoveryRequired`].
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `DfgRefusal` in scope
+
+warning: unresolved link to `Dfg::validate`
+  |
+  = note: the link appears in this line:
+          
+          [`Dfg::validate`] checks only *graph* shape: edges reference declared nodes,
+           ^^^^^^^^^^^^^^^
+  = note: no item named `Dfg` in scope
+
+warning: unresolved link to `CompatDiagnostic`
+  |
+  = note: the link appears in this line:
+          
+          A [`CompatDiagnostic`] names a *structural law* about how evidence crosses
+             ^^^^^^^^^^^^^^^^^^
+  = note: no item named `CompatDiagnostic` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventStream`
+  |
+  = note: the link appears in this line:
+          
+          collection of traces; an [`EventStream`] is the unbounded, append-only
+                                    ^^^^^^^^^^^^^
+  = note: no item named `EventStream` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventLogRefusal`
+  |
+  = note: the link appears in this line:
+          
+          Structural defects are reported through [`EventLogRefusal`], a *specifically
+                                                   ^^^^^^^^^^^^^^^^^
+  = note: no item named `EventLogRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectTypeName`
+  |
+  = note: the link appears in this line:
+          
+          [`ObjectTypeName`] and [`EventTypeName`] carry the actual string label
+           ^^^^^^^^^^^^^^^^
+  = note: no item named `ObjectTypeName` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventTypeName`
+  |
+  = note: the link appears in this line:
+          
+          [`ObjectTypeName`] and [`EventTypeName`] carry the actual string label
+                                  ^^^^^^^^^^^^^^^
+  = note: no item named `EventTypeName` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectTypeId`
+  |
+  = note: the link appears in this line:
+          
+          them is a compile error. Use the integer-backed [`ObjectTypeId`] /
+                                                           ^^^^^^^^^^^^^^
+  = note: no item named `ObjectTypeId` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventTypeId`
+  |
+  = note: the link appears in this line:
+          
+          [`EventTypeId`] when you hold an interned handle; use the string-backed
+           ^^^^^^^^^^^^^
+  = note: no item named `EventTypeId` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `id_of`
+  |
+  = note: the link appears in this line:
+          
+          [`id_of`] is a zero-cost free function that constructs any [`TypedId`]
+           ^^^^^^^
+  = note: no item named `id_of` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `TypedId`
+  |
+  = note: the link appears in this line:
+          
+          [`id_of`] is a zero-cost free function that constructs any [`TypedId`]
+                                                                      ^^^^^^^^^
+  = note: no item named `TypedId` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Pm4pyShape`
+  |
+  = note: the link appears in this line:
+          
+          - A set of small, transparent *shape descriptors* ([`Pm4pyShape`],
+                                                              ^^^^^^^^^^^^
+  = note: no item named `Pm4pyShape` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `FilterShape`
+  |
+  = note: the link appears in this line:
+          
+            [`FilterShape`], [`SummaryShape`], [`ConformanceTriple`]) that describe the
+             ^^^^^^^^^^^^^
+  = note: no item named `FilterShape` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SummaryShape`
+  |
+  = note: the link appears in this line:
+          
+            [`FilterShape`], [`SummaryShape`], [`ConformanceTriple`]) that describe the
+                              ^^^^^^^^^^^^^^
+  = note: no item named `SummaryShape` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ConformanceTriple`
+  |
+  = note: the link appears in this line:
+          
+            [`FilterShape`], [`SummaryShape`], [`ConformanceTriple`]) that describe the
+                                                ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ConformanceTriple` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ArtifactGrounding`
+  |
+  = note: the link appears in this line:
+          
+          - An [`ArtifactGrounding`] that ties a claimed artifact to the evidence that
+                ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ArtifactGrounding` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `InteropRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class refusal enum, [`InteropRefusal`], for when a claim cannot be
+                                         ^^^^^^^^^^^^^^^^
+  = note: no item named `InteropRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Assert`
+  |
+  = note: the link appears in this line:
+          
+          - [`Assert`] / [`IsTrue`] / [`Require`] — the "must be true" compile-time
+             ^^^^^^^^
+  = note: no item named `Assert` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `IsTrue`
+  |
+  = note: the link appears in this line:
+          
+          - [`Assert`] / [`IsTrue`] / [`Require`] — the "must be true" compile-time
+                          ^^^^^^^^
+  = note: no item named `IsTrue` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Require`
+  |
+  = note: the link appears in this line:
+          
+          - [`Assert`] / [`IsTrue`] / [`Require`] — the "must be true" compile-time
+                                       ^^^^^^^^^
+  = note: no item named `Require` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ConditionCell`
+  |
+  = note: the link appears in this line:
+          
+          - [`ConditionCell<BITS>`] — the *Need9 means split* law: at most 8 primary
+             ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ConditionCell` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Between01`
+  |
+  = note: the link appears in this line:
+          
+          - [`Between01<NUM, DEN>`] — metrics that are provably in `[0, 1]` at the
+             ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `Between01` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ConstParamTy`
+  |
+  = note: the link appears in this line:
+          
+          - [`ConstParamTy`] enum set — every lawful state, mode, law, and kind
+             ^^^^^^^^^^^^^^
+  = note: no item named `ConstParamTy` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Metric`
+   --> src/law.rs:142:16
+    |
+142 | /// Used for [`Metric`] to make out-of-range fitness/precision/F1 a compile
+    |                ^^^^^^ no item named `Metric` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Project`
+  |
+  = note: the link appears in this line:
+          
+          - [`Project`] is the only sanctioned lossy transformation. It is named, and
+             ^^^^^^^^^
+  = note: no item named `Project` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LossReport`
+  |
+  = note: the link appears in this line:
+          
+            [`LossReport`]. Use [`LossPolicy::is_refusing`], [`LossPolicy::is_named`],
+             ^^^^^^^^^^^^
+  = note: no item named `LossReport` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LossReport`
+  |
+  = note: the link appears in this line:
+          
+          - [`LossReport`] is the receipt of what was lost — it records the
+             ^^^^^^^^^^^^
+  = note: no item named `LossReport` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LossReport::summary`
+  |
+  = note: the link appears in this line:
+          
+            [`LossReport::summary`] to derive a [`NamedLoss`] and
+             ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `LossReport` in scope
+
+warning: unresolved link to `NamedLoss`
+  |
+  = note: the link appears in this line:
+          
+            [`LossReport::summary`] to derive a [`NamedLoss`] and
+                                                 ^^^^^^^^^^^
+  = note: no item named `NamedLoss` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LossReport::is_lossless`
+  |
+  = note: the link appears in this line:
+          
+            [`LossReport::is_lossless`] (where `Items: `[`IsEmpty`]) to detect
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `LossReport` in scope
+
+warning: unresolved link to `IsEmpty`
+  |
+  = note: the link appears in this line:
+          
+            [`LossReport::is_lossless`] (where `Items: `[`IsEmpty`]) to detect
+                                                         ^^^^^^^^^
+  = note: no item named `IsEmpty` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `NamedLoss`
+  |
+  = note: the link appears in this line:
+          
+          - [`NamedLoss`] pairs a [`ProjectionName`] with a loss-category label so a
+             ^^^^^^^^^^^
+  = note: no item named `NamedLoss` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `LossReport`
+  |
+  = note: the link appears in this line:
+          
+          named projection + a [`LossPolicy`] + a [`LossReport`] + a refusal path. See
+                                                   ^^^^^^^^^^^^
+  = note: no item named `LossReport` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Object`
+  |
+  = note: the link appears in this line:
+          
+          [`Object`], [`OcelEvent`], [`EventObjectLink`] (E2O), [`ObjectObjectLink`]
+           ^^^^^^^^
+  = note: no item named `Object` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OcelEvent`
+  |
+  = note: the link appears in this line:
+          
+          [`Object`], [`OcelEvent`], [`EventObjectLink`] (E2O), [`ObjectObjectLink`]
+                       ^^^^^^^^^^^
+  = note: no item named `OcelEvent` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventObjectLink`
+  |
+  = note: the link appears in this line:
+          
+          [`Object`], [`OcelEvent`], [`EventObjectLink`] (E2O), [`ObjectObjectLink`]
+                                      ^^^^^^^^^^^^^^^^^
+  = note: no item named `EventObjectLink` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectObjectLink`
+  |
+  = note: the link appears in this line:
+          
+          [`Object`], [`OcelEvent`], [`EventObjectLink`] (E2O), [`ObjectObjectLink`]
+                                                                 ^^^^^^^^^^^^^^^^^^
+  = note: no item named `ObjectObjectLink` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectChange`
+  |
+  = note: the link appears in this line:
+          
+          (O2O), and [`ObjectChange`], collected in an [`OcelLog`].
+                      ^^^^^^^^^^^^^^
+  = note: no item named `ObjectChange` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OcelRefusal::FlatteningLoss`
+  |
+  = note: the link appears in this line:
+          
+          law, [`OcelRefusal::FlatteningLoss`], so a flattening projection must carry a
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `OcelRefusal` in scope
+
+warning: unresolved link to `ObjectScope`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of OCPQ: [`ObjectScope`], [`Predicate`],
+                                                ^^^^^^^^^^^^^
+  = note: no item named `ObjectScope` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Predicate`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of OCPQ: [`ObjectScope`], [`Predicate`],
+                                                                 ^^^^^^^^^^^
+  = note: no item named `Predicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OcpqQuery`
+  |
+  = note: the link appears in this line:
+          
+            [`OcpqQuery`], and the predicate witness markers ([`EventPredicate`],
+             ^^^^^^^^^^^
+  = note: no item named `OcpqQuery` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EventPredicate`
+  |
+  = note: the link appears in this line:
+          
+            [`OcpqQuery`], and the predicate witness markers ([`EventPredicate`],
+                                                               ^^^^^^^^^^^^^^^^
+  = note: no item named `EventPredicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectPredicate`
+  |
+  = note: the link appears in this line:
+          
+            [`ObjectPredicate`], [`RelationPredicate`], [`TemporalPredicate`],
+             ^^^^^^^^^^^^^^^^^
+  = note: no item named `ObjectPredicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `RelationPredicate`
+  |
+  = note: the link appears in this line:
+          
+            [`ObjectPredicate`], [`RelationPredicate`], [`TemporalPredicate`],
+                                  ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `RelationPredicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `TemporalPredicate`
+  |
+  = note: the link appears in this line:
+          
+            [`ObjectPredicate`], [`RelationPredicate`], [`TemporalPredicate`],
+                                                         ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `TemporalPredicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `CardinalityPredicate`
+  |
+  = note: the link appears in this line:
+          
+            [`CardinalityPredicate`], [`NestedQuery`], [`Constraint`]).
+             ^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `CardinalityPredicate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `NestedQuery`
+  |
+  = note: the link appears in this line:
+          
+            [`CardinalityPredicate`], [`NestedQuery`], [`Constraint`]).
+                                       ^^^^^^^^^^^^^
+  = note: no item named `NestedQuery` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Constraint`
+  |
+  = note: the link appears in this line:
+          
+            [`CardinalityPredicate`], [`NestedQuery`], [`Constraint`]).
+                                                        ^^^^^^^^^^^^
+  = note: no item named `Constraint` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OcpqRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`OcpqRefusal`] surface naming exactly why a query shape is
+                           ^^^^^^^^^^^^^
+  = note: no item named `OcpqRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OcpqRefusal::FlatteningRequired`
+  |
+  = note: the link appears in this line:
+          
+            object-centric log is refused with [`OcpqRefusal::FlatteningRequired`].
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `OcpqRefusal` in scope
+
+warning: unresolved link to `Place`
+  |
+  = note: the link appears in this line:
+          
+          This module models the place/transition canon: a [`PetriNet`] of [`Place`]s
+                                                                            ^^^^^^^
+  = note: no item named `Place` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Transition`
+  |
+  = note: the link appears in this line:
+          
+          and [`Transition`]s joined by [`Arc`]s with a [`Marking`]; a [`WfNet`]
+               ^^^^^^^^^^^^
+  = note: no item named `Transition` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Arc`
+  |
+  = note: the link appears in this line:
+          
+          and [`Transition`]s joined by [`Arc`]s with a [`Marking`]; a [`WfNet`]
+                                         ^^^^^
+  = note: no item named `Arc` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Marking`
+  |
+  = note: the link appears in this line:
+          
+          and [`Transition`]s joined by [`Arc`]s with a [`Marking`]; a [`WfNet`]
+                                                         ^^^^^^^^^
+  = note: no item named `Marking` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ObjectCentricPetriNet`
+  |
+  = note: the link appears in this line:
+          
+          *claim* tracked at the type level; and an [`ObjectCentricPetriNet`] whose
+                                                     ^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ObjectCentricPetriNet` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SoundnessUnknown`
+  |
+  = note: the link appears in this line:
+          
+          soundness is [`SoundnessUnknown`] (default), merely [`SoundnessClaimed`]
+                        ^^^^^^^^^^^^^^^^^^
+  = note: no item named `SoundnessUnknown` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SoundnessClaimed`
+  |
+  = note: the link appears in this line:
+          
+          soundness is [`SoundnessUnknown`] (default), merely [`SoundnessClaimed`]
+                                                               ^^^^^^^^^^^^^^^^^^
+  = note: no item named `SoundnessClaimed` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SoundnessWitnessed`
+  |
+  = note: the link appears in this line:
+          
+          (asserted by a human/upstream, unproven here), or [`SoundnessWitnessed`]
+                                                             ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `SoundnessWitnessed` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `SoundnessWitnessed`
+  |
+  = note: the link appears in this line:
+          
+          token-game replay graduate to `wasm4pm`. A [`SoundnessWitnessed`] WF-net is
+                                                      ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `SoundnessWitnessed` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: public documentation for `SoundnessProof` links to private item `wfnet_seal::WfNetSeal`
+   --> src/petri.rs:385:13
+    |
+385 | /// inner [`wfnet_seal::WfNetSeal`] type is private.
+    |             ^^^^^^^^^^^^^^^^^^^^^ this item is private
+    |
+    = note: this link will resolve properly if you pass `--document-private-items`
+    = note: `#[warn(rustdoc::private_intra_doc_links)]` on by default
+
+warning: unresolved link to `PowlNode`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of POWL: [`PowlNode`], [`OrderEdge`], [`Powl`].
+                                                ^^^^^^^^^^
+  = note: no item named `PowlNode` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OrderEdge`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of POWL: [`PowlNode`], [`OrderEdge`], [`Powl`].
+                                                              ^^^^^^^^^^^
+  = note: no item named `OrderEdge` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Powl`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of POWL: [`PowlNode`], [`OrderEdge`], [`Powl`].
+                                                                             ^^^^^^
+  = note: no item named `Powl` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Atom`
+  |
+  = note: the link appears in this line:
+          
+            ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
+              ^^^^^^
+  = note: no item named `Atom` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `PartialOrder`
+  |
+  = note: the link appears in this line:
+          
+            ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
+                        ^^^^^^^^^^^^^^
+  = note: no item named `PartialOrder` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Choice`
+  |
+  = note: the link appears in this line:
+          
+            ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
+                                          ^^^^^^^^
+  = note: no item named `Choice` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Loop`
+  |
+  = note: the link appears in this line:
+          
+            ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
+                                                      ^^^^^^
+  = note: no item named `Loop` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Silent`
+  |
+  = note: the link appears in this line:
+          
+            ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
+                                                                ^^^^^^^^
+  = note: no item named `Silent` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Irreducible`
+  |
+  = note: the link appears in this line:
+          
+            [`Irreducible`]) and *whether it can graduate downward* into a process
+             ^^^^^^^^^^^^^
+  = note: no item named `Irreducible` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessTreeProjectable`
+  |
+  = note: the link appears in this line:
+          
+            tree ([`ProcessTreeProjectable`], [`ExceedsProcessTree`]).
+                   ^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ProcessTreeProjectable` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ExceedsProcessTree`
+  |
+  = note: the link appears in this line:
+          
+            tree ([`ProcessTreeProjectable`], [`ExceedsProcessTree`]).
+                                               ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ExceedsProcessTree` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `PowlRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`PowlRefusal`] surface naming exactly why a POWL shape is
+                           ^^^^^^^^^^^^^
+  = note: no item named `PowlRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `PredictionProblem`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of prediction problems: [`PredictionProblem`]
+                                                               ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `PredictionProblem` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `PrefixTrace`
+  |
+  = note: the link appears in this line:
+          
+            and the target witness markers [`PrefixTrace`], [`OutcomeLabel`],
+                                            ^^^^^^^^^^^^^
+  = note: no item named `PrefixTrace` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `OutcomeLabel`
+  |
+  = note: the link appears in this line:
+          
+            and the target witness markers [`PrefixTrace`], [`OutcomeLabel`],
+                                                             ^^^^^^^^^^^^^^
+  = note: no item named `OutcomeLabel` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `RemainingTime`
+  |
+  = note: the link appears in this line:
+          
+            [`RemainingTime`], [`NextActivity`], [`DriftSignal`].
+             ^^^^^^^^^^^^^^^
+  = note: no item named `RemainingTime` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `NextActivity`
+  |
+  = note: the link appears in this line:
+          
+            [`RemainingTime`], [`NextActivity`], [`DriftSignal`].
+                                ^^^^^^^^^^^^^^
+  = note: no item named `NextActivity` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `DriftSignal`
+  |
+  = note: the link appears in this line:
+          
+            [`RemainingTime`], [`NextActivity`], [`DriftSignal`].
+                                                  ^^^^^^^^^^^^^
+  = note: no item named `DriftSignal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `PredictionRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`PredictionRefusal`] surface naming exactly why a problem
+                           ^^^^^^^^^^^^^^^^^^^
+  = note: no item named `PredictionRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessTree`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of process trees: [`ProcessTree`],
+                                                         ^^^^^^^^^^^^^
+  = note: no item named `ProcessTree` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessTreeNode`
+  |
+  = note: the link appears in this line:
+          
+            [`ProcessTreeNode`], and the closed [`ProcessTreeOperator`] enumeration.
+             ^^^^^^^^^^^^^^^^^
+  = note: no item named `ProcessTreeNode` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessTreeOperator`
+  |
+  = note: the link appears in this line:
+          
+            [`ProcessTreeNode`], and the closed [`ProcessTreeOperator`] enumeration.
+                                                 ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ProcessTreeOperator` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessTreeRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`ProcessTreeRefusal`] surface naming exactly why a tree
+                           ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `ProcessTreeRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ReceiptShape`
+  |
+  = note: the link appears in this line:
+          
+          - The structural vocabulary of receipts: [`ReceiptShape`], plus the small
+                                                    ^^^^^^^^^^^^^^
+  = note: no item named `ReceiptShape` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Digest`
+  |
+  = note: the link appears in this line:
+          
+            transparent [`Digest`] and [`ReplayHint`] carriers.
+                         ^^^^^^^^
+  = note: no item named `Digest` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ReplayHint`
+  |
+  = note: the link appears in this line:
+          
+            transparent [`Digest`] and [`ReplayHint`] carriers.
+                                        ^^^^^^^^^^^^
+  = note: no item named `ReplayHint` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ReceiptRefusal`
+  |
+  = note: the link appears in this line:
+          
+          - A first-class [`ReceiptRefusal`] surface naming exactly why a receipt shape
+                           ^^^^^^^^^^^^^^^^
+  = note: no item named `ReceiptRefusal` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ReceiptShape`
+  |
+  = note: the link appears in this line:
+          
+            [`ReceiptShape`] *carries* a digest string and a replay hint produced
+             ^^^^^^^^^^^^^^
+  = note: no item named `ReceiptShape` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EvidenceState`
+  |
+  = note: the link appears in this line:
+          
+          ## The sealed [`EvidenceState`] trait
+                         ^^^^^^^^^^^^^^^
+  = note: no item named `EvidenceState` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `EvidenceState`
+  |
+  = note: the link appears in this line:
+          
+          All lifecycle stage tokens implement the [`EvidenceState`] sealed trait. This
+                                                    ^^^^^^^^^^^^^^^
+  = note: no item named `EvidenceState` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `Witness::KEY`
+  |
+  = note: the link appears in this line:
+          
+          - Carriers of human-facing metadata ([`Witness::KEY`], [`Witness::TITLE`],
+                                                ^^^^^^^^^^^^^^
+  = note: no item named `Witness` in scope
+
+warning: unresolved link to `Witness::TITLE`
+  |
+  = note: the link appears in this line:
+          
+          - Carriers of human-facing metadata ([`Witness::KEY`], [`Witness::TITLE`],
+                                                                  ^^^^^^^^^^^^^^^^
+  = note: no item named `Witness` in scope
+
+warning: unresolved link to `Witness::YEAR`
+  |
+  = note: the link appears in this line:
+          
+            [`Witness::YEAR`], [`Witness::FAMILY`]) so a diagnostic can explain *what*
+             ^^^^^^^^^^^^^^^
+  = note: no item named `Witness` in scope
+
+warning: unresolved link to `Witness::FAMILY`
+  |
+  = note: the link appears in this line:
+          
+            [`Witness::YEAR`], [`Witness::FAMILY`]) so a diagnostic can explain *what*
+                                ^^^^^^^^^^^^^^^^^
+  = note: no item named `Witness` in scope
+
+warning: unresolved link to `XesExtension`
+  |
+  = note: the link appears in this line:
+          
+          [`XesLog`] declares its [`XesExtension`]s and global attributes, then carries
+                                   ^^^^^^^^^^^^^^
+  = note: no item named `XesExtension` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `XesTrace`
+  |
+  = note: the link appears in this line:
+          
+          [`XesTrace`]s of [`XesEvent`]s.
+           ^^^^^^^^^^
+  = note: no item named `XesTrace` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `XesEvent`
+  |
+  = note: the link appears in this line:
+          
+          [`XesTrace`]s of [`XesEvent`]s.
+                            ^^^^^^^^^^
+  = note: no item named `XesEvent` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `GraduationCandidate`
+  |
+  = note: the link appears in this line:
+          
+          reviewable [`GraduationCandidate`].
+                      ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `GraduationCandidate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `FormatEnvelope`
+  |
+  = note: the link appears in this line:
+          
+          1. **Import** turns a raw [`FormatEnvelope`] into either an
+                                     ^^^^^^^^^^^^^^^^
+  = note: no item named `FormatEnvelope` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `FormatExport`
+  |
+  = note: the link appears in this line:
+          
+          2. **Export** turns a typed source back into a [`FormatExport`], and **must**
+                                                          ^^^^^^^^^^^^^^
+  = note: no item named `FormatExport` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `RoundTripClaim`
+  |
+  = note: the link appears in this line:
+          
+          4. **Round-trip is a claim, not a guarantee.** A [`RoundTripClaim`] *names* a
+                                                            ^^^^^^^^^^^^^^^^
+  = note: no item named `RoundTripClaim` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `FormatEnvelope`
+  |
+  = note: the link appears in this line:
+          
+          - **Not** a parser library. [`FormatEnvelope`] holds *raw bytes* and a
+                                       ^^^^^^^^^^^^^^^^
+  = note: no item named `FormatEnvelope` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `FormatKind`
+  |
+  = note: the link appears in this line:
+          
+            [`FormatKind`] tag. It does not parse XML/JSON/SQLite here; parsing-into-shape
+             ^^^^^^^^^^^^
+  = note: no item named `FormatKind` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ImportFormat`
+  |
+  = note: the link appears in this line:
+          
+            is delegated to the always-on shape modules behind the [`ImportFormat`] impls
+                                                                    ^^^^^^^^^^^^^^
+  = note: no item named `ImportFormat` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `ProcessBoundary`
+  |
+  = note: the link appears in this line:
+          
+          check surface**: a host *declares* the [`ProcessBoundary`]s it crosses, and
+                                                  ^^^^^^^^^^^^^^^^^
+  = note: no item named `ProcessBoundary` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `StrictCheck::check`
+  |
+  = note: the link appears in this line:
+          
+          - **Not** an engine. [`StrictCheck::check`] inspects *declarations*, never data.
+                                ^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `StrictCheck` in scope
+
+warning: unresolved link to `StrictViolation::HiddenProcessMiningGrowth`
+  |
+  = note: the link appears in this line:
+          
+          [`StrictViolation::HiddenProcessMiningGrowth`] is the tripwire: if a boundary
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `StrictViolation` in scope
+
+warning: unresolved link to `petri_law`
+  |
+  = note: the link appears in this line:
+          
+          | [`petri_law`] | `generic_const_exprs` | Murata (1989) §2 incidence matrices W⁻, W⁺ |
+             ^^^^^^^^^^^
+  = note: no item named `petri_law` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `powl_law`
+  |
+  = note: the link appears in this line:
+          
+          | [`powl_law`]  | `adt_const_params`    | Kourani (2505.07052) §3 POWL fragment kinds |
+             ^^^^^^^^^^
+  = note: no item named `powl_law` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `evidence_law`
+  |
+  = note: the link appears in this line:
+          
+          | [`evidence_law`] | `min_specialization` | Blue River Dam — admitted vs raw label |
+             ^^^^^^^^^^^^^^
+  = note: no item named `evidence_law` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `token_law`
+  |
+  = note: the link appears in this line:
+          
+          | [`token_law`] | `portable_simd`       | Murata §2 enabling condition ∀p: M[p] ≥ W⁻[p][t] |
+             ^^^^^^^^^^^
+  = note: no item named `token_law` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+  |
+  = note: the link appears in this line:
+          
+          | [`token_law`] | `portable_simd`       | Murata §2 enabling condition ∀p: M[p] ≥ W⁻[p][t] |
+                                                                                          ^
+  = note: no item named `p` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `t`
+  |
+  = note: the link appears in this line:
+          
+          | [`token_law`] | `portable_simd`       | Murata §2 enabling condition ∀p: M[p] ≥ W⁻[p][t] |
+                                                                                                         ^
+  = note: no item named `t` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:102:35
+    |
+102 |     /// Enabling condition: ∀p: M[p] ≥ W⁻(p,t).
+    |                                   ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:131:62
+    |
+131 |         /// Paper: Murata §2 Rule 1 — t is enabled iff ∀p: M[p] ≥ W⁻(p,t).
+    |                                                              ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:178:42
+    |
+178 |         /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻(p,t) + W⁺(t,p).
+    |                                          ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:178:49
+    |
+178 |         /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻(p,t) + W⁺(t,p).
+    |                                                 ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:437:38
+    |
+437 |     /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻[p] + W⁺[p].
+    |                                      ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:437:45
+    |
+437 |     /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻[p] + W⁺[p].
+    |                                             ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:437:53
+    |
+437 |     /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻[p] + W⁺[p].
+    |                                                     ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: unresolved link to `p`
+   --> src/nightly_foundry.rs:437:61
+    |
+437 |     /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻[p] + W⁺[p].
+    |                                                             ^ no item named `p` in scope
+    |
+    = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: `wasm4pm-compat` (lib doc) generated 152 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.58s
+   Generated /Users/sac/wasm4pm-compat/target/doc/wasm4pm_compat/index.html

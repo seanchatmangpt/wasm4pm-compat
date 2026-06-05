@@ -446,3 +446,45 @@ Stop and report BLOCKED if:
 
 # FINAL SUMMARY FORMAT
 At the end, produce a concise final report matching the required template.
+
+## Follow-up — 2026-06-04T22:37:45Z
+
+# MISSION: wasm4pm-compat v26.6.4 Publish Verification and Git Hygiene Audit
+# MODE: Google Antigravity CLI — 10 Subagent Team
+# TARGET REPO: wasm4pm-compat
+
+Working directory: /Users/sac/wasm4pm-compat
+Integrity mode: demo
+
+Your tasks:
+1. Run a complete trybuild ALIVE type-law gate test run:
+   ```bash
+   cargo clean
+   cargo test --test ui_tests -- --ignored
+   ```
+   Ensure it passes cleanly and document any results or diagnostic details.
+
+2. Audit git hygiene and packaging:
+   - Check if `.DS_Store` or `target/` files are tracked using `git ls-files | grep -E '(^|/)\.DS_Store$|target/'`.
+   - Audit the package contents list using `cargo package --list | grep -E '(^|/)\.DS_Store$|target/|archive/|^src/ts/|^src/wasm/'`.
+   - Verify that git history is clean by checking `git status --short` and `git show --stat --oneline HEAD~3..HEAD`.
+
+3. Save the results and outputs of these verification runs to:
+   `docs/reports/v26.6.4-publish-readiness-hygiene-report.md`
+
+4. Update `docs/reports/v26.6.4-implementation-requirements-ledger.md` (specifically marking trybuild and git hygiene items) and `docs/reference/publish-checklist.md` accordingly based on your findings.
+
+5. Do NOT publish the crate. Do not run `cargo publish` without human approval.
+
+## Follow-up — 2026-06-04T22:38:38Z
+
+System notification from parent agent:
+To assist your publish readiness audit and validation tasks, we have launched 5 parallel helper subagents to verify compliance with the repository's Definition of Done (DoD) gates. They will save their reports in the `docs/reports/` folder:
+1. DoD Structural & Canon Auditor -> docs/reports/dod-structural-canon-audit.md
+2. DoD Boundary & Evidence Auditor -> docs/reports/dod-boundary-evidence-audit.md
+3. DoD Feature Auditor -> docs/reports/dod-feature-audit.md
+4. DoD Docs & DX Auditor -> docs/reports/dod-docs-dx-audit.md
+5. DoD Release Auditor (clippy, fmt, docs check) -> docs/reports/dod-release-audit.md
+
+Please use these reports once they are populated to complete the publish checklist and final reviews.
+

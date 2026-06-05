@@ -12,8 +12,8 @@
 //! - Compile-time tags that thread a *named authority* through
 //!   [`crate::evidence::Evidence`], [`crate::admission::Admission`], and
 //!   [`crate::admission::Refusal`].
-//! - Carriers of human-facing metadata ([`Witness::KEY`], [`Witness::TITLE`],
-//!   [`Witness::YEAR`], [`Witness::FAMILY`]) so a diagnostic can explain *what*
+//! - Carriers of human-facing metadata ([`crate::witness::Witness::KEY`], [`crate::witness::Witness::TITLE`],
+//!   [`crate::witness::Witness::YEAR`], [`crate::witness::Witness::FAMILY`]) so a diagnostic can explain *what*
 //!   was being checked.
 //!
 //! ## What witnesses are **NOT**
@@ -30,7 +30,7 @@
 //! the witness travels with the value into `wasm4pm`, where a real engine
 //! consumes it. Here, it is only a label.
 
-/// The family a [`Witness`] belongs to — what *kind* of authority it names.
+/// The family a [`crate::witness::Witness`] belongs to — what *kind* of authority it names.
 ///
 /// Families let diagnostics and indexes group witnesses by provenance without
 /// hard-coding each marker. This is structure only: a family is a label, not a

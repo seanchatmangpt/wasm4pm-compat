@@ -6,12 +6,12 @@
 //!
 //! ## What this module **IS**
 //!
-//! - Bounded `[0, 1]` newtypes [`Fitness`], [`Precision`], [`F1`] that *carry* a
+//! - Bounded `[0, 1]` newtypes [`crate::conformance::Fitness`], [`crate::conformance::Precision`], [`crate::conformance::F1`] that *carry* a
 //!   score but never *derive* one.
-//! - The [`Deviation`] shape and the alignment move markers [`SyncMove`],
-//!   [`LogOnlyMove`], [`ModelOnlyMove`].
-//! - The aggregate [`ConformanceVerdict`] shape.
-//! - A first-class [`ConformanceRefusal`] surface naming exactly why a verdict
+//! - The [`crate::conformance::Deviation`] shape and the alignment move markers [`crate::conformance::SyncMove`],
+//!   [`crate::conformance::LogOnlyMove`], [`crate::conformance::ModelOnlyMove`].
+//! - The aggregate [`crate::conformance::ConformanceVerdict`] shape.
+//! - A first-class [`crate::conformance::ConformanceRefusal`] surface naming exactly why a verdict
 //!   cannot be admitted.
 //!
 //! ## What this module is **NOT**
@@ -348,7 +348,7 @@ where
 /// The four canonical quality dimensions for process model evaluation, plus the
 /// F1 harmonic mean, as defined by van der Aalst (2016).
 ///
-/// This is a **runtime** companion to [`QualityMetricKind`] in `law.rs`.
+/// This is a **runtime** companion to [`crate::law::QualityMetricKind`] in `law.rs`.
 /// `QualityMetricKind` is a `ConstParamTy` enum used as a const generic
 /// parameter; `QualityDimension` is an ordinary enum for runtime dispatch,
 /// pattern matching, and storing dimension metadata alongside a score.
@@ -359,10 +359,10 @@ where
 /// - Usable in `match` to dispatch on dimension at runtime.
 /// - Derivable, cloneable, and hashable — suitable for maps and error messages.
 ///
-/// ## What this is NOT
+/// ## What this is not
 ///
-/// - Not a metric value or score carrier — use [`Fitness`], [`Precision`], etc.
-/// - Not a const-generic param — use [`QualityMetricKind`] for that.
+/// - Not a metric value or score carrier — use [`crate::conformance::Fitness`], [`crate::conformance::Precision`], etc.
+/// - Not a const-generic param — use [`crate::law::QualityMetricKind`] for that.
 /// - Not an engine concern — no computation happens here.
 ///
 /// ## Paper

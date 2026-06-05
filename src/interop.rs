@@ -10,12 +10,12 @@
 //!
 //! ## What this module **IS**
 //!
-//! - A set of small, transparent *shape descriptors* ([`Pm4pyShape`],
-//!   [`FilterShape`], [`SummaryShape`], [`ConformanceTriple`]) that describe the
+//! - A set of small, transparent *shape descriptors* ([`crate::interop::Pm4pyShape`],
+//!   [`crate::interop::FilterShape`], [`crate::interop::SummaryShape`], [`crate::interop::ConformanceTriple`]) that describe the
 //!   *kind* of artifact being adopted, never its bytes or its computed values.
-//! - An [`ArtifactGrounding`] that ties a claimed artifact to the evidence that
+//! - An [`crate::interop::ArtifactGrounding`] that ties a claimed artifact to the evidence that
 //!   justifies admitting it.
-//! - A first-class refusal enum, [`InteropRefusal`], for when a claim cannot be
+//! - A first-class refusal enum, [`crate::interop::InteropRefusal`], for when a claim cannot be
 //!   grounded.
 //!
 //! ## What this module is **NOT**

@@ -1,0 +1,26 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+ Documenting wasm4pm-compat v26.6.4 (/Users/sac/wasm4pm-compat)
+warning: unresolved link to `PhantomData`
+  |
+  = note: the link appears in this line:
+          
+          and the state markers, are zero-sized types (0 bytes). They use [`PhantomData`] to carry compile-time
+                                                                           ^^^^^^^^^^^^^
+  = note: no item named `PhantomData` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+  = note: `#[warn(rustdoc::broken_intra_doc_links)]` on by default
+
+warning: unresolved link to `GraduationCandidate`
+  |
+  = note: the link appears in this line:
+          
+          reviewable [`GraduationCandidate`].
+                      ^^^^^^^^^^^^^^^^^^^^^
+  = note: no item named `GraduationCandidate` in scope
+  = help: to escape `[` and `]` characters, add '\' before them like `\[` or `\]`
+
+warning: `wasm4pm-compat` (lib doc) generated 2 warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 13.19s
+   Generated /Users/sac/wasm4pm-compat/target/doc/wasm4pm_compat/index.html

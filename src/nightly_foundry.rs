@@ -12,7 +12,7 @@
 //! | [`petri_law`] | `generic_const_exprs` | Murata (1989) §2 incidence matrices W⁻, W⁺ |
 //! | [`powl_law`]  | `adt_const_params`    | Kourani (2505.07052) §3 POWL fragment kinds |
 //! | [`evidence_law`] | `min_specialization` | Blue River Dam — admitted vs raw label |
-//! | [`token_law`] | `portable_simd`       | Murata §2 enabling condition ∀p: M[p] ≥ W⁻[p][t] |
+//! | [`token_law`] | `portable_simd`       | Murata §2 enabling condition `∀p: M[p] ≥ W⁻[p][t]` |
 //!
 //! ## Zero-cost guarantee
 //!
@@ -20,6 +20,11 @@
 //! or a `u32`, or is a zero-sized marker.  There is no heap allocation, no
 //! runtime dispatch, and no branch in the hot path.  The nightly features move
 //! paper-derived invariants into the *type system*, not into runtime machinery.
+//!
+//! [`petri_law`]: crate::nightly_foundry::petri_law
+//! [`powl_law`]: crate::nightly_foundry::powl_law
+//! [`evidence_law`]: crate::nightly_foundry::evidence_law
+//! [`token_law`]: crate::nightly_foundry::token_law
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Surface 1: Bipartite Petri-net arc matrices  (generic_const_exprs)
@@ -99,7 +104,7 @@ pub mod petri_law {
     /// Pre-incidence matrix W⁻: P×T→ℕ, stored flat row-major as `[u8; P * T]`.
     ///
     /// Paper: Murata (1989) §2 — W⁻(p,t) = arc weight from place p to transition t.
-    /// Enabling condition: ∀p: M[p] ≥ W⁻(p,t).
+    /// Enabling condition: `∀p: M[p] ≥ W⁻(p,t)`.
     ///
     /// **Requires `generic_const_exprs`**: `P * T` is a const expression in a
     /// where-bound and in the array-length field.  Zero-cost flat array, no heap.
@@ -128,7 +133,7 @@ pub mod petri_law {
 
         /// Is transition `t` enabled in marking `m`?
         ///
-        /// Paper: Murata §2 Rule 1 — t is enabled iff ∀p: M[p] ≥ W⁻(p,t).
+        /// Paper: Murata §2 Rule 1 — t is enabled iff `∀p: M[p] ≥ W⁻(p,t)`.
         #[inline]
         pub fn is_enabled(&self, t: usize, m: &Marking<P>) -> bool {
             (0..P).all(|p| m.0[p] >= self.weights[p * T + t] as u32)
@@ -175,7 +180,7 @@ pub mod petri_law {
 
         /// Fire transition `t` on `m`, returning the new marking.
         ///
-        /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻(p,t) + W⁺(t,p).
+        /// Paper: Murata §2 Rule 2 — `M'[p] = M[p] − W⁻(p,t) + W⁺(t,p)`.
         /// **Caller must first verify `pre.is_enabled(t, &m)`.**
         #[inline]
         pub fn fire(&self, t: usize, m: Marking<P>, pre: &PreMatrix<P, T>) -> Marking<P>
@@ -434,7 +439,7 @@ pub mod token_law {
 
     /// Fire a transition on a 4-place marking via SIMD arithmetic.
     ///
-    /// Paper: Murata §2 Rule 2 — M'[p] = M[p] − W⁻[p] + W⁺[p].
+    /// Paper: Murata §2 Rule 2 — `M'[p] = M[p] − W⁻[p] + W⁺[p]`.
     /// **Requires `transition_enabled_4` was true.** No runtime check.
     #[inline]
     pub fn fire_4(marking: [u32; 4], pre: [u32; 4], post: [u32; 4]) -> [u32; 4] {

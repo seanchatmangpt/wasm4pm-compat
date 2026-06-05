@@ -2,9 +2,9 @@
 //! algorithm.
 //!
 //! A DFG records, for a process, which activities directly follow which, and how
-//! often. This module models the *graph value*: a [`Dfg`] is a set of
-//! [`DfgNode`]s (activities) joined by weighted [`DfgEdge`]s, each carrying a
-//! [`DfgWeight`] (a directly-follows frequency).
+//! often. This module models the *graph value*: a [`crate::dfg::Dfg`] is a set of
+//! [`crate::dfg::DfgNode`]s (activities) joined by weighted [`crate::dfg::DfgEdge`]s, each carrying a
+//! [`crate::dfg::DfgWeight`] (a directly-follows frequency).
 //!
 //! ## Structure only — no discovery
 //!
@@ -12,9 +12,9 @@
 //! relations and frequencies *is* a discovery engine and graduates to
 //! `wasm4pm`. To make that boundary unmistakable, asking a DFG to behave as if
 //! it had been discovered when it is empty is refused as the named law
-//! [`DfgRefusal::DiscoveryRequired`].
+//! [`crate::dfg::DfgRefusal::DiscoveryRequired`].
 //!
-//! [`Dfg::validate`] checks only *graph* shape: edges reference declared nodes,
+//! [`crate::dfg::Dfg::validate`] checks only *graph* shape: edges reference declared nodes,
 //! weights are non-negative, and the graph is non-empty.
 //!
 //! ## Graduation to `wasm4pm`

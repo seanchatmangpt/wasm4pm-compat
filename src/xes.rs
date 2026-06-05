@@ -3,8 +3,8 @@
 //! XES (eXtensible Event Stream) is an interchange format, not a process model.
 //! It is **case-centric and event-log shaped** — emphatically *not*
 //! object-centric. This module models XES's distinctive structure:
-//! [`XesLog`] declares its [`XesExtension`]s and global attributes, then carries
-//! [`XesTrace`]s of [`XesEvent`]s.
+//! [`crate::xes::XesLog`] declares its [`crate::xes::XesExtension`]s and global attributes, then carries
+//! [`crate::xes::XesTrace`]s of [`crate::xes::XesEvent`]s.
 //!
 //! Where [`crate::eventlog`] is the *abstract* case-centric canon, `xes` is the
 //! *concrete interchange* canon: it knows extensions, the
@@ -13,7 +13,7 @@
 //!
 //! ## Structure only
 //!
-//! [`XesLog::validate`] is a *shape* check: required interchange keys are
+//! [`crate::xes::XesLog::validate`] is a *shape* check: required interchange keys are
 //! present, extensions are well-formed. It does **not** parse a `.xes` file
 //! (that is an import engine), discover a model, or check conformance — those
 //! graduate to `wasm4pm`. Admission of a raw XES *document* into this typed
@@ -58,7 +58,7 @@ impl core::fmt::Display for CaseCentricMarker {
 ///
 /// XES attributes are namespaced by extensions. An `XesExtension` records the
 /// extension's `name`, `prefix`, and defining `uri`. An extension declared with
-/// an empty prefix is refused as [`XesRefusal::InvalidExtension`].
+/// an empty prefix is refused as [`crate::xes::XesRefusal::InvalidExtension`].
 ///
 /// Structure-only: it is a declaration, not an attribute parser.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -118,9 +118,10 @@ impl XesExtension {
 /// A single XES event: a bag of namespaced key/value attributes.
 ///
 /// The interchange-critical key is `concept:name` (the activity). Helpers expose
-/// the standard keys; arbitrary keys are accessible via [`XesEvent::attribute`].
-/// An event lacking `concept:name` is refused as
-/// [`XesRefusal::MissingConceptName`] at validation time.
+/// the standard keys; arbitrary keys are accessible via [`crate::xes::XesEvent::attribute`].
+///
+/// Missing required keys is a structural defect, refused as
+/// [`crate::xes::XesRefusal::MissingConceptName`] at validation time.
 ///
 /// Structure-only: it holds attributes verbatim; it does not interpret them.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -201,12 +202,12 @@ impl XesEvent {
         self.attribute("org:resource")
     }
 
-    /// The `lifecycle:transition` attribute as a typed [`XesLifecycleTransition`],
-    /// if the attribute is present and within the standard alphabet.
+    /// The `lifecycle:transition` attribute as a typed [`crate::xes::XesLifecycleTransition`],
+    /// if present and parseable.
     ///
-    /// Returns `None` when the attribute is absent. Returns `None` when the
-    /// value is outside the standard alphabet (caller must handle the unknown
-    /// value; use [`XesEvent::lifecycle_transition_raw`] to inspect it).
+    /// If absent or unparseable, returns `None` (it is not a validation failure;
+    /// XES allows arbitrary non-standard transitions or omitting the transition
+    /// value; use [`crate::xes::XesEvent::lifecycle_transition_raw`] to inspect it).
     ///
     /// ```
     /// use wasm4pm_compat::xes::{XesEvent, XesLifecycleTransition};
@@ -255,7 +256,7 @@ impl XesEvent {
 /// case identifier; additional attributes (e.g. `cost:total`, `org:group`)
 /// may annotate the case as a whole.
 ///
-/// `XesTraceAttributes` is a separate type from [`XesEvent`] attributes to
+/// `XesTraceAttributes` is a separate type from [`crate::xes::XesEvent`] attributes to
 /// make the trace-vs-event distinction explicit at the type level.
 ///
 /// Structure-only: holds attributes verbatim; does not interpret them.
@@ -355,11 +356,11 @@ impl XesTraceAttributes {
     }
 }
 
-/// A XES trace: a `concept:name`-identified, ordered sequence of [`XesEvent`]s.
+/// A XES trace: a `concept:name`-identified, ordered sequence of [`crate::xes::XesEvent`]s.
 ///
-/// A trace lacking a `concept:name` (the case id) is refused as
-/// [`XesRefusal::MissingTraceName`]; an empty trace as
-/// [`XesRefusal::EmptyTrace`].
+/// Traces without name are structurally invalid, refused as
+/// [`crate::xes::XesRefusal::MissingTraceName`]; an empty trace as
+/// [`crate::xes::XesRefusal::EmptyTrace`].
 ///
 /// Structure-only: it preserves event order verbatim and mines nothing.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -428,7 +429,7 @@ impl XesTrace {
 
 /// A complete XES log: declared extensions plus `concept:name`-identified traces.
 ///
-/// [`XesLog::validate`] checks interchange shape: extensions are well-formed,
+/// [`crate::xes::XesLog::validate`] checks interchange shape: extensions are well-formed,
 /// the log names itself, traces and events carry required `concept:name` keys.
 /// It is not a `.xes` parser and runs no analysis.
 ///
@@ -486,16 +487,16 @@ impl XesLog {
     /// Structurally validate the XES interchange shape.
     ///
     /// Checks, in order:
-    /// - the log names itself ([`XesRefusal::MissingLogName`]);
-    /// - every extension declares a non-empty prefix
-    ///   ([`XesRefusal::InvalidExtension`]);
-    /// - the log has at least one trace ([`XesRefusal::NoTraces`]);
-    /// - every trace names itself ([`XesRefusal::MissingTraceName`]) and is
-    ///   non-empty ([`XesRefusal::EmptyTrace`]);
-    /// - every event carries `concept:name` ([`XesRefusal::MissingConceptName`]);
+    /// - the log names itself ([`crate::xes::XesRefusal::MissingLogName`]);
+    /// - every extension has a non-empty name, prefix, and URI
+    ///   ([`crate::xes::XesRefusal::InvalidExtension`]);
+    /// - the log has at least one trace ([`crate::xes::XesRefusal::NoTraces`]);
+    /// - every trace names itself ([`crate::xes::XesRefusal::MissingTraceName`]) and is
+    ///   non-empty ([`crate::xes::XesRefusal::EmptyTrace`]);
+    /// - every event carries `concept:name` ([`crate::xes::XesRefusal::MissingConceptName`]);
     /// - every namespaced attribute key (those containing `:`) references a
     ///   prefix that is declared in the log's extensions
-    ///   ([`XesRefusal::UndeclaredExtensionPrefix`]).
+    ///   ([`crate::xes::XesRefusal::UndeclaredExtensionPrefix`]).
     ///
     /// This is a shape check, not a parse and not mining.
     ///

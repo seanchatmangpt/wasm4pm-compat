@@ -1,9 +1,9 @@
 //! Case-centric event-log grammar — the classical process-mining shape.
 //!
 //! This module captures the **case-centric** view of process evidence: an
-//! [`Event`] is a single recorded activity occurrence; a [`Trace`] is the
-//! ordered, case-scoped sequence of those events; an [`EventLog`] is a
-//! collection of traces; an [`EventStream`] is the unbounded, append-only
+//! [`crate::eventlog::Event`] is a single recorded activity occurrence; a [`crate::eventlog::Trace`] is the
+//! ordered, case-scoped sequence of those events; an [`crate::eventlog::EventLog`] is a
+//! collection of traces; an [`crate::eventlog::EventStream`] is the unbounded, append-only
 //! sibling of a log.
 //!
 //! This is the *single-case-notion* world (one case id per trace). The richer
@@ -20,12 +20,12 @@
 //!
 //! ## Refusal is first-class
 //!
-//! Structural defects are reported through [`EventLogRefusal`], a *specifically
+//! Structural defects are reported through [`crate::eventlog::EventLogRefusal`], a *specifically
 //! named* law per defect — never a bare "invalid input".
 //!
 //! ## Graduation to `wasm4pm`
 //!
-//! An [`EventLog`] validated here is an admitted *substrate*. Discovery
+//! An [`crate::eventlog::EventLog`] validated here is an admitted *substrate*. Discovery
 //! (Alpha/Inductive/Heuristic), conformance checking, variant analysis, and
 //! performance mining all graduate to the `wasm4pm` execution engine. This
 //! crate only guarantees the log is *well-shaped enough to mine*.

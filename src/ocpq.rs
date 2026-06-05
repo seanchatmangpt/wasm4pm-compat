@@ -6,11 +6,11 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of OCPQ: [`ObjectScope`], [`Predicate`],
-//!   [`OcpqQuery`], and the predicate witness markers ([`EventPredicate`],
-//!   [`ObjectPredicate`], [`RelationPredicate`], [`TemporalPredicate`],
-//!   [`CardinalityPredicate`], [`NestedQuery`], [`Constraint`]).
-//! - A first-class [`OcpqRefusal`] surface naming exactly why a query shape is
+//! - The structural vocabulary of OCPQ: [`crate::ocpq::ObjectScope`], [`crate::ocpq::Predicate`],
+//!   [`crate::ocpq::OcpqQuery`], and the predicate witness markers ([`crate::ocpq::EventPredicate`],
+//!   [`crate::ocpq::ObjectPredicate`], [`crate::ocpq::RelationPredicate`], [`crate::ocpq::TemporalPredicate`],
+//!   [`crate::ocpq::CardinalityPredicate`], [`crate::ocpq::NestedQuery`], [`crate::ocpq::Constraint`]).
+//! - A first-class [`crate::ocpq::OcpqRefusal`] surface naming exactly why a query shape is
 //!   inadmissible.
 //!
 //! ## What this module is **NOT**
@@ -18,7 +18,7 @@
 //! - **Not** a query planner, evaluator, or execution engine. It builds and
 //!   refuses *query shapes*; it never *runs* them against a log.
 //! - **Not** a flattening tool. Any projection that would require flattening the
-//!   object-centric log is refused with [`OcpqRefusal::FlatteningRequired`].
+//!   object-centric log is refused with [`crate::ocpq::OcpqRefusal::FlatteningRequired`].
 //!
 //! ## Graduation
 //!

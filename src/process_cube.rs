@@ -43,7 +43,7 @@ use core::marker::PhantomData;
 /// ## What this is not
 ///
 /// Not a runtime dimension value or an enumerated attribute bag. The runtime
-/// attribute value lives in [`CubeSlice::value`]. This is the axis label only.
+/// attribute value lives in [`crate::process_cube::CubeSlice::value`]. This is the axis label only.
 ///
 /// ## Graduate to `wasm4pm`
 ///

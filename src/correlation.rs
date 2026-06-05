@@ -6,9 +6,9 @@
 //!
 //! - Structure-only typed shapes for cross-log correlation keys, witnesses,
 //!   merged log envelopes, and schema labels.
-//! - A zero-cost [`CorrelationWitness`] tag that names the authority under
+//! - A zero-cost [`crate::correlation::CorrelationWitness`] tag that names the authority under
 //!   which a cross-log correlation has been applied.
-//! - A [`CorrelatedLog`] envelope that distinguishes a merged log (produced
+//! - A [`crate::correlation::CorrelatedLog`] envelope that distinguishes a merged log (produced
 //!   by correlating two source logs) from either source at the type level.
 //!
 //! ## What this module is NOT
@@ -150,17 +150,17 @@ impl<A, B, const SCHEMA: &'static str> Default for CorrelatedLog<A, B, SCHEMA> {
 ///
 /// This is a runtime-representable label for the four canonical correlation
 /// strategies. It complements the compile-time `SCHEMA` const-generic parameter
-/// on [`CorrelationKey`], [`CorrelationWitness`], and [`CorrelatedLog`].
+/// on [`crate::correlation::CorrelationKey`], [`crate::correlation::CorrelationWitness`], and [`crate::correlation::CorrelatedLog`].
 ///
 /// ## Variants
 ///
-/// - [`ByCase`](CorrelationSchema::ByCase) — events are matched by case
-///   identifier (e.g. `concept:name` in XES or case ID in OCEL).
-/// - [`ByObject`](CorrelationSchema::ByObject) — events are matched by shared
-///   object reference (object-centric correlation).
-/// - [`ByTimestamp`](CorrelationSchema::ByTimestamp) — events are matched by
-///   timestamp proximity or exact match.
-/// - [`ByAttribute`](CorrelationSchema::ByAttribute) — events are matched by
+/// - [`ByCase`](crate::correlation::CorrelationSchema::ByCase) — events are matched by case
+///   identifier equality (standard single-case merge).
+/// - [`ByObject`](crate::correlation::CorrelationSchema::ByObject) — events are matched by shared
+///   object reference (cross-object path correlation).
+/// - [`ByTimestamp`](crate::correlation::CorrelationSchema::ByTimestamp) — events are matched by
+///   temporal proximity (sliding window / trace-free correlation).
+/// - [`ByAttribute`](crate::correlation::CorrelationSchema::ByAttribute) — events are matched by
 ///   equality of a named attribute value.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum CorrelationSchema {

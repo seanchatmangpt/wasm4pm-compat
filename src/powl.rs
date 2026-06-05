@@ -8,12 +8,12 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of POWL: [`PowlNode`], [`OrderEdge`], [`Powl`].
+//! - The structural vocabulary of POWL: [`crate::powl::PowlNode`], [`crate::powl::OrderEdge`], [`crate::powl::Powl`].
 //! - Witness markers describing *which POWL fragment* a node represents
-//!   ([`Atom`], [`PartialOrder`], [`Choice`], [`Loop`], [`Silent`],
-//!   [`Irreducible`]) and *whether it can graduate downward* into a process
-//!   tree ([`ProcessTreeProjectable`], [`ExceedsProcessTree`]).
-//! - A first-class [`PowlRefusal`] surface naming exactly why a POWL shape is
+//!   ([`crate::powl::Atom`], [`crate::powl::PartialOrder`], [`crate::powl::Choice`], [`crate::powl::Loop`], [`crate::powl::Silent`],
+//!   [`crate::powl::Irreducible`]) and *whether it can graduate downward* into a process
+//!   tree ([`crate::powl::ProcessTreeProjectable`], [`crate::powl::ExceedsProcessTree`]).
+//! - A first-class [`crate::powl::PowlRefusal`] surface naming exactly why a POWL shape is
 //!   inadmissible.
 //!
 //! ## What this module is **NOT**

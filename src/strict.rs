@@ -2,7 +2,7 @@
 //! boundaries.
 //!
 //! Strict mode does not *do* anything to your data. It is a **declaration and
-//! check surface**: a host *declares* the [`ProcessBoundary`]s it crosses, and
+//! check surface**: a host *declares* the [`crate::strict::ProcessBoundary`]s it crosses, and
 //! strict mode *checks* that each declaration carries the obligations the boundary
 //! covenant demands — a witness, a round-trip fixture, a loss policy, a refusal
 //! path, conformance fields, a receipt shape — and that no process-mining
@@ -17,14 +17,14 @@
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** an engine. [`StrictCheck::check`] inspects *declarations*, never data.
+//! - **Not** an engine. [`crate::strict::StrictCheck::check`] inspects *declarations*, never data.
 //!   It never replays a log, never measures fitness, never discovers a model.
 //! - **Not** a runtime validator of bytes. It validates that the *boundary was
 //!   honestly declared*, which is a structural property.
 //!
 //! ## Graduation
 //!
-//! [`StrictViolation::HiddenProcessMiningGrowth`] is the tripwire: if a boundary
+//! [`crate::strict::StrictViolation::HiddenProcessMiningGrowth`] is the tripwire: if a boundary
 //! starts *claiming* discovery/conformance/replay capability, strict mode refuses
 //! the declaration and points you at the `wasm4pm` graduation bridge. Strict mode's
 //! whole job is to keep the compat layer honest about *not* being the engine.

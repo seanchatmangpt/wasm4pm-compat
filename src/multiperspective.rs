@@ -34,9 +34,26 @@ use core::marker::PhantomData;
 
 /// The four classic process mining perspectives (van der Aalst).
 ///
+/// ### Representation
 /// Each variant names one of the four canonical analysis dimensions in the
 /// Mannhardt et al. (2016) balanced multi-perspective conformance framework.
+///
+/// ### Structure-only
 /// This is structure only; it names a perspective but does not analyse it.
+/// Zero-sized marker variants or light enum discriminant.
+///
+/// ### Graduation
+/// When you need to *compute* per-perspective alignment costs or *check* multi-
+/// perspective conformance, graduate to `wasm4pm`.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::ProcessPerspective;
+///
+/// let p = ProcessPerspective::ControlFlow;
+/// assert_eq!(format!("{}", p), "control-flow");
+/// ```
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 pub enum ProcessPerspective {
     /// The ordering and routing of activities (what happens and in what order).
@@ -62,43 +79,104 @@ impl core::fmt::Display for ProcessPerspective {
 
 /// Marker that evidence covers the control-flow perspective.
 ///
-/// Zero-sized. Used in `PhantomData` positions to assert that a value is typed
+/// ### Representation
+/// Zero-sized marker type representing the control-flow perspective, which focuses on the ordering, routing, and synchronization of activities.
+/// Used in `PhantomData` positions to assert that a value is typed
 /// against the control-flow perspective of the Mannhardt et al. (2016) framework.
 ///
-/// Structure-only perspective marker. Graduate to `wasm4pm` when control-flow
-/// alignment cost computation is required.
+/// ### Structure-only
+/// Structure-only perspective marker. No alignment computation, no conformance checking, and zero runtime storage cost.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` when control-flow alignment cost computation is required.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::ControlFlowPerspective;
+/// use core::marker::PhantomData;
+///
+/// struct MyEvidence<P>(PhantomData<P>);
+/// let _ev: MyEvidence<ControlFlowPerspective> = MyEvidence(PhantomData);
+/// ```
 pub struct ControlFlowPerspective;
 
 /// Marker that evidence covers the data perspective.
 ///
-/// Zero-sized. Asserts that a value is typed against the data perspective
+/// ### Representation
+/// Zero-sized marker type representing the data perspective, which focuses on case and event attributes, variable values, and guards.
+/// Asserts that a value is typed against the data perspective
 /// (event/object attributes) in the multi-perspective framework.
 ///
-/// Structure-only perspective marker. Graduate to `wasm4pm` when data-condition
-/// guard evaluation is required.
+/// ### Structure-only
+/// Structure-only perspective marker. No condition evaluation or guard checking, and zero runtime storage cost.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` when data-condition guard evaluation is required.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::DataPerspective;
+/// use core::marker::PhantomData;
+///
+/// struct MyEvidence<P>(PhantomData<P>);
+/// let _ev: MyEvidence<DataPerspective> = MyEvidence(PhantomData);
+/// ```
 pub struct DataPerspective;
 
 /// Marker that evidence covers the resource perspective.
 ///
-/// Zero-sized. Asserts that a value is typed against the resource perspective
+/// ### Representation
+/// Zero-sized marker type representing the resource perspective, focusing on organizational roles, resources, departments, and performers.
+/// Asserts that a value is typed against the resource perspective
 /// (`org:resource` or equivalent organisational attribute) in the multi-perspective
 /// framework.
 ///
-/// Structure-only perspective marker. Graduate to `wasm4pm` when resource-based
-/// conformance cost computation is required.
+/// ### Structure-only
+/// Structure-only perspective marker. No resource allocation checks or conformance cost evaluation, and zero runtime storage cost.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` when resource-based conformance cost computation is required.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::ResourcePerspective;
+/// use core::marker::PhantomData;
+///
+/// struct MyEvidence<P>(PhantomData<P>);
+/// let _ev: MyEvidence<ResourcePerspective> = MyEvidence(PhantomData);
+/// ```
 pub struct ResourcePerspective;
 
 /// Marker that evidence covers the time perspective.
 ///
-/// Zero-sized. Asserts that a value is typed against the temporal perspective
+/// ### Representation
+/// Zero-sized marker type representing the time perspective, focusing on timestamps, activity durations, waiting times, and performance metrics.
+/// Asserts that a value is typed against the temporal perspective
 /// (timestamps, durations, sojourn times) in the multi-perspective framework.
 ///
-/// Structure-only perspective marker. Graduate to `wasm4pm` when temporal
-/// conformance checking (e.g. temporal profile comparison) is required.
+/// ### Structure-only
+/// Structure-only perspective marker. No temporal profile validation, sojourn time checks, or performance calculations.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` when temporal conformance checking (e.g. temporal profile comparison) is required.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::TimePerspective;
+/// use core::marker::PhantomData;
+///
+/// struct MyEvidence<P>(PhantomData<P>);
+/// let _ev: MyEvidence<TimePerspective> = MyEvidence(PhantomData);
+/// ```
 pub struct TimePerspective;
 
 /// Evidence enriched with perspective markers.
 ///
+/// ### Representation
 /// `MultiPerspectiveEvidence<T, Perspectives>` wraps an inner value `T` and
 /// threads a perspective combination (e.g. `PerspectiveCombination<ControlFlowPerspective,
 /// DataPerspective>`) through the type system as a zero-sized phantom.
@@ -106,7 +184,22 @@ pub struct TimePerspective;
 /// The `Perspectives` type parameter is intentionally open — callers compose
 /// [`PerspectiveCombination`] types to declare which perspectives are present.
 ///
-/// This is structure only; no engine logic belongs here.
+/// ### Structure-only
+/// This is structure only; no engine logic or conformance algorithms belong here.
+/// It introduces zero runtime cost or extra storage overhead.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` when you need to calculate multi-perspective alignment
+/// scores or run multi-perspective conformance checking.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::{MultiPerspectiveEvidence, ControlFlowPerspective};
+///
+/// let evidence = MultiPerspectiveEvidence::<_, ControlFlowPerspective>::new(42);
+/// assert_eq!(evidence.inner, 42);
+/// ```
 pub struct MultiPerspectiveEvidence<T, Perspectives> {
     /// The inner evidence value.
     pub inner: T,
@@ -125,11 +218,29 @@ impl<T, Perspectives> MultiPerspectiveEvidence<T, Perspectives> {
 
 /// A combination of two perspectives for multi-perspective analysis.
 ///
+/// ### Representation
 /// Used as the `Perspectives` parameter in [`MultiPerspectiveEvidence`] when
 /// evidence covers exactly two perspectives. For three or four perspectives,
 /// nest: `PerspectiveCombination<A, PerspectiveCombination<B, C>>`.
 ///
-/// Zero-sized.
+/// ### Structure-only
+/// Zero-sized marker type for type-level generic combination, carrying no runtime representation
+/// or data storage overhead.
+///
+/// ### Graduation
+/// Graduate to `wasm4pm` to analyze processes along the combined dimensions.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::multiperspective::{
+///     PerspectiveCombination, ControlFlowPerspective, DataPerspective, MultiPerspectiveEvidence
+/// };
+///
+/// type FlowAndData = PerspectiveCombination<ControlFlowPerspective, DataPerspective>;
+/// let evidence = MultiPerspectiveEvidence::<_, FlowAndData>::new("evidence");
+/// assert_eq!(evidence.inner, "evidence");
+/// ```
 pub struct PerspectiveCombination<A, B> {
     _a: PhantomData<A>,
     _b: PhantomData<B>,

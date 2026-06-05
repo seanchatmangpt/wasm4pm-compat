@@ -15,18 +15,18 @@
 //!     └────────────── refuse ────────────┴──▶ Refused  (terminal: a named law was broken)
 //! ```
 //!
-//! - You may *construct* [`Raw`] evidence freely (it is untrusted input).
-//! - You may only reach [`Admitted`] through an [`crate::admission::Admit`]
+//! - You may *construct* [`crate::state::Raw`] evidence freely (it is untrusted input).
+//! - You may only reach [`crate::state::Admitted`] through an [`crate::admission::Admit`]
 //!   impl — there is **no** public free conversion `Raw → Admitted`.
-//! - [`Refused`] is terminal and first-class: it carries a *specific named law*,
+//! - [`crate::state::Refused`] is terminal and first-class: it carries a *specific named law*,
 //!   never a bare "invalid input".
 //!
 //! These tokens are **structure only**. They mark *where a value is* in the
 //! boundary protocol; they never run discovery, conformance, or replay.
 //!
-//! ## The sealed [`EvidenceState`] trait
+//! ## The sealed [`crate::state::EvidenceState`] trait
 //!
-//! All lifecycle stage tokens implement the [`EvidenceState`] sealed trait. This
+//! All lifecycle stage tokens implement the [`crate::state::EvidenceState`] sealed trait. This
 //! prevents a downstream crate from inventing an arbitrary type and using it as
 //! the `State` parameter of [`crate::evidence::Evidence`]. Only the seven
 //! canonical stages defined here are valid lifecycle positions.

@@ -7,7 +7,7 @@
 //! *event* id is required.
 //!
 //! Each id here is a `#[repr(transparent)]` newtype carrying a `PhantomData<K>`
-//! **kind marker**, so [`EventId<K>`] and [`ObjectId<K>`] are *distinct types*
+//! **kind marker**, so [`crate::ids::EventId`] and [`crate::ids::ObjectId`] are *distinct types*
 //! even though both wrap a `u64`. Mixing them is a **compile error**, not a
 //! debugging session. The `K` parameter additionally lets a caller stamp ids
 //! with a *namespace* (e.g. a witness or a log identity) so ids from different
@@ -19,16 +19,16 @@
 //!
 //! ## String-backed name types
 //!
-//! [`ObjectTypeName`] and [`EventTypeName`] carry the actual string label
+//! [`crate::ids::ObjectTypeName`] and [`crate::ids::EventTypeName`] carry the actual string label
 //! (e.g. `"order"`, `"place_order"`) rather than an interned integer handle.
 //! They are structurally distinct from the integer-backed types above — mixing
-//! them is a compile error. Use the integer-backed [`ObjectTypeId`] /
-//! [`EventTypeId`] when you hold an interned handle; use the string-backed
+//! them is a compile error. Use the integer-backed [`crate::ids::ObjectTypeId`] /
+//! [`crate::ids::EventTypeId`] when you hold an interned handle; use the string-backed
 //! types when you hold the human-readable label itself.
 //!
 //! ## `id_of` — phantom-typed marker constructor
 //!
-//! [`id_of`] is a zero-cost free function that constructs any [`TypedId`]
+//! [`crate::ids::id_of`] is a zero-cost free function that constructs any [`crate::ids::TypedId`]
 //! implementor from a raw value while anchoring it to an explicit kind marker.
 //! It is the *canonical* way to build a typed id when the kind is known at the
 //! call site: `id_of::<EventId<MyLog>>(7)` rather than `EventId::<MyLog>::new(7)`.
@@ -41,7 +41,7 @@ use std::borrow::Cow;
 /// # What this is
 ///
 /// `TypedId` is a *sealed* trait: it is implemented only by the newtypes
-/// declared in this module ([`EventId`], [`ObjectId`], [`CaseId`], etc.) and
+/// declared in this module ([`crate::ids::EventId`], [`crate::ids::ObjectId`], [`crate::ids::CaseId`], etc.) and
 /// cannot be implemented outside the crate. It lets generic code express
 /// "any typed id" without reaching for a raw `u64`/`u32`.
 ///

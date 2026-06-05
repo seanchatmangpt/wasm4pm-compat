@@ -3,26 +3,26 @@
 //! This module is the only lawful door between *external format bytes* and
 //! *typed, admitted compat values*. It enforces the boundary covenant:
 //!
-//! 1. **Import** turns a raw [`FormatEnvelope`] into either an
+//! 1. **Import** turns a raw [`crate::formats::FormatEnvelope`] into either an
 //!    [`crate::admission::Admission`] (typed, admitted) or an
 //!    [`crate::admission::Refusal`] (a *specifically named* law). It never yields
 //!    a bare typed struct, and never the bare format bytes re-typed.
-//! 2. **Export** turns a typed source back into a [`FormatExport`], and **must**
+//! 2. **Export** turns a typed source back into a [`crate::formats::FormatExport`], and **must**
 //!    accept a [`crate::loss::LossPolicy`]. A lossy export either carries a
 //!    [`crate::loss::LossReport`] or refuses.
 //! 3. **No raw format-to-format laundering.** There is no `import_then_export`
 //!    that skips the typed admitted middle. Every translation is
 //!    *external → admitted compat → external*.
-//! 4. **Round-trip is a claim, not a guarantee.** A [`RoundTripClaim`] *names* a
+//! 4. **Round-trip is a claim, not a guarantee.** A [`crate::formats::RoundTripClaim`] *names* a
 //!    fixture under which `import(export(x)) ~ x` is asserted; it is structure
 //!    only and proves nothing by itself — proving it is a *test's* job (see
 //!    `tests/format_contracts.rs`).
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** a parser library. [`FormatEnvelope`] holds *raw bytes* and a
-//!   [`FormatKind`] tag. It does not parse XML/JSON/SQLite here; parsing-into-shape
-//!   is delegated to the always-on shape modules behind the [`ImportFormat`] impls
+//! - **Not** a parser library. [`crate::formats::FormatEnvelope`] holds *raw bytes* and a
+//!   [`crate::formats::FormatKind`] tag. It does not parse XML/JSON/SQLite here; parsing-into-shape
+//!   is delegated to the always-on shape modules behind the [`crate::formats::ImportFormat`] impls
 //!   an adopter supplies.
 //! - **Not** a translator. It refuses direct format-to-format conversion: you must
 //!   import to a typed compat value first, then export.

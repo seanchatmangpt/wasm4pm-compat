@@ -1,10 +1,10 @@
 //! Petri net, WF-net, and OC-Petri-net **shapes** — with soundness as a
 //! *typestate claim*, never a computed proof.
 //!
-//! This module models the place/transition canon: a [`PetriNet`] of [`Place`]s
-//! and [`Transition`]s joined by [`Arc`]s with a [`Marking`]; a [`WfNet`]
+//! This module models the place/transition canon: a [`crate::petri::PetriNet`] of [`crate::petri::Place`]s
+//! and [`crate::petri::Transition`]s joined by [`crate::petri::Arc`]s with a [`crate::petri::Marking`]; a [`crate::petri::WfNet`]
 //! (workflow net) specialization with a single source and sink and a soundness
-//! *claim* tracked at the type level; and an [`ObjectCentricPetriNet`] whose
+//! *claim* tracked at the type level; and an [`crate::petri::ObjectCentricPetriNet`] whose
 //! arcs are typed by object type and may be variable.
 //!
 //! ## Soundness is a *claim*, not a result
@@ -12,9 +12,9 @@
 //! WF-net **soundness** (option to complete, proper completion, no dead
 //! transitions) is a non-trivial property. This crate **does not compute it** —
 //! computing soundness is an engine and graduates to `wasm4pm`. Instead, a
-//! [`WfNet`] carries a *typestate token* recording at the type level whether
-//! soundness is [`SoundnessUnknown`] (default), merely [`SoundnessClaimed`]
-//! (asserted by a human/upstream, unproven here), or [`SoundnessWitnessed`]
+//! [`crate::petri::WfNet`] carries a *typestate token* recording at the type level whether
+//! soundness is [`crate::petri::SoundnessUnknown`] (default), merely [`crate::petri::SoundnessClaimed`]
+//! (asserted by a human/upstream, unproven here), or [`crate::petri::SoundnessWitnessed`]
 //! (carrying a witness obtained from `wasm4pm` and re-attached here).
 //!
 //! These three tokens are **empty enums** (uninhabited markers) used only as
@@ -22,7 +22,7 @@
 //!
 //! ## Structure only
 //!
-//! [`PetriNet::validate`] and [`WfNet::validate`] check *structural* shape
+//! [`crate::petri::PetriNet::validate`] and [`crate::petri::WfNet::validate`] check *structural* shape
 //! (arcs reference declared nodes; a WF-net has an initial and final marking).
 //! They never check reachability, boundedness, liveness, or soundness — those
 //! are `wasm4pm`.
@@ -30,9 +30,13 @@
 //! ## Graduation to `wasm4pm`
 //!
 //! Soundness witnessing, boundedness/safeness analysis, reachability, and
-//! token-game replay graduate to `wasm4pm`. A [`SoundnessWitnessed`] WF-net is
+//! token-game replay graduate to `wasm4pm`. A [`crate::petri::SoundnessWitnessed`] WF-net is
 //! the shape into which such a witness is re-attached for evidence-carrying
 //! interchange.
+//!
+//! [`SoundnessUnknown`]: crate::petri::SoundnessUnknown
+//! [`SoundnessClaimed`]: crate::petri::SoundnessClaimed
+//! [`SoundnessWitnessed`]: crate::petri::SoundnessWitnessed
 
 use core::marker::PhantomData;
 
@@ -382,7 +386,7 @@ pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
 /// `petri` (or via the `wasm4pm` graduation bridge).
 ///
 /// Callers outside this module cannot construct `SoundnessProof` because the
-/// inner [`wfnet_seal::WfNetSeal`] type is private.
+/// inner `wfnet_seal::WfNetSeal` type is private.
 pub struct SoundnessProof(wfnet_seal::WfNetSeal);
 
 impl SoundnessProof {

@@ -6,9 +6,9 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of Declare: [`Activity`], [`DeclareTemplate`],
-//!   [`DeclareScope`], and [`DeclareConstraint`].
-//! - A first-class [`DeclareRefusal`] surface naming exactly why a constraint
+//! - The structural vocabulary of Declare: [`crate::declare::Activity`], [`crate::declare::DeclareTemplate`],
+//!   [`crate::declare::DeclareScope`], and [`crate::declare::DeclareConstraint`].
+//! - A first-class [`crate::declare::DeclareRefusal`] surface naming exactly why a constraint
 //!   shape is inadmissible.
 //!
 //! ## What this module is **NOT**
@@ -384,7 +384,7 @@ impl DeclareConstraint {
     }
 }
 
-/// An OC-Declare constraint: a [`DeclareConstraint`] explicitly bound to one
+/// An OC-Declare constraint: a [`crate::declare::DeclareConstraint`] explicitly bound to one
 /// or more named object types.
 ///
 /// OC-Declare extends classical Declare by attaching *object type annotations*
@@ -394,7 +394,7 @@ impl DeclareConstraint {
 ///
 /// ## What this struct **IS**
 ///
-/// - A named association: which [`DeclareConstraint`] applies, and which
+/// - A named association: which [`crate::declare::DeclareConstraint`] applies, and which
 ///   object types it is scoped to.
 /// - The structural basis for OC-Declare conformance shapes passed to
 ///   `wasm4pm`.
@@ -404,7 +404,7 @@ impl DeclareConstraint {
 /// - Not a runtime engine. Synchronization and evaluation are out-of-scope.
 /// - Not a classical Declare model. The `object_types` field must be
 ///   non-empty; an empty list is refused as
-///   [`OcDeclareRefusal::EmptyObjectTypeList`].
+///   [`crate::declare::OcDeclareRefusal::EmptyObjectTypeList`].
 ///
 /// ## Graduation
 ///

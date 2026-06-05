@@ -7,10 +7,10 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of prediction problems: [`PredictionProblem`]
-//!   and the target witness markers [`PrefixTrace`], [`OutcomeLabel`],
-//!   [`RemainingTime`], [`NextActivity`], [`DriftSignal`].
-//! - A first-class [`PredictionRefusal`] surface naming exactly why a problem
+//! - The structural vocabulary of prediction problems: [`crate::prediction::PredictionProblem`]
+//!   and the target witness markers [`crate::prediction::PrefixTrace`], [`crate::prediction::OutcomeLabel`],
+//!   [`crate::prediction::RemainingTime`], [`crate::prediction::NextActivity`], [`crate::prediction::DriftSignal`].
+//! - A first-class [`crate::prediction::PredictionRefusal`] surface naming exactly why a problem
 //!   shape is inadmissible.
 //!
 //! ## What this module is **NOT**

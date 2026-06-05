@@ -40,7 +40,7 @@
 //!   discovery, no conformance checking, no replay, no alignment, no
 //!   optimization, no visualization.
 //! - **Not** a data-laundering tool. Lossy projection always requires a named
-//!   projection, a [`loss::LossPolicy`], a [`loss::LossReport`], and a refusal
+//!   projection, a [`crate::loss::LossPolicy`], a [`crate::loss::LossReport`], and a refusal
 //!   path.
 //!
 //! ## The one-way door
@@ -53,12 +53,12 @@
 //!   └────────────── refuse ────────────┴──▶ Refused  (terminal; carries a named law)
 //! ```
 //!
-//! [`evidence::Evidence<T, State, W>`] is the universal carrier. `State` and `W`
+//! [Evidence<T, State, W>](crate::evidence::Evidence) is the universal carrier. `State` and `W`
 //! are zero-sized `PhantomData` tags — zero runtime cost. `Evidence<T, Raw, W>` and
 //! `Evidence<T, Admitted, W>` are **different types**. A function demanding admitted
 //! evidence cannot be called with raw evidence. The `Admitted` constructor is
 //! `pub(crate)` — the **only** public path to admitted evidence is
-//! [`admission::Admit::admit`].
+//! [`crate::admission::Admit::admit`].
 //!
 //! ## Feature model
 //!
@@ -94,7 +94,7 @@
 //!
 //! ## Adoption example
 //!
-//! Build the core event-log shape via the [`prelude`]:
+//! Build the core event-log shape via the [`crate::prelude`]:
 //!
 //! ```ignore
 //! use wasm4pm_compat::prelude::*;
@@ -198,7 +198,7 @@ pub mod ocpq;
 pub mod petri;
 /// POWL (partially ordered workflow language) shape.
 pub mod powl;
-/// POWL8 operator discriminant — compact `u8` wire-format companion to [`powl::PowlNodeKind`].
+/// POWL8 operator discriminant — compact `u8` wire-format companion to [`crate::powl::PowlNodeKind`].
 pub mod powl8_op;
 /// Prediction problem shape (structure only — no predictor).
 pub mod prediction;
@@ -255,8 +255,8 @@ pub mod test_utils;
 /// Contains `petri_law`, `powl_law`, `evidence_law`, and `token_law` —
 /// four surfaces that use `generic_const_exprs`, `adt_const_params`,
 /// `min_specialization`, and `portable_simd` respectively. This is an
-/// experimental staging module; the main type law lives in [`law`], [`petri`],
-/// [`conformance`], [`process_tree`], [`powl`], [`formats`], and [`strict`].
+/// experimental staging module; the main type law lives in [`crate::law`], [`crate::petri`],
+/// [`crate::conformance`], [`crate::process_tree`], [`crate::powl`], [`crate::formats`], and [`crate::strict`].
 pub mod nightly_foundry;
 
 // ── Flat re-exports: most-used types available at the crate root ─────────────

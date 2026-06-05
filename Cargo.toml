@@ -65,3 +65,15 @@ harness = false
 [[bench]]
 name = "id_operations_bench"
 harness = false
+
+[workspace]
+members = [
+    ".",
+    "wasm4pm-compat-lsp",
+]
+exclude = [
+    "target",
+]
+resolver = "2"
+
+

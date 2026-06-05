@@ -6,14 +6,14 @@
 //!
 //! The machine room for this crate's nightly type law:
 //!
-//! - [`Assert`] / [`IsTrue`] / [`Require`] — the "must be true" compile-time
+//! - [`crate::law::Assert`] / [`crate::law::IsTrue`] / [`crate::law::Require`] — the "must be true" compile-time
 //!   gate. Any where-bound `Require<{ EXPR }>: IsTrue` becomes a compile error
 //!   when `EXPR` evaluates to `false`. Requires `generic_const_exprs`.
-//! - [`ConditionCell<BITS>`] — the *Need9 means split* law: at most 8 primary
+//! - [`crate::law::ConditionCell`] — the *Need9 means split* law: at most 8 primary
 //!   condition bits. `ConditionCell<9>` does **not compile**.
-//! - [`Between01<NUM, DEN>`] — metrics that are provably in `[0, 1]` at the
+//! - [`crate::law::Between01`] — metrics that are provably in `[0, 1]` at the
 //!   type level. `Between01<2, 1>` does **not compile**.
-//! - [`ConstParamTy`] enum set — every lawful state, mode, law, and kind
+//! - [`core::marker::ConstParamTy`] enum set — every lawful state, mode, law, and kind
 //!   that travels as a const generic parameter across this crate.
 //!
 //! ## What this module is **NOT**
@@ -33,7 +33,7 @@ use core::marker::ConstParamTy;
 /// Type-level boolean assertion. `Assert<true>` is inhabited; `Assert<false>`
 /// is not (no `IsTrue` impl).
 ///
-/// Used via the [`Require`] alias and [`IsTrue`] trait to turn boolean const
+/// Used via the [`crate::law::Require`] alias and [`crate::law::IsTrue`] trait to turn boolean const
 /// expressions into compile-time law gates.
 ///
 /// ```
@@ -43,7 +43,7 @@ use core::marker::ConstParamTy;
 /// ```
 pub struct Assert<const OK: bool>;
 
-/// The inhabited side of [`Assert`]: only `Assert<true>` satisfies this bound.
+/// The inhabited side of [`crate::law::Assert`]: only `Assert<true>` satisfies this bound.
 ///
 /// Write where-bounds as `where Require<{ EXPR }>: IsTrue` to get a compile
 /// error when `EXPR` is false.
@@ -59,7 +59,7 @@ pub trait IsTrue {}
 
 impl IsTrue for Assert<true> {}
 
-/// Alias for [`Assert`]; read as "this must be true".
+/// Alias for [`crate::law::Assert`]; read as "this must be true".
 ///
 /// ```
 /// # #![feature(generic_const_exprs)]
@@ -139,7 +139,7 @@ where
 /// `Between01<2, 1>` does **not compile**: `NUM <= DEN` is violated.
 /// `Between01<0, 0>` does **not compile**: `DEN > 0` is required.
 ///
-/// Used for [`Metric`] to make out-of-range fitness/precision/F1 a compile
+/// Used for [`crate::conformance::Metric`] to make out-of-range fitness/precision/F1 a compile
 /// error rather than a runtime panic.
 ///
 /// ```

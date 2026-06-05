@@ -6,15 +6,15 @@
 //!
 //! ## What this module **IS**
 //!
-//! - The structural vocabulary of receipts: [`ReceiptShape`], plus the small
-//!   transparent [`Digest`] and [`ReplayHint`] carriers.
-//! - A first-class [`ReceiptRefusal`] surface naming exactly why a receipt shape
+//! - The structural vocabulary of receipts: [`crate::receipt::ReceiptShape`], plus the small
+//!   transparent [`crate::receipt::Digest`] and [`crate::receipt::ReplayHint`] carriers.
+//! - A first-class [`crate::receipt::ReceiptRefusal`] surface naming exactly why a receipt shape
 //!   is inadmissible.
 //!
 //! ## What this module is **NOT**
 //!
 //! - **Not** a hash function, a signer, a verifier, or a replay engine. A
-//!   [`ReceiptShape`] *carries* a digest string and a replay hint produced
+//!   [`crate::receipt::ReceiptShape`] *carries* a digest string and a replay hint produced
 //!   elsewhere; it never *computes* a digest or *verifies* a claim.
 //! - **Not** authoritative. A well-shaped receipt asserts only that the *form*
 //!   of evidence is present — full provenance authority lives in `wasm4pm`.
@@ -29,8 +29,8 @@
 
 /// A uniform shape-checking trait for all receipt types in this module.
 ///
-/// Every receipt type — [`ReceiptShape`], [`ReceiptEnvelope`],
-/// [`ReceiptChain`], and [`GraduationReceipt`] — implements `WellShaped`.
+/// Every receipt type — [`crate::receipt::ReceiptShape`], [`crate::receipt::ReceiptEnvelope`],
+/// [`crate::receipt::ReceiptChain`], and [`crate::receipt::GraduationReceipt`] — implements `WellShaped`.
 /// A caller that holds a `dyn WellShaped` (or `T: WellShaped`) can check
 /// structural admissibility without knowing the concrete type.
 ///

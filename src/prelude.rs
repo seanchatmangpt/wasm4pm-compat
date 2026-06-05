@@ -1,9 +1,9 @@
 //! The adoption prelude — the smallest surface needed to start using the crate.
 //!
 //! `use wasm4pm_compat::prelude::*;` brings in the core process-evidence shapes
-//! ([`Event`], [`Trace`], [`EventLog`], [`OcelLog`]), the typestate tokens
-//! ([`Raw`], [`Parsed`], [`Admitted`], [`Refused`], [`Projected`], [`Exportable`],
-//! [`Receipted`]), the witness markers, and the boundary laws (admission,
+//! ([`crate::eventlog::Event`], [`crate::eventlog::Trace`], [`crate::eventlog::EventLog`], [`crate::ocel::OcelLog`]), the typestate tokens
+//! ([`crate::state::Raw`], [`crate::state::Parsed`], [`crate::state::Admitted`], [`crate::state::Refused`], [`crate::state::Projected`], [`crate::state::Exportable`],
+//! [`crate::state::Receipted`]), the witness markers, and the boundary laws (admission,
 //! refusal, loss).
 //!
 //! This prelude re-exports **structure only**. None of these types run

@@ -6,12 +6,12 @@
 //! objects of *many* types, and objects relate to each other and change over
 //! time. Modeling OCEL as "an [`crate::eventlog::EventLog`] with side tables"
 //! would be a category error — so this module gives OCEL its own genuine canon:
-//! [`Object`], [`OcelEvent`], [`EventObjectLink`] (E2O), [`ObjectObjectLink`]
-//! (O2O), and [`ObjectChange`], collected in an [`OcelLog`].
+//! [`crate::ocel::OcelObject`], [`crate::ocel::OcelEvent`], [`crate::ocel::EventObjectLink`] (E2O), [`crate::ocel::ObjectObjectLink`]
+//! (O2O), and [`crate::ocel::ObjectChange`], collected in an [`crate::ocel::OcelLog`].
 //!
 //! ## Structure only
 //!
-//! [`OcelLog::validate`] performs a **structural** integrity check: every link
+//! [`crate::ocel::OcelLog::validate`] performs a **structural** integrity check: every link
 //! must reference declared objects and events; ids must be unique. It does
 //! **not** discover an object-centric Petri net, flatten the log, or check
 //! conformance — those are engines and graduate to `wasm4pm`.
@@ -20,7 +20,7 @@
 //!
 //! Flattening OCEL to a single case notion is *lossy by construction* — it
 //! drops convergence/divergence information. This crate treats that as a named
-//! law, [`OcelRefusal::FlatteningLoss`], so a flattening projection must carry a
+//! law, [`crate::ocel::OcelRefusal::FlatteningLoss`], so a flattening projection must carry a
 //! loss policy and report rather than silently laundering object-centric truth
 //! into case-centric shape.
 //!

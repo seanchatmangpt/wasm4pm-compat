@@ -1,21 +1,21 @@
 //! BPMN model **shape** — structure only, no execution semantics.
 //!
 //! BPMN (Business Process Model and Notation) is a graphical process-modeling
-//! language. This module models its *graph shape*: a [`BpmnProcess`] is a set of
-//! [`BpmnNode`]s (each a [`BpmnTask`], [`BpmnGateway`], or [`BpmnEvent`])
-//! connected by directed [`BpmnEdge`]s (sequence flows).
+//! language. This module models its *graph shape*: a [`crate::bpmn::BpmnProcess`] is a set of
+//! [`crate::bpmn::BpmnNode`]s (each a [`crate::bpmn::BpmnTask`], [`crate::bpmn::BpmnGateway`], or [`crate::bpmn::BpmnEvent`])
+//! connected by directed [`crate::bpmn::BpmnEdge`]s (sequence flows).
 //!
 //! ## Structure only — no token semantics
 //!
 //! This crate does **not** execute BPMN. It does not propagate tokens through
 //! gateways, evaluate conditions, simulate, or convert BPMN to a Petri net for
-//! analysis. [`BpmnProcess::validate`] checks only *graph* laws: nodes are
+//! analysis. [`crate::bpmn::BpmnProcess::validate`] checks only *graph* laws: nodes are
 //! identified, edges connect declared nodes, there is a start and an end.
 //! Execution, simulation, and BPMN↔Petri conversion graduate to `wasm4pm`.
 //!
 //! ## Graduation to `wasm4pm`
 //!
-//! An admitted [`BpmnProcess`] is a well-shaped model graph. Soundness analysis,
+//! An admitted [`crate::bpmn::BpmnProcess`] is a well-shaped model graph. Soundness analysis,
 //! token-flow simulation, and conformance of a log against the BPMN model
 //! graduate to the `wasm4pm` engine.
 
@@ -58,7 +58,7 @@ pub enum BpmnEvent {
 /// A BPMN task node (a unit of work / activity).
 ///
 /// Holds the task's display `name` (the activity it represents). Identity is
-/// supplied by the enclosing [`BpmnNode`].
+/// supplied by the enclosing [`crate::bpmn::BpmnNode`].
 ///
 /// Structure-only: it is a labeled vertex, not an executable activity.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -90,8 +90,8 @@ impl BpmnTask {
 
 /// A BPMN node: an identified vertex that is a task, a gateway, or an event.
 ///
-/// The `id` keys the node in the [`BpmnProcess`] graph; edges reference these
-/// ids. The [`BpmnNodeKind`] says what the node *is*.
+/// The `id` keys the node in the [`crate::bpmn::BpmnProcess`] graph; edges reference these
+/// ids. The [`crate::bpmn::BpmnNodeKind`] says what the node *is*.
 ///
 /// Structure-only: a typed, identified vertex with no behavior.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -100,7 +100,7 @@ pub struct BpmnNode {
     kind: BpmnNodeKind,
 }
 
-/// What a [`BpmnNode`] is: a task, a gateway, or an event.
+/// What a [`crate::bpmn::BpmnNode`] is: a task, a gateway, or an event.
 ///
 /// Structure-only graph tagging; no execution semantics attached.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -181,7 +181,7 @@ impl BpmnNode {
 /// A BPMN sequence flow: a directed edge from one node id to another.
 ///
 /// An edge whose endpoints are not declared nodes is refused as
-/// [`BpmnRefusal::DanglingEdge`].
+/// [`crate::bpmn::BpmnRefusal::DanglingEdge`].
 ///
 /// Structure-only: a directed graph edge, no condition evaluation.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -227,9 +227,9 @@ impl BpmnEdge {
     }
 }
 
-/// A BPMN process: a graph of [`BpmnNode`]s joined by [`BpmnEdge`]s.
+/// A BPMN process: a graph of [`crate::bpmn::BpmnNode`]s joined by [`crate::bpmn::BpmnEdge`]s.
 ///
-/// [`BpmnProcess::validate`] checks *graph* shape only: nodes have unique ids,
+/// [`crate::bpmn::BpmnProcess::validate`] checks *graph* shape only: nodes have unique ids,
 /// edges connect declared nodes, the process has a start event and an end event.
 /// It does not analyze soundness or simulate token flow — those graduate to
 /// `wasm4pm`.
@@ -279,11 +279,11 @@ impl BpmnProcess {
     /// Structurally validate the BPMN graph shape.
     ///
     /// Checks, in order:
-    /// - at least one node exists ([`BpmnRefusal::EmptyProcess`]);
-    /// - node ids are unique ([`BpmnRefusal::DuplicateNodeId`]);
-    /// - a start event is present ([`BpmnRefusal::MissingStartEvent`]) and an
-    ///   end event is present ([`BpmnRefusal::MissingEndEvent`]);
-    /// - every edge connects two declared nodes ([`BpmnRefusal::DanglingEdge`]).
+    /// - at least one node exists ([`crate::bpmn::BpmnRefusal::EmptyProcess`]);
+    /// - node ids are unique ([`crate::bpmn::BpmnRefusal::DuplicateNodeId`]);
+    /// - a start event is present ([`crate::bpmn::BpmnRefusal::MissingStartEvent`]) and an
+    ///   end event is present ([`crate::bpmn::BpmnRefusal::MissingEndEvent`]);
+    /// - every edge connects two declared nodes ([`crate::bpmn::BpmnRefusal::DanglingEdge`]).
     ///
     /// This is a graph-shape check, not soundness analysis and not execution.
     ///
@@ -343,9 +343,9 @@ impl BpmnProcess {
 /// (from its enclosing pool's process) it claims. This is a structural
 /// assignment claim; it does **not** change the flow semantics.
 ///
-/// [`BpmnLane::validate`] checks that every declared `node_id` exists in the
-/// enclosing process's node set, refusing with
-/// [`BpmnRefusal::LaneNodeNotDeclared`] if not.
+/// [`crate::bpmn::BpmnLane::validate`] checks that every declared `node_id` exists in the
+/// process graph, returning the specific, named refusal
+/// [`crate::bpmn::BpmnRefusal::LaneNodeNotDeclared`] if not.
 ///
 /// Structure-only: an organisational label, never an execution boundary.
 ///
@@ -415,7 +415,7 @@ impl BpmnLane {
 
     /// Validate that all node ids declared by this lane exist in `known_ids`.
     ///
-    /// Returns [`BpmnRefusal::LaneNodeNotDeclared`] if any id is absent.
+    /// Returns [`crate::bpmn::BpmnRefusal::LaneNodeNotDeclared`] if any id is absent.
     ///
     /// ```
     /// use std::collections::HashSet;
@@ -439,9 +439,9 @@ impl BpmnLane {
 ///
 /// Real-Life BPMN (4th ed.) defines a pool as the shape that represents a
 /// single participant in a collaboration. Each pool encloses exactly one
-/// [`BpmnProcess`] and optionally subdivides it into [`BpmnLane`]s.
+/// [`crate::bpmn::BpmnProcess`] and optionally subdivides it into [`crate::bpmn::BpmnLane`]s.
 ///
-/// [`BpmnPool::validate`] checks that the enclosed process is structurally
+/// [`crate::bpmn::BpmnPool::validate`] checks that the enclosed process is structurally
 /// valid and that every lane's node ids are declared in the process.
 ///
 /// Structure-only: participant identity and swimlane assignment; no inter-pool

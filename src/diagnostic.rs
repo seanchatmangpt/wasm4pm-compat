@@ -1,6 +1,6 @@
 //! Compatibility diagnostics — the named laws of a well-formed compat surface.
 //!
-//! A [`CompatDiagnostic`] names a *structural law* about how evidence crosses
+//! A [`crate::diagnostic::CompatDiagnostic`] names a *structural law* about how evidence crosses
 //! this crate's boundary. Each variant is a specific, auditable accusation —
 //! "this surface flattened in secret", "this raw value was exported as if
 //! admitted" — together with the action that *satisfies* the law. Like

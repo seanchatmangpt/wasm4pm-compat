@@ -14,3 +14,12 @@ ggen/emitted/*.md
 ggen/emitted/*.rs
 ggen/emitted/*.wit
 ggen/emitted/*.sh
+
+# macOS files
+.DS_Store
+**/.DS_Store
+
+# LSP build targets
+/target-lsp
+/target_lsp
+

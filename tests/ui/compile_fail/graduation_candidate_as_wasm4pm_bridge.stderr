@@ -1,4 +1,4 @@
-error[E0277]: the trait bound `MyCandidate: GraduationCandidate` is not satisfied
+error[E0277]: the trait bound `MyCandidate: wasm4pm_compat::interop::GraduationCandidate` is not satisfied
   --> tests/ui/compile_fail/graduation_candidate_as_wasm4pm_bridge.rs:14:32
    |
 14 |     only_graduation_candidates(&MyCandidate);
@@ -6,7 +6,7 @@ error[E0277]: the trait bound `MyCandidate: GraduationCandidate` is not satisfie
    |     |
    |     required by a bound introduced by this call
    |
-help: the trait `GraduationCandidate` is not implemented for `MyCandidate`
+help: the trait `wasm4pm_compat::interop::GraduationCandidate` is not implemented for `MyCandidate`
   --> tests/ui/compile_fail/graduation_candidate_as_wasm4pm_bridge.rs:8:1
    |
  8 | struct MyCandidate;

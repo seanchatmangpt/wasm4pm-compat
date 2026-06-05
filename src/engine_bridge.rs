@@ -16,7 +16,7 @@
 //! *minted*, a benchmark *gated*, an object-centric query *executed*, or it finds
 //! itself *rebuilding process mining locally* — that is not a bug in compat. It is
 //! the signal to **graduate**. This module turns that signal into a typed,
-//! reviewable [`GraduationCandidate`].
+//! reviewable [`crate::engine_bridge::GraduationCandidate`].
 //!
 //! ## What this module is **NOT**
 //!
