@@ -283,3 +283,15 @@ pub use crate::workflow::{
     Running,
 };
 pub use crate::xes::XesLog;
+pub mod hash;
+
+pub mod event_log_legacy;
+pub mod legacy_choice_graph;
+pub mod legacy_conformance;
+pub mod legacy_dense_kernel;
+pub mod legacy_error;
+pub mod legacy_event_log;
+pub mod legacy_import;
+pub mod legacy_models;
+pub mod legacy_ocel;
+pub mod ocel_legacy;

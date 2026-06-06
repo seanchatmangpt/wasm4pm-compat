@@ -44,6 +44,16 @@ strict = []
 wasm4pm = []
 
 [dependencies]
+quick-xml = "0.36.0"
+ocel-core = { path = "../wasm4pm/crates/ocel-core" }
+blake3 = "1.8.5"
+chrono = { version = "0.4.45", features = ["serde"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0"
+uuid = { version = "1.23.2", features = ["v4", "serde", "js"] }
+hashbrown = "0.17.1"
+rustc-hash = "2"
+
 
 [dev-dependencies]
 trybuild = "1"
