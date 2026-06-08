@@ -37,7 +37,7 @@ Validates that Evidence and Admission DTOs are **not flattened** into state_tag,
 Forbidden patterns: `EvidenceDto`, `AdmissionDto`, `RefusalDto`, `ReceiptDto`, `to_json_string`
 
 Allowed contexts (require annotation):
-- `compat_core_violation` — known legacy violation, self-documented
+- `compat_core_violation` — known migrated violation, self-documented
 - `wasm_boundary_allowed_with_loss_report` — WASM export with explicit loss covenant
 - `engine_projection_allowed` — graduation bridge to wasm4pm
 - `test_fixture_allowed` — test scaffolding only

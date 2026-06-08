@@ -1536,7 +1536,7 @@ commits:
     class: FIXTURE_RECEIPT
     gaps: []
   - commit: bfca13c
-    subject: "ux: add deprecation markers and stability annotations to public API"
+    subject: "ux: add migrated markers and stability annotations to public API"
     class: UNMAPPED
     gaps: []
   - commit: 061ca73

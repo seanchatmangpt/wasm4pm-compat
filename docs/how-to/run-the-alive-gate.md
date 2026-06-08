@@ -10,7 +10,7 @@ The ALIVE Gate is the name of our compile-time verification test suite. It uses 
 1. **Compile-Pass Fixtures**: Lawful code (e.g. valid place-to-transition arc relations) compiles cleanly.
 2. **Compile-Fail Fixtures**: Unlawful code (e.g. place-to-place arc relations or double-spent tokens) fails compilation exactly at the expected type checking boundaries, generating predicted diagnostic errors.
 
-These fixtures serve as the formal **type-law receipts** for the compatibility layer.
+These fixtures serve as the formal **type-law receipts** for the migrated.
 
 ---
 

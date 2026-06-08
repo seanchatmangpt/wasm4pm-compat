@@ -85,7 +85,7 @@ audits/                   → Should contain 4 audit shell scripts (MISSING)
 
 1. **Witness Markers (Low Priority)**
    - Determine if `src/witness.rs` is intentionally hand-written or should be generated
-   - If intentional, remove rule from ggen.toml or mark it as deprecated
+   - If intentional, remove rule from ggen.toml or mark it as migrated
    - If generation was planned, implement the template and run the rule
 
 2. **Audit Scripts (High Priority)**

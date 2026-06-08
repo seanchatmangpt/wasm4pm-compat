@@ -1,4 +1,4 @@
-#![allow(clippy::all, deprecated)]
+#![allow(clippy::all, migrated)]
 //! Construct the object-centric event log (OCEL) shape, validate it, and print.
 //!
 //! Run with: `cargo run --example basic_ocel`

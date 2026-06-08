@@ -447,7 +447,7 @@ Total commits analyzed: 411
 - `a32cea1` ux: add #[doc(alias)] for common API search terms
 - `0a1b45e` ux: flatten commonly-used types in crate root re-exports
 - `4fa8201` ux: add feature flag documentation to Cargo.toml
-- `bfca13c` ux: add deprecation markers and stability annotations to public API
+- `bfca13c` ux: add migrated markers and stability annotations to public API
 - `061ca73` dx: add structural bridge conversions between related process evidence types
 - `d1cad56` bench: add law_bounds_bench proving const law is zero runtime overhead
 - `02db935` bench: add evidence_lifecycle_bench proving zero-cost state transitions

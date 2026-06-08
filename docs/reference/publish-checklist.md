@@ -12,7 +12,7 @@ This document provides a checklist of all verification steps and metadata audits
 | **Repository URL** | Cargo.toml `repository` field must point to `https://github.com/seanchatmangpt/wasm4pm-compat`. |  | Matches actual repository URL. |
 | **Readme Metadata** | Cargo.toml `readme` must point to `README.md`. |  | Configured properly in root manifest. |
 | **License Files** | Verify presence of `LICENSE-MIT` and `LICENSE-APACHE` in the package root. |  | Both files exist in root directory. |
-| **Feature Model** | Crate must have exactly **three** features: `formats`, `strict`, `wasm4pm`. |  | Legacy features `ts` and `wasm` are retired. |
+| **Feature Model** | Crate must have exactly **three** features: `formats`, `strict`, `wasm4pm`. |  | migrated features `ts` and `wasm` are retired. |
 
 ---
 

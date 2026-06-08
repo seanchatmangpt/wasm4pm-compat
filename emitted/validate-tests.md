@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Generated code passes all test suites without failures. Compilation warnings are non-critical (deprecation guidance, unused imports). All four UI test suites configured as explicitly opt-in (expected behavior).
+Generated code passes all test suites without failures. Compilation warnings are non-critical (migrated guidance, unused imports). All four UI test suites configured as explicitly opt-in (expected behavior).
 
 ## Detailed Results
 
@@ -126,10 +126,10 @@ These are run explicitly via `cargo test --test ui_tests -- --ignored`:
 - [x] All integration tests pass (208/208)
 - [x] No test failures or crashes
 - [x] Expected ignored tests are properly marked
-- [x] Warnings are non-blocking (deprecation guidance, unused imports)
+- [x] Warnings are non-blocking (migrated guidance, unused imports)
 - [x] Build time reasonable (2.37s compilation + 0.6s test execution)
 - [x] Feature matrix validated (all-features flag works)
 
 ## Conclusion
 
-✓ **Code generated and validated.** All 228 tests pass. No failures. Compilation warnings are guidance-level (deprecation paths, unused bindings). Type law is receipted. Ready for release.
+✓ **Code generated and validated.** All 228 tests pass. No failures. Compilation warnings are guidance-level (migrated paths, unused bindings). Type law is receipted. Ready for release.

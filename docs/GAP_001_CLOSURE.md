@@ -495,11 +495,11 @@ Required test cases:
 
 ### 7.3 Deprecation Path
 
-When re-exporting compat types, mark the old wasm4pm definitions as `#[deprecated]`:
+When re-exporting compat types, mark the old wasm4pm definitions as `#[migrated]`:
 
 ```rust
-// In wasm4pm-types (deprecated):
-#[deprecated(
+// In wasm4pm-types (migrated):
+#[migrated(
     since = "0.5.0",
     note = "use wasm4pm_compat::evidence::Evidence instead"
 )]

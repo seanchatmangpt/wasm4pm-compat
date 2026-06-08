@@ -39,7 +39,7 @@ Located in `/Users/sac/process-intelligence/sources/wasm4pm-compat/STRUCTURAL_GA
 
 2. **Deprecation Marker (Lines 1170-1175)**
    ```rust
-   #[deprecated(
+   #[migrated(
        since = "26.6.5",
        note = "Forgeability hole: this method produces WfNet<SoundnessWitnessed> without \
                any structural verification. Use WfNetConst<Sane> and its sealed \
@@ -54,7 +54,7 @@ Located in `/Users/sac/process-intelligence/sources/wasm4pm-compat/STRUCTURAL_GA
    ```rust
    #[allow(dead_code)]
    ```
-   - Necessary because method is `pub(crate)` but only used internally (or deprecated)
+   - Necessary because method is `pub(crate)` but only used internally (or migrated)
 
 ### Test Verification: PASSING ✓
 
@@ -183,7 +183,7 @@ cd /Users/sac/wasm4pm-compat && cargo test --test ui_tests -- --include-ignored
 The `WfNet::attest_witnessed()` forgeability split-brain has been eliminated by:
 
 1. **Privacy boundary:** Method is `pub(crate)`, making it inaccessible from external code
-2. **Deprecation guidance:** Explicit deprecation note directs users to the sealed `WfNetConst` path
+2. **Deprecation guidance:** Explicit migrated note directs users to the sealed `WfNetConst` path
 3. **Type-law preservation:** `SoundnessProof` remains non-forgeable, ensuring only the module or `wasm4pm` bridge can produce witnessed nets
 4. **Compile-time enforcement:** Trybuild fixture verifies E0624 private access error when external code attempts to call the method
 

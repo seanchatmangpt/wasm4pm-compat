@@ -135,7 +135,7 @@ Evidence<T, Admitted, W>
 Example witness markers:
 - `WfNetSoundnessPaper` — links to van der Aalst workflow net soundness theory
 - `Ocel20` — links to OCEL 2.0 standard (ISO 8601 timestamps)
-- `Xes1849` — links to XES 1.8.4.9 standard (legacy log format)
+- `Xes1849` — links to XES 1.8.4.9 standard (migrated log format)
 - `PetriNets` — links to foundational Petri net semantics
 
 ### Graduation Boundary Layer

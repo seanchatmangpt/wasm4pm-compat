@@ -26,7 +26,7 @@ These patterns indicate potential type-law boundary violations where:
 Violations in these contexts are permitted but logged as warnings:
 
 1. **`compat_core_violation`** — Core wasm4pm bridge code
-   - Struct mapping, FFI shims, graduation bridges
+   - Struct mapping, FFI migrateds, graduation bridges
    - Must be isolated to `src/wasm/` or `src/graduation/`
 
 2. **`wasm_boundary_allowed_with_loss_report`** — WASM FFI with explicit witness

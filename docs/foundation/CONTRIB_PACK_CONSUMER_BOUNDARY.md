@@ -119,7 +119,7 @@ Consumer surfaces are **rendered from the pack** and are **source**. They live a
 
 **Classification:** `SUBSTRATE_OK`
 
-**Note:** The alias `ChoiceGraphNode = StandaloneChoiceGraphNode` in `powl.rs` is a consumer-facing compatibility shim. It is acceptable during the migration period but should be reviewed.
+**Note:** The alias `ChoiceGraphNode = StandaloneChoiceGraphNode` in `powl.rs` is a consumer-facing compatibility migrated. It is acceptable during the migration period but should be reviewed.
 
 ---
 

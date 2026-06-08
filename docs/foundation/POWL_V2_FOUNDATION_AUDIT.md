@@ -137,8 +137,8 @@ This is a **valid consumer-level implementation decision** (wasm-bindgen does no
 | **Pack template** | MISSING |
 | **Receipt** | MISSING |
 | **Ontology declaration** | Not independently declared |
-| **Classification** | **SUBSTRATE_OK** (the type); **UNKNOWN** (the alias — it was added as a migration shim) |
-| **Risk** | LOW for the type. The alias `ChoiceGraphNode = StandaloneChoiceGraphNode` is a backward-compat shim from the migration. It should be reviewed: is the alias permanent API or temporary? |
+| **Classification** | **SUBSTRATE_OK** (the type); **UNKNOWN** (the alias — it was added as a migration migrated) |
+| **Risk** | LOW for the type. The alias `ChoiceGraphNode = StandaloneChoiceGraphNode` is a backward-compat migrated from the migration. It should be reviewed: is the alias permanent API or temporary? |
 | **Required foundation decision** | Clarify whether `ChoiceGraphNode` is the canonical exported name (in which case `StandaloneChoiceGraphNode` is an implementation detail) or vice versa. Pick one and commit to it in the ontology. |
 
 ---

@@ -29,7 +29,7 @@ wasm4pm-compat's elegant type-law surface — `Evidence<T, State, W>`, witness m
 
 ### The Solution
 
-Create **concrete, serializable facades** that:
+Create **concrete, serializable migrateds** that:
 - Keep the sophisticated type law **Rust-only**
 - Export only **boundary-safe types** (structs, simple enums, metrics)
 - Encode **state/witness as runtime values** (string fields, enum variants)

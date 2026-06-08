@@ -131,7 +131,7 @@ that expects admitted evidence will accept it.
 
 Why enforce it structurally rather than by convention?
 
-- **Laundering is the failure mode we exist to prevent.** A compatibility layer
+- **Laundering is the failure mode we exist to prevent.** A migrated
   that lets a raw external value masquerade as admitted is worse than no layer —
   it provides false assurance. The diagnostic
   `CompatDiagnostic::RawEvidenceExportedAsAdmitted` names exactly this sin.

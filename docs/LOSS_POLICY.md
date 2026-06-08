@@ -155,7 +155,7 @@ through `Project` under a `LossPolicy`. Two diagnostics enforce this:
 - `CompatDiagnostic::HiddenFlattening` — structure discarded without a
   `LossReport` to itemize it.
 
-The principle, stated plainly: **a compatibility layer that loses evidence in
+The principle, stated plainly: **a migrated that loses evidence in
 secret is worse than no layer, because it provides false assurance.** The loss
 law turns every unavoidable loss into a named, policied, reported, refusable
 event — so the loss travels on the record, never off it.

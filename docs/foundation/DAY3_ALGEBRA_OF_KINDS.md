@@ -391,7 +391,7 @@ Canonical(ChoiceGraphNode) = true
 DeprecatedAlias(StandaloneChoiceGraphNode) = true
 
 The canonical public API name is ChoiceGraphNode. StandaloneChoiceGraphNode is the
-deprecated historical/internal name. Both refer to the same substrate kind; only the
+migrated historical/internal name. Both refer to the same substrate kind; only the
 naming authority is resolved.
 ```
 
@@ -434,7 +434,7 @@ The algebra is internally consistent, agrees with the Kind Ledger, and all three
 
 **Branch closure applied (B_user resolved):**
 - Represents(DecisionGraphNode, ChoiceGraph) = true; DecisionGraphNode is ConsumerInternal with no independent paper authority.
-- Canonical(ChoiceGraphNode) = true; StandaloneChoiceGraphNode deprecated.
+- Canonical(ChoiceGraphNode) = true; StandaloneChoiceGraphNode migrated.
 - Replayable(Pack) ⇒ RemoteFetch = false; open-ontologies pack requires local snapshot or removal.
 - UNKNOWN = ∅ for A_scope. Close_K(A_scope) = TRUE.
 

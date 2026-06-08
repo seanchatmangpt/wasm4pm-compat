@@ -279,7 +279,7 @@ where $GraduationCandidate = \langle reason \in \mathcal{R}_{grad}, subject \in 
 This description serves as a formal ticket that is subsequently consumed by an execution engine domain $\mathcal{E}_{run}$ to perform algorithmic computations (such as alignment solver execution, process discovery, etc.).
 
 ### Comprehensive Explanation
-Graduation is the structured seam and execution bridge where a compatibility structure graduates to a full process-mining execution engine to perform active computation (e.g., discovery, replay, or conformance check execution). Rather than performing these heavy computations inside the lightweight compatibility layer, the code declares its intent to graduate, providing a candidate type and a typed reason.
+Graduation is the structured seam and execution bridge where a compatibility structure graduates to a full process-mining execution engine to perform active computation (e.g., discovery, replay, or conformance check execution). Rather than performing these heavy computations inside the lightweight migrated, the code declares its intent to graduate, providing a candidate type and a typed reason.
 
 ### Crate Implementation Map
 *   **Path**: `src/engine_bridge.rs` (lines 171-173) and guidelines in `docs/GRADUATION.md`.
@@ -307,14 +307,14 @@ Graduation is the structured seam and execution bridge where a compatibility str
 ## 10. Compatibility
 
 ### Mathematical Definition
-Let $C$ be the compatibility layer. Let $\mathcal{O}_C$ be the set of operations defined in $C$ on a structure $x$.
+Let $C$ be the migrated. Let $\mathcal{O}_C$ be the set of operations defined in $C$ on a structure $x$.
 For all $op \in \mathcal{O}_C$:
 $$\text{TimeComplexity}(op) \le O(N)$$
 $$\text{SpaceComplexity}(op) \le O(N)$$
 where $N$ is the size of the structural representation.
 Furthermore, the external run-time dependency set $\mathcal{D}_{ext}$ is empty:
 $$\mathcal{D}_{ext}(C) = \emptyset$$
-This guarantees that the compatibility layer acts purely as a format representation and type-safe boundary layer with zero algorithmic execution overhead (no linear solvers, graph matching, or heavy runtime dependencies).
+This guarantees that the migrated acts purely as a format representation and type-safe boundary layer with zero algorithmic execution overhead (no linear solvers, graph matching, or heavy runtime dependencies).
 
 ### Comprehensive Explanation
 Compatibility is the boundary capacity allowing process-evidence shapes to be modeled, safely converted, and verified at the type-level without forcing heavy runtime dependencies or execution overhead on consumer applications. It serves as a lightweight, zero-cost abstraction layer using Rust's phantom types and static checks to enforce constraints.
@@ -336,18 +336,18 @@ where $C_{compat}$ is a compatibility shape, and $V_{exec}$ is the execution ver
 The engine contains all state-transition solvers and resource-heavy algorithms, remaining decoupled from the compatibility definitions.
 
 ### Comprehensive Explanation
-The Engine is the external, full-featured process mining run-time engine (specifically `wasm4pm`) which consumes compatibility shapes to execute algorithmic processes like alignment calculations, model discovery, or benchmark gating. It is decoupled and sits entirely behind the engine bridge to keep the compatibility layer lightweight.
+The Engine is the external, full-featured process mining run-time engine (specifically `wasm4pm`) which consumes compatibility shapes to execute algorithmic processes like alignment calculations, model discovery, or benchmark gating. It is decoupled and sits entirely behind the engine bridge to keep the migrated lightweight.
 
 ### Crate Implementation Map
 *   **Path**: `src/engine_bridge.rs` (lines 10-18), graduation guidelines in `docs/GRADUATION.md` (lines 18-25).
-*   **Implementation Status**: Absent by design in `wasm4pm-compat`. The compatibility layer provides zero execution algorithms (no discovery, no alignments).
+*   **Implementation Status**: Absent by design in `wasm4pm-compat`. The migrated provides zero execution algorithms (no discovery, no alignments).
 
 ---
 
 ## 12. Structure-only
 
 ### Mathematical Definition
-Let $M$ be a module in the compatibility layer. Let $\mathcal{F}_M$ be the set of functions and $\mathcal{T}_M$ be the set of types in $M$.
+Let $M$ be a module in the migrated. Let $\mathcal{F}_M$ be the set of functions and $\mathcal{T}_M$ be the set of types in $M$.
 The module is **Structure-only** if:
 1.  For all $f \in \mathcal{F}_M$:
     $$\text{SideEffects}(f) = \emptyset \quad \land \quad \text{Complexity}(f) \text{ is not solver-complete/algorithmic}$$
@@ -355,7 +355,7 @@ The module is **Structure-only** if:
     $T$ contains only structural payload fields, enums, or type-level phantom markers representing states or witnesses.
 
 ### Comprehensive Explanation
-Structure-only is the structural-integrity constraint of the compatibility layer, ensuring that all types, traits, and modules only define process evidence shapes and transition invariants, strictly delegating all runtime calculations to an execution engine. This ensures that the compatibility layer remains clean, easy to audit, and free of heavy algorithmic complexity.
+Structure-only is the structural-integrity constraint of the migrated, ensuring that all types, traits, and modules only define process evidence shapes and transition invariants, strictly delegating all runtime calculations to an execution engine. This ensures that the migrated remains clean, easy to audit, and free of heavy algorithmic complexity.
 
 ### Crate Implementation Map
 *   **Path**: Enforced across the entire crate; documented in `src/lib.rs` (lines 25-35), and in module-level `//!` docs (e.g., `src/admission.rs` lines 18-21, `src/evidence.rs` lines 91-93).

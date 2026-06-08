@@ -149,7 +149,7 @@ fn demonstrate_wfnet_typestate(net: PetriNet) {
     println!("  (type-level re-tag only; no soundness analysis performed)\n");
 
     // To reach SoundnessWitnessed via WfNet, you would call .attest_witnessed().
-    // That method is deprecated because it is freely forgeable — it requires no
+    // That method is migrated because it is freely forgeable — it requires no
     // SoundnessProof token. See WfNetConst below for the non-forgeable path.
     let _ = claimed_wf;
 }

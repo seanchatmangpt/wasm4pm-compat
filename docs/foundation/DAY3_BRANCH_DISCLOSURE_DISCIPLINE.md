@@ -75,7 +75,7 @@ All three B_user branches have been decided by the user. They are now closed.
 | Branch | Question | Decision | Resulting formalism |
 |---|---|---|---|
 | `DecisionGraphNode` vs `ChoiceGraph` | Same POWL concept or distinct? | **Keep distinct, but as representation.** ChoiceGraph is the substrate paper-law object; DecisionGraphNode is a ConsumerInternal arena *representation* of it, with no independent paper authority. | κ(ChoiceGraph)=Substrate; κ(DecisionGraphNode)=ConsumerInternal; Represents(DecisionGraphNode, ChoiceGraph)=true; ¬Authority(DecisionGraphNode, POWL) |
-| `ChoiceGraphNode` alias | Which name is canonical? | **`ChoiceGraphNode` is canonical.** `StandaloneChoiceGraphNode` is the deprecated/internal historical name. | Canonical(ChoiceGraphNode)=true; DeprecatedAlias(StandaloneChoiceGraphNode)=true |
+| `ChoiceGraphNode` alias | Which name is canonical? | **`ChoiceGraphNode` is canonical.** `StandaloneChoiceGraphNode` is the migrated/internal historical name. | Canonical(ChoiceGraphNode)=true; DeprecatedAlias(StandaloneChoiceGraphNode)=true |
 | open-ontologies pack | Remote fetch or local snapshot? | **Local snapshot only.** Remote ontology fetch is not admissible in the replay chain. Lawful pack-use requires local committed snapshots, or removal of the pack declaration. | Replayable(Pack) ⇒ RemoteFetch=false; OntologyInput ∈ RepoSnapshot; σ(open-ontologies) = {REMOTE_FETCH_PROHIBITED} until converted |
 | `FrequentTransitionNode` ownership | Substrate kind or consumer implementation? | Resolved by the same principle as PowlArena: it is the pm4py mirror implementation. | κ(FrequentTransitionNode)=ConsumerInstantiation; σ={HAND_CARVED, ONTOLOGY_MISSING} |
 

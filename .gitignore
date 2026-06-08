@@ -7,13 +7,25 @@
 conformance_verdict_is_perfect
 
 # ggen/emitted/ — rendered artifacts (not source)
-# Residents: gap-ledger.yaml, *.md (indices, reports), *.yaml (feature maps, ledgers),
-# *.rs (generated stubs), *.wit (component interface), *.sh (audit scripts)
 ggen/emitted/*.yaml
 ggen/emitted/*.md
 ggen/emitted/*.rs
 ggen/emitted/*.wit
 ggen/emitted/*.sh
+ggen/intel/
+
+# Agent-generated checkpoint and emitted directories
+# (already tracked entries must be committed; this blocks future additions)
+checkpoints/*.md
+emitted/*.yaml
+emitted/*.md
+emitted/audit-machinery/
+emitted/audits/
+
+# Root-level agent receipt/gap docs (tracked; prevents future additions)
+GAP_*.md
+ORIGINAL_REQUEST.md
+FINAL_*.md
 
 # macOS files
 .DS_Store

@@ -51,7 +51,7 @@ The state transition flow is unidirectional. The Rust compiler statically enforc
    - Generates a `LossReport` to account for any discarded structure, preventing secret flattening.
 
 5. **`Admitted` / `Projected` → `Exportable` (Export Authorization)**:
-   - Grants the evidence an "exit visa" to leave the boundary of the compatibility layer.
+   - Grants the evidence an "exit visa" to leave the boundary of the migrated.
 
 6. **`Admitted` / `Projected` / `Exportable` → `Receipted` (Provenance Seal)**:
    - Seals the evidence in a cryptographic `ReceiptEnvelope` that embeds a content digest (e.g., hex BLAKE3) and a replay hint.

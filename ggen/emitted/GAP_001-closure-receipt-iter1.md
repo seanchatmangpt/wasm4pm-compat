@@ -109,7 +109,7 @@ Implementation roadmap (Phase 1-6) in place. Gap remains actionable; first phase
 | Witness Preservation | docs/GAP_001_CLOSURE.md §2 (35 lines) + code examples | Drafted |
 | Refusal Alignment | docs/GAP_001_CLOSURE.md §3 (60 lines) + code examples | Mapped |
 | Implementation Roadmap | docs/GAP_001_CLOSURE.md §6 (Phase 1-6, 40 lines) | Ready |
-| Governance & Audit | docs/GAP_001_CLOSURE.md §7 (test matrix, deprecation strategy) | Complete |
+| Governance & Audit | docs/GAP_001_CLOSURE.md §7 (test matrix, migrated strategy) | Complete |
 | Closure Conditions | docs/GAP_001_CLOSURE.md §8 (7 conditions) | All specified |
 | Authority Trail | Gap ledger + Process Intelligence ALIVE_001 | Verified |
 

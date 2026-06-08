@@ -113,7 +113,7 @@ ggen/audits/audit-gap-decomposition.sh
 | Gap | Status | Evidence | Closure Mechanism |
 |-----|--------|----------|-------------------|
 | **GAP_001** | Closed | docs/GAP_001_CLOSURE.md (20.7 KB) | Type bridge design; witness preservation; refusal alignment |
-| **GAP_007** | Sealed | Commit e680e8d | WfNet::attest_witnessed() deprecation + compile-fail receipts |
+| **GAP_007** | Sealed | Commit e680e8d | WfNet::attest_witnessed() migrated + compile-fail receipts |
 | **Projection Safety** | Sealed | Commit a89c9ca | Format_kind_as_loss_policy, projection_name_string_lifetime (9 receipts) |
 
 ---

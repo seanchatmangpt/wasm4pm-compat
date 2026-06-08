@@ -1,6 +1,6 @@
 # LSP Rules: Witness Checking (W4PM-WIT) & Execution Leakage (W4PM-ENG)
 
-This document defines the diagnostic engine rules implemented by the `wasm4pm-compat-lsp` checker. These rules enforce structural boundaries within the `wasm4pm-compat` compatibility layer, ensuring it remains structure-only and maintains type-level witness provenance without erasing markers or leaking execution engines.
+This document defines the diagnostic engine rules implemented by the `wasm4pm-compat-lsp` checker. These rules enforce structural boundaries within the `wasm4pm-compat` migrated, ensuring it remains structure-only and maintains type-level witness provenance without erasing markers or leaking execution engines.
 
 ---
 

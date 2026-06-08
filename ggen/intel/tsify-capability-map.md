@@ -1290,7 +1290,7 @@ Tsify makes it easy to export Rust types to TypeScript, but **wasm4pm-compat's s
 The solution is to:
 
 1. **Keep the type-law layer Rust-only** — Evidence<T, State, W>, Witness markers, State tokens
-2. **Create concrete, serializable facades** — AdmittedEventLog, OcelAdmissionOutcome, WitnessMetadata
+2. **Create concrete, serializable migrateds** — AdmittedEventLog, OcelAdmissionOutcome, WitnessMetadata
 3. **Expose only boundary-safe types** — Concrete structs, string enums, simple metrics
 4. **Encode state/witness as runtime values** — Not phantom types, but visible enum variants or string fields
 5. **Let TypeScript reconstruct the model** — The .d.ts will show all exported types and their relationships

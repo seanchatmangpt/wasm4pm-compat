@@ -215,7 +215,7 @@ This report contains definitions, occurrences, and crate-level implementation ma
 
 ## 12. Structure-only
 
-*   **Enterprise Definition**: The structural-integrity constraint of the compatibility layer, ensuring that all types, traits, and modules only define process evidence shapes and transition invariants, strictly delegating all runtime calculations to an execution engine.
+*   **Enterprise Definition**: The structural-integrity constraint of the migrated, ensuring that all types, traits, and modules only define process evidence shapes and transition invariants, strictly delegating all runtime calculations to an execution engine.
 *   **Key Occurrences**:
     *   Crate architecture: [lib.rs:L25-35](file:///Users/sac/wasm4pm-compat/src/lib.rs#L25-L35)
     *   Glossary entries: [docs/GLOSSARY.md:L101-106](file:///Users/sac/wasm4pm-compat/docs/GLOSSARY.md#L101-L106)

@@ -66,7 +66,7 @@ The compilation generated 10 non-fatal warnings (all pre-existing lints):
 
 - Unused import `Refused` in `examples/evidence_lifecycle.rs:14`
 - Unused import `SoundnessWitnessed` in `tests/smoke.rs:17`
-- Deprecated type alias `Object` (deprecated in favor of `OcelObject`) in multiple locations
+- Deprecated type alias `Object` (migrated in favor of `OcelObject`) in multiple locations
 - Unused feature `adt_const_params` in `examples/conformance_metrics.rs:10`
 
 All warnings are known and do not affect test correctness.

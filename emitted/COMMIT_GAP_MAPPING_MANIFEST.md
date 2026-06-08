@@ -90,7 +90,7 @@
 ### GAP_008 — Cross-Witness Confusion
 - **Status:** PARTIAL
 - **Reference:** `7905984` test(fixtures): add cross-witness confusion compile-fail receipt (GAP_008 partial)
-- **Fixtures:** `admission_wrong_witness_ocel_as_xes`, `wfnet_attest_deprecated_usage`
+- **Fixtures:** `admission_wrong_witness_ocel_as_xes`, `wfnet_attest_migrated_usage`
 
 ---
 

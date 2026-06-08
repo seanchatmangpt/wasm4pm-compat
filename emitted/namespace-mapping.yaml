@@ -118,7 +118,7 @@ process_event_core:
 
     - compat_class: "compat:Trace"
       rust_type: "Trace"
-      open_ontologies_equivalent: "ocel:Trace (OCEL 2.0) | xes:Trace (legacy)"
+      open_ontologies_equivalent: "ocel:Trace (OCEL 2.0) | xes:Trace (migrated)"
       recommendation: "REUSE via owl:equivalentClass to ocel:Trace"
       reasoning: |
         A Trace is a sequence of Events. OCEL 2.0 formalizes this as a 

@@ -336,7 +336,7 @@ data_models:
       - "XesTrace"
       - "XesAttribute"
     evidentiary_roles:
-      - "Legacy process-mining log carrier"
+      - "migrated process-mining log carrier"
       - "Attribute-value extension system"
       - "OCEL → XES projection (lossy: flattening)"
       - "Refusal codes: XesExportRefusal, FlatteningLoss"

@@ -35,7 +35,7 @@ All 19+ MCP tool names are defined as OCEL event type constants to prevent silen
 | `onto_bootstrap_unlock` | `TOOL_BOOTSTRAP_UNLOCK` | `"onto_bootstrap_unlock"` | 3 | Admin unlock for bootstrap mode |
 | `onto_groq_status` | `TOOL_GROQ_STATUS` | `"onto_groq_status"` | 3 | Report Groq LLM service status |
 | `onto_gemini_status` | `TOOL_GEMINI_STATUS` | `"onto_gemini_status"` | 3 | Report Gemini LLM service status |
-| `onto_old_ai_station` | `TOOL_OLD_AI_STATION` | `"onto_old_ai_station"` | 3 | Legacy AI Station compatibility bridge (deprecated) |
+| `onto_old_ai_station` | `TOOL_OLD_AI_STATION` | `"onto_old_ai_station"` | 3 | migrated AI Station compatibility bridge (migrated) |
 | `onto_load` | `TOOL_LOAD` | `"onto_load"` | 2 | Load ontology from file/repo (not network fetch) |
 | `onto_lint` | `TOOL_LINT` | `"onto_lint"` | 2 | Syntax/structure linting for ontology sources |
 | `onto_rollback` | `TOOL_ROLLBACK` | `"onto_rollback"` | 2 | Rollback graph to prior checkpoint |

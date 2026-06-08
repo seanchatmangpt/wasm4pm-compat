@@ -316,7 +316,7 @@ gaps:
     commit_pattern: "feat(process-tree): enforce POWL soundness and arity constraints via type law"
 
   - id: GAP_007
-    name: "WfNet Forgeability Hole (attest_witnessed deprecation)"
+    name: "WfNet Forgeability Hole (attest_witnessed migrated)"
     classification: SEALED
     severity: HIGH
     established_by: "CROWN_004_GAP_CLOSE_CHECKPOINT.md (§ Known Nightly Compiler Regression); commit e680e8d"
@@ -327,9 +327,9 @@ gaps:
       Patch: Deprecate attest_witnessed(); force use of Admit trait instead.
 
     closure_condition: |
-      1. WfNet::attest_witnessed() marked #[deprecated]
+      1. WfNet::attest_witnessed() marked #[migrated]
       2. Deprecation message directs to Admit::admit() for proper admission
-      3. Compile-fail fixtures prove deprecated usage causes warning/error
+      3. Compile-fail fixtures prove migrated usage causes warning/error
       4. Compile-pass fixtures show lawful Admit path is open
 
     status: SEALED
@@ -341,7 +341,7 @@ gaps:
         date: "2026-05-31"
       - commit: "1373128"
         type: "Test receipt"
-        content: "test(fixtures): add WfNet::attest_witnessed deprecation compile-fail receipt"
+        content: "test(fixtures): add WfNet::attest_witnessed migrated compile-fail receipt"
       - commit: "7905984"
         type: "Test receipt"
         content: "test(fixtures): add cross-witness confusion compile-fail receipt (GAP_008 partial)"
@@ -495,7 +495,7 @@ audit_gates_required:
     status: IN_PROGRESS
 
   - gap_id: GAP_007
-    gate_name: "WfNet::attest_witnessed deprecation compile-fail receipts"
+    gate_name: "WfNet::attest_witnessed migrated compile-fail receipts"
     test_count: 2
     status: SEALED
 

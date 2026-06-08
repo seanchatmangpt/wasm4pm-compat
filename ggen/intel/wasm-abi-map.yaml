@@ -386,7 +386,7 @@ proposed_safe_exports:
 
   export_strategy: |
     1. NEVER expose Evidence<T, State, W> directly with generic params
-    2. Create concrete facade structs wrapping serializable payloads
+    2. Create concrete migrated structs wrapping serializable payloads
     3. Encode state/witness as enum variants or method return types
     4. Use serde + tsify for TypeScript generation
 

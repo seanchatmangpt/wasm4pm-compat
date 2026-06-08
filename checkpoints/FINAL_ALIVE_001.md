@@ -35,7 +35,7 @@ This document summarizes:
 | **GAP_LOSS_TREE** | Loss Accounting + Process Tree Type Laws | iter5 | ✓ **CLOSED** | 6 items (3 for loss, 3 for tree) all present; audits passing; SHACL validation confirmed |
 | **GAP_TS** | TypeScript Type Projection | iter5 | ✓ **CLOSED** | 4 components verified (law, candidates, template, audit); specta-capable types classified (Tier 1/2/3/4); codegen template complete |
 | **GAP_WASM** | WASM ABI Boundary Enforcement | iter5 | ✓ **CLOSED** | 4 components verified (law, ABI types, bindings template, audit); 9 exported functions present; 8 quality gates operational |
-| **GAP_007** | WfNet Forgeability Hole | iter5 | ✓ **SEALED** | commit e680e8d: WfNet::attest_witnessed() deprecated; compile-fail receipts added; no further work required |
+| **GAP_007** | WfNet Forgeability Hole | iter5 | ✓ **SEALED** | commit e680e8d: WfNet::attest_witnessed() migrated; compile-fail receipts added; no further work required |
 
 **Total CLOSED:** 6
 
@@ -158,8 +158,8 @@ Process Intelligence ALIVE_001 (authority)
 
 **Closure Evidence:**
 - **commit e680e8d** — Fix: "fix(petri): deprecate WfNet::attest_witnessed()"
-  - WfNet::attest_witnessed() marked #[deprecated] with message directing to Admit::admit()
-- **commit 1373128** — Test: "test(fixtures): add WfNet::attest_witnessed deprecation compile-fail receipt"
+  - WfNet::attest_witnessed() marked #[migrated] with message directing to Admit::admit()
+- **commit 1373128** — Test: "test(fixtures): add WfNet::attest_witnessed migrated compile-fail receipt"
 - **commit 7905984** — Test: "test(fixtures): add cross-witness confusion compile-fail receipt"
 
 **Certification:** Forgeability hole sealed. No further work required.

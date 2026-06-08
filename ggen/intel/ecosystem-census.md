@@ -201,12 +201,12 @@
 
 ### 13. **XES (eXtensible Event Stream) 1.849**
 - **Category:** Data Model Standard
-- **Version:** 1.849 (legacy process-mining log format)
+- **Version:** 1.849 (migrated process-mining log format)
 - **Source:** http://www.xes-standard.org/ (spec & schemas)
 - **Purpose:**
   - Trace-centric event log (case-oriented, no object links)
   - Attribute-value extension system
-  - Type-law carrier for legacy process-mining systems
+  - Type-law carrier for migrated process-mining systems
 - **Type-Law Projection Role:**
   - `src/xes.rs` module: `XesLog`, `XesEvent`, `XesTrace`, `XesAttribute`
   - Witness marker: `Xes1849` (zero-sized authority tag)

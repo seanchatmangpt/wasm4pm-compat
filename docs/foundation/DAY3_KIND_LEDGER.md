@@ -591,7 +591,7 @@ For each class: **kind | layer | owner | admissible relations (→) | forbidden 
 | `wasm4pm-compat/src/powl.rs` (PowlNode<W>) | Substrate | Layer0 | {OK} |
 | `wasm4pm-compat/src/powl.rs` (ChoiceGraph) | Substrate | Layer0 | {ONTOLOGY_MISSING} |
 | `ChoiceGraphNode` (canonical public name) | Substrate | Layer0 | {OK} |
-| `StandaloneChoiceGraphNode` (deprecated) | Substrate | Layer0 | {NAMING_UNRESOLVED → deprecated alias} |
+| `StandaloneChoiceGraphNode` (migrated) | Substrate | Layer0 | {NAMING_UNRESOLVED → migrated alias} |
 | `wasm4pm-compat/ggen/` open-ontologies pack | Pack | Layer1 | {REMOTE_FETCH_PROHIBITED} (local snapshot or removal required) |
 | `wasm4pm-compat/src/dfg.rs` | Substrate | Layer0 | {ONTOLOGY_MISSING} (partial coverage) |
 | `wasm4pm-compat/src/petri.rs` | Substrate | Layer0 | {ONTOLOGY_MISSING} (partial coverage) |
@@ -619,7 +619,7 @@ The three B_user branches are now closed by user decision (recorded in `DAY3_BRA
 | Artifact | Decision | Resulting κ / σ |
 |---|---|---|
 | `DecisionGraphNode` | Keep distinct, but as a ConsumerInternal arena *representation* of the substrate `ChoiceGraph` law. Must NOT claim independent POWL paper authority. `Represents(DecisionGraphNode, ChoiceGraph) = true`. | κ = ConsumerInternal; σ = {ONTOLOGY_MISSING, RECEIPT_MISSING} |
-| `ChoiceGraphNode` alias | `ChoiceGraphNode` is the canonical public API name. `StandaloneChoiceGraphNode` is the deprecated/internal historical name. | κ = Substrate (canonical); the alias is deprecated |
+| `ChoiceGraphNode` alias | `ChoiceGraphNode` is the canonical public API name. `StandaloneChoiceGraphNode` is the migrated/internal historical name. | κ = Substrate (canonical); the alias is migrated |
 | open-ontologies pack | Remote fetch is not admissible in the replay chain. Lawful pack-use requires local committed ontology snapshots, or removal of the pack declaration. `Replayable(Pack) ⇒ RemoteFetch = false`. | κ = Pack; σ = {REMOTE_FETCH_PROHIBITED} until converted to local snapshot or removed |
 
 **No artifact in A_scope remains UNKNOWN.** UNKNOWN = ∅ for the Day 3 ledger scope.
