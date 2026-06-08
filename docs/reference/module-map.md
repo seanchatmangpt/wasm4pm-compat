@@ -1,6 +1,6 @@
 # Reference: Module Map & Layout
 
-This document maps the public Rust module layout in `wasm4pm-compat` version `26.6.5` to their physical files. This mapping is compiled directly from the module declarations in `src/lib.rs`.
+This document maps the public Rust module layout in `wasm4pm-compat` version `26.6.8` to their physical files. This mapping is compiled directly from the module declarations in `src/lib.rs`.
 
 ---
 
@@ -23,6 +23,7 @@ This document maps the public Rust module layout in `wasm4pm-compat` version `26
 | **`interop`** | `src/interop.rs` | *None (Always-on)* | Interop traits: import, export, and round-trip claim plumbing |
 | **`law`** | `src/law.rs` | *None (Always-on)* | `ConstParamTy` enums, bounds machinery, `ConditionCell`, `Between01` |
 | **`loss`** | `src/loss.rs` | *None (Always-on)* | `Project`, `LossPolicy`, `LossReport<From, To, Items>`, `ProjectionName` |
+| **`models`** | `src/models.rs` | *None (Always-on)* | `DFG`, `DFGNode`, `DFGEdge`, `PetriNetRefusal` |
 | **`multiperspective`** | `src/multiperspective.rs` | *None (Always-on)* | ControlFlow, Data, Resource, and Time perspective markers |
 | **`object_lifecycle`** | `src/object_lifecycle.rs` | *None (Always-on)* | Typed phase markers and phase transitions |
 | **`ocel`** | `src/ocel.rs` | *None (Always-on)* | `OcelLog`, `OcelEvent`, `Object`, `EventObjectLink`, `ObjectObjectLink`, `ObjectChange` |

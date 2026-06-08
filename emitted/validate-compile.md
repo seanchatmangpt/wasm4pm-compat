@@ -1,13 +1,13 @@
 # Rust Compilation & Type Check Report
 
 **Date:** 2026-06-01  
-**Project:** wasm4pm-compat v26.6.5  
+**Project:** wasm4pm-compat v26.6.8  
 **Status:** ✅ PASS
 
 ## cargo check --all-features
 
 ```
-Checking wasm4pm-compat v26.6.5 (/Users/sac/wasm4pm-compat)
+Checking wasm4pm-compat v26.6.8 (/Users/sac/wasm4pm-compat)
 Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.10s
 ```
 

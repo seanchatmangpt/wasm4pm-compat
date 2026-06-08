@@ -1,6 +1,6 @@
 # How-To: Verifying the Crate and Resolving Test Failures
 
-This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` version `26.6.5` on Mac OS, and details how to resolve common doc-test and UI trybuild mismatches.
+This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` version `26.6.8` on Mac OS, and details how to resolve common doc-test and UI trybuild mismatches.
 
 ---
 
@@ -84,4 +84,4 @@ cargo test --test ui_tests -- --ignored
 
 ## Conclusion
 
-Following these steps ensures that the codebase remains fully compliant with the quality definitions required for release version `26.6.5`.
+Following these steps ensures that the codebase remains fully compliant with the quality definitions required for release version `26.6.8`.

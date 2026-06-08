@@ -40,7 +40,7 @@ Located in `/Users/sac/process-intelligence/sources/wasm4pm-compat/STRUCTURAL_GA
 2. **Deprecation Marker (Lines 1170-1175)**
    ```rust
    #[migrated(
-       since = "26.6.5",
+       since = "26.6.8",
        note = "Forgeability hole: this method produces WfNet<SoundnessWitnessed> without \
                any structural verification. Use WfNetConst<Sane> and its sealed \
                construction path instead. See GAP_007 in sources/wasm4pm-compat/STRUCTURAL_GAPS.md."

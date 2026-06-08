@@ -1,5 +1,5 @@
 # Projection Manifests & Law Documents
-## wasm4pm-compat v26.6.5
+## wasm4pm-compat v26.6.8
 **Generated:** 2026-06-01
 
 ---

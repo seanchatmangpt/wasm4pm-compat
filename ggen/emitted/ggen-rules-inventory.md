@@ -1,6 +1,6 @@
 # Generation Rules Inventory — ggen.toml
 
-**Project:** wasm4pm-compat v26.6.5  
+**Project:** wasm4pm-compat v26.6.8  
 **Generated:** 2026-06-01  
 **Total Rules:** 16
 

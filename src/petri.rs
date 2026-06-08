@@ -232,6 +232,7 @@ mod wfnet_seal {
 /// Proof token that soundness has been verified (crate-internal only).
 pub struct SoundnessProof(wfnet_seal::WfNetSeal);
 
+#[allow(dead_code)] // reserved: issued by soundness-witnessing logic not yet in this crate
 impl SoundnessProof {
     pub(crate) fn new() -> Self { SoundnessProof(wfnet_seal::WfNetSeal) }
 }

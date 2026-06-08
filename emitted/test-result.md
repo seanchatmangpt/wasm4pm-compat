@@ -1,7 +1,7 @@
 # Test Suite Execution Report
 
 **Date:** 2026-06-01
-**Crate:** wasm4pm-compat v26.6.5
+**Crate:** wasm4pm-compat v26.6.8
 **Command:** `cargo test --all-features`
 
 ## Execution Status

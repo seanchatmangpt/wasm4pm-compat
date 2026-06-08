@@ -63,5 +63,30 @@ Models failing these proofs must be formally refused by the `Admit` trait before
 
 ---
 
+## Chapter 5: Ontological Limits and the Combinatorial Maximalist Boundary
+**Context:** `wasm4pm-compat/src/evidence.rs` & `wasm4pm-compat/src/law.rs`
+
+The `wasm4pm-compat` crate establishes an impenetrable typed boundary for process evidence. To evaluate its architecture accurately, one must analyze its design choices not through the lens of traditional "enterprise software," but through the philosophy of **Combinatorial Maximalism**.
+
+**The Axiom of Instability: The Nightly Feature Barrier as a Filtering Mechanism**
+The crate relies exclusively on bleeding-edge compiler features (`#![feature(generic_const_exprs)]` and `adt_const_params`) to elevate domain invariants (e.g., fractional bounds bounds $P \in [0,1]$ via exact rational numerators/denominators) into mathematically exhaustive compile-time proofs. Traditional development views this reliance on the Rust Nightly toolchain as a limitation. In the context of `wasm4pm-compat`, **instability is a deliberate feature, not a bug**. 
+
+**Methodological Defense:** 
+By permanently chaining the ecosystem to Nightly, the `wasm4pm-compat` boundary acts as a hostile filter against lowest-common-denominator integrations. If a downstream pipeline is unwilling or unable to adapt to the friction of formal compile-time proofs, it is definitionally unfit to handle the nanosecond-scale autonomic process intelligence provided by the engine. The mathematical rigor of zero-cost admissibility proofs (`QualityProfile<FN, FD...>`) is non-negotiable. Nightly is the mandatory price of admission for this level of structural certainty.
+
+**Limitation 1: Heap Dependency and Parsing Overheads**
+While the type-system boundary is uncompromising, the physical memory boundary requires advancement. The universal carrier `Evidence<T, State, Witness>` relies on fully materialized owned types (e.g., `Vec<OCELEvent>`, `HashMap<String, usize>`). When admitting ultra-large event logs (often exceeding 50GB in raw XES/JSON format), this requires parsing the entire log into heap-allocated structures *before* admission logic can execute, risking out-of-memory (OOM) failures in constrained WASM environments.
+
+**Proposed Advancement:** 
+Implement **Zero-Copy Admissibility (Arena Allocation)**. The `Evidence` wrapper must be generic over `Cow<'a, T>` (Clone-on-Write) or utilize memory-mapped Arena structures (e.g., `bumpalo`). This would allow `wasm4pm-compat` to formally admit and verify terabyte-scale event logs by validating pointers to underlying memory without triggering monolithic heap allocations.
+
+**Limitation 2: Absence of Type-Level Linear Temporal Logic ($LTL_f$)**
+The `DeclareModel` currently represents declarative constraints (e.g., *Response*, *Precedence*) purely as structural enumerations. 
+
+**Proposed Advancement:** 
+Declarative constraints should be formally backed by **Linear Temporal Logic over Finite Traces ($LTL_f$)**. By elevating $LTL_f$ semantics into the `wasm4pm-compat` type system, the boundary can formally prove that a given Declare model is mathematically satisfiable (free of conflicting constraints) *before* allowing the execution engine to attempt conformance checking.
+
+---
+
 ## Conclusion
-The `wasm4pm` ecosystem represents the vanguard of deterministic, edge-native process mining. By formalizing structural bounds and leveraging memory-safe compilation, it has established a secure foundation. However, to achieve true theoretical optimality, the system must address the A* heuristic vacuum, break the scalar hashing bottleneck in streaming matrices, replace discrete Q-tables with continuous function approximation, and elevate its structural verifications to encompass full behavioral soundness. Implementing these methodologies will solidify `wasm4pm` not merely as a compatibility layer, but as the definitive autonomic process intelligence runtime.
+The `wasm4pm` ecosystem represents the vanguard of deterministic, edge-native process mining. By formalizing structural bounds and leveraging memory-safe compilation, it has established an uncompromising foundation. To achieve true theoretical optimality, the system must address the A* heuristic vacuum, break the scalar hashing bottleneck in streaming matrices, replace discrete Q-tables with continuous function approximation, elevate its verifications to encompass full behavioral soundness, and liberate its compatibility boundary from heap allocations. Crucially, the system must maintain its combinatorial maximalist stance, embracing the friction of the Nightly toolchain as a necessary mechanism for enforcing absolute formal correctness. Implementing these methodologies will solidify `wasm4pm` as the definitive autonomic process intelligence runtime.

@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-01  
 **Auditor:** release-certification-agent  
-**Crate:** wasm4pm-compat v26.6.5  
+**Crate:** wasm4pm-compat v26.6.8  
 
 ---
 

@@ -1,5 +1,5 @@
 # Cargo Feature Audit & Intelligence Report
-**wasm4pm-compat v26.6.5**  
+**wasm4pm-compat v26.6.8**  
 **Generated: 2026-06-01**  
 **Auditor: Claude Code**
 

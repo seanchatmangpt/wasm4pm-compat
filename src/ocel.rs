@@ -311,7 +311,7 @@ impl OCELObject {
 }
 
 impl OCELRelationship {
-    pub fn new(event_id: String, object_id: String) -> Self {
+    pub fn new(_event_id: String, object_id: String) -> Self {
         Self {
             object_id,
             qualifier: "".to_string(),
@@ -431,6 +431,10 @@ impl ObjectChange {
             value: value.to_owned(),
         }
     }
+
+    pub fn object_id(&self) -> &str { &self.object_id }
+    pub fn attribute(&self) -> &str { &self.attribute }
+    pub fn value(&self) -> &str { &self.value }
 }
 
 /// An OCEL 2.0 log — the complete object-centric event log.

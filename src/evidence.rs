@@ -414,6 +414,7 @@ impl<T, W> Evidence<T, Projected, W> {
     }
 }
 
+#[allow(dead_code)] // reserved: called by Admit impls not yet in this crate
 impl<T, W> Evidence<T, crate::state::Refused, W> {
     /// Crate-internal: builds a `Refused` evidence carrier from a raw value.
     ///

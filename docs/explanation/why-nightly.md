@@ -1,6 +1,6 @@
 # Explanation: The Nightly-Only Toolchain Requirement
 
-This document discusses the architectural context and technical rationale for why `wasm4pm-compat` version `26.6.5` permanently requires the nightly Rust compiler toolchain.
+This document discusses the architectural context and technical rationale for why `wasm4pm-compat` version `26.6.8` permanently requires the nightly Rust compiler toolchain.
 
 ---
 
