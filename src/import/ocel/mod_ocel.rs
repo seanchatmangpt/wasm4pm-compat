@@ -1,4 +1,4 @@
-use crate::legacy_ocel::{OCELEvent, OCELObject, OCELType, OCEL};
+use crate::ocel::{OCELEvent, OCELObject, OCELType, OCEL};
 use hashbrown::HashSet;
 use serde_json;
 
@@ -303,7 +303,7 @@ mod tests {
         assert_eq!(e.attributes[0].name, "custom_event_prop");
         assert_eq!(
             e.attributes[0].value,
-            crate::legacy_ocel::OCELAttributeValue::String("hello".to_string())
+            crate::ocel::OCELAttributeValue::String("hello".to_string())
         );
 
         let o = &ocel.objects[0];
@@ -313,7 +313,7 @@ mod tests {
         assert_eq!(o.attributes[0].name, "custom_obj_prop");
         assert_eq!(
             o.attributes[0].value,
-            crate::legacy_ocel::OCELAttributeValue::String("world".to_string())
+            crate::ocel::OCELAttributeValue::String("world".to_string())
         );
         assert_eq!(
             o.attributes[0].time.to_rfc3339(),
@@ -336,7 +336,7 @@ mod tests {
         assert_eq!(e.attributes[0].name, "custom_event_prop");
         assert_eq!(
             e.attributes[0].value,
-            crate::legacy_ocel::OCELAttributeValue::String("hello".to_string())
+            crate::ocel::OCELAttributeValue::String("hello".to_string())
         );
 
         let o = &ocel.objects[0];
@@ -344,7 +344,7 @@ mod tests {
         assert_eq!(o.attributes[0].name, "custom_obj_prop");
         assert_eq!(
             o.attributes[0].value,
-            crate::legacy_ocel::OCELAttributeValue::String("world".to_string())
+            crate::ocel::OCELAttributeValue::String("world".to_string())
         );
     }
 }

@@ -1,630 +1,140 @@
-//! Case-centric event-log grammar — the classical process-mining shape.
+//! OCEL-compatible event log types for wasm4pm-compat.
 //!
-//! This module captures the **case-centric** view of process evidence: an
-//! [`crate::eventlog::Event`] is a single recorded activity occurrence; a [`crate::eventlog::Trace`] is the
-//! ordered, case-scoped sequence of those events; an [`crate::eventlog::EventLog`] is a
-//! collection of traces; an [`crate::eventlog::EventStream`] is the unbounded, append-only
-//! sibling of a log.
-//!
-//! This is the *single-case-notion* world (one case id per trace). The richer
-//! many-objects-per-event world lives in [`crate::ocel`] and is **not** modeled
-//! as "event log plus extras" — it is genuinely first-class there.
-//!
-//! ## Structure only
-//!
-//! These types are **shapes**, not engines. Nothing here discovers a model,
-//! replays a token, aligns a trace, or computes a fitness number. The only
-//! judgments offered are *structural*: is a trace empty, are its events
-//! time-monotonic, does an event name an activity. Anything that mines, scores,
-//! or executes belongs in `wasm4pm` — see "Graduation" below.
-//!
-//! ## Refusal is first-class
-//!
-//! Structural defects are reported through [`crate::eventlog::EventLogRefusal`], a *specifically
-//! named* law per defect — never a bare "invalid input".
-//!
-//! ## Graduation to `wasm4pm`
-//!
-//! An [`crate::eventlog::EventLog`] validated here is an admitted *substrate*. Discovery
-//! (Alpha/Inductive/Heuristic), conformance checking, variant analysis, and
-//! performance mining all graduate to the `wasm4pm` execution engine. This
-//! crate only guarantees the log is *well-shaped enough to mine*.
+//! This module is distinct from [`crate::event_log`] (XES-shaped).
+//! Use these types when building object-centric process evidence.
 
-/// A single recorded activity occurrence within one case.
-///
-/// An `Event` represents *what happened* (the activity name), *when* (an
-/// optional nanosecond timestamp), and *by whom* (an optional resource). It is
-/// deliberately small and transparent.
-///
-/// This type does **not** represent an OCEL event (many objects per event) —
-/// see [`crate::ocel::OcelEvent`] for that. It is structure-only: it carries no
-/// behavior beyond construction and accessors, and graduates to `wasm4pm` when
-/// it participates in discovery or replay.
-#[derive(Clone, Debug, PartialEq, Eq)]
+use std::fmt;
+
+/// A single event in a case trace.
+#[derive(Debug, Clone)]
 pub struct Event {
     activity: String,
-    /// Optional event timestamp in nanoseconds since the Unix epoch.
-    timestamp_ns: Option<i64>,
-    /// Optional originating resource (operator, system, role).
+    timestamp_ns: u64,
     resource: Option<String>,
-    /// Optional XES-style lifecycle transition (e.g. `start`, `complete`).
     lifecycle: Option<String>,
 }
 
 impl Event {
-    /// Construct an event naming an activity, with no timestamp or resource.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let e = Event::new("place_order");
-    /// assert_eq!(e.activity(), "place_order");
-    /// assert!(e.timestamp_ns().is_none());
-    /// ```
-    pub fn new(activity: impl Into<String>) -> Self {
+    pub fn new(activity: &str) -> Self {
         Event {
-            activity: activity.into(),
-            timestamp_ns: None,
+            activity: activity.to_owned(),
+            timestamp_ns: 0,
             resource: None,
             lifecycle: None,
         }
     }
 
-    /// Attach a nanosecond timestamp (Unix epoch). Builder-style.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let e = Event::new("ship").at_ns(1_700_000_000_000_000_000);
-    /// assert_eq!(e.timestamp_ns(), Some(1_700_000_000_000_000_000));
-    /// ```
-    pub fn at_ns(mut self, ts: i64) -> Self {
-        self.timestamp_ns = Some(ts);
-        self
-    }
-
-    /// Attach an originating resource. Builder-style.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let e = Event::new("approve").by("alice");
-    /// assert_eq!(e.resource(), Some("alice"));
-    /// ```
-    pub fn by(mut self, resource: impl Into<String>) -> Self {
-        self.resource = Some(resource.into());
-        self
-    }
-
-    /// Attach a lifecycle transition (e.g. `start`/`complete`). Builder-style.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let e = Event::new("pack").with_lifecycle("start");
-    /// assert_eq!(e.lifecycle(), Some("start"));
-    /// ```
-    pub fn with_lifecycle(mut self, transition: impl Into<String>) -> Self {
-        self.lifecycle = Some(transition.into());
-        self
-    }
-
-    /// The activity name. Empty names are refused at trace validation time.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// assert_eq!(Event::new("ship").activity(), "ship");
-    /// ```
-    pub fn activity(&self) -> &str {
-        &self.activity
-    }
-
-    /// The optional timestamp in nanoseconds since the Unix epoch.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// assert_eq!(Event::new("x").timestamp_ns(), None);
-    /// ```
     #[must_use]
-    pub fn timestamp_ns(&self) -> Option<i64> {
-        self.timestamp_ns
-    }
+    pub fn at_ns(mut self, ns: u64) -> Self { self.timestamp_ns = ns; self }
 
-    /// The optional originating resource.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// assert_eq!(Event::new("x").resource(), None);
-    /// ```
     #[must_use]
-    pub fn resource(&self) -> Option<&str> {
-        self.resource.as_deref()
-    }
+    pub fn by(mut self, resource: &str) -> Self { self.resource = Some(resource.to_owned()); self }
 
-    /// The optional lifecycle transition.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Event;
-    /// assert_eq!(Event::new("x").lifecycle(), None);
-    /// ```
     #[must_use]
-    pub fn lifecycle(&self) -> Option<&str> {
-        self.lifecycle.as_deref()
-    }
+    pub fn with_lifecycle(mut self, lc: &str) -> Self { self.lifecycle = Some(lc.to_owned()); self }
+
+    pub fn activity(&self) -> &str { &self.activity }
+    pub fn resource(&self) -> Option<&str> { self.resource.as_deref() }
+    pub fn lifecycle(&self) -> Option<&str> { self.lifecycle.as_deref() }
 }
 
-/// An ordered, case-scoped sequence of [`Event`]s.
-///
-/// A `Trace` is one process instance: a case id plus the events recorded for
-/// it, in order. The order is *the data* — this crate does not re-sort or infer
-/// it.
-///
-/// This is structure-only: [`Trace::validate`] checks structural laws but does
-/// **not** mine the trace. It graduates to `wasm4pm` for variant analysis,
-/// alignment, and replay.
-#[derive(Clone, Debug, PartialEq, Eq)]
+/// An ordered sequence of events belonging to one case.
+#[derive(Debug, Clone)]
 pub struct Trace {
     case_id: String,
     events: Vec<Event>,
 }
 
 impl Trace {
-    /// Construct a trace from a case id and an iterator of events.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace};
-    /// let t = Trace::new("case-1", [Event::new("a"), Event::new("b")]);
-    /// assert_eq!(t.len(), 2);
-    /// assert_eq!(t.case_id(), "case-1");
-    /// ```
-    pub fn new(case_id: impl Into<String>, events: impl IntoIterator<Item = Event>) -> Self {
-        Trace {
-            case_id: case_id.into(),
-            events: events.into_iter().collect(),
-        }
+    pub fn new(case_id: &str, events: impl IntoIterator<Item = Event>) -> Self {
+        Trace { case_id: case_id.to_owned(), events: events.into_iter().collect() }
     }
 
-    /// Construct a trace from events, assigning the placeholder case id `"_"`.
-    ///
-    /// Useful when the case identity is implied by context; the placeholder is
-    /// still a non-empty case id and so passes [`Trace::validate`]'s case check.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace};
-    /// let t = Trace::from_events([Event::new("a")]);
-    /// assert_eq!(t.case_id(), "_");
-    /// ```
     pub fn from_events(events: impl IntoIterator<Item = Event>) -> Self {
-        Trace::new("_", events)
+        Trace { case_id: String::new(), events: events.into_iter().collect() }
     }
 
-    /// The case identifier for this trace.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace};
-    /// assert_eq!(Trace::new("c", [Event::new("a")]).case_id(), "c");
-    /// ```
-    pub fn case_id(&self) -> &str {
-        &self.case_id
-    }
+    pub fn case_id(&self) -> &str { &self.case_id }
+    pub fn len(&self) -> usize { self.events.len() }
+    pub fn is_empty(&self) -> bool { self.events.is_empty() }
+    pub fn events(&self) -> &[Event] { &self.events }
 
-    /// The ordered events of this trace.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace};
-    /// let t = Trace::new("c", [Event::new("a")]);
-    /// assert_eq!(t.events().len(), 1);
-    /// ```
-    pub fn events(&self) -> &[Event] {
-        &self.events
-    }
-
-    /// The number of events in this trace.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace};
-    /// assert_eq!(Trace::new("c", [Event::new("a")]).len(), 1);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.events.len()
-    }
-
-    /// Whether this trace has no events.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::Trace;
-    /// assert!(Trace::from_events([]).is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.events.is_empty()
-    }
-
-    /// Check the *structural* laws of a single trace.
-    ///
-    /// This validates, in order:
-    /// - case id is non-empty ([`EventLogRefusal::MissingCaseId`]);
-    /// - the trace has at least one event ([`EventLogRefusal::EmptyTrace`]);
-    /// - every event names a non-empty activity ([`EventLogRefusal::MissingActivity`]);
-    /// - timestamps, where present on consecutive events, are non-decreasing
-    ///   ([`EventLogRefusal::NonMonotonicTrace`]).
-    ///
-    /// It does **not** mine, score, or replay anything — this is a shape check.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLogRefusal};
-    /// let ok = Trace::new("c", [Event::new("a").at_ns(1), Event::new("b").at_ns(2)]);
-    /// assert!(ok.validate().is_ok());
-    ///
-    /// let bad = Trace::new("c", [Event::new("a").at_ns(5), Event::new("b").at_ns(1)]);
-    /// assert_eq!(bad.validate(), Err(EventLogRefusal::NonMonotonicTrace));
-    /// ```
-    #[must_use = "check the shape-check result"]
+    #[must_use]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
-        if self.case_id.is_empty() {
-            return Err(EventLogRefusal::MissingCaseId);
-        }
         if self.events.is_empty() {
             return Err(EventLogRefusal::EmptyTrace);
         }
-        let mut last_ts: Option<i64> = None;
-        for ev in &self.events {
-            if ev.activity().is_empty() {
-                return Err(EventLogRefusal::MissingActivity);
-            }
-            if let Some(ts) = ev.timestamp_ns() {
-                if let Some(prev) = last_ts {
-                    if ts < prev {
-                        return Err(EventLogRefusal::NonMonotonicTrace);
-                    }
-                }
-                last_ts = Some(ts);
+        let stamped: Vec<u64> = self.events.iter()
+            .map(|e| e.timestamp_ns)
+            .filter(|&t| t > 0)
+            .collect();
+        for w in stamped.windows(2) {
+            if w[1] < w[0] {
+                return Err(EventLogRefusal::NonMonotonicTrace);
             }
         }
         Ok(())
     }
 }
 
-/// A collection of [`Trace`]s — the classical case-centric event log.
-///
-/// An `EventLog` is the substrate of discovery and conformance. This crate only
-/// represents and structurally validates it; the actual mining graduates to
-/// `wasm4pm`.
-///
-/// Structure-only: [`EventLog::validate`] runs each trace's structural checks
-/// but performs no analysis.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// A collection of traces forming a process event log.
+#[derive(Debug, Clone)]
 pub struct EventLog {
     traces: Vec<Trace>,
 }
 
 impl EventLog {
-    /// Construct a log from an iterator of traces.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
-    /// let log = EventLog::from_traces([Trace::new("c", [Event::new("a")])]);
-    /// assert_eq!(log.trace_count(), 1);
-    /// ```
     pub fn from_traces(traces: impl IntoIterator<Item = Trace>) -> Self {
-        EventLog {
-            traces: traces.into_iter().collect(),
-        }
+        EventLog { traces: traces.into_iter().collect() }
     }
 
-    /// The traces of this log.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::EventLog;
-    /// assert!(EventLog::default().traces().is_empty());
-    /// ```
-    pub fn traces(&self) -> &[Trace] {
-        &self.traces
-    }
+    pub fn traces(&self) -> &[Trace] { &self.traces }
 
-    /// The number of traces in this log.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
-    /// let log = EventLog::from_traces([Trace::new("c", [Event::new("a")])]);
-    /// assert_eq!(log.trace_count(), 1);
-    /// ```
-    pub fn trace_count(&self) -> usize {
-        self.traces.len()
-    }
+    pub fn trace_count(&self) -> usize { self.traces.len() }
 
-    /// The total number of events across all traces.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
-    /// let log = EventLog::from_traces([
-    ///     Trace::new("c1", [Event::new("a"), Event::new("b")]),
-    ///     Trace::new("c2", [Event::new("a")]),
-    /// ]);
-    /// assert_eq!(log.event_count(), 3);
-    /// ```
-    pub fn event_count(&self) -> usize {
-        self.traces.iter().map(Trace::len).sum()
-    }
+    pub fn event_count(&self) -> usize { self.traces.iter().map(|t| t.len()).sum() }
 
-    /// Validate every trace structurally, returning the first refusal.
-    ///
-    /// This is a shape check across the whole log; it does not discover or
-    /// score anything. For mining, graduate to `wasm4pm`.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Trace, EventLog, EventLogRefusal};
-    /// let bad = EventLog::from_traces([Trace::from_events([])]);
-    /// assert_eq!(bad.validate(), Err(EventLogRefusal::EmptyTrace));
-    /// ```
-    #[must_use = "check the shape-check result"]
+    #[must_use]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
-        for t in &self.traces {
-            t.validate()?;
+        for trace in &self.traces {
+            trace.validate()?;
         }
         Ok(())
     }
 }
 
-// ── IntoIterator for EventLog ─────────────────────────────────────────────────
-
-impl<'a> IntoIterator for &'a EventLog {
-    type Item = &'a Trace;
-    type IntoIter = core::slice::Iter<'a, Trace>;
-
-    /// Iterate over the [`Trace`]s of this log.
-    ///
-    /// This makes `EventLog` idiomatic to use in `for` loops and iterator
-    /// chains without a separate `.traces()` call:
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
-    /// let log = EventLog::from_traces([
-    ///     Trace::new("c1", [Event::new("a")]),
-    ///     Trace::new("c2", [Event::new("b")]),
-    /// ]);
-    /// let cases: Vec<&str> = (&log).into_iter().map(|t| t.case_id()).collect();
-    /// assert_eq!(cases, ["c1", "c2"]);
-    /// ```
-    fn into_iter(self) -> Self::IntoIter {
-        self.traces.iter()
-    }
-}
-
-impl IntoIterator for EventLog {
-    type Item = Trace;
-    type IntoIter = std::vec::IntoIter<Trace>;
-
-    /// Consume the log and iterate over its [`Trace`]s by value.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, Trace, EventLog};
-    /// let log = EventLog::from_traces([Trace::new("c", [Event::new("a")])]);
-    /// let v: Vec<Trace> = log.into_iter().collect();
-    /// assert_eq!(v.len(), 1);
-    /// ```
-    fn into_iter(self) -> Self::IntoIter {
-        self.traces.into_iter()
-    }
-}
-
-/// An append-only, potentially unbounded stream of [`Event`]s.
-///
-/// An `EventStream` is the online sibling of an [`EventLog`]: events arrive over
-/// time and are buffered in arrival order. This crate models the *shape* of a
-/// stream buffer only; streaming discovery and online conformance graduate to
-/// `wasm4pm`.
-///
-/// Structure-only: pushing an event records it; nothing is mined.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// A streaming accumulator of events (append-only, in-memory).
+#[derive(Debug, Clone, Default)]
 pub struct EventStream {
-    buffered: Vec<Event>,
+    events: Vec<Event>,
 }
 
 impl EventStream {
-    /// Construct an empty stream buffer.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::EventStream;
-    /// assert_eq!(EventStream::new().len(), 0);
-    /// ```
-    pub fn new() -> Self {
-        EventStream::default()
-    }
-
-    /// Append an event to the stream buffer, in arrival order.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, EventStream};
-    /// let mut s = EventStream::new();
-    /// s.push(Event::new("a"));
-    /// assert_eq!(s.len(), 1);
-    /// ```
-    pub fn push(&mut self, event: Event) {
-        self.buffered.push(event);
-    }
-
-    /// The buffered events, in arrival order.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::{Event, EventStream};
-    /// let mut s = EventStream::new();
-    /// s.push(Event::new("a"));
-    /// assert_eq!(s.buffered()[0].activity(), "a");
-    /// ```
-    pub fn buffered(&self) -> &[Event] {
-        &self.buffered
-    }
-
-    /// The number of buffered events.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::EventStream;
-    /// assert_eq!(EventStream::new().len(), 0);
-    /// ```
-    pub fn len(&self) -> usize {
-        self.buffered.len()
-    }
-
-    /// Whether the stream buffer is empty.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::EventStream;
-    /// assert!(EventStream::new().is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.buffered.is_empty()
-    }
+    pub fn new() -> Self { EventStream::default() }
+    pub fn push(&mut self, e: Event) { self.events.push(e); }
+    pub fn is_empty(&self) -> bool { self.events.is_empty() }
+    pub fn len(&self) -> usize { self.events.len() }
 }
 
-/// A classifier declaration from a XES log header — names the key(s) that identify activity.
+/// Named refusal variants for event-log validation laws.
 ///
-/// XES logs may declare one or more classifiers in their header. Each classifier
-/// names an activity-identification strategy: the `keys` list the XES attribute
-/// keys whose concatenated values form the activity label for that classifier.
-/// The most common classifier is `{"name": "concept:name", "keys": ["concept:name"]}`.
-///
-/// This is structural metadata about the log schema; it carries no judgment and
-/// is not Evidence-wrapped.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct EventLogClassifier {
-    /// Human-readable name for this classifier (e.g. `"concept:name"`).
-    pub name: String,
-    /// Ordered list of XES attribute keys whose values form the activity label.
-    pub keys: Vec<String>,
-}
-
-impl EventLogClassifier {
-    /// Construct a classifier from a name and an iterator of keys.
-    ///
-    /// ```
-    /// use wasm4pm_compat::eventlog::EventLogClassifier;
-    /// let c = EventLogClassifier::new("concept:name", ["concept:name"]);
-    /// assert_eq!(c.name, "concept:name");
-    /// assert_eq!(c.keys, ["concept:name"]);
-    /// ```
-    pub fn new(name: impl Into<String>, keys: impl IntoIterator<Item = impl Into<String>>) -> Self {
-        EventLogClassifier {
-            name: name.into(),
-            keys: keys.into_iter().map(Into::into).collect(),
-        }
-    }
-}
-
-/// The specific, named laws under which case-centric event-log structure is
-/// refused.
-///
-/// Each variant is a *distinct law* with a meaning auditors can cite — never a
-/// catch-all "invalid input". These describe structural defects only; they say
-/// nothing about model quality (that is a `wasm4pm` concern).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[non_exhaustive]
+/// Every variant names a specific law from van der Aalst's process mining
+/// theory. Error messages emit the variant name verbatim (tests use `.contains()`).
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EventLogRefusal {
-    /// A trace carries an empty case identifier.
-    MissingCaseId,
-    /// An event carries an empty activity name.
-    MissingActivity,
-    /// A timestamp was required by policy but absent.
-    MissingTimestamp,
-    /// A trace contains no events.
+    /// A trace contains no events — violates the log completeness law.
     EmptyTrace,
-    /// Consecutive timestamps decrease — the trace is not time-monotonic.
+    /// Events with explicit timestamps are not in non-decreasing order.
     NonMonotonicTrace,
-    /// The same event occurs twice where uniqueness was required.
-    DuplicateEvent,
-    /// A lifecycle transition is malformed or out of its declared alphabet.
-    InvalidLifecycle,
 }
 
-impl core::fmt::Display for EventLogRefusal {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let law = match self {
-            EventLogRefusal::MissingCaseId => "MissingCaseId",
-            EventLogRefusal::MissingActivity => "MissingActivity",
-            EventLogRefusal::MissingTimestamp => "MissingTimestamp",
-            EventLogRefusal::EmptyTrace => "EmptyTrace",
-            EventLogRefusal::NonMonotonicTrace => "NonMonotonicTrace",
-            EventLogRefusal::DuplicateEvent => "DuplicateEvent",
-            EventLogRefusal::InvalidLifecycle => "InvalidLifecycle",
-        };
-        write!(f, "event-log refused by law: {law}")
+impl fmt::Display for EventLogRefusal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            EventLogRefusal::EmptyTrace => write!(f, "EmptyTrace"),
+            EventLogRefusal::NonMonotonicTrace => write!(f, "NonMonotonicTrace"),
+        }
     }
 }
 
-// ── Structural bridge conversions ─────────────────────────────────────────────
-
-impl From<crate::ocel::OcelEvent> for Event {
-    /// Converts an [`OcelEvent`](crate::ocel::OcelEvent) to a case-centric [`Event`].
-    ///
-    /// Maps the OCEL event's `activity` to [`Event::activity`] and its
-    /// `timestamp_ns` if present.
-    ///
-    /// **Loss**: all OCEL-specific context — object links (E2O), typed
-    /// attributes, and the event id string — is dropped. This conversion is
-    /// a structural bridge for quick ergonomic interop; when loss must be
-    /// accounted for, use [`crate::loss::Project`] with a named
-    /// [`crate::loss::LossPolicy`] instead.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use wasm4pm_compat::ocel::OcelEvent;
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let oe = OcelEvent::new("e1", "place_order").at_ns(42);
-    /// let e = Event::from(oe);
-    /// assert_eq!(e.activity(), "place_order");
-    /// assert_eq!(e.timestamp_ns(), Some(42));
-    /// ```
-    fn from(ocel_event: crate::ocel::OcelEvent) -> Self {
-        let mut ev = Event::new(ocel_event.activity().to_owned());
-        if let Some(ts) = ocel_event.timestamp_ns() {
-            ev = ev.at_ns(ts);
-        }
-        ev
-    }
-}
-
-impl From<crate::xes::XesEvent> for Event {
-    /// Converts a [`XesEvent`](crate::xes::XesEvent) to a case-centric [`Event`].
-    ///
-    /// Uses `concept:name` as the activity. Copies `time:timestamp` (as
-    /// nanoseconds if parseable as `i64`), `org:resource`, and
-    /// `lifecycle:transition` to the corresponding [`Event`] fields.
-    ///
-    /// **Loss**: all non-standard XES attributes are dropped. If `concept:name`
-    /// is absent the activity defaults to an empty string (which will be refused
-    /// at [`Trace::validate`] time). For loss-accountable projection use
-    /// [`crate::loss::Project`] with a named [`crate::loss::LossPolicy`].
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use wasm4pm_compat::xes::XesEvent;
-    /// use wasm4pm_compat::eventlog::Event;
-    /// let xe = XesEvent::new()
-    ///     .with("concept:name", "approve")
-    ///     .with("org:resource", "alice");
-    /// let e = Event::from(xe);
-    /// assert_eq!(e.activity(), "approve");
-    /// assert_eq!(e.resource(), Some("alice"));
-    /// ```
-    fn from(xes_event: crate::xes::XesEvent) -> Self {
-        let activity = xes_event.concept_name().unwrap_or("").to_owned();
-        let mut ev = Event::new(activity);
-        // time:timestamp — attempt to parse as i64 nanoseconds.
-        if let Some(ts_str) = xes_event.attribute("time:timestamp") {
-            if let Ok(ts) = ts_str.parse::<i64>() {
-                ev = ev.at_ns(ts);
-            }
-        }
-        if let Some(res) = xes_event.attribute("org:resource") {
-            ev = ev.by(res.to_owned());
-        }
-        if let Some(lc) = xes_event.attribute("lifecycle:transition") {
-            ev = ev.with_lifecycle(lc.to_owned());
-        }
-        ev
-    }
-}
-
-/// A XES extension declaration — name, prefix, and namespace URI.
-///
-/// This is a type alias for [`crate::xes::XesExtension`], which carries the
-/// same three fields. It mirrors the `EventLogExtension` shape in
-/// `wasm4pm-types` so that compat achieves superset coverage.
-pub type EventLogExtension = crate::xes::XesExtension;
+impl std::error::Error for EventLogRefusal {}

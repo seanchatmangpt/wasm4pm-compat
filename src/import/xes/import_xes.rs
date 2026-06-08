@@ -1,5 +1,5 @@
-use crate::legacy_event_log::EventLog;
-use crate::legacy_import::xes::stream_xes::XESParsingTraceStream;
+use crate::event_log::EventLog;
+use crate::import::xes::stream_xes::XESParsingTraceStream;
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::io::BufRead;

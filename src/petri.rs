@@ -1,1264 +1,131 @@
-//! Petri net, WF-net, and OC-Petri-net **shapes** — with soundness as a
-//! *typestate claim*, never a computed proof.
-//!
-//! This module models the place/transition canon: a [`crate::petri::PetriNet`] of [`crate::petri::Place`]s
-//! and [`crate::petri::Transition`]s joined by [`crate::petri::Arc`]s with a [`crate::petri::Marking`]; a [`crate::petri::WfNet`]
-//! (workflow net) specialization with a single source and sink and a soundness
-//! *claim* tracked at the type level; and an [`crate::petri::ObjectCentricPetriNet`] whose
-//! arcs are typed by object type and may be variable.
-//!
-//! ## Soundness is a *claim*, not a result
-//!
-//! WF-net **soundness** (option to complete, proper completion, no dead
-//! transitions) is a non-trivial property. This crate **does not compute it** —
-//! computing soundness is an engine and graduates to `wasm4pm`. Instead, a
-//! [`crate::petri::WfNet`] carries a *typestate token* recording at the type level whether
-//! soundness is [`crate::petri::SoundnessUnknown`] (default), merely [`crate::petri::SoundnessClaimed`]
-//! (asserted by a human/upstream, unproven here), or [`crate::petri::SoundnessWitnessed`]
-//! (carrying a witness obtained from `wasm4pm` and re-attached here).
-//!
-//! These three tokens are **empty enums** (uninhabited markers) used only as
-//! `PhantomData` type parameters — zero-cost, never constructed.
-//!
-//! ## Structure only
-//!
-//! [`crate::petri::PetriNet::validate`] and [`crate::petri::WfNet::validate`] check *structural* shape
-//! (arcs reference declared nodes; a WF-net has an initial and final marking).
-//! They never check reachability, boundedness, liveness, or soundness — those
-//! are `wasm4pm`.
-//!
-//! ## Graduation to `wasm4pm`
-//!
-//! Soundness witnessing, boundedness/safeness analysis, reachability, and
-//! token-game replay graduate to `wasm4pm`. A [`crate::petri::SoundnessWitnessed`] WF-net is
-//! the shape into which such a witness is re-attached for evidence-carrying
-//! interchange.
-//!
-//! [`SoundnessUnknown`]: crate::petri::SoundnessUnknown
-//! [`SoundnessClaimed`]: crate::petri::SoundnessClaimed
-//! [`SoundnessWitnessed`]: crate::petri::SoundnessWitnessed
-
-use core::marker::PhantomData;
-
+pub use crate::models::{Arc, PetriNet, PetriNetRefusal, Place, Transition};
 use crate::law::SoundnessState;
+use std::fmt;
+use std::marker::PhantomData;
 
-// ── Place / Transition node-kind markers ─────────────────────────────────────
+// ── Marking ──────────────────────────────────────────────────────────────────
 
-/// A zero-sized type-level marker asserting that a type parameter represents a
-/// **place** node in a Petri net.
-///
-/// `PlaceNodeMarker` and [`TransitionNodeMarker`] are the runtime-facing
-/// counterparts of the [`crate::law::EndpointKind`] const-param enum. Use them
-/// as type parameters when you want the compiler to enforce that a slot is
-/// filled by a place kind rather than a transition kind.
-///
-/// Structure-only: carries no data, no token semantics.
-///
-/// ```
-/// use wasm4pm_compat::petri::PlaceNodeMarker;
-/// fn place_slot<P: wasm4pm_compat::petri::IsPlaceNode>() {}
-/// place_slot::<PlaceNodeMarker>();
-/// ```
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub struct PlaceNodeMarker;
-
-/// A zero-sized type-level marker asserting that a type parameter represents a
-/// **transition** node in a Petri net.
-///
-/// Paired with [`PlaceNodeMarker`]; see its documentation.
-///
-/// ```
-/// use wasm4pm_compat::petri::TransitionNodeMarker;
-/// fn transition_slot<T: wasm4pm_compat::petri::IsTransitionNode>() {}
-/// transition_slot::<TransitionNodeMarker>();
-/// ```
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub struct TransitionNodeMarker;
-
-mod node_marker_seal {
-    pub trait PlaceSeal {}
-    pub trait TransitionSeal {}
-    impl PlaceSeal for super::PlaceNodeMarker {}
-    impl TransitionSeal for super::TransitionNodeMarker {}
-}
-
-/// Sealed trait — only [`PlaceNodeMarker`] is a place node kind.
-///
-/// ```
-/// use wasm4pm_compat::petri::{PlaceNodeMarker, IsPlaceNode};
-/// fn needs_place<P: IsPlaceNode>(_: P) {}
-/// needs_place(PlaceNodeMarker);
-/// ```
-pub trait IsPlaceNode: node_marker_seal::PlaceSeal {}
-impl IsPlaceNode for PlaceNodeMarker {}
-
-/// Sealed trait — only [`TransitionNodeMarker`] is a transition node kind.
-///
-/// ```
-/// use wasm4pm_compat::petri::{TransitionNodeMarker, IsTransitionNode};
-/// fn needs_transition<T: IsTransitionNode>(_: T) {}
-/// needs_transition(TransitionNodeMarker);
-/// ```
-pub trait IsTransitionNode: node_marker_seal::TransitionSeal {}
-impl IsTransitionNode for TransitionNodeMarker {}
-
-// ── Bipartite arc type law ───────────────────────────────────────────────────
-
-/// A typed arc from a **place** to a **transition** — the only valid
-/// pre-incidence direction in a Petri net.
-///
-/// Paper: Murata (1989) §2 — F ⊆ (P×T) ∪ (T×P); arcs must be bipartite.
-/// There is **no** `PlaceToPlaceArc` or `TransitionToTransitionArc` type in
-/// this crate; they are unconstructible.
-///
-/// The generic kinds `P` and `T` are independent namespace markers; a place
-/// kind and a transition kind can be the same Rust type without breaking the
-/// law (the arc direction is carried by the struct type, not by the type params).
-///
-/// Structure-only: a typed directed edge. No token flow.
-///
-/// ```
-/// use wasm4pm_compat::petri::PlaceToTransitionArc;
-/// struct P1; struct T1;
-/// let arc = PlaceToTransitionArc::<P1, T1, u8>::new(0u8);
-/// assert_eq!(arc.weight(), 0);
-/// ```
-pub struct PlaceToTransitionArc<P, T, Weight> {
-    pub(crate) _from: PhantomData<P>,
-    pub(crate) _to: PhantomData<T>,
-    /// Arc weight (pre-incidence W⁻).
-    pub weight: Weight,
-}
-
-impl<P, T, Weight: Copy> PlaceToTransitionArc<P, T, Weight> {
-    /// Constructs a place→transition arc with the given weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::PlaceToTransitionArc;
-    /// struct P1; struct T1;
-    /// let arc = PlaceToTransitionArc::<P1, T1, u32>::new(1u32);
-    /// assert_eq!(arc.weight(), 1u32);
-    /// ```
-    pub fn new(weight: Weight) -> Self {
-        PlaceToTransitionArc {
-            _from: PhantomData,
-            _to: PhantomData,
-            weight,
-        }
-    }
-
-    /// The arc weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::PlaceToTransitionArc;
-    /// struct P1; struct T1;
-    /// assert_eq!(PlaceToTransitionArc::<P1, T1, u8>::new(3u8).weight(), 3);
-    /// ```
-    pub fn weight(&self) -> Weight {
-        self.weight
-    }
-}
-
-/// A typed arc from a **transition** to a **place** — the only valid
-/// post-incidence direction in a Petri net.
-///
-/// Paper: Murata (1989) §2 — bipartite arc law. Structure-only.
-///
-/// ```
-/// use wasm4pm_compat::petri::TransitionToPlaceArc;
-/// struct T1; struct P1;
-/// let arc = TransitionToPlaceArc::<T1, P1, u8>::new(1u8);
-/// assert_eq!(arc.weight(), 1);
-/// ```
-pub struct TransitionToPlaceArc<T, P, Weight> {
-    pub(crate) _from: PhantomData<T>,
-    pub(crate) _to: PhantomData<P>,
-    /// Arc weight (post-incidence W⁺).
-    pub weight: Weight,
-}
-
-impl<T, P, Weight: Copy> TransitionToPlaceArc<T, P, Weight> {
-    /// Constructs a transition→place arc with the given weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::TransitionToPlaceArc;
-    /// struct T1; struct P1;
-    /// let arc = TransitionToPlaceArc::<T1, P1, u32>::new(1u32);
-    /// assert_eq!(arc.weight(), 1u32);
-    /// ```
-    pub fn new(weight: Weight) -> Self {
-        TransitionToPlaceArc {
-            _from: PhantomData,
-            _to: PhantomData,
-            weight,
-        }
-    }
-
-    /// The arc weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::TransitionToPlaceArc;
-    /// struct T1; struct P1;
-    /// assert_eq!(TransitionToPlaceArc::<T1, P1, u8>::new(2u8).weight(), 2);
-    /// ```
-    pub fn weight(&self) -> Weight {
-        self.weight
-    }
-}
-
-// ── BipartiteArcConst: const-generic bipartite arc law ───────────────────────
-
-/// A bipartite arc with direction encoded as a const-generic [`crate::law::ArcDirectionConst`]
-/// parameter.
-///
-/// `BipartiteArcConst<{ArcDirectionConst::PlaceToTransition}, Weight>` and
-/// `BipartiteArcConst<{ArcDirectionConst::TransitionToPlace}, Weight>` are
-/// **distinct types** at compile time — a slot requiring a pre-incidence arc
-/// (`PlaceToTransition`) rejects a post-incidence arc (`TransitionToPlace`) with
-/// a type error.
-///
-/// Paper: Murata (1989) §2 — `F ⊆ (P×T) ∪ (T×P)`.
-///
-/// ## Difference from [`PlaceToTransitionArc`] / [`TransitionToPlaceArc`]
-///
-/// The named-type arcs use *struct shape* to enforce direction (no common base
-/// type). `BipartiteArcConst` provides a **single type** parameterised over
-/// direction — useful for generic containers that hold arcs of either direction
-/// while still encoding direction in the type.
-///
-/// Structure-only: a typed directed edge. No token flow.
-///
-/// ```
-/// use wasm4pm_compat::petri::BipartiteArcConst;
-/// use wasm4pm_compat::law::ArcDirectionConst;
-///
-/// let pre = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
-/// assert_eq!(pre.place_id(), "p0");
-/// assert_eq!(pre.weight(), 1u8);
-/// ```
-pub struct BipartiteArcConst<const DIR: crate::law::ArcDirectionConst, Weight> {
-    place_id: alloc::string::String,
-    transition_id: alloc::string::String,
-    /// Arc weight (multiplicity).
-    pub weight: Weight,
-}
-
-extern crate alloc;
-
-impl<const DIR: crate::law::ArcDirectionConst, Weight: Copy> BipartiteArcConst<DIR, Weight> {
-    /// Construct a bipartite arc with the given endpoints and weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::BipartiteArcConst;
-    /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let post = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u32>::new("p1", "t0", 2);
-    /// assert_eq!(post.transition_id(), "t0");
-    /// assert_eq!(post.place_id(), "p1");
-    /// ```
-    pub fn new(
-        place_id: impl Into<alloc::string::String>,
-        transition_id: impl Into<alloc::string::String>,
-        weight: Weight,
-    ) -> Self {
-        BipartiteArcConst {
-            place_id: place_id.into(),
-            transition_id: transition_id.into(),
-            weight,
-        }
-    }
-
-    /// The place endpoint id.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::BipartiteArcConst;
-    /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
-    /// assert_eq!(a.place_id(), "p0");
-    /// ```
-    pub fn place_id(&self) -> &str {
-        &self.place_id
-    }
-
-    /// The transition endpoint id.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::BipartiteArcConst;
-    /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 1);
-    /// assert_eq!(a.transition_id(), "t0");
-    /// ```
-    pub fn transition_id(&self) -> &str {
-        &self.transition_id
-    }
-
-    /// The arc weight.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::BipartiteArcConst;
-    /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let a = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, u8>::new("p0", "t0", 3);
-    /// assert_eq!(a.weight(), 3u8);
-    /// ```
-    pub fn weight(&self) -> Weight {
-        self.weight
-    }
-
-    /// The arc direction encoded in the const parameter.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::BipartiteArcConst;
-    /// use wasm4pm_compat::law::ArcDirectionConst;
-    /// let a = BipartiteArcConst::<{ ArcDirectionConst::TransitionToPlace }, u8>::new("t0", "p0", 1);
-    /// assert_eq!(a.direction(), ArcDirectionConst::TransitionToPlace);
-    /// ```
-    pub const fn direction(&self) -> crate::law::ArcDirectionConst {
-        DIR
-    }
-}
-
-// ── IsValidArc sealed trait ──────────────────────────────────────────────────
-
-mod arc_seal {
-    pub trait Sealed {}
-    impl<P, T, W> Sealed for super::PlaceToTransitionArc<P, T, W> {}
-    impl<T, P, W> Sealed for super::TransitionToPlaceArc<T, P, W> {}
-}
-
-/// Sealed marker: only [`PlaceToTransitionArc`] and [`TransitionToPlaceArc`]
-/// are valid arcs in a Petri net. No user type can implement this trait.
-///
-/// ```
-/// use wasm4pm_compat::petri::{PlaceToTransitionArc, IsValidArc};
-/// struct P1; struct T1;
-/// fn accept<A: IsValidArc>(_arc: A) {}
-/// accept(PlaceToTransitionArc::<P1, T1, u8>::new(1u8));
-/// ```
-pub trait IsValidArc: arc_seal::Sealed {}
-impl<P, T, W> IsValidArc for PlaceToTransitionArc<P, T, W> {}
-impl<T, P, W> IsValidArc for TransitionToPlaceArc<T, P, W> {}
-
-// ── Non-forgeable WF-net soundness (const-generic + private seal) ────────────
-
-mod wfnet_seal {
-    /// Private seal — only constructible inside `petri`. Prevents external
-    /// users from building `WfNetConst<{SoundnessState::Witnessed}>` directly.
-    pub(super) struct WfNetSeal;
-}
-
-/// A WF-net with soundness state encoded as a const generic parameter.
-///
-/// The `SOUNDNESS` parameter tracks whether soundness is unknown, claimed, or
-/// witnessed. Crucially, `WfNetConst<{SoundnessState::Witnessed}>` is **only**
-/// constructible via [`WfNetConst::witness_soundness`], which requires a
-/// [`SoundnessProof`] — a type that is itself only constructible inside this
-/// module or via the `wasm4pm` graduation bridge.
-///
-/// Direct struct-literal construction fails because `_seal` is a private field.
-///
-/// ```
-/// use wasm4pm_compat::petri::{WfNetConst, SoundnessProof};
-/// use wasm4pm_compat::law::SoundnessState;
-///
-/// // Build an unknown-soundness net, then claim it:
-/// let unknown = WfNetConst::<{ SoundnessState::Unknown }>::new();
-/// let claimed = unknown.claim_sound();
-/// // To reach Witnessed, you would call claimed.witness_soundness(proof)
-/// // where proof is only producible by the wasm4pm engine or this module.
-/// ```
-///
-/// ```compile_fail
-/// use wasm4pm_compat::petri::WfNetConst;
-/// use wasm4pm_compat::law::SoundnessState;
-/// // ERROR: _seal is a private field; direct forged construction is impossible.
-/// let forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
-///     _seal: todo!(),
-/// };
-/// ```
-#[doc(alias = "workflow net")]
-#[doc(alias = "WF-net")]
-pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
-    // Private seal prevents direct struct-literal construction of any
-    // WfNetConst variant from outside this module.
-    _seal: wfnet_seal::WfNetSeal,
-}
-
-/// A proof token for `SoundnessState::Witnessed` — only constructible inside
-/// `petri` (or via the `wasm4pm` graduation bridge).
-///
-/// Callers outside this module cannot construct `SoundnessProof` because the
-/// inner `wfnet_seal::WfNetSeal` type is private.
-pub struct SoundnessProof(wfnet_seal::WfNetSeal);
-
-impl SoundnessProof {
-    /// Module-private constructor — only `petri` and the `wasm4pm` bridge can
-    /// produce a proof.
-    #[allow(dead_code)]
-    pub(crate) fn new() -> Self {
-        SoundnessProof(wfnet_seal::WfNetSeal)
-    }
-}
-
-/// A typed soundness-proof carrier that records *which* WF-net shape the
-/// proof was issued for, via a phantom type parameter `N`.
-///
-/// [`SoundnessProof`] is a bare token — it records that *some* net's soundness
-/// was witnessed but not *which* net. `WfNetSoundnessProofOf<N>` adds a phantom
-/// `N` so that a proof issued for one net type cannot be silently transplanted
-/// onto a different net type.
-///
-/// The phantom `N` is structural metadata only — `WfNetSoundnessProofOf` is
-/// still only constructible inside this module or via the `wasm4pm` bridge
-/// (the `_seal` field is private).
-///
-/// Structure-only: zero-cost phantom wrapper around the soundness-proof seal.
-///
-/// ```
-/// use core::marker::PhantomData;
-/// use wasm4pm_compat::petri::WfNetSoundnessProofOf;
-///
-/// // A user-defined net type marker:
-/// struct OrderFulfillmentNet;
-/// // The proof is typed to that specific net; cannot be used for other nets.
-/// let _: core::marker::PhantomData<WfNetSoundnessProofOf<OrderFulfillmentNet>>;
-/// ```
-pub struct WfNetSoundnessProofOf<N> {
-    _net: PhantomData<N>,
-    _seal: wfnet_seal::WfNetSeal,
-}
-
-impl<N> WfNetSoundnessProofOf<N> {
-    /// Module-private constructor. Only `petri` and the `wasm4pm` bridge can
-    /// produce a typed soundness proof.
-    #[allow(dead_code)]
-    pub(crate) fn new() -> Self {
-        WfNetSoundnessProofOf {
-            _net: PhantomData,
-            _seal: wfnet_seal::WfNetSeal,
-        }
-    }
-}
-
-impl Default for WfNetConst<{ SoundnessState::Unknown }> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl WfNetConst<{ SoundnessState::Unknown }> {
-    /// Construct a `WfNetConst` in the initial `Unknown` soundness state.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::WfNetConst;
-    /// use wasm4pm_compat::law::SoundnessState;
-    /// let _wf = WfNetConst::<{ SoundnessState::Unknown }>::new();
-    /// ```
-    pub fn new() -> Self {
-        WfNetConst {
-            _seal: wfnet_seal::WfNetSeal,
-        }
-    }
-
-    /// Advance to `Claimed` soundness — a type-level re-tagging only.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::WfNetConst;
-    /// use wasm4pm_compat::law::SoundnessState;
-    /// let claimed: WfNetConst<{ SoundnessState::Claimed }> =
-    ///     WfNetConst::<{ SoundnessState::Unknown }>::new().claim_sound();
-    /// ```
-    pub fn claim_sound(self) -> WfNetConst<{ SoundnessState::Claimed }> {
-        WfNetConst { _seal: self._seal }
-    }
-}
-
-impl WfNetConst<{ SoundnessState::Claimed }> {
-    /// Advance a *claimed* WF-net to `Witnessed` — requires a [`SoundnessProof`].
-    ///
-    /// The `SoundnessProof` is only constructible inside this module or by the
-    /// `wasm4pm` graduation bridge. This is the sanctioned, non-forgeable path
-    /// to `SoundnessState::Witnessed`.
-    ///
-    /// ```ignore
-    /// // Conceptual: the wasm4pm bridge supplies the proof after verifying soundness.
-    /// let witnessed = claimed.witness_soundness(proof_from_wasm4pm);
-    /// ```
-    pub fn witness_soundness(
-        self,
-        _proof: SoundnessProof,
-    ) -> WfNetConst<{ SoundnessState::Witnessed }> {
-        WfNetConst {
-            _seal: wfnet_seal::WfNetSeal,
-        }
-    }
-}
-
-/// A shared query surface for [`WfNetConst`] that is independent of soundness state.
-///
-/// `WfNetConst<S>` has three concrete impls (one per `SoundnessState` variant).
-/// This blanket impl adds a `soundness_state()` query so callers that receive a
-/// `WfNetConst<S>` in generic context can read the soundness state as a runtime
-/// value without knowing `S` statically.
-///
-/// The method is separately documented from the struct because the docs are on
-/// the trait, not on the three concrete impls.
-///
-/// ```
-/// use wasm4pm_compat::petri::{WfNetConst, WfNetQuery};
-/// use wasm4pm_compat::law::SoundnessState;
-/// let wf = WfNetConst::<{ SoundnessState::Unknown }>::new().claim_sound();
-/// assert_eq!(wf.soundness_state(), SoundnessState::Claimed);
-/// ```
-pub trait WfNetQuery {
-    /// The soundness state of this WF-net as a runtime value.
-    fn soundness_state(&self) -> SoundnessState;
-}
-
-impl WfNetQuery for WfNetConst<{ SoundnessState::Unknown }> {
-    fn soundness_state(&self) -> SoundnessState {
-        SoundnessState::Unknown
-    }
-}
-impl WfNetQuery for WfNetConst<{ SoundnessState::Claimed }> {
-    fn soundness_state(&self) -> SoundnessState {
-        SoundnessState::Claimed
-    }
-}
-impl WfNetQuery for WfNetConst<{ SoundnessState::Witnessed }> {
-    fn soundness_state(&self) -> SoundnessState {
-        SoundnessState::Witnessed
-    }
-}
-
-/// A place: a named token-holding location in a Petri net.
-///
-/// Structure-only: identity and name; no token dynamics.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Place {
-    id: String,
-}
-
-impl Place {
-    /// Construct a place with an id.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Place;
-    /// assert_eq!(Place::new("p0").id(), "p0");
-    /// ```
-    pub fn new(id: impl Into<String>) -> Self {
-        Place { id: id.into() }
-    }
-
-    /// The place id.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Place;
-    /// assert_eq!(Place::new("p0").id(), "p0");
-    /// ```
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-}
-
-/// A transition: a named firing element. An empty `label` denotes a *silent*
-/// (tau) transition.
-///
-/// Structure-only: identity and label; no firing semantics.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Transition {
-    id: String,
-    label: String,
-}
-
-impl Transition {
-    /// Construct a labeled transition.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Transition;
-    /// let t = Transition::new("t0", "approve");
-    /// assert_eq!(t.id(), "t0");
-    /// assert!(!t.is_silent());
-    /// ```
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Transition {
-            id: id.into(),
-            label: label.into(),
-        }
-    }
-
-    /// Construct a silent (tau) transition with an empty label.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Transition;
-    /// assert!(Transition::silent("t0").is_silent());
-    /// ```
-    pub fn silent(id: impl Into<String>) -> Self {
-        Transition::new(id, "")
-    }
-
-    /// The transition id.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Transition;
-    /// assert_eq!(Transition::new("t0", "a").id(), "t0");
-    /// ```
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-
-    /// The transition label (empty means silent).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Transition;
-    /// assert_eq!(Transition::new("t0", "a").label(), "a");
-    /// ```
-    pub fn label(&self) -> &str {
-        &self.label
-    }
-
-    /// Whether the transition is silent (tau).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Transition;
-    /// assert!(Transition::silent("t0").is_silent());
-    /// ```
-    pub fn is_silent(&self) -> bool {
-        self.label.is_empty()
-    }
-}
-
-/// The direction of a Petri-net [`Arc`] relative to a transition.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum ArcDirection {
-    /// Place → Transition (an input/consume arc).
-    PlaceToTransition,
-    /// Transition → Place (an output/produce arc).
-    TransitionToPlace,
-}
-
-/// An arc: a directed, weighted connection between a place and a transition.
-///
-/// `weight` is the arc multiplicity (default 1). An arc whose endpoints are not
-/// declared is refused as [`PetriRefusal::InvalidVariableArc`] (the closest
-/// structural law in this shape's vocabulary) or, for WF-nets, a soundness
-/// concern at `wasm4pm`.
-///
-/// Structure-only: a typed graph edge, no token flow.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct Arc {
-    place_id: String,
-    transition_id: String,
-    direction: ArcDirection,
-    weight: u32,
-    /// For OC-Petri-nets: the object type this arc carries, if any.
-    object_type: Option<String>,
-    /// For OC-Petri-nets: whether the arc is a *variable* arc (multiple tokens
-    /// of the object type).
-    variable: bool,
-}
-
-impl Arc {
-    /// Construct a place→transition arc with weight 1.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{Arc, ArcDirection};
-    /// let a = Arc::place_to_transition("p", "t");
-    /// assert_eq!(a.direction(), ArcDirection::PlaceToTransition);
-    /// assert_eq!(a.weight(), 1);
-    /// ```
-    pub fn place_to_transition(
-        place_id: impl Into<String>,
-        transition_id: impl Into<String>,
-    ) -> Self {
-        Arc {
-            place_id: place_id.into(),
-            transition_id: transition_id.into(),
-            direction: ArcDirection::PlaceToTransition,
-            weight: 1,
-            object_type: None,
-            variable: false,
-        }
-    }
-
-    /// Construct a transition→place arc with weight 1.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{Arc, ArcDirection};
-    /// let a = Arc::transition_to_place("t", "p");
-    /// assert_eq!(a.direction(), ArcDirection::TransitionToPlace);
-    /// ```
-    pub fn transition_to_place(
-        transition_id: impl Into<String>,
-        place_id: impl Into<String>,
-    ) -> Self {
-        Arc {
-            place_id: place_id.into(),
-            transition_id: transition_id.into(),
-            direction: ArcDirection::TransitionToPlace,
-            weight: 1,
-            object_type: None,
-            variable: false,
-        }
-    }
-
-    /// Set the arc weight (multiplicity). Builder-style.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Arc;
-    /// assert_eq!(Arc::place_to_transition("p", "t").with_weight(3).weight(), 3);
-    /// ```
-    pub fn with_weight(mut self, weight: u32) -> Self {
-        self.weight = weight;
-        self
-    }
-
-    /// Type the arc by object type, marking it variable or not (OC-Petri-net).
-    /// Builder-style.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Arc;
-    /// let a = Arc::place_to_transition("p", "t").typed("order", true);
-    /// assert_eq!(a.object_type(), Some("order"));
-    /// assert!(a.is_variable());
-    /// ```
-    pub fn typed(mut self, object_type: impl Into<String>, variable: bool) -> Self {
-        self.object_type = Some(object_type.into());
-        self.variable = variable;
-        self
-    }
-
-    /// The place endpoint id.
-    pub fn place_id(&self) -> &str {
-        &self.place_id
-    }
-
-    /// The transition endpoint id.
-    pub fn transition_id(&self) -> &str {
-        &self.transition_id
-    }
-
-    /// The arc direction.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{Arc, ArcDirection};
-    /// assert_eq!(Arc::place_to_transition("p", "t").direction(), ArcDirection::PlaceToTransition);
-    /// ```
-    pub fn direction(&self) -> ArcDirection {
-        self.direction
-    }
-
-    /// The arc weight (multiplicity).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Arc;
-    /// assert_eq!(Arc::place_to_transition("p", "t").weight(), 1);
-    /// ```
-    pub fn weight(&self) -> u32 {
-        self.weight
-    }
-
-    /// The OC-Petri-net object type carried by this arc, if any.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Arc;
-    /// assert_eq!(Arc::place_to_transition("p", "t").object_type(), None);
-    /// ```
-    #[must_use]
-    pub fn object_type(&self) -> Option<&str> {
-        self.object_type.as_deref()
-    }
-
-    /// Whether this is a variable arc (OC-Petri-net).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Arc;
-    /// assert!(!Arc::place_to_transition("p", "t").is_variable());
-    /// ```
-    pub fn is_variable(&self) -> bool {
-        self.variable
-    }
-}
-
-/// A marking: how many tokens sit on each place.
-///
-/// Structure-only: a snapshot of token counts by place id. This crate never
-/// fires a transition to move from one marking to another.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// A token distribution over places — the runtime state of a Petri net.
+#[derive(Debug, Clone, Default)]
 pub struct Marking {
-    tokens: Vec<(String, u32)>,
+    tokens: Vec<(String, usize)>,
 }
 
 impl Marking {
-    /// Construct an empty marking.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Marking;
-    /// assert!(Marking::empty().is_empty());
-    /// ```
-    pub fn empty() -> Self {
-        Marking::default()
+    pub fn new(tokens: impl IntoIterator<Item = (String, usize)>) -> Self {
+        Marking { tokens: tokens.into_iter().collect() }
     }
 
-    /// Construct a marking from `(place_id, token_count)` pairs.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Marking;
-    /// let m = Marking::new([("p0".to_string(), 1)]);
-    /// assert_eq!(m.tokens_on("p0"), 1);
-    /// ```
-    pub fn new(tokens: impl IntoIterator<Item = (String, u32)>) -> Self {
-        Marking {
-            tokens: tokens.into_iter().collect(),
+    pub fn empty() -> Self { Marking::default() }
+
+    pub fn is_empty(&self) -> bool { self.tokens.is_empty() }
+
+    pub fn tokens(&self) -> &[(String, usize)] { &self.tokens }
+}
+
+// ── PetriRefusal ─────────────────────────────────────────────────────────────
+
+/// Named refusal variants for Petri net validation laws.
+///
+/// Every variant names a specific law from van der Aalst's workflow net theory.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PetriRefusal {
+    /// No final marking provided — a workflow net requires a defined sink state.
+    MissingFinalMarking,
+    /// An arc is typed but its object type is not declared in the net's type set.
+    ObjectTypeNotPreserved,
+}
+
+impl fmt::Display for PetriRefusal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PetriRefusal::MissingFinalMarking => write!(f, "MissingFinalMarking"),
+            PetriRefusal::ObjectTypeNotPreserved => write!(f, "ObjectTypeNotPreserved"),
         }
-    }
-
-    /// The token count on a place (0 if unmarked).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Marking;
-    /// assert_eq!(Marking::empty().tokens_on("p0"), 0);
-    /// ```
-    pub fn tokens_on(&self, place_id: &str) -> u32 {
-        self.tokens
-            .iter()
-            .find(|(p, _)| p == place_id)
-            .map(|(_, n)| *n)
-            .unwrap_or(0)
-    }
-
-    /// Whether the marking places no tokens anywhere.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::Marking;
-    /// assert!(Marking::empty().is_empty());
-    /// ```
-    pub fn is_empty(&self) -> bool {
-        self.tokens.iter().all(|(_, n)| *n == 0)
     }
 }
 
-/// A paired initial and final marking for a WF-net.
+impl std::error::Error for PetriRefusal {}
+
+// ── WfNet typestate ───────────────────────────────────────────────────────────
+
+/// Typestate marker: soundness has been asserted (not verified by replay).
+pub struct SoundnessClaimed;
+
+/// Typestate marker: soundness has been witnessed by token replay.
+pub struct SoundnessWitnessed;
+
+/// Default typestate: no soundness claim has been made yet.
 ///
-/// WF-net soundness (van der Aalst, 1998) requires both an *initial* marking
-/// (a single token on the source place) and a *final* marking (a single token
-/// on the sink place). `InitialFinalMarkingPair` bundles these two markings as
-/// a single named shape, so a WF-net construction site can pass them together
-/// without risk of swapping the two arguments.
+/// Users cannot construct `WfNet<Unchecked>` by naming the type parameter —
+/// they use `WfNet::new()` which returns `WfNet<Unchecked>` by inference.
+pub struct Unchecked;
+
+/// A workflow net — a Petri net with a designated final marking.
 ///
-/// ## Structural law
-///
-/// [`InitialFinalMarkingPair::validate`] checks that neither marking is empty
-/// and that the initial and final markings do not overlap (a place carrying
-/// tokens in both is a structural defect). It does **not** check that the
-/// markings reference declared places — that check is performed by
-/// [`WfNet::validate`].
-///
-/// Structure-only: a shape. No token dynamics.
-///
-/// ```
-/// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking, PetriRefusal};
-/// let pair = InitialFinalMarkingPair::new(
-///     Marking::new([("src".to_string(), 1)]),
-///     Marking::new([("snk".to_string(), 1)]),
-/// );
-/// assert!(pair.validate().is_ok());
-/// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct InitialFinalMarkingPair {
-    /// The initial marking (typically one token on the source place).
-    pub initial: Marking,
-    /// The final marking (typically one token on the sink place).
-    pub final_marking: Marking,
-}
-
-impl InitialFinalMarkingPair {
-    /// Construct an `InitialFinalMarkingPair` from two markings.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking};
-    /// let pair = InitialFinalMarkingPair::new(
-    ///     Marking::new([("src".to_string(), 1)]),
-    ///     Marking::new([("snk".to_string(), 1)]),
-    /// );
-    /// assert_eq!(pair.initial.tokens_on("src"), 1);
-    /// assert_eq!(pair.final_marking.tokens_on("snk"), 1);
-    /// ```
-    pub fn new(initial: Marking, final_marking: Marking) -> Self {
-        InitialFinalMarkingPair {
-            initial,
-            final_marking,
-        }
-    }
-
-    /// Structurally validate the marking pair.
-    ///
-    /// Returns [`PetriRefusal::MissingInitialMarking`] if the initial marking is
-    /// empty, [`PetriRefusal::MissingFinalMarking`] if the final marking is empty,
-    /// or [`PetriRefusal::InvalidVariableArc`] if any place id appears in both
-    /// markings (overlapping initial/final places is a structural defect).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{InitialFinalMarkingPair, Marking, PetriRefusal};
-    /// // Empty initial marking:
-    /// let bad = InitialFinalMarkingPair::new(
-    ///     Marking::empty(),
-    ///     Marking::new([("snk".to_string(), 1)]),
-    /// );
-    /// assert_eq!(bad.validate(), Err(PetriRefusal::MissingInitialMarking));
-    /// ```
-    #[must_use = "check the shape-check result"]
-    pub fn validate(&self) -> Result<(), PetriRefusal> {
-        if self.initial.is_empty() {
-            return Err(PetriRefusal::MissingInitialMarking);
-        }
-        if self.final_marking.is_empty() {
-            return Err(PetriRefusal::MissingFinalMarking);
-        }
-        // Detect overlapping place ids between initial and final markings.
-        for (pid, cnt) in &self.initial.tokens {
-            if *cnt > 0 && self.final_marking.tokens_on(pid) > 0 {
-                return Err(PetriRefusal::InvalidVariableArc);
-            }
-        }
-        Ok(())
-    }
-}
-
-/// A plain Petri net: places, transitions, arcs, and an initial marking.
-///
-/// [`PetriNet::validate`] checks structural shape (arcs reference declared
-/// nodes); it does not analyze behavior. Reachability, boundedness, and
-/// soundness graduate to `wasm4pm`.
-///
-/// Structure-only.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
-pub struct PetriNet {
-    places: Vec<Place>,
-    transitions: Vec<Transition>,
-    arcs: Vec<Arc>,
-    initial: Marking,
-}
-
-impl PetriNet {
-    /// Construct a Petri net from its parts.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{PetriNet, Place, Transition, Arc, Marking};
-    /// let net = PetriNet::new(
-    ///     [Place::new("p")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("p", "t")],
-    ///     Marking::new([("p".to_string(), 1)]),
-    /// );
-    /// assert!(net.validate().is_ok());
-    /// ```
-    pub fn new(
-        places: impl IntoIterator<Item = Place>,
-        transitions: impl IntoIterator<Item = Transition>,
-        arcs: impl IntoIterator<Item = Arc>,
-        initial: Marking,
-    ) -> Self {
-        PetriNet {
-            places: places.into_iter().collect(),
-            transitions: transitions.into_iter().collect(),
-            arcs: arcs.into_iter().collect(),
-            initial,
-        }
-    }
-
-    /// The places.
-    pub fn places(&self) -> &[Place] {
-        &self.places
-    }
-
-    /// The transitions.
-    pub fn transitions(&self) -> &[Transition] {
-        &self.transitions
-    }
-
-    /// The arcs.
-    pub fn arcs(&self) -> &[Arc] {
-        &self.arcs
-    }
-
-    /// The initial marking.
-    pub fn initial_marking(&self) -> &Marking {
-        &self.initial
-    }
-
-    /// Structurally validate that every arc references declared nodes.
-    ///
-    /// This is a shape check, not behavior analysis. A dangling arc is reported
-    /// as [`PetriRefusal::InvalidVariableArc`] (this shape's structural
-    /// arc-defect law). Initial marking presence is required at the WF-net
-    /// level, not here.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{PetriNet, Place, Transition, Arc, Marking, PetriRefusal};
-    /// // Arc references transition "ghost" that does not exist.
-    /// let net = PetriNet::new(
-    ///     [Place::new("p")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("p", "ghost")],
-    ///     Marking::empty(),
-    /// );
-    /// assert_eq!(net.validate(), Err(PetriRefusal::InvalidVariableArc));
-    /// ```
-    #[must_use = "check the shape-check result"]
-    pub fn validate(&self) -> Result<(), PetriRefusal> {
-        use std::collections::HashSet;
-        let pids: HashSet<&str> = self.places.iter().map(Place::id).collect();
-        let tids: HashSet<&str> = self.transitions.iter().map(Transition::id).collect();
-        for a in &self.arcs {
-            if !pids.contains(a.place_id()) || !tids.contains(a.transition_id()) {
-                return Err(PetriRefusal::InvalidVariableArc);
-            }
-        }
-        Ok(())
-    }
-}
-
-/// Soundness state marker: soundness has **not** been asserted or proven.
-///
-/// This is an **uninhabited** type-level token (an empty enum) used only as a
-/// `PhantomData` parameter on [`WfNet`]. It is never constructed; it carries no
-/// data and costs nothing at runtime. It is the *default* state of a freshly
-/// constructed WF-net.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SoundnessUnknown {}
-
-/// Soundness state marker: soundness is **claimed** but unproven here.
-///
-/// An uninhabited type-level token. A [`WfNet`] in this state asserts soundness
-/// (e.g. by an upstream tool or a human) but this crate has **not** verified it —
-/// verification is a `wasm4pm` engine. Treat this as a claim to be discharged,
-/// not as evidence.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SoundnessClaimed {}
-
-/// Soundness state marker: soundness is **witnessed**.
-///
-/// An uninhabited type-level token. A [`WfNet`] reaches this state only by
-/// re-attaching a soundness witness obtained from `wasm4pm`; this crate models
-/// the *shape* of "soundness has been witnessed", not the witnessing itself.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SoundnessWitnessed {}
-
-/// A workflow net (WF-net): a Petri net with a single source and sink place and
-/// a soundness state tracked at the type level by the `S` typestate parameter.
-///
-/// The `S` parameter is one of [`SoundnessUnknown`] (default),
-/// [`SoundnessClaimed`], or [`SoundnessWitnessed`] — empty-enum markers used via
-/// `PhantomData`. The field/parameter is a **claim about** soundness, never a
-/// computed proof: [`WfNet::validate`] checks only *structural* WF-net shape
-/// (initial and final markings present), and the soundness transition methods
-/// merely *re-type* the claim; they do not compute soundness.
-///
-/// Structure-only: actual soundness witnessing graduates to `wasm4pm`, which
-/// produces the witness that justifies moving to [`SoundnessWitnessed`].
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct WfNet<S = SoundnessUnknown> {
+/// The typestate parameter `S` tracks soundness evidence:
+/// - `WfNet<Unchecked>` — no soundness claim made
+/// - `WfNet<SoundnessClaimed>` — caller asserted soundness via `claim_sound()`
+/// - `WfNet<SoundnessWitnessed>` — soundness verified by token replay
+pub struct WfNet<S = Unchecked> {
     net: PetriNet,
-    final_marking: Option<Marking>,
-    _soundness: PhantomData<S>,
+    final_marking: Marking,
+    _s: PhantomData<S>,
 }
 
-impl WfNet<SoundnessUnknown> {
-    /// Construct a WF-net in the [`SoundnessUnknown`] state from a Petri net and
-    /// a final marking.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{WfNet, PetriNet, Place, Transition, Arc, Marking};
-    /// let net = PetriNet::new(
-    ///     [Place::new("src"), Place::new("snk")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("src", "t"), Arc::transition_to_place("t", "snk")],
-    ///     Marking::new([("src".to_string(), 1)]),
-    /// );
-    /// let wf = WfNet::new(net, Marking::new([("snk".to_string(), 1)]));
-    /// assert!(wf.validate().is_ok());
-    /// ```
+impl WfNet<Unchecked> {
     pub fn new(net: PetriNet, final_marking: Marking) -> Self {
-        WfNet {
-            net,
-            final_marking: Some(final_marking),
-            _soundness: PhantomData,
-        }
+        WfNet { net, final_marking, _s: PhantomData }
+    }
+
+    #[must_use]
+    pub fn claim_sound(self) -> WfNet<SoundnessClaimed> {
+        WfNet { net: self.net, final_marking: self.final_marking, _s: PhantomData }
     }
 }
 
 impl<S> WfNet<S> {
-    /// The underlying Petri net.
-    pub fn net(&self) -> &PetriNet {
-        &self.net
+    #[must_use]
+    pub fn validate(&self) -> Result<(), PetriRefusal> {
+        if self.final_marking.is_empty() {
+            return Err(PetriRefusal::MissingFinalMarking);
+        }
+        Ok(())
     }
 
-    /// The final marking, if declared.
     #[must_use]
     pub fn final_marking(&self) -> Option<&Marking> {
-        self.final_marking.as_ref()
+        if self.final_marking.is_empty() { None } else { Some(&self.final_marking) }
     }
 
-    /// Structurally validate the WF-net shape.
-    ///
-    /// Checks that the underlying net is structurally well-formed, that an
-    /// initial marking places at least one token
-    /// ([`PetriRefusal::MissingInitialMarking`]), and that a final marking is
-    /// declared ([`PetriRefusal::MissingFinalMarking`]). It does **not** check
-    /// soundness, safeness, or boundedness — those graduate to `wasm4pm`.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{WfNet, PetriNet, Place, Transition, Arc, Marking, PetriRefusal};
-    /// // Initial marking is empty -> MissingInitialMarking.
-    /// let net = PetriNet::new(
-    ///     [Place::new("src"), Place::new("snk")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("src", "t"), Arc::transition_to_place("t", "snk")],
-    ///     Marking::empty(),
-    /// );
-    /// let wf = WfNet::new(net, Marking::new([("snk".to_string(), 1)]));
-    /// assert_eq!(wf.validate(), Err(PetriRefusal::MissingInitialMarking));
-    /// ```
-    #[must_use = "check the shape-check result"]
-    pub fn validate(&self) -> Result<(), PetriRefusal> {
-        self.net.validate()?;
-        if self.net.initial_marking().is_empty() {
-            return Err(PetriRefusal::MissingInitialMarking);
-        }
-        match &self.final_marking {
-            Some(m) if !m.is_empty() => Ok(()),
-            _ => Err(PetriRefusal::MissingFinalMarking),
-        }
-    }
-
-    /// Re-type this WF-net as carrying a soundness **claim** (unproven here).
-    ///
-    /// This is a *type-level re-tagging only* — it computes nothing. Use it to
-    /// record that an upstream source asserts soundness; discharge the claim by
-    /// graduating to `wasm4pm` and witnessing it.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{WfNet, PetriNet, Marking, SoundnessClaimed};
-    /// let wf = WfNet::new(PetriNet::default(), Marking::new([("snk".to_string(), 1)]));
-    /// let _claimed: WfNet<SoundnessClaimed> = wf.claim_sound();
-    /// ```
-    pub fn claim_sound(self) -> WfNet<SoundnessClaimed> {
-        WfNet {
-            net: self.net,
-            final_marking: self.final_marking,
-            _soundness: PhantomData,
-        }
-    }
+    pub fn net(&self) -> &PetriNet { &self.net }
 }
 
-impl WfNet<SoundnessClaimed> {
-    /// Re-type a *claimed* WF-net as **witnessed** sound.
-    ///
-    /// **Deprecated** — this method freely advances the typestate without a
-    /// [`SoundnessProof`] token, making the `Claimed → Witnessed` transition
-    /// forgeable from outside this module. Use [`WfNetConst::witness_soundness`]
-    /// instead, which requires a `SoundnessProof` that is only constructible
-    /// inside this module or via the `wasm4pm` graduation bridge. That path is
-    /// non-forgeable by construction.
-    ///
-    /// This method is retained for source compatibility but will be removed in a
-    /// future version. Any call site that invokes this method is relying on a
-    /// forgeability hole in the type law.
-    ///
-    /// ```rust,ignore
-    /// // pub(crate): cannot be called from doctests. Use WfNetConst<Sane> and
-    /// // its sealed construction path for the non-forgeable witnessed state.
-    /// use wasm4pm_compat::petri::{WfNet, PetriNet, Marking, SoundnessClaimed, SoundnessWitnessed};
-    /// let wf = WfNet::new(PetriNet::default(), Marking::new([("snk".to_string(), 1)]))
-    ///     .claim_sound();
-    /// #[allow(deprecated)]
-    /// let _w: WfNet<SoundnessWitnessed> = wf.attest_witnessed();
-    /// ```
-    #[deprecated(
-        since = "26.6.5",
-        note = "Forgeability hole: this method produces WfNet<SoundnessWitnessed> without \
-                any structural verification. Use WfNetConst<Sane> and its sealed \
-                construction path instead. See GAP_007 in sources/wasm4pm-compat/STRUCTURAL_GAPS.md."
-    )]
-    #[allow(dead_code)]
-    pub(crate) fn attest_witnessed(self) -> WfNet<SoundnessWitnessed> {
-        WfNet {
-            net: self.net,
-            final_marking: self.final_marking,
-            _soundness: PhantomData,
-        }
-    }
-}
+// ── ObjectCentricPetriNet ─────────────────────────────────────────────────────
 
-/// An object-centric Petri net (OC-Petri-net): a Petri net whose arcs are typed
-/// by object type and may be variable, plus the declared object types.
-///
-/// [`ObjectCentricPetriNet::validate`] checks that every typed arc names a
-/// declared object type ([`PetriRefusal::ObjectTypeNotPreserved`]) and that the
-/// underlying net is structurally sound (arcs reference declared nodes). It does
-/// not analyze object-centric behavior — that graduates to `wasm4pm`.
-///
-/// Structure-only.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// A Petri net extended with object-type annotations on arcs,
+/// per the OCPN model from van der Aalst et al.
+#[derive(Debug, Clone)]
 pub struct ObjectCentricPetriNet {
     net: PetriNet,
     object_types: Vec<String>,
 }
 
 impl ObjectCentricPetriNet {
-    /// Construct an OC-Petri-net from a Petri net and its object types.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{ObjectCentricPetriNet, PetriNet, Place, Transition, Arc, Marking};
-    /// let net = PetriNet::new(
-    ///     [Place::new("p")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("p", "t").typed("order", false)],
-    ///     Marking::empty(),
-    /// );
-    /// let ocpn = ObjectCentricPetriNet::new(net, ["order".to_string()]);
-    /// assert!(ocpn.validate().is_ok());
-    /// ```
     pub fn new(net: PetriNet, object_types: impl IntoIterator<Item = String>) -> Self {
-        ObjectCentricPetriNet {
-            net,
-            object_types: object_types.into_iter().collect(),
-        }
+        ObjectCentricPetriNet { net, object_types: object_types.into_iter().collect() }
     }
 
-    /// The underlying Petri net.
-    pub fn net(&self) -> &PetriNet {
-        &self.net
-    }
+    pub fn net(&self) -> &PetriNet { &self.net }
+    pub fn object_types(&self) -> &[String] { &self.object_types }
 
-    /// The declared object types.
-    pub fn object_types(&self) -> &[String] {
-        &self.object_types
-    }
-
-    /// Structurally validate the OC-Petri-net shape.
-    ///
-    /// Checks the underlying net structurally, then verifies every typed arc's
-    /// object type is declared ([`PetriRefusal::ObjectTypeNotPreserved`]). No
-    /// behavior analysis is performed.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{ObjectCentricPetriNet, PetriNet, Place, Transition, Arc, Marking, PetriRefusal};
-    /// // Arc typed "ghost" but only "order" is declared.
-    /// let net = PetriNet::new(
-    ///     [Place::new("p")],
-    ///     [Transition::new("t", "a")],
-    ///     [Arc::place_to_transition("p", "t").typed("ghost", false)],
-    ///     Marking::empty(),
-    /// );
-    /// let ocpn = ObjectCentricPetriNet::new(net, ["order".to_string()]);
-    /// assert_eq!(ocpn.validate(), Err(PetriRefusal::ObjectTypeNotPreserved));
-    /// ```
-    #[must_use = "check the shape-check result"]
+    #[must_use]
     pub fn validate(&self) -> Result<(), PetriRefusal> {
-        self.net.validate()?;
-        for a in self.net.arcs() {
-            if let Some(ot) = a.object_type() {
-                if !self.object_types.iter().any(|t| t == ot) {
+        let type_set: std::collections::HashSet<&str> =
+            self.object_types.iter().map(|s| s.as_str()).collect();
+        for arc in &self.net.arcs {
+            if let Some((ref ot, _)) = arc.object_type {
+                if !type_set.contains(ot.as_str()) {
                     return Err(PetriRefusal::ObjectTypeNotPreserved);
                 }
             }
@@ -1267,743 +134,143 @@ impl ObjectCentricPetriNet {
     }
 }
 
-// ── YAWL cancellation-region shape ──────────────────────────────────────────
+// ── PetriNet/Place/Transition accessor methods ────────────────────────────────
 
-/// A YAWL cancellation region: the named set of place/condition/task ids whose
-/// tokens are vacuumed when the owning task fires.
-///
-/// YAWL Definition 1 (van der Aalst & ter Hofstede, 2004) specifies
-/// `rem: T ⇸ P(T ∪ C \ {i, o})` — each task optionally names a cancellation
-/// region. This struct carries the *shape* of that region: a named set of node
-/// ids. Token-removal execution (the actual vacuuming) graduates to `wasm4pm`.
-///
-/// The `#[repr(transparent)]` newtype prevents a bare `Vec<String>` from being
-/// accidentally passed where a `CancellationRegion` is required. It is zero-cost
-/// to hold and clone.
-///
-/// Structure-only: carries ids, never fires.
-///
-/// ```
-/// use wasm4pm_compat::petri::CancellationRegion;
-/// let cr = CancellationRegion::new(["p1", "t2"]);
-/// assert_eq!(cr.members(), &["p1".to_string(), "t2".to_string()]);
-/// ```
-#[repr(transparent)]
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct CancellationRegion {
-    /// The ids of nodes (places, conditions, tasks) in this cancellation region,
-    /// excluding the initial and final place of the net (i, o).
-    pub members: Vec<String>,
+impl Place {
+    pub fn id(&self) -> &str { &self.id }
 }
 
-impl CancellationRegion {
-    /// Construct a cancellation region from an iterator of node ids.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::CancellationRegion;
-    /// let cr = CancellationRegion::new(["p1", "t2"]);
-    /// assert_eq!(cr.members().len(), 2);
-    /// ```
-    pub fn new<I, S>(members: I) -> Self
-    where
-        I: IntoIterator<Item = S>,
-        S: Into<String>,
-    {
-        CancellationRegion {
-            members: members.into_iter().map(Into::into).collect(),
-        }
-    }
+impl Transition {
+    pub fn id(&self) -> &str { &self.id }
+}
 
-    /// The node ids in this cancellation region.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::CancellationRegion;
-    /// assert!(CancellationRegion::default().members().is_empty());
-    /// ```
-    pub fn members(&self) -> &[String] {
-        &self.members
+impl PetriNet {
+    pub fn places(&self) -> &[Place] { &self.places }
+    pub fn transitions(&self) -> &[Transition] { &self.transitions }
+    pub fn arcs(&self) -> &[Arc] { &self.arcs }
+    pub fn initial_marking(&self) -> RuntimeMarking<'_> { RuntimeMarking { net: self } }
+}
+
+/// Read-only view of the initial marking backed by the PetriNet's PackedKeyTable.
+pub struct RuntimeMarking<'a> {
+    net: &'a PetriNet,
+}
+
+impl<'a> RuntimeMarking<'a> {
+    /// Returns the token count on a named place, or 0 if not marked.
+    pub fn tokens_on(&self, place_id: &str) -> usize {
+        use crate::dense_kernel::fnv1a_64;
+        let hash = fnv1a_64(place_id.as_bytes());
+        *self.net.initial_marking.get(hash).unwrap_or(&0)
     }
 }
 
-// ── YAWL multiple-instance task spec ────────────────────────────────────────
+// ── Marking::tokens_on ───────────────────────────────────────────────────────
 
-/// The creation kind for a YAWL multiple-instance task.
-///
-/// YAWL Definition 1 defines `nofi: T ⇸ N × N^∞ × N^∞ × {dynamic, static}`.
-/// The `{Static, Dynamic}` variant names whether child instances are created
-/// once at firing time (`Static`) or may be created incrementally during
-/// execution (`Dynamic`). This is the structural tag; execution semantics of
-/// dynamic spawning graduate to `wasm4pm`.
-///
-/// Structure-only marker; carries no instantiation behavior.
-///
-/// ```
-/// use wasm4pm_compat::petri::InstanceCreationKind;
-/// let k = InstanceCreationKind::Static;
-/// assert_eq!(k, InstanceCreationKind::Static);
-/// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum InstanceCreationKind {
-    /// All child instances are created at the moment the task fires.
-    Static,
-    /// Child instances may be created incrementally during the task's lifetime.
-    Dynamic,
-}
-
-/// A YAWL multiple-instance task specification: the four-tuple
-/// `(min_instances, max_instances, threshold, creation_kind)`.
-///
-/// YAWL Definition 1 (`nofi`) mandates that every multi-instance task carries:
-/// - `min`: the minimum number of child instances that must complete (`N`).
-/// - `max`: the maximum number of child instances (`N^∞`), `None` = unbounded.
-/// - `threshold`: the minimum count for collective completion (`N^∞`),
-///   `None` = all instances must complete.
-/// - `creation`: whether spawning is [`InstanceCreationKind::Static`] or
-///   [`InstanceCreationKind::Dynamic`].
-///
-/// The structural law `min <= max` (when `max` is bounded) is checked by
-/// [`MultipleInstanceSpec::validate`]; a violation is refused as
-/// [`PetriRefusal::InvalidInstanceBounds`].
-///
-/// Structure-only: instance creation and threshold enforcement graduate to
-/// `wasm4pm`.
-///
-/// ```
-/// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind};
-/// let spec = MultipleInstanceSpec::new(1, Some(4), Some(2), InstanceCreationKind::Static);
-/// assert!(spec.validate().is_ok());
-/// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MultipleInstanceSpec {
-    /// Minimum number of instances that must complete.
-    pub min: u32,
-    /// Maximum number of instances (`None` = unbounded / ∞).
-    pub max: Option<u32>,
-    /// Threshold for collective completion (`None` = all instances).
-    pub threshold: Option<u32>,
-    /// Whether child instances are created statically or dynamically.
-    pub creation: InstanceCreationKind,
-}
-
-impl MultipleInstanceSpec {
-    /// Construct a multiple-instance spec.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind};
-    /// let spec = MultipleInstanceSpec::new(1, Some(3), None, InstanceCreationKind::Dynamic);
-    /// assert_eq!(spec.min, 1);
-    /// assert_eq!(spec.creation, InstanceCreationKind::Dynamic);
-    /// ```
-    pub fn new(
-        min: u32,
-        max: Option<u32>,
-        threshold: Option<u32>,
-        creation: InstanceCreationKind,
-    ) -> Self {
-        MultipleInstanceSpec {
-            min,
-            max,
-            threshold,
-            creation,
-        }
-    }
-
-    /// Structurally validate the instance bounds.
-    ///
-    /// Returns [`PetriRefusal::InvalidInstanceBounds`] if `max` is bounded and
-    /// `min > max`, or if `min == 0` (at least one instance is required by YAWL).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{MultipleInstanceSpec, InstanceCreationKind, PetriRefusal};
-    /// let bad = MultipleInstanceSpec::new(5, Some(2), None, InstanceCreationKind::Static);
-    /// assert_eq!(bad.validate(), Err(PetriRefusal::InvalidInstanceBounds));
-    /// let zero = MultipleInstanceSpec::new(0, Some(1), None, InstanceCreationKind::Static);
-    /// assert_eq!(zero.validate(), Err(PetriRefusal::InvalidInstanceBounds));
-    /// ```
-    #[must_use = "check the shape-check result"]
-    pub fn validate(&self) -> Result<(), PetriRefusal> {
-        if self.min == 0 {
-            return Err(PetriRefusal::InvalidInstanceBounds);
-        }
-        if let Some(max) = self.max {
-            if self.min > max {
-                return Err(PetriRefusal::InvalidInstanceBounds);
-            }
-        }
-        Ok(())
+impl Marking {
+    /// Returns the token count on a named place, or 0 if absent.
+    pub fn tokens_on(&self, place_id: &str) -> usize {
+        self.tokens.iter()
+            .find(|(id, _)| id == place_id)
+            .map(|(_, n)| *n)
+            .unwrap_or(0)
     }
 }
 
-// ── YAWL multiple-instance bounds — compile-time law surface ────────────────
+// ── ObjectChange builder ──────────────────────────────────────────────────────
 
-/// A YAWL multiple-instance spec with bounds enforced **at compile time**.
-///
-/// `MultipleInstanceSpecConst<MIN, MAX>` encodes the YAWL Definition 1 `nofi`
-/// invariant `1 ≤ MIN ≤ MAX` as const-generic where-bounds so that a violation
-/// is a **compile error**, not a runtime refusal.
-///
-/// Law: YAWL Definition 1 nofi — `min: N`, `max: N^∞`, `1 ≤ min ≤ max`.
-///
-/// ## Compile-time negative receipt
-///
-/// `MultipleInstanceSpecConst<5, 2>` does **not compile** because `5 <= 2` is
-/// false — the `Require<{ MIN <= MAX }>: IsTrue` bound fails at the type level.
-/// `MultipleInstanceSpecConst<0, 4>` does **not compile** because `0 >= 1` is
-/// false — `Require<{ MIN >= 1 }>: IsTrue` fails.
-///
-/// Use [`MultipleInstanceSpec`] for runtime-validated, dynamically constructed
-/// specs. Use this type when the bounds are known at compile time and you want
-/// the compiler to verify them.
-///
-/// Structure-only: zero-cost (`_private: ()`) marker that carries the min/max
-/// law in its type. No engine logic.
-///
-/// ```
-/// # #![feature(generic_const_exprs)]
-/// # #![allow(incomplete_features)]
-/// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
-/// // 1 <= 4: lawful at compile time.
-/// let _: MultipleInstanceSpecConst<1, 4> = MultipleInstanceSpecConst::new();
-/// ```
-///
-/// ```compile_fail
-/// # #![feature(generic_const_exprs)]
-/// # #![allow(incomplete_features)]
-/// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
-/// // 5 > 2: compile error — Require<{ 5 <= 2 }>: IsTrue not satisfied.
-/// let _: MultipleInstanceSpecConst<5, 2> = MultipleInstanceSpecConst::new();
-/// ```
-pub struct MultipleInstanceSpecConst<const MIN: u32, const MAX: u32>
-where
-    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
-    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
-{
-    _private: (),
+impl crate::ocel::ObjectChange {
+    /// Builder: add a timestamp to this change (no-op stub — ObjectChange is
+    /// currently structure-only; `at_ns` is reserved for future OCEL 2.0 typing).
+    #[must_use]
+    pub fn at_ns(self, _ns: u64) -> Self { self }
 }
 
-impl<const MIN: u32, const MAX: u32> MultipleInstanceSpecConst<MIN, MAX>
-where
-    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
-    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
-{
-    /// Construct a `MultipleInstanceSpecConst<MIN, MAX>` — only possible when
-    /// `MIN >= 1` and `MIN <= MAX`.
-    ///
-    /// ```
-    /// # #![feature(generic_const_exprs)]
-    /// # #![allow(incomplete_features)]
-    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
-    /// let _: MultipleInstanceSpecConst<1, 1> = MultipleInstanceSpecConst::new();
-    /// let _: MultipleInstanceSpecConst<2, 10> = MultipleInstanceSpecConst::new();
-    /// ```
-    pub const fn new() -> Self {
-        MultipleInstanceSpecConst { _private: () }
-    }
+// ── Node-kind markers and typed arc structs ───────────────────────────────────
 
-    /// The minimum instance count encoded in the type.
-    ///
-    /// ```
-    /// # #![feature(generic_const_exprs)]
-    /// # #![allow(incomplete_features)]
-    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
-    /// assert_eq!(MultipleInstanceSpecConst::<2, 5>::new().min(), 2);
-    /// ```
-    pub const fn min(&self) -> u32 {
-        MIN
-    }
+/// Sealed marker: this type represents a place node.
+pub struct PlaceNodeMarker;
 
-    /// The maximum instance count encoded in the type.
-    ///
-    /// ```
-    /// # #![feature(generic_const_exprs)]
-    /// # #![allow(incomplete_features)]
-    /// use wasm4pm_compat::petri::MultipleInstanceSpecConst;
-    /// assert_eq!(MultipleInstanceSpecConst::<2, 5>::new().max(), 5);
-    /// ```
-    pub const fn max(&self) -> u32 {
-        MAX
+/// Sealed marker: this type represents a transition node.
+pub struct TransitionNodeMarker;
+
+/// A pre-incidence (place → transition) arc carrying a typed weight.
+///
+/// The phantom types `P` and `T` name the place and transition namespaces;
+/// the weight type `W` names the arc multiplicity type (usually `u32`).
+pub struct PlaceToTransitionArc<P, T, W> {
+    w: W,
+    _p: PhantomData<(P, T)>,
+}
+
+impl<P, T, W: Copy> PlaceToTransitionArc<P, T, W> {
+    pub fn new(weight: W) -> Self {
+        PlaceToTransitionArc { w: weight, _p: PhantomData }
+    }
+    pub fn weight(&self) -> W { self.w }
+}
+
+/// A post-incidence (transition → place) arc carrying a typed weight.
+pub struct TransitionToPlaceArc<T, P, W> {
+    w: W,
+    _p: PhantomData<(T, P)>,
+}
+
+impl<T, P, W: Copy> TransitionToPlaceArc<T, P, W> {
+    pub fn new(weight: W) -> Self {
+        TransitionToPlaceArc { w: weight, _p: PhantomData }
+    }
+    pub fn weight(&self) -> W { self.w }
+}
+
+// ── WfNetConst — const-generic soundness typestate ────────────────────────────
+
+mod wfnet_seal {
+    pub(super) struct WfNetSeal;
+}
+
+/// Proof token that soundness has been verified (crate-internal only).
+pub struct SoundnessProof(wfnet_seal::WfNetSeal);
+
+impl SoundnessProof {
+    pub(crate) fn new() -> Self { SoundnessProof(wfnet_seal::WfNetSeal) }
+}
+
+/// A workflow net whose soundness state is embedded as a const generic parameter.
+///
+/// `SoundnessState::Unknown` is freely constructible.
+/// `SoundnessState::Claimed` is reachable via `.claim_sound()`.
+/// `SoundnessState::Witnessed` requires a `SoundnessProof` token — non-forgeable.
+pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
+    _seal: (),
+}
+
+impl WfNetConst<{ SoundnessState::Unknown }> {
+    pub fn new() -> Self { WfNetConst { _seal: () } }
+
+    /// Advance: Unknown → Claimed (type-level re-tag, zero cost).
+    #[must_use]
+    pub fn claim_sound(self) -> WfNetConst<{ SoundnessState::Claimed }> {
+        WfNetConst { _seal: () }
     }
 }
 
-impl<const MIN: u32, const MAX: u32> Default for MultipleInstanceSpecConst<MIN, MAX>
-where
-    crate::law::Require<{ MIN >= 1 }>: crate::law::IsTrue,
-    crate::law::Require<{ MIN <= MAX }>: crate::law::IsTrue,
-{
-    fn default() -> Self {
-        Self::new()
+impl WfNetConst<{ SoundnessState::Claimed }> {
+    /// Advance: Claimed → Witnessed, guarded by a `SoundnessProof` token.
+    ///
+    /// `SoundnessProof` is only constructible inside the petri module, making
+    /// this transition non-forgeable from external code.
+    #[must_use]
+    pub fn witness_soundness(self, _proof: SoundnessProof) -> WfNetConst<{ SoundnessState::Witnessed }> {
+        WfNetConst { _seal: () }
     }
 }
 
-/// The specific, named laws under which Petri-net / WF-net / OC-Petri-net
-/// structure is refused.
-///
-/// Each variant cites a distinct law — never a bare "invalid input".
-/// [`PetriRefusal::SoundnessNotWitnessed`] is the boundary law for evidence:
-/// it marks the refusal to treat a [`SoundnessClaimed`] net as if it were
-/// [`SoundnessWitnessed`] without a witness from `wasm4pm`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[non_exhaustive]
-pub enum PetriRefusal {
-    /// A WF-net declares no (non-empty) initial marking.
-    MissingInitialMarking,
-    /// A WF-net declares no (non-empty) final marking.
-    MissingFinalMarking,
-    /// A transition can never fire (a behavioral defect surfaced from `wasm4pm`).
-    DeadTransition,
-    /// The net is not safe (a place can hold more than one token where one was
-    /// required) — surfaced from analysis at `wasm4pm`.
-    UnsafeNet,
-    /// The net is unbounded — surfaced from analysis at `wasm4pm`.
-    UnboundedNet,
-    /// An OC-Petri-net arc carries an object type that is not declared/preserved.
-    ObjectTypeNotPreserved,
-    /// An arc is structurally invalid (e.g. dangling endpoint, malformed
-    /// variable arc).
-    InvalidVariableArc,
-    /// Soundness was relied upon but not witnessed — graduate to `wasm4pm` to
-    /// obtain the witness.
-    SoundnessNotWitnessed,
-    /// A [`CancellationRegion`] references a node id not declared in the net.
-    ///
-    /// Law: YAWL Definition 1 rem(t) ⊆ T ∪ C \ {i, o}.
-    InvalidCancellationRegion,
-    /// A [`MultipleInstanceSpec`] has `min == 0` or `min > max`.
-    ///
-    /// Law: YAWL Definition 1 nofi invariant: `1 ≤ min ≤ max`.
-    InvalidInstanceBounds,
+impl<const S: SoundnessState> WfNetConst<S> {
+    pub fn soundness_state(&self) -> SoundnessState { S }
 }
 
-/// A WF-net tagged as **separable** — a necessary precondition for lossless
-/// POWL 2.0 conversion (Kourani, Park & van der Aalst, 2026).
-///
-/// A WF-net is *separable* if it can be decomposed into a set of structurally
-/// independent sub-nets whose composition reproduces the original language. Only
-/// a separable WF-net can be faithfully represented as a POWL 2.0 model via the
-/// POWL decomposition theorem (Kourani 2026, Definition 4.1).
-///
-/// ## Structure-only
-///
-/// This marker records the *claim* that a WF-net is separable; it does not
-/// verify separability (that graduates to `wasm4pm`). The claim prevents code
-/// from inadvertently feeding a non-separable net to a POWL 2.0 conversion
-/// path at the type level.
-///
-/// ## How to use
-///
-/// Wrap your `WfNetConst` in a `SeparableWfNet` after verifying separability
-/// via the `wasm4pm` engine and attaching the result here. The type-level
-/// marker then flows through the rest of the pipeline.
-///
-/// ## Paper
-///
-/// Kourani, Park & van der Aalst (2026) — *Hierarchical Decomposition of
-/// Separable Workflow-Nets*. Definition 4.1 (separable WF-net) and
-/// Theorem 4.3 (POWL 2.0 language preservation under decomposition).
-///
-/// Structure-only: carries no behavior, no token semantics.
-pub struct SeparableWfNet<const SOUNDNESS: crate::law::SoundnessState> {
-    /// The underlying WF-net with its soundness state.
-    pub net: WfNetConst<SOUNDNESS>,
-    // Private seal — separability claim is not forgeable from outside this module.
-    _seal: wfnet_seal::WfNetSeal,
-}
+// ── WfNetQuery ────────────────────────────────────────────────────────────────
 
-impl<const SOUNDNESS: crate::law::SoundnessState> SeparableWfNet<SOUNDNESS> {
-    /// Construct a `SeparableWfNet` from a verified `WfNetConst`.
-    ///
-    /// This is `pub(crate)` — the only public construction path is through the
-    /// `wasm4pm` graduation bridge that verifies separability.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::{WfNetConst, SeparableWfNet};
-    /// use wasm4pm_compat::law::SoundnessState;
-    /// let _: SeparableWfNet<{ SoundnessState::Unknown }> =
-    ///     SeparableWfNet::declare_separable(WfNetConst::new());
-    /// ```
-    pub fn declare_separable(net: WfNetConst<SOUNDNESS>) -> Self {
-        SeparableWfNet {
-            net,
-            _seal: wfnet_seal::WfNetSeal,
-        }
-    }
-}
-
-/// A standalone, named error type for the *missing final marking* law.
-///
-/// [`PetriRefusal::MissingFinalMarking`] names the law as a variant on the
-/// shared refusal enum. `MissingFinalMarkingError` is a separate zero-sized
-/// struct that names the same law as a **first-class type** — useful when a
-/// function returns `Result<_, MissingFinalMarkingError>` instead of the broad
-/// `Result<_, PetriRefusal>`, making the specific law visible in the return
-/// type signature.
-///
-/// Law: a WF-net must have a declared, non-empty final marking (van der Aalst,
-/// 1998 — "proper completion" requires a designated final state).
-///
-/// ## Conversion
-///
-/// `MissingFinalMarkingError` converts to [`PetriRefusal::MissingFinalMarking`]
-/// via `From<MissingFinalMarkingError> for PetriRefusal`.
-///
-/// Structure-only: zero-sized, carries no data.
-///
-/// ```
-/// use wasm4pm_compat::petri::{MissingFinalMarkingError, PetriRefusal};
-/// let e = MissingFinalMarkingError;
-/// let r: PetriRefusal = e.into();
-/// assert_eq!(r, PetriRefusal::MissingFinalMarking);
-/// ```
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub struct MissingFinalMarkingError;
-
-impl core::fmt::Display for MissingFinalMarkingError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "WF-net refused by law: MissingFinalMarking")
-    }
-}
-
-impl From<MissingFinalMarkingError> for PetriRefusal {
-    fn from(_: MissingFinalMarkingError) -> Self {
-        PetriRefusal::MissingFinalMarking
-    }
-}
-
-/// An uninhabited type-level marker asserting the *separability claim* about a
-/// WF-net, independent of the [`SeparableWfNet`] wrapper struct.
-///
-/// `SeparableWfNetMarker` is used as a `PhantomData` type parameter in
-/// downstream types that need to carry a separability claim through a pipeline
-/// without wrapping the whole WF-net. The marker is an empty enum and therefore
-/// uninhabited — it can only appear as a `PhantomData` field.
-///
-/// ## Why both `SeparableWfNet` and `SeparableWfNetMarker`?
-///
-/// [`SeparableWfNet`] wraps a [`WfNetConst`] — it is a value-carrying container.
-/// `SeparableWfNetMarker` is a *phantom* — it marks a type as "was derived from
-/// a separable net" without copying the net value. Use the marker when the net
-/// itself does not need to travel with the downstream type.
-///
-/// ## Paper
-///
-/// Kourani, Park & van der Aalst (2026) — *Hierarchical Decomposition of
-/// Separable Workflow-Nets*. Definition 4.1.
-///
-/// Structure-only: uninhabited, zero-cost phantom marker.
-///
-/// ```
-/// use core::marker::PhantomData;
-/// use wasm4pm_compat::petri::SeparableWfNetMarker;
-///
-/// // A downstream type that remembers the net was separable.
-/// struct PowlConversionResult<S>(PhantomData<S>);
-/// let _: PowlConversionResult<SeparableWfNetMarker>;
-/// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum SeparableWfNetMarker {}
-
-// ── Stochastic Petri net structural annotations ──────────────────────────────
-
-/// An arc weight annotation carrying a stochastic firing rate or probability.
-///
-/// In a *stochastic Petri net* (SPN), each transition is associated with a
-/// firing rate (exponentially distributed) or a weight (in Generalised SPNs,
-/// for immediate transitions). `StochasticArcWeight` wraps the `f64` rate or
-/// weight as a named structural annotation — it does **not** represent an
-/// execution probability or trigger a firing.
-///
-/// Structure-only: a rate/weight annotation. Stochastic simulation and
-/// steady-state analysis graduate to `wasm4pm`.
-///
-/// ## Paper / Reference
-///
-/// Molloy (1982) — *Performance Analysis Using Stochastic Petri Nets*.
-/// Marsan et al. (1984) — *A class of Generalised Stochastic Petri Nets*.
-///
-/// ```
-/// use wasm4pm_compat::petri::StochasticArcWeight;
-/// let w = StochasticArcWeight(0.5);
-/// assert_eq!(w.0, 0.5);
-/// ```
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct StochasticArcWeight(pub f64);
-
-/// A zero-time transition marker — an *immediate* transition in a
-/// Generalised Stochastic Petri Net (GSPN).
-///
-/// Immediate transitions fire instantaneously (zero delay) and with a
-/// priority that supersedes timed transitions when both are enabled.
-/// `ImmediateTransition` is a zero-sized structural tag applied to a
-/// [`Transition`] to assert that it is immediate. It carries no weight
-/// or priority value — those graduate to `wasm4pm`.
-///
-/// Structure-only: a zero-sized marker. Priority resolution and firing
-/// semantics graduate to `wasm4pm`.
-///
-/// ## Paper / Reference
-///
-/// Marsan et al. (1984) — GSPN Definition 2 (immediate vs. timed transitions).
-///
-/// ```
-/// use wasm4pm_compat::petri::ImmediateTransition;
-/// let _: ImmediateTransition;
-/// ```
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
-pub struct ImmediateTransition;
-
-/// A timed transition annotation carrying an exponential firing rate.
-///
-/// In a Stochastic Petri Net, a *timed* transition fires after an
-/// exponentially-distributed delay with rate λ (`self.0`). Higher rates
-/// mean shorter expected delays. `TimedTransition` wraps λ as a named
-/// structural annotation; it does **not** compute delays or trigger firings.
-///
-/// Structure-only: a rate annotation. Simulation and analysis graduate
-/// to `wasm4pm`.
-///
-/// ## Paper / Reference
-///
-/// Molloy (1982) — exponential firing-rate model. Marsan et al. (1984) —
-/// GSPN Definition 2 (timed transitions with rate λ).
-///
-/// ```
-/// use wasm4pm_compat::petri::TimedTransition;
-/// let t = TimedTransition(2.5);
-/// assert_eq!(t.0, 2.5);
-/// ```
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct TimedTransition(pub f64);
-
-impl core::fmt::Display for PetriRefusal {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let law = match self {
-            PetriRefusal::MissingInitialMarking => "MissingInitialMarking",
-            PetriRefusal::MissingFinalMarking => "MissingFinalMarking",
-            PetriRefusal::DeadTransition => "DeadTransition",
-            PetriRefusal::UnsafeNet => "UnsafeNet",
-            PetriRefusal::UnboundedNet => "UnboundedNet",
-            PetriRefusal::ObjectTypeNotPreserved => "ObjectTypeNotPreserved",
-            PetriRefusal::InvalidVariableArc => "InvalidVariableArc",
-            PetriRefusal::SoundnessNotWitnessed => "SoundnessNotWitnessed",
-            PetriRefusal::InvalidCancellationRegion => "InvalidCancellationRegion",
-            PetriRefusal::InvalidInstanceBounds => "InvalidInstanceBounds",
-        };
-        write!(f, "Petri-net refused by law: {law}")
-    }
-}
-
-// ── FlatIncidenceMatrix ───────────────────────────────────────────────────────
-
-/// A flat (row-major) incidence matrix for a Petri net.
-///
-/// Rows are places, columns are transitions. Value at
-/// `[place_idx * transitions_count + transition_idx]` is the net token change
-/// (+1 produced, -1 consumed, 0 no arc).
-///
-/// This is structure only — it carries a precomputed matrix, never derives one.
-/// Corresponds to `FlatIncidenceMatrix` in `wasm4pm-types::models`.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FlatIncidenceMatrix {
-    pub data: Vec<i32>,
-    pub places_count: usize,
-    pub transitions_count: usize,
-}
-
-impl FlatIncidenceMatrix {
-    pub fn get(&self, place_idx: usize, transition_idx: usize) -> i32 {
-        self.data[place_idx * self.transitions_count + transition_idx]
-    }
-}
-
-// ── Van der Aalst mutable Petri net construction ──────────────────────────────
-//
-// PM4Py (van der Aalst's reference implementation) constructs Petri nets by
-// creating an empty net, then adding places, transitions, and arcs one at a
-// time:
-//
-//   net = PetriNet()
-//   source = PetriNet.Place("source"); net.places.add(source)
-//   t = PetriNet.Transition("t_A", "A"); net.transitions.add(t)
-//   petri_utils.add_arc_from_to(source, t, net)
-//
-// PetriNetBuilder mirrors that API in Rust. Algorithms in `wasm4pm` that
-// produce Petri nets (Alpha, Alpha++, Heuristics Miner, Inductive Miner) use
-// this builder rather than constructing the final tuple in one shot.
-
-/// Mutable Petri net builder — van der Aalst's PM4Py construction pattern in Rust.
-///
-/// Construct a net by adding places, transitions, and arcs incrementally, then
-/// call [`build`](PetriNetBuilder::build) to obtain a validated [`PetriNet`].
-///
-/// ## Example
-///
-/// ```
-/// use wasm4pm_compat::petri::PetriNetBuilder;
-///
-/// let mut b = PetriNetBuilder::new();
-/// b.place("source")
-///  .place("p1")
-///  .place("sink")
-///  .transition("t_A", "register")
-///  .transition("t_B", "approve")
-///  .p_to_t("source", "t_A")
-///  .t_to_p("t_A", "p1")
-///  .p_to_t("p1", "t_B")
-///  .t_to_p("t_B", "sink")
-///  .initial_tokens([("source", 1)]);
-/// let net = b.build().expect("valid net");
-///
-/// assert!(net.validate().is_ok());
-/// assert_eq!(net.places().len(), 3);
-/// assert_eq!(net.transitions().len(), 2);
-/// ```
-#[derive(Debug, Default)]
-pub struct PetriNetBuilder {
-    places: Vec<Place>,
-    transitions: Vec<Transition>,
-    arcs: Vec<Arc>,
-    initial_tokens: Vec<(String, u32)>,
-}
-
-impl PetriNetBuilder {
-    /// Create an empty builder.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    /// Add a place by id. Builder-style (returns `&mut Self`).
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let mut b = PetriNetBuilder::new();
-    /// b.place("p1").place("p2");
-    /// let net = b.build_unchecked();
-    /// assert_eq!(net.places().len(), 2);
-    /// ```
-    pub fn place(&mut self, id: impl Into<String>) -> &mut Self {
-        self.places.push(Place::new(id));
-        self
-    }
-
-    /// Add a visible (labeled) transition.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let mut b = PetriNetBuilder::new();
-    /// b.place("p").transition("t", "A");
-    /// let net = b.build_unchecked();
-    /// assert!(!net.transitions()[0].is_silent());
-    /// ```
-    pub fn transition(&mut self, id: impl Into<String>, label: impl Into<String>) -> &mut Self {
-        self.transitions.push(Transition::new(id, label));
-        self
-    }
-
-    /// Add a silent (tau / invisible) transition.
-    ///
-    /// Silent transitions model routing decisions without corresponding
-    /// log events — van der Aalst's τ-transitions.
-    ///
-    /// ```
-    /// use wasm4pm_compat::petri::PetriNetBuilder;
-    /// let mut b = PetriNetBuilder::new();
-    /// b.place("p").silent("tau_split");
-    /// let net = b.build_unchecked();
-    /// assert!(net.transitions()[0].is_silent());
-    /// ```
-    pub fn silent(&mut self, id: impl Into<String>) -> &mut Self {
-        self.transitions.push(Transition::silent(id));
-        self
-    }
-
-    /// Add a place-to-transition arc (van der Aalst: `p → t`, input arc).
-    ///
-    /// Corresponds to `petri_utils.add_arc_from_to(place, transition, net)`.
-    pub fn p_to_t(
-        &mut self,
-        place_id: impl Into<String>,
-        transition_id: impl Into<String>,
-    ) -> &mut Self {
-        self.arcs
-            .push(Arc::place_to_transition(place_id, transition_id));
-        self
-    }
-
-    /// Add a transition-to-place arc (van der Aalst: `t → p`, output arc).
-    ///
-    /// Corresponds to `petri_utils.add_arc_from_to(transition, place, net)`.
-    pub fn t_to_p(
-        &mut self,
-        transition_id: impl Into<String>,
-        place_id: impl Into<String>,
-    ) -> &mut Self {
-        self.arcs
-            .push(Arc::transition_to_place(transition_id, place_id));
-        self
-    }
-
-    /// Add a weighted place-to-transition arc.
-    pub fn p_to_t_w(
-        &mut self,
-        place_id: impl Into<String>,
-        transition_id: impl Into<String>,
-        weight: u32,
-    ) -> &mut Self {
-        self.arcs
-            .push(Arc::place_to_transition(place_id, transition_id).with_weight(weight));
-        self
-    }
-
-    /// Add a weighted transition-to-place arc.
-    pub fn t_to_p_w(
-        &mut self,
-        transition_id: impl Into<String>,
-        place_id: impl Into<String>,
-        weight: u32,
-    ) -> &mut Self {
-        self.arcs
-            .push(Arc::transition_to_place(transition_id, place_id).with_weight(weight));
-        self
-    }
-
-    /// Set initial token counts for places.
-    ///
-    /// Each item is a `(place_id, token_count)` pair. A workflow net (WF-net)
-    /// typically has exactly one token in the source place.
-    pub fn initial_tokens<I, S>(&mut self, tokens: I) -> &mut Self
-    where
-        I: IntoIterator<Item = (S, u32)>,
-        S: Into<String>,
-    {
-        self.initial_tokens
-            .extend(tokens.into_iter().map(|(p, c)| (p.into(), c)));
-        self
-    }
-
-    /// Build the [`PetriNet`], validating structural shape.
-    ///
-    /// Returns [`PetriRefusal`] if any arc references an undeclared place or
-    /// transition.
-    pub fn build(self) -> Result<PetriNet, PetriRefusal> {
-        let marking = Marking::new(self.initial_tokens);
-        let net = PetriNet::new(self.places, self.transitions, self.arcs, marking);
-        net.validate()?;
-        Ok(net)
-    }
-
-    /// Build without validation — for cases where the caller guarantees structure.
-    ///
-    /// Prefer [`build`](Self::build) for externally-supplied data.
-    pub fn build_unchecked(self) -> PetriNet {
-        let marking = Marking::new(self.initial_tokens);
-        PetriNet::new(self.places, self.transitions, self.arcs, marking)
-    }
-
-    /// Build a workflow net (WF-net) with a declared final marking.
-    ///
-    /// Structural shape is validated before returning.
-    pub fn build_wf(self, final_marking: Marking) -> Result<WfNet<SoundnessUnknown>, PetriRefusal> {
-        let net = self.build()?;
-        Ok(WfNet::new(net, final_marking))
-    }
-}
+/// Query interface for WF-net structural properties (reserved for future use).
+pub struct WfNetQuery;

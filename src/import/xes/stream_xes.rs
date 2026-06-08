@@ -1,9 +1,9 @@
-use crate::legacy_event_log::{
+use crate::event_log::{
     Attribute, AttributeValue, Attributes, Event, EventLogClassifier, EventLogExtension, Trace,
     XESEditableAttribute,
 };
-use crate::legacy_import::timestamp_utils::parse_timestamp;
-use crate::legacy_import::xes::import_xes::{XESImportOptions, XESParseError};
+use crate::import::timestamp_utils::parse_timestamp;
+use crate::import::xes::import_xes::{XESImportOptions, XESParseError};
 use quick_xml::{escape::unescape, events::BytesStart, Reader};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, io::BufRead, str::FromStr};
@@ -30,7 +30,7 @@ pub enum Mode {
     None,
 }
 
-use crate::legacy_import::persistence::IngestionKnowledgeBase;
+use crate::import::persistence::IngestionKnowledgeBase;
 
 pub struct StreamingXESParser<'a> {
     reader: Box<Reader<Box<dyn BufRead + 'a>>>,

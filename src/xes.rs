@@ -6,7 +6,7 @@
 //! [`crate::xes::XesLog`] declares its [`crate::xes::XesExtension`]s and global attributes, then carries
 //! [`crate::xes::XesTrace`]s of [`crate::xes::XesEvent`]s.
 //!
-//! Where [`crate::eventlog`] is the *abstract* case-centric canon, `xes` is the
+//! Where [`crate::event_log`] is the *abstract* case-centric canon, `xes` is the
 //! *concrete interchange* canon: it knows extensions, the
 //! `concept:name`/`time:timestamp`/`lifecycle:transition`/`org:resource`
 //! standard keys, and the log/trace/event nesting that XES files exchange.
@@ -23,7 +23,7 @@
 //! ## Graduation to `wasm4pm`
 //!
 //! Once a XES log is admitted into this shape (and, if desired, projected to the
-//! abstract [`crate::eventlog::EventLog`] via a named, loss-aware projection),
+//! abstract [`crate::event_log::EventLog`] via a named, loss-aware projection),
 //! discovery and conformance graduate to `wasm4pm`.
 
 /// A zero-sized marker that tags a type or value as *case-centric* (single case
@@ -435,7 +435,7 @@ impl XesTrace {
 ///
 /// Structure-only: an admitted `XesLog` is interchange-ready and graduates to
 /// `wasm4pm` for mining (typically after a named projection to
-/// [`crate::eventlog::EventLog`]).
+/// [`crate::event_log::EventLog`]).
 #[doc(alias = "XES event log")]
 #[doc(alias = "case-centric")]
 #[derive(Clone, Debug, Default, PartialEq, Eq)]

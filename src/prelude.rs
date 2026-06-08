@@ -1,7 +1,7 @@
 //! The adoption prelude — the smallest surface needed to start using the crate.
 //!
 //! `use wasm4pm_compat::prelude::*;` brings in the core process-evidence shapes
-//! ([`crate::eventlog::Event`], [`crate::eventlog::Trace`], [`crate::eventlog::EventLog`], [`crate::ocel::OcelLog`]), the typestate tokens
+//! ([`crate::event_log::Event`], [`crate::event_log::Trace`], [`crate::event_log::EventLog`], [`crate::ocel::OcelLog`]), the typestate tokens
 //! ([`crate::state::Raw`], [`crate::state::Parsed`], [`crate::state::Admitted`], [`crate::state::Refused`], [`crate::state::Projected`], [`crate::state::Exportable`],
 //! [`crate::state::Receipted`]), the witness markers, and the boundary laws (admission,
 //! refusal, loss).
@@ -23,9 +23,8 @@ pub use crate::admission::{Admission, Admit, Refusal};
 
 pub use crate::loss::{LossPolicy, LossReport, ProjectionName};
 
-pub use crate::eventlog::{Event, EventLog, Trace};
+pub use crate::event_log::{Event, EventLog, Trace};
 
-pub use crate::ocel::OcelLog;
 
 pub use crate::object_lifecycle::{
     ActiveObject, ArchivedObject, CreatedObject, DeletedObject, ModifiedObject,

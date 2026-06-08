@@ -872,15 +872,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ocel-core"
-version = "26.6.5"
-dependencies = [
- "chrono",
- "serde",
- "serde_json",
-]
-
-[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1686,13 +1677,12 @@ dependencies = [
 
 [[package]]
 name = "wasm4pm-compat"
-version = "26.6.5"
+version = "26.6.8"
 dependencies = [
  "blake3",
  "chrono",
  "criterion",
  "hashbrown 0.17.1",
- "ocel-core",
  "quick-xml",
  "rustc-hash",
  "serde",

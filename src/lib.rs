@@ -175,7 +175,6 @@ pub mod dfg;
 /// Diagnostic shapes for explaining admission and refusal.
 pub mod diagnostic;
 /// Event, trace, and event-log shapes.
-pub mod eventlog;
 /// Receipt-shaped evidence values (structure only).
 pub mod evidence;
 /// Zero-cost `#[repr(transparent)]` identifier wrappers.
@@ -265,13 +264,12 @@ pub mod nightly_foundry;
 // `wasm4pm_compat::ids::EventId`. They do not replace the submodule paths.
 
 pub use crate::admission::{Admission, Admit, Refusal};
-pub use crate::dfg::{DfgMiner, DirectlyFollowsGraph};
-pub use crate::eventlog::{Event, EventLog, EventLogClassifier, Trace};
+pub use crate::event_log::{Event, EventLog, EventLogClassifier, Trace};
+pub use crate::eventlog::{EventLogRefusal, EventStream};
 pub use crate::evidence::Evidence;
 pub use crate::ids::{ActivityId, CaseId, EventId, ObjectId};
 pub use crate::loss::{LossPolicy, ProjectionName};
-pub use crate::ocel::OcelLog;
-pub use crate::petri::{PetriNet, PetriNetBuilder, WfNet, WfNetConst};
+pub use crate::petri::PetriNet;
 pub use crate::powl8_op::{Powl8Op, Powl8OpError};
 pub use crate::receipt::Blake3Hash;
 pub use crate::receipt::ProvenanceChain;
@@ -285,13 +283,11 @@ pub use crate::workflow::{
 pub use crate::xes::XesLog;
 pub mod hash;
 
-pub mod event_log_legacy;
-pub mod legacy_choice_graph;
-pub mod legacy_conformance;
-pub mod legacy_dense_kernel;
-pub mod legacy_error;
-pub mod legacy_event_log;
-pub mod legacy_import;
-pub mod legacy_models;
-pub mod legacy_ocel;
-pub mod ocel_legacy;
+pub mod choice_graph;
+pub mod dense_kernel;
+pub mod error;
+pub mod import;
+pub mod event_log;
+pub mod eventlog;
+pub mod models;
+

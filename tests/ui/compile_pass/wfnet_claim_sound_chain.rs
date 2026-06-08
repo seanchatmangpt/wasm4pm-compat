@@ -1,8 +1,8 @@
 // Law: WfNetClaimSoundChainLaw — WfNet::claim_sound produces WfNet<Claimed> and attest_witnessed produces WfNet<Witnessed>; both transitions are type-level re-tags producing distinct types
 // COMPILE-PASS: WfNet::claim_sound — Unknown → Claimed is a type-level re-tag.
-// WfNet::attest_witnessed — Claimed → Witnessed is a type-level re-tag (deprecated; use WfNetConst for non-forgeable path).
+// WfNet::attest_witnessed — Claimed → Witnessed is a type-level re-tag (migrated; use WfNetConst for non-forgeable path).
 // Both transitions compile and produce distinct types.
-#[allow(deprecated)]
+#[allow(migrated)]
 use wasm4pm_compat::petri::{WfNet, PetriNet, Marking, SoundnessUnknown, SoundnessClaimed};
 
 fn main() {

@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.6.5"
+version = "26.6.8"
 edition = "2021"
 description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
@@ -21,6 +21,35 @@ exclude = [
   "c8-adversary/**",
   "emitted/**",
   "archive/**",
+  "doc_warnings*.txt",
+  "output.log",
+  "progress.md",
+  "roundtrip_simulation.js",
+  "settings-hooks-exhaustive.md",
+  "conformance_verdict_is_perfect",
+  "DAY3_*.md",
+  "FINAL_PARTIAL_*.md",
+  "OCEL_AUDIT_REPORT.md",
+  "GGEN_ECOSYSTEM_*.md",
+  "CONSTRUCT8_PROJECT_CONTRACTS.md",
+  "WASM4PM-COMPAT-PRD-ARD.md",
+  "GAP_007_*.md",
+  "ORIGINAL_REQUEST.md",
+  "NIGHTLY_TYPE_LAW.md",
+  "final-audit-report.md",
+  "libmod.rlib",
+  "librust_out.rlib",
+  "c8-market/**",
+  "c8-time/**",
+  "c8-instruments/**",
+  "c8-receipts/**",
+  "adapters/**",
+  "receipts/**",
+  "wip/**",
+  "paper/**",
+  "phd-thesis/**",
+  "python/**",
+  "research/**",
 ]
 
 [lib]
@@ -45,7 +74,7 @@ wasm4pm = []
 
 [dependencies]
 quick-xml = "0.36.0"
-ocel-core = { path = "../wasm4pm/crates/ocel-core" }
+
 blake3 = "1.8.5"
 chrono = { version = "0.4.45", features = ["serde"] }
 serde = { version = "1.0.228", features = ["derive"] }

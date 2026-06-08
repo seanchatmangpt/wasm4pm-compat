@@ -697,15 +697,12 @@ impl crate::loss::Project for OcelToXesProjection {
     type From = OcelShape;
     type To = XesShape;
     type Lost = Vec<String>;
-    type Reason = crate::ocel::OcelRefusal;
+    type Reason = std::convert::Infallible;
 
     fn project(
         self,
         policy: crate::loss::LossPolicy,
     ) -> Result<crate::loss::LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
-        if policy == crate::loss::LossPolicy::RefuseLoss {
-            return Err(crate::ocel::OcelRefusal::FlatteningLoss);
-        }
         Ok(crate::loss::LossReport::new(
             self.projection_name(),
             policy,

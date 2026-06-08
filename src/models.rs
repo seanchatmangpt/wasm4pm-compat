@@ -1,5 +1,22 @@
 use serde::{Deserialize, Serialize};
 
+/// Named refusal for `PetriNet::validate()` — structural completeness law.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PetriNetRefusal {
+    /// The net has no places or no transitions — cannot represent process behaviour.
+    EmptyNet,
+}
+
+impl std::fmt::Display for PetriNetRefusal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            PetriNetRefusal::EmptyNet => write!(f, "EmptyNet"),
+        }
+    }
+}
+
+impl std::error::Error for PetriNetRefusal {}
+
 /// A node in a Directly-Follows Graph
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub struct DFGNode {
@@ -62,7 +79,7 @@ impl DFG {
     }
 }
 
-use crate::legacy_dense_kernel::{fnv1a_64, DenseIndex, NodeKind, PackedKeyTable};
+use crate::dense_kernel::{fnv1a_64, DenseIndex, NodeKind, PackedKeyTable};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -77,11 +94,13 @@ pub struct Transition {
     pub is_invisible: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
 pub struct Arc {
     pub from: String,
     pub to: String,
     pub weight: Option<usize>,
+    #[serde(default)]
+    pub object_type: Option<(String, bool)>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -482,11 +501,13 @@ mod tests_declare {
             from: "p1".to_string(),
             to: "t1".to_string(),
             weight: Some(1),
+            object_type: None,
         });
         net.arcs.push(Arc {
             from: "t1".to_string(),
             to: "p2".to_string(),
             weight: Some(2),
+            object_type: None,
         });
 
         let w = net.incidence_matrix();
@@ -520,11 +541,13 @@ mod tests_declare {
             from: "p1".to_string(),
             to: "t1".to_string(),
             weight: None,
+            object_type: None,
         });
         net.arcs.push(Arc {
             from: "t1".to_string(),
             to: "p2".to_string(),
             weight: None,
+            object_type: None,
         });
 
         assert!(net.is_structural_workflow_net());
@@ -540,6 +563,7 @@ mod tests_declare {
             from: "t2".to_string(),
             to: "p2".to_string(),
             weight: None,
+            object_type: None,
         });
 
         assert!(!net.is_structural_workflow_net());
@@ -578,6 +602,82 @@ impl DeclareModel {
             constraints: Vec::new(),
             activities: Vec::new(),
         }
+    }
+}
+
+impl Place {
+    pub fn new(id: &str) -> Self { Place { id: id.to_owned() } }
+}
+
+impl Transition {
+    pub fn new(id: &str, label: &str) -> Self {
+        Transition { id: id.to_owned(), label: label.to_owned(), is_invisible: None }
+    }
+}
+
+impl Arc {
+    pub fn place_to_transition(from: &str, to: &str) -> Self {
+        Arc { from: from.to_owned(), to: to.to_owned(), weight: None, object_type: None }
+    }
+
+    pub fn transition_to_place(from: &str, to: &str) -> Self {
+        Arc { from: from.to_owned(), to: to.to_owned(), weight: None, object_type: None }
+    }
+
+    #[must_use]
+    pub fn typed(mut self, object_type: &str, read_arc: bool) -> Self {
+        self.object_type = Some((object_type.to_owned(), read_arc));
+        self
+    }
+}
+
+impl PetriNet {
+    /// Constructs a PetriNet from explicit collections plus an initial marking.
+    ///
+    /// `initial_marking` is a `crate::petri::Marking` — the token distribution
+    /// over place IDs at time zero.
+    pub fn new(
+        places: impl IntoIterator<Item = Place>,
+        transitions: impl IntoIterator<Item = Transition>,
+        arcs: impl IntoIterator<Item = Arc>,
+        initial_marking: crate::petri::Marking,
+    ) -> Self {
+        let places: Vec<Place> = places.into_iter().collect();
+        let transitions: Vec<Transition> = transitions.into_iter().collect();
+        let arcs: Vec<Arc> = arcs.into_iter().collect();
+        let mut marking = PackedKeyTable::with_capacity(initial_marking.tokens().len());
+        for (place_id, count) in initial_marking.tokens() {
+            marking.insert(fnv1a_64(place_id.as_bytes()), place_id.clone(), *count);
+        }
+        PetriNet {
+            places,
+            transitions,
+            arcs,
+            initial_marking: marking,
+            final_markings: Vec::new(),
+            cached_incidence: None,
+            cached_index: None,
+        }
+    }
+
+    /// Validates structural completeness: a net must have at least one place
+    /// and one transition. Returns `PetriNetRefusal::EmptyNet` otherwise.
+    pub fn validate(&self) -> Result<(), PetriNetRefusal> {
+        if self.places.is_empty() || self.transitions.is_empty() {
+            return Err(PetriNetRefusal::EmptyNet);
+        }
+        Ok(())
+    }
+
+    /// Returns true if the net satisfies all structural workflow net conditions
+    /// per van der Aalst's workflow net definition (single source, single sink,
+    /// every node on a path from source to sink).
+    ///
+    /// Supersedes `is_structural_workflow_net` with a name that distinguishes
+    /// structural well-formedness from soundness (which requires behavioural
+    /// analysis).
+    pub fn is_well_formed_workflow_net(&self) -> bool {
+        self.is_structural_workflow_net()
     }
 }
 

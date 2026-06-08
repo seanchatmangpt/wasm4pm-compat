@@ -746,7 +746,7 @@ impl core::fmt::Display for PowlRefusal {
 
 /// A node in a standalone [`ChoiceGraph`].
 ///
-/// Mirrors `wasm4pm_types::ChoiceGraphNode`. The [`PowlNodeKind::ChoiceGraph`]
+/// Mirrors `wasm4pm_compat::ChoiceGraphNode`. The [`PowlNodeKind::ChoiceGraph`]
 /// variant embeds choice-graph nodes by [`PowlNodeId`] reference; this enum is
 /// used when representing a *self-contained* choice graph outside a [`Powl`]
 /// arena (e.g. for serialisation, standalone traversal, or interop with the
@@ -777,7 +777,7 @@ pub type ChoiceGraphNode = StandaloneChoiceGraphNode;
 /// A standalone choice graph: nodes plus directed index-pair edges, with
 /// explicit `start_idx` / `end_idx` fields.
 ///
-/// This type mirrors `wasm4pm_types::ChoiceGraph` and supports standalone graph
+/// This type mirrors `wasm4pm_compat::ChoiceGraph` and supports standalone graph
 /// traversal via [`ChoiceGraph::successors`], [`ChoiceGraph::predecessors`], and
 /// [`ChoiceGraph::has_empty_path`].
 ///
@@ -789,7 +789,7 @@ pub type ChoiceGraphNode = StandaloneChoiceGraphNode;
 /// ## Validity
 ///
 /// The struct carries no construction-time validation (unlike the
-/// `wasm4pm_types::ChoiceGraph::new` constructor which enforces Definition 1).
+/// `wasm4pm_compat::ChoiceGraph::new` constructor which enforces Definition 1).
 /// Validated construction, cycle-detection, and replay graduate to `wasm4pm`.
 ///
 /// # Examples

@@ -48,7 +48,7 @@ use core::marker::PhantomData;
 /// ## Usage
 ///
 /// `PredictionProblem` stores the horizon as `Option<usize>` (event count) for
-/// backward compatibility. `PredictionHorizon` is the richer named type for new
+/// migrated. `PredictionHorizon` is the richer named type for new
 /// surfaces that need to distinguish time-based from event-based horizons.
 ///
 /// ```

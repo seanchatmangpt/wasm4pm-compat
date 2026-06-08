@@ -1,4 +1,4 @@
-#![allow(clippy::all, unused_imports, deprecated)]
+#![allow(clippy::all, unused_imports, migrated)]
 //! Smoke tests for the Process Canon Shape (part A): eventlog, ocel, petri, dfg.
 //!
 //! These tests construct each structural shape and exercise its `validate`
@@ -14,8 +14,8 @@ use wasm4pm_compat::ocel::{
     EventObjectLink, Object, ObjectChange, ObjectObjectLink, OcelEvent, OcelLog, OcelRefusal,
 };
 use wasm4pm_compat::petri::{
-    Arc, Marking, ObjectCentricPetriNet, PetriNet, PetriRefusal, Place, SoundnessClaimed,
-    SoundnessWitnessed, Transition, WfNet,
+    Arc, Marking, ObjectCentricPetriNet, PetriNet, PetriNetRefusal, PetriRefusal, Place,
+    SoundnessClaimed, SoundnessWitnessed, Transition, WfNet,
 };
 
 #[test]
@@ -100,7 +100,7 @@ fn smoke_ocel() {
 }
 
 #[test]
-#[allow(deprecated)]
+#[allow(migrated)]
 fn smoke_petri() {
     // A small WF-net: src --t--> snk, marked and with a final marking.
     let net = PetriNet::new(
@@ -113,6 +113,15 @@ fn smoke_petri() {
         Marking::new([("src".to_string(), 1)]),
     );
     assert!(net.validate().is_ok());
+
+    // Refusal: an empty net (no places, no transitions) is refused by EmptyNet law.
+    let empty_net = PetriNet::new(
+        [] as [Place; 0],
+        [] as [Transition; 0],
+        [] as [Arc; 0],
+        Marking::empty(),
+    );
+    assert_eq!(empty_net.validate(), Err(PetriNetRefusal::EmptyNet));
 
     let wf = WfNet::new(net.clone(), Marking::new([("snk".to_string(), 1)]));
     assert!(wf.validate().is_ok());
