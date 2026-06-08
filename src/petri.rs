@@ -274,3 +274,20 @@ impl<const S: SoundnessState> WfNetConst<S> {
 
 /// Query interface for WF-net structural properties (reserved for future use).
 pub struct WfNetQuery;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::law::SoundnessState;
+
+    #[test]
+    fn soundness_proof_mints_and_advances_to_witnessed() {
+        // SoundnessProof::new() is pub(crate) — this test is the only caller,
+        // which is the point: it proves the sealed capability works end-to-end.
+        let proof = SoundnessProof::new();
+        let witnessed = WfNetConst::<{ SoundnessState::Unknown }>::new()
+            .claim_sound()
+            .witness_soundness(proof);
+        assert_eq!(witnessed.soundness_state(), SoundnessState::Witnessed);
+    }
+}

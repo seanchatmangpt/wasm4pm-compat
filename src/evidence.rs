@@ -425,7 +425,6 @@ impl<T, W> Evidence<T, crate::state::Refused, W> {
     /// [`crate::admission::Admit`] impl (or a pre-admission structural check via
     /// [`Evidence::into_refused`] on `Parsed`) has already produced a named
     /// refusal reason.
-    #[allow(dead_code)] // building block for crate-internal admission paths
     #[inline]
     pub(crate) fn refused(value: T) -> Evidence<T, crate::state::Refused, W> {
         Evidence {
@@ -593,5 +592,14 @@ mod state_transition_tests {
             .into_projected()
             .into_exportable();
         assert_eq!(ev.value, 7u32);
+    }
+
+    /// Evidence::refused() is the crate-internal constructor for Refused carriers.
+    /// This test is its only caller, proving the path compiles and the value is
+    /// preserved for diagnostic inspection — without allow(dead_code).
+    #[test]
+    fn refused_constructor_carries_value_for_diagnostics() {
+        let refused = Evidence::<_, Refused, Ocel20>::refused("boundary-reject");
+        assert_eq!(*refused.as_refused_value(), "boundary-reject");
     }
 }
