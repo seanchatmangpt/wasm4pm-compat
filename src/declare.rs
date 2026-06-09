@@ -276,7 +276,9 @@ pub enum OcDeclareRefusal {
 impl fmt::Display for OcDeclareRefusal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OcDeclareRefusal::EmptyObjectTypeList => write!(f, "OcDeclare refused: EmptyObjectTypeList"),
+            OcDeclareRefusal::EmptyObjectTypeList => {
+                write!(f, "OcDeclare refused: EmptyObjectTypeList")
+            }
             OcDeclareRefusal::SynchronizationRequiresMultipleTypes => {
                 write!(f, "OcDeclare refused: SynchronizationRequiresMultipleTypes")
             }

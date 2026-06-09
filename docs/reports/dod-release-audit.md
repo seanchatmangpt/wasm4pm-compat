@@ -1,6 +1,6 @@
 # Definition of Done (DoD) Release Audit Report
 
-- **Date of Audit:** June 9, 2026
+- **Date of Audit:** June 8, 2026
 - **Crate Name:** `wasm4pm-compat`
 - **Crate Version:** `26.6.9`
 - **Target Release:** crates.io Publishing Ready

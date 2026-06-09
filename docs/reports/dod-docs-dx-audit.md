@@ -1,6 +1,6 @@
 # DoD Docs and DX Gates Audit Report
 
-**Date:** 2026-06-09
+**Date:** 2026-06-08
 **Crate:** `wasm4pm-compat`
 **Version:** `26.6.9`
 **Target Path:** `/Users/sac/wasm4pm-compat/src`
@@ -116,7 +116,7 @@ All public modules, types, and functions in the audited set are fully compliant.
 
 ## 5. Re-Verification Log
 
-On **2026-06-09**, a comprehensive verification of the documentation and DX gates was re-run to guarantee absolute alignment with the `26.6.9` release:
+On **2026-06-08**, a comprehensive verification of the documentation and DX gates was re-run to guarantee absolute alignment with the `26.6.9` release:
 1. **Doctests:** Verified that all `424` public doctests compile and run successfully via `cargo test --doc --all-features`.
 2. **Rustdoc Cleanliness:** Verified that `cargo doc --all-features --no-deps` builds cleanly with zero warnings or errors.
 3. **Code Quality:** Verified that `cargo clippy --all-features -- -D warnings` and `cargo fmt --check` run cleanly.
