@@ -30,7 +30,7 @@
     a owl:Ontology ;
     rdfs:label "wasm4pm-compat type-law ontology" ;
     rdfs:comment "Machine-readable index of the Rust type-law surfaces in the wasm4pm-compat nightly crate." ;
-    owl:versionInfo "26.6.5" .
+    owl:versionInfo "26.6.9" .
 
 # ============================================================================
 # CLASSES

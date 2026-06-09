@@ -1,18 +1,7 @@
-error[E0277]: the trait bound `DfgTargetMarker: IsDfgSource` is not satisfied
-  --> tests/ui/compile_fail/dfg_target_as_source.rs:10:18
-   |
-10 |     needs_source(DfgTargetMarker);
-   |     ------------ ^^^^^^^^^^^^^^^ the trait `IsDfgSource` is not implemented for `DfgTargetMarker`
-   |     |
-   |     required by a bound introduced by this call
-   |
-help: the trait `IsDfgSource` is implemented for `DfgSourceMarker`
-  --> src/dfg.rs
-   |
-   | impl IsDfgSource for DfgSourceMarker {}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-note: required by a bound in `needs_source`
-  --> tests/ui/compile_fail/dfg_target_as_source.rs:6:20
-   |
- 6 | fn needs_source<S: IsDfgSource>(_: S) {}
-   |                    ^^^^^^^^^^^ required by this bound in `needs_source`
+error[E0432]: unresolved imports `wasm4pm_compat::dfg::DfgTargetMarker`, `wasm4pm_compat::dfg::IsDfgSource`
+ --> tests/ui/compile_fail/dfg_target_as_source.rs:4:27
+  |
+4 | use wasm4pm_compat::dfg::{DfgTargetMarker, IsDfgSource};
+  |                           ^^^^^^^^^^^^^^^  ^^^^^^^^^^^ no `IsDfgSource` in `dfg`
+  |                           |
+  |                           no `DfgTargetMarker` in `dfg`

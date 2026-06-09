@@ -384,3 +384,9 @@ pub struct CellComparison<const DIM_COUNT: usize> {
     /// The second cell in the comparison.
     pub cell_b: CubeCell<DIM_COUNT>,
 }
+
+pub struct ProcessCubeLaw {
+    pub dimension: String,
+    pub slice_value: String,
+    pub expected_sublog_hash: [u8; 32],
+}

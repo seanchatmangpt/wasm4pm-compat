@@ -1,3 +1,11 @@
+error[E0560]: struct `SeparableWfNet<wasm4pm_compat::law::SoundnessState::Unknown>` has no field named `_seal`
+  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:38:9
+   |
+38 |         _seal: todo!(),
+   |         ^^^^^ `SeparableWfNet<_>` does not have this field
+   |
+   = note: all struct fields are already assigned
+
 warning: unreachable expression
   --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:36:64
    |
@@ -10,18 +18,3 @@ warning: unreachable expression
    | |_____^ unreachable expression
    |
    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
-
-error[E0451]: field `_seal` of struct `SeparableWfNet` is private
-  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:38:9
-   |
-36 |     let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
-   |                                                                -------------- in this type
-37 |         net,
-38 |         _seal: todo!(),
-   |         ^^^^^ private field
-
-error: type `petri::wfnet_seal::WfNetSeal` is private
-  --> tests/ui/compile_fail/wfnet_to_powl_nonseparable.rs:38:16
-   |
-38 |         _seal: todo!(),
-   |                ^^^^^^^ private type

@@ -17,9 +17,3 @@ error[E0451]: field `_seal` of struct `WfNetConst` is private
    |                                                              ---------- in this type
 22 |         _seal: todo!(),
    |         ^^^^^ private field
-
-error: type `petri::wfnet_seal::WfNetSeal` is private
-  --> tests/ui/compile_fail/wfnet_soundness_non-forgeable.rs:22:16
-   |
-22 |         _seal: todo!(),
-   |                ^^^^^^^ private type

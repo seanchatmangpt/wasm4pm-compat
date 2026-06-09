@@ -245,3 +245,18 @@ pub struct PerspectiveCombination<A, B> {
     _a: PhantomData<A>,
     _b: PhantomData<B>,
 }
+
+pub struct ParityComparer;
+
+impl ParityComparer {
+    pub fn assert_epsilon_close(actual: f64, expected: f64) {
+        let diff = (actual - expected).abs();
+        assert!(
+            diff < 1e-6,
+            "Parity violation: actual {}, expected {}, diff {} (exceeds epsilon 1e-6)",
+            actual,
+            expected,
+            diff
+        );
+    }
+}

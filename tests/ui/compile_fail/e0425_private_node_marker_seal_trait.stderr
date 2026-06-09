@@ -1,11 +1,5 @@
-error[E0603]: module `node_marker_seal` is private
- --> tests/ui/compile_fail/e0425_private_node_marker_seal_trait.rs:6:28
+error[E0432]: unresolved import `wasm4pm_compat::petri::node_marker_seal`
+ --> tests/ui/compile_fail/e0425_private_node_marker_seal_trait.rs:6:5
   |
 6 | use wasm4pm_compat::petri::node_marker_seal;
-  |                            ^^^^^^^^^^^^^^^^ private module
-  |
-note: the module `node_marker_seal` is defined here
- --> src/petri.rs
-  |
-  | mod node_marker_seal {
-  | ^^^^^^^^^^^^^^^^^^^^
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `node_marker_seal` in `petri`

@@ -1,5 +1,17 @@
 use serde::{Deserialize, Serialize};
 
+use std::simd::u32x16;
+
+pub struct SimdMarking {
+    pub vector: u32x16,
+}
+
+impl SimdMarking {
+    pub fn fire_transitions(&mut self, input_mask: u32x16, output_mask: u32x16) {
+        self.vector = (self.vector - input_mask) + output_mask;
+    }
+}
+
 /// Result of token-based replay conformance checking
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TokenReplayResult {
@@ -175,36 +187,71 @@ macro_rules! metric_newtype {
             /// Returns `Some(Self)` if `v` is finite and in `[0.0, 1.0]`.
             #[must_use]
             pub fn new(v: f64) -> Option<Self> {
-                if !v.is_finite() || v < 0.0 || v > 1.0 {
+                if !v.is_finite() || !(0.0..=1.0).contains(&v) {
                     return None;
                 }
                 Some($name(v))
             }
 
             /// Returns the inner value.
-            pub fn get(self) -> f64 { self.0 }
+            pub fn get(self) -> f64 {
+                self.0
+            }
         }
     };
 }
 
-metric_newtype!(Fitness, "Fraction of observed behaviour explained by the model (0–1).");
-metric_newtype!(Precision, "Fraction of model behaviour observed in the log (0–1).");
+metric_newtype!(
+    Fitness,
+    "Fraction of observed behaviour explained by the model (0–1)."
+);
+metric_newtype!(
+    Precision,
+    "Fraction of model behaviour observed in the log (0–1)."
+);
 metric_newtype!(F1, "Harmonic mean of fitness and precision (0–1).");
-metric_newtype!(Generalization, "Degree to which the model generalizes beyond the log (0–1).");
+metric_newtype!(
+    Generalization,
+    "Degree to which the model generalizes beyond the log (0–1)."
+);
 metric_newtype!(Simplicity, "Structural simplicity of the model (0–1).");
+
+// ── Alignment move markers ──────────────────────────────────────────────────
+
+/// Witness: a **synchronous move** — log and model agree on a step.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct SyncMove;
+
+/// Witness: a **log-only move** — the log had a step the model could not match
+/// (an *insertion* relative to the model).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct LogOnlyMove;
+
+/// Witness: a **model-only move** — the model required a step the log did not
+/// show (a *skip* / missing activity).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct ModelOnlyMove;
 
 // ── Deviation ─────────────────────────────────────────────────────────────────
 
 /// A single deviation between an observed trace and the declared process model.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Deviation {
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Deviation<M = ()> {
     pub index: usize,
+    pub position: usize,
     pub label: String,
+    _witness: std::marker::PhantomData<M>,
 }
 
-impl Deviation {
-    pub fn new(index: usize, label: &str) -> Self {
-        Deviation { index, label: label.to_owned() }
+impl<M> Deviation<M> {
+    pub fn new(position: usize, label: impl Into<String>) -> Self {
+        let label_str = label.into();
+        Deviation {
+            index: position,
+            position,
+            label: label_str,
+            _witness: std::marker::PhantomData,
+        }
     }
 }
 
@@ -225,7 +272,9 @@ pub struct ConformanceVerdict {
 }
 
 impl ConformanceVerdict {
-    pub fn new() -> Self { ConformanceVerdict::default() }
+    pub fn new() -> Self {
+        ConformanceVerdict::default()
+    }
 
     /// Returns true if fitness is 1.0 and there are no deviations.
     pub fn is_perfect(&self) -> bool {
@@ -238,18 +287,25 @@ impl ConformanceVerdict {
 /// Named refusal variants for conformance analysis laws.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ConformanceRefusal {
-    /// Fitness could not be computed — log or model is insufficient.
+    MissingLog,
+    MissingModel,
+    MissingDeviationPath,
     FitnessUnavailable,
-    /// Generalization could not be computed — insufficient log coverage.
+    PrecisionUnavailable,
+    F1Unavailable,
     GeneralizationUnavailable,
-    /// Simplicity could not be computed — model structure analysis failed.
     SimplicityUnavailable,
 }
 
 impl std::fmt::Display for ConformanceRefusal {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ConformanceRefusal::MissingLog => write!(f, "MissingLog"),
+            ConformanceRefusal::MissingModel => write!(f, "MissingModel"),
+            ConformanceRefusal::MissingDeviationPath => write!(f, "MissingDeviationPath"),
             ConformanceRefusal::FitnessUnavailable => write!(f, "FitnessUnavailable"),
+            ConformanceRefusal::PrecisionUnavailable => write!(f, "PrecisionUnavailable"),
+            ConformanceRefusal::F1Unavailable => write!(f, "F1Unavailable"),
             ConformanceRefusal::GeneralizationUnavailable => write!(f, "GeneralizationUnavailable"),
             ConformanceRefusal::SimplicityUnavailable => write!(f, "SimplicityUnavailable"),
         }
@@ -258,42 +314,94 @@ impl std::fmt::Display for ConformanceRefusal {
 
 impl std::error::Error for ConformanceRefusal {}
 
+// ── QualityDimension ──────────────────────────────────────────────────────────
+
+/// Runtime companion to QualityMetricKind; names the five van der Aalst quality
+/// dimensions for runtime dispatch, Display representation, and hashing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum QualityDimension {
+    Fitness,
+    Precision,
+    F1,
+    Generalization,
+    Simplicity,
+}
+
+impl std::fmt::Display for QualityDimension {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            QualityDimension::Fitness => write!(f, "fitness"),
+            QualityDimension::Precision => write!(f, "precision"),
+            QualityDimension::F1 => write!(f, "f1"),
+            QualityDimension::Generalization => write!(f, "generalization"),
+            QualityDimension::Simplicity => write!(f, "simplicity"),
+        }
+    }
+}
+
 // ── Const-generic metric types ────────────────────────────────────────────────
 //
 // These provide compile-time metric bounds using the same `Require`/`IsTrue`
-// const-bound pattern from `crate::law`. Each is a distinct named type (not
-// a type alias) so they can each be a named field in `QualityProfile`.
+// const-bound pattern from `crate::law`. Each is a distinct type alias of the
+// underlying generic `Metric` struct, parameterized by `QualityMetricKind`.
 
-use crate::law::{IsTrue, Require};
+use crate::law::{IsTrue, QualityMetricKind, Require};
 
-macro_rules! const_metric {
-    ($name:ident, $doc:literal) => {
-        #[doc = $doc]
-        pub struct $name<const NUM: u64, const DEN: u64>
-        where
-            Require<{ DEN > 0 }>: IsTrue,
-            Require<{ NUM <= DEN }>: IsTrue,
-        {
-            _private: (),
-        }
-
-        impl<const NUM: u64, const DEN: u64> $name<NUM, DEN>
-        where
-            Require<{ DEN > 0 }>: IsTrue,
-            Require<{ NUM <= DEN }>: IsTrue,
-        {
-            pub const fn new() -> Self { $name { _private: () } }
-            pub const fn num(&self) -> u64 { NUM }
-            pub const fn den(&self) -> u64 { DEN }
-        }
-    };
+/// A generic compile-time metric bound — enforces NUM/DEN ∈ \[0,1\].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    _private: (),
 }
 
-const_metric!(FitnessConst, "Compile-time fitness bound — enforces NUM/DEN ∈ [0,1].");
-const_metric!(PrecisionConst, "Compile-time precision bound — enforces NUM/DEN ∈ [0,1].");
-const_metric!(F1Const, "Compile-time F1 bound — enforces NUM/DEN ∈ [0,1].");
-const_metric!(GeneralizationConst, "Compile-time generalization bound — enforces NUM/DEN ∈ [0,1].");
-const_metric!(SimplicityConst, "Compile-time simplicity bound — enforces NUM/DEN ∈ [0,1].");
+impl<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64> Default
+    for Metric<KIND, NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64> Metric<KIND, NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    pub const fn new() -> Self {
+        Metric { _private: () }
+    }
+    pub const fn num(&self) -> u64 {
+        NUM
+    }
+    pub const fn den(&self) -> u64 {
+        DEN
+    }
+}
+
+/// Compile-time fitness bound — enforces NUM/DEN ∈ \[0,1\].
+pub type FitnessConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Fitness }, NUM, DEN>;
+
+/// Compile-time precision bound — enforces NUM/DEN ∈ \[0,1\].
+pub type PrecisionConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Precision }, NUM, DEN>;
+
+/// Compile-time F1 bound — enforces NUM/DEN ∈ \[0,1\].
+pub type F1Const<const NUM: u64, const DEN: u64> = Metric<{ QualityMetricKind::F1 }, NUM, DEN>;
+
+/// Compile-time generalization bound — enforces NUM/DEN ∈ \[0,1\].
+pub type GeneralizationConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Generalization }, NUM, DEN>;
+
+/// Compile-time simplicity bound — enforces NUM/DEN ∈ \[0,1\].
+pub type SimplicityConst<const NUM: u64, const DEN: u64> =
+    Metric<{ QualityMetricKind::Simplicity }, NUM, DEN>;
 
 // ── QualityProfile ────────────────────────────────────────────────────────────
 
@@ -301,13 +409,17 @@ const_metric!(SimplicityConst, "Compile-time simplicity bound — enforces NUM/D
 /// as rational constants. Encodes the minimum acceptable process quality as
 /// a type, making profile violations a compile error.
 pub struct QualityProfile<
-    const FN: u64, const FD: u64,
-    const PN: u64, const PD: u64,
-    const F1N: u64, const F1D: u64,
-    const GN: u64, const GD: u64,
-    const SN: u64, const SD: u64,
->
-where
+    const FN: u64,
+    const FD: u64,
+    const PN: u64,
+    const PD: u64,
+    const F1N: u64,
+    const F1D: u64,
+    const GN: u64,
+    const GD: u64,
+    const SN: u64,
+    const SD: u64,
+> where
     Require<{ FD > 0 }>: IsTrue,
     Require<{ FN <= FD }>: IsTrue,
     Require<{ PD > 0 }>: IsTrue,
@@ -327,12 +439,46 @@ where
 }
 
 impl<
-    const FN: u64, const FD: u64,
-    const PN: u64, const PD: u64,
-    const F1N: u64, const F1D: u64,
-    const GN: u64, const GD: u64,
-    const SN: u64, const SD: u64,
-> QualityProfile<FN, FD, PN, PD, F1N, F1D, GN, GD, SN, SD>
+        const FN: u64,
+        const FD: u64,
+        const PN: u64,
+        const PD: u64,
+        const F1N: u64,
+        const F1D: u64,
+        const GN: u64,
+        const GD: u64,
+        const SN: u64,
+        const SD: u64,
+    > Default for QualityProfile<FN, FD, PN, PD, F1N, F1D, GN, GD, SN, SD>
+where
+    Require<{ FD > 0 }>: IsTrue,
+    Require<{ FN <= FD }>: IsTrue,
+    Require<{ PD > 0 }>: IsTrue,
+    Require<{ PN <= PD }>: IsTrue,
+    Require<{ F1D > 0 }>: IsTrue,
+    Require<{ F1N <= F1D }>: IsTrue,
+    Require<{ GD > 0 }>: IsTrue,
+    Require<{ GN <= GD }>: IsTrue,
+    Require<{ SD > 0 }>: IsTrue,
+    Require<{ SN <= SD }>: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<
+        const FN: u64,
+        const FD: u64,
+        const PN: u64,
+        const PD: u64,
+        const F1N: u64,
+        const F1D: u64,
+        const GN: u64,
+        const GD: u64,
+        const SN: u64,
+        const SD: u64,
+    > QualityProfile<FN, FD, PN, PD, F1N, F1D, GN, GD, SN, SD>
 where
     Require<{ FD > 0 }>: IsTrue,
     Require<{ FN <= FD }>: IsTrue,

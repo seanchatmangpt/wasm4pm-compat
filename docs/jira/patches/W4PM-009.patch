@@ -1,0 +1,81 @@
+diff --git a/src/receipt.rs b/src/receipt.rs
+index b1e5969..150e93b 100644
+--- a/src/receipt.rs
++++ b/src/receipt.rs
+@@ -1499,3 +1499,76 @@ pub struct ProvenanceChain {
+     /// Content hash of the WASM binary (64 hex chars).
+     pub wasm_build_hash: String,
+ }
++
++use serde::{Serialize, Deserialize};
++use blake3::Hasher;
++
++mod signature_serde {
++    use serde::{Serialize, Serializer, Deserialize, Deserializer, de::Error};
++    pub fn serialize<S>(sig: &[u8; 64], serializer: S) -> Result<S::Ok, S::Error>
++    where
++        S: Serializer,
++    {
++        sig[..].serialize(serializer)
++    }
++
++    pub fn deserialize<'de, D>(deserializer: D) -> Result<[u8; 64], D::Error>
++    where
++        D: Deserializer<'de>,
++    {
++        let v = Vec::<u8>::deserialize(deserializer)?;
++        let mut array = [0u8; 64];
++        if v.len() == 64 {
++            array.copy_from_slice(&v);
++            Ok(array)
++        } else {
++            Err(D::Error::custom("expected 64 bytes for signature"))
++        }
++    }
++}
++
++#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
++pub struct Receipt {
++    pub model_id: [u8; 32],
++    pub final_hash_chain: [u8; 32],
++    #[serde(with = "signature_serde")]
++    pub authority_signature: [u8; 64],
++    pub verdict: ConformanceVerdict,
++    pub timestamp_epoch: u64,
++}
++
++#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
++pub enum ConformanceVerdict {
++    PerfectAlignment,
++    FitnessDeficit,
++    DeadlockEncountered,
++}
++
++pub struct TraceChainer {
++    pub hasher: Hasher,
++}
++
++impl TraceChainer {
++    pub fn new() -> Self {
++        let mut hasher = Hasher::new();
++        hasher.update(b"W4PM_RECEIPT_SALT_V1");
++        Self { hasher }
++    }
++
++    pub fn chain_step(&mut self, event_id: &[u8], transition_id: &[u8], marking_state: &[u8]) {
++        self.hasher.update(event_id);
++        self.hasher.update(transition_id);
++        self.hasher.update(marking_state);
++    }
++
++    pub fn finalize(self) -> [u8; 32] {
++        let hash = self.hasher.finalize();
++        hash.into()
++    }
++}
++
++impl Default for TraceChainer {
++    fn default() -> Self {
++        Self::new()
++    }
++}

@@ -1,0 +1,13 @@
+diff --git a/src/engine_bridge.rs b/src/engine_bridge.rs
+index 65d4b58..29bf596 100644
+--- a/src/engine_bridge.rs
++++ b/src/engine_bridge.rs
+@@ -191,4 +191,8 @@ pub trait GraduateToWasm4pm {
+     /// assert!(c.is_grounded());
+     /// ```
+     fn candidate(&self) -> GraduationCandidate;
++
++    fn is_grounded(&self) -> bool {
++        self.candidate().is_grounded()
++    }
+ }

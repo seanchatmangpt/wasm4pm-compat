@@ -31,7 +31,7 @@
 //! the `State` parameter of [`crate::evidence::Evidence`]. Only the seven
 //! canonical stages defined here are valid lifecycle positions.
 
-mod private {
+pub mod sealed {
     /// Sealing super-trait — prevents out-of-crate implementations of
     /// [`super::EvidenceState`].
     pub trait Sealed {}
@@ -52,7 +52,10 @@ mod private {
 /// Not a validator, not a capability, not a runtime discriminant. It is a pure
 /// compile-time constraint that makes illegal stage positions unrepresentable.
 /// Graduate to `wasm4pm` when the *meaning* of a stage needs to be acted upon.
-pub trait EvidenceState: private::Sealed {}
+pub trait EvidenceState: sealed::Sealed {
+    type Token;
+    const IS_ADMITTED: bool;
+}
 
 /// Untrusted input as it arrives from the outside world.
 ///
@@ -205,30 +208,51 @@ pub struct ExportableToReceipted;
 /// Not a runtime capability, not a method table. This is a pure compile-time
 /// gate that prevents projecting evidence that was never admitted. Graduate
 /// the actual projection logic to `wasm4pm`.
-pub trait Projectible: EvidenceState + private::Sealed {}
+pub trait Projectible: EvidenceState + sealed::Sealed {}
 
 // ── EvidenceState impls ───────────────────────────────────────────────────────
 
-impl private::Sealed for Raw {}
-impl EvidenceState for Raw {}
+impl sealed::Sealed for Raw {}
+impl EvidenceState for Raw {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
-impl private::Sealed for Parsed {}
-impl EvidenceState for Parsed {}
+impl sealed::Sealed for Parsed {}
+impl EvidenceState for Parsed {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
-impl private::Sealed for Admitted {}
-impl EvidenceState for Admitted {}
+impl sealed::Sealed for Admitted {}
+impl EvidenceState for Admitted {
+    type Token = [u8; 32];
+    const IS_ADMITTED: bool = true;
+}
 
-impl private::Sealed for Refused {}
-impl EvidenceState for Refused {}
+impl sealed::Sealed for Refused {}
+impl EvidenceState for Refused {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
-impl private::Sealed for Projected {}
-impl EvidenceState for Projected {}
+impl sealed::Sealed for Projected {}
+impl EvidenceState for Projected {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
-impl private::Sealed for Exportable {}
-impl EvidenceState for Exportable {}
+impl sealed::Sealed for Exportable {}
+impl EvidenceState for Exportable {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
-impl private::Sealed for Receipted {}
-impl EvidenceState for Receipted {}
+impl sealed::Sealed for Receipted {}
+impl EvidenceState for Receipted {
+    type Token = ();
+    const IS_ADMITTED: bool = false;
+}
 
 // ── Projectible impls ─────────────────────────────────────────────────────────
 

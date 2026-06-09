@@ -1,5 +1,17 @@
-error[E0599]: no method named `discover_process_model` found for struct `wasm4pm_compat::OcelLog` in the current scope
-  --> tests/ui/compile_fail/engine_creep_discovery_absent.rs:17:17
+error[E0599]: no associated function or constant named `default` found for struct `wasm4pm_compat::ocel::OcelLog` in the current scope
+  --> tests/ui/compile_fail/engine_creep_discovery_absent.rs:14:24
    |
-17 |     let _ = log.discover_process_model();
-   |                 ^^^^^^^^^^^^^^^^^^^^^^ method not found in `wasm4pm_compat::OcelLog`
+14 |     let log = OcelLog::default();
+   |                        ^^^^^^^ associated function or constant not found in `wasm4pm_compat::ocel::OcelLog`
+   |
+note: if you're trying to build a new `wasm4pm_compat::ocel::OcelLog`, consider using `wasm4pm_compat::ocel::OcelLog::new` which returns `wasm4pm_compat::ocel::OcelLog`
+  --> src/ocel.rs
+   |
+   | /     pub fn new(
+   | |         objects: impl IntoIterator<Item = Object>,
+   | |         events: impl IntoIterator<Item = OcelEvent>,
+   | |         e2o_links: impl IntoIterator<Item = EventObjectLink>,
+   | |         o2o_links: impl IntoIterator<Item = ObjectObjectLink>,
+   | |         changes: impl IntoIterator<Item = ObjectChange>,
+   | |     ) -> Self {
+   | |_____________^

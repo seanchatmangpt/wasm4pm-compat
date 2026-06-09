@@ -1,5 +1,3 @@
-
-
 pub mod flatten;
 pub mod intake;
 pub mod validate;
@@ -336,42 +334,144 @@ impl OCEL {
 
 // ── OCEL 2.0 object-centric types ─────────────────────────────────────────
 
+/// An attribute value in OCEL 2.0.
+#[derive(Debug, Clone, PartialEq)]
+pub enum OcelAttributeValue {
+    Integer(i64),
+    Float(f64),
+    Boolean(bool),
+    String(String),
+    TimestampNs(i64),
+    List(Vec<OcelAttributeValue>),
+    Map(Vec<(String, OcelAttributeValue)>),
+    Null,
+}
+
+impl std::fmt::Display for OcelAttributeValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OcelAttributeValue::Integer(i) => write!(f, "{i}"),
+            OcelAttributeValue::Float(fl) => write!(f, "{fl}"),
+            OcelAttributeValue::Boolean(b) => write!(f, "{b}"),
+            OcelAttributeValue::String(s) => write!(f, "{s}"),
+            OcelAttributeValue::TimestampNs(ts) => write!(f, "{ts}"),
+            OcelAttributeValue::List(l) => write!(f, "list of {} items", l.len()),
+            OcelAttributeValue::Map(m) => write!(f, "map of {} pairs", m.len()),
+            OcelAttributeValue::Null => write!(f, "null"),
+        }
+    }
+}
+
+/// A key-value attribute pair in OCEL 2.0.
+#[derive(Debug, Clone, PartialEq)]
+pub struct OcelAttribute {
+    pub key: String,
+    pub value: OcelAttributeValue,
+}
+
+impl OcelAttribute {
+    pub fn new(key: &str, value: OcelAttributeValue) -> Self {
+        OcelAttribute {
+            key: key.to_owned(),
+            value,
+        }
+    }
+    pub fn boolean(key: &str, val: bool) -> Self {
+        OcelAttribute::new(key, OcelAttributeValue::Boolean(val))
+    }
+    pub fn integer(key: &str, val: i64) -> Self {
+        OcelAttribute::new(key, OcelAttributeValue::Integer(val))
+    }
+    pub fn float(key: &str, val: f64) -> Self {
+        OcelAttribute::new(key, OcelAttributeValue::Float(val))
+    }
+    pub fn string(key: &str, val: &str) -> Self {
+        OcelAttribute::new(key, OcelAttributeValue::String(val.to_owned()))
+    }
+    pub fn timestamp_ns(key: &str, val: i64) -> Self {
+        OcelAttribute::new(key, OcelAttributeValue::TimestampNs(val))
+    }
+}
+
 /// Type alias: `OcelObject` is the OCEL 2.0 name for [`Object`].
 pub type OcelObject = Object;
 
-/// An OCEL 2.0 object with a typed identity.
+/// An OCEL 2.0 object with a typed identity and attributes.
 #[derive(Debug, Clone)]
 pub struct Object {
     id: String,
     object_type: String,
+    attributes: Vec<OcelAttribute>,
 }
 
 impl Object {
     pub fn new(id: &str, object_type: &str) -> Self {
-        Object { id: id.to_owned(), object_type: object_type.to_owned() }
+        Object {
+            id: id.to_owned(),
+            object_type: object_type.to_owned(),
+            attributes: Vec::new(),
+        }
     }
-    pub fn id(&self) -> &str { &self.id }
-    pub fn object_type(&self) -> &str { &self.object_type }
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+    pub fn object_type(&self) -> &str {
+        &self.object_type
+    }
+    pub fn attributes(&self) -> &[OcelAttribute] {
+        &self.attributes
+    }
+    pub fn with_attribute(mut self, attr: OcelAttribute) -> Self {
+        self.attributes.push(attr);
+        self
+    }
 }
 
-/// An OCEL 2.0 event (activity + optional timestamp).
+/// An OCEL 2.0 event (activity + optional timestamp + attributes).
 #[derive(Debug, Clone)]
 pub struct OcelEvent {
     id: String,
     activity: String,
     timestamp_ns: u64,
+    attributes: Vec<OcelAttribute>,
 }
 
 impl OcelEvent {
     pub fn new(id: &str, activity: &str) -> Self {
-        OcelEvent { id: id.to_owned(), activity: activity.to_owned(), timestamp_ns: 0 }
+        OcelEvent {
+            id: id.to_owned(),
+            activity: activity.to_owned(),
+            timestamp_ns: 0,
+            attributes: Vec::new(),
+        }
     }
 
     #[must_use]
-    pub fn at_ns(mut self, ns: u64) -> Self { self.timestamp_ns = ns; self }
+    pub fn at_ns(mut self, ns: u64) -> Self {
+        self.timestamp_ns = ns;
+        self
+    }
 
-    pub fn id(&self) -> &str { &self.id }
-    pub fn activity(&self) -> &str { &self.activity }
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+    pub fn activity(&self) -> &str {
+        &self.activity
+    }
+    pub fn timestamp_ns(&self) -> Option<u64> {
+        if self.timestamp_ns == 0 {
+            None
+        } else {
+            Some(self.timestamp_ns)
+        }
+    }
+    pub fn attributes(&self) -> &[OcelAttribute] {
+        &self.attributes
+    }
+    pub fn with_attribute(mut self, attr: OcelAttribute) -> Self {
+        self.attributes.push(attr);
+        self
+    }
 }
 
 /// Directed link from an event to an object (OCEL 2.0 E2O relation).
@@ -384,15 +484,28 @@ pub struct EventObjectLink {
 
 impl EventObjectLink {
     pub fn new(event_id: &str, object_id: &str) -> Self {
-        EventObjectLink { event_id: event_id.to_owned(), object_id: object_id.to_owned(), qualifier: None }
+        EventObjectLink {
+            event_id: event_id.to_owned(),
+            object_id: object_id.to_owned(),
+            qualifier: None,
+        }
     }
 
     #[must_use]
-    pub fn qualified(mut self, q: &str) -> Self { self.qualifier = Some(q.to_owned()); self }
+    pub fn qualified(mut self, q: &str) -> Self {
+        self.qualifier = Some(q.to_owned());
+        self
+    }
 
-    pub fn event_id(&self) -> &str { &self.event_id }
-    pub fn object_id(&self) -> &str { &self.object_id }
-    pub fn qualifier(&self) -> Option<&str> { self.qualifier.as_deref() }
+    pub fn event_id(&self) -> &str {
+        &self.event_id
+    }
+    pub fn object_id(&self) -> &str {
+        &self.object_id
+    }
+    pub fn qualifier(&self) -> Option<&str> {
+        self.qualifier.as_deref()
+    }
 }
 
 /// Directed link between two objects (OCEL 2.0 O2O relation).
@@ -405,14 +518,28 @@ pub struct ObjectObjectLink {
 
 impl ObjectObjectLink {
     pub fn new(from: &str, to: &str) -> Self {
-        ObjectObjectLink { from_id: from.to_owned(), to_id: to.to_owned(), qualifier: None }
+        ObjectObjectLink {
+            from_id: from.to_owned(),
+            to_id: to.to_owned(),
+            qualifier: None,
+        }
     }
 
     #[must_use]
-    pub fn qualified(mut self, q: &str) -> Self { self.qualifier = Some(q.to_owned()); self }
+    pub fn qualified(mut self, q: &str) -> Self {
+        self.qualifier = Some(q.to_owned());
+        self
+    }
 
-    pub fn from_id(&self) -> &str { &self.from_id }
-    pub fn to_id(&self) -> &str { &self.to_id }
+    pub fn source_id(&self) -> &str {
+        &self.from_id
+    }
+    pub fn target_id(&self) -> &str {
+        &self.to_id
+    }
+    pub fn qualifier(&self) -> Option<&str> {
+        self.qualifier.as_deref()
+    }
 }
 
 /// An attribute change on an object at a point in time.
@@ -421,6 +548,7 @@ pub struct ObjectChange {
     object_id: String,
     attribute: String,
     value: String,
+    timestamp_ns: Option<u64>,
 }
 
 impl ObjectChange {
@@ -429,12 +557,26 @@ impl ObjectChange {
             object_id: object_id.to_owned(),
             attribute: attribute.to_owned(),
             value: value.to_owned(),
+            timestamp_ns: None,
         }
     }
 
-    pub fn object_id(&self) -> &str { &self.object_id }
-    pub fn attribute(&self) -> &str { &self.attribute }
-    pub fn value(&self) -> &str { &self.value }
+    pub fn object_id(&self) -> &str {
+        &self.object_id
+    }
+    pub fn attribute(&self) -> &str {
+        &self.attribute
+    }
+    pub fn value(&self) -> &str {
+        &self.value
+    }
+    pub fn timestamp_ns(&self) -> Option<u64> {
+        self.timestamp_ns
+    }
+    pub fn at_ns(mut self, ns: u64) -> Self {
+        self.timestamp_ns = Some(ns);
+        self
+    }
 }
 
 /// An OCEL 2.0 log — the complete object-centric event log.
@@ -464,13 +606,22 @@ impl OcelLog {
         }
     }
 
-    pub fn objects(&self) -> &[Object] { &self.objects }
-    pub fn events(&self) -> &[OcelEvent] { &self.events }
-    pub fn event_object_links(&self) -> &[EventObjectLink] { &self.e2o_links }
-    pub fn object_object_links(&self) -> &[ObjectObjectLink] { &self.o2o_links }
-    pub fn object_changes(&self) -> &[ObjectChange] { &self.changes }
+    pub fn objects(&self) -> &[Object] {
+        &self.objects
+    }
+    pub fn events(&self) -> &[OcelEvent] {
+        &self.events
+    }
+    pub fn event_object_links(&self) -> &[EventObjectLink] {
+        &self.e2o_links
+    }
+    pub fn object_object_links(&self) -> &[ObjectObjectLink] {
+        &self.o2o_links
+    }
+    pub fn object_changes(&self) -> &[ObjectChange] {
+        &self.changes
+    }
 
-    #[must_use]
     pub fn validate(&self) -> Result<(), OcelRefusal> {
         if self.e2o_links.is_empty() {
             return Err(OcelRefusal::EmptyEventObjectLinks);
@@ -505,3 +656,166 @@ impl std::fmt::Display for OcelRefusal {
 }
 
 impl std::error::Error for OcelRefusal {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct OcelTuple<E, O, EA, OA, E2O, O2O> {
+    pub events: Vec<E>,
+    pub objects: Vec<O>,
+    pub event_attrs: Vec<EA>,
+    pub object_attrs: Vec<OA>,
+    pub event_object_relations: Vec<E2O>,
+    pub object_object_relations: Vec<O2O>,
+}
+
+// ── OCEL 2.0 Dimension query types ────────────────────────────────────────
+
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct OcelDims {
+    pub object_types: Vec<String>,
+    pub activities: Vec<String>,
+}
+
+impl OcelDims {
+    pub fn from_log(log: &OcelLog) -> Self {
+        let mut object_types = std::collections::HashSet::new();
+        let mut activities = std::collections::HashSet::new();
+        for o in log.objects() {
+            object_types.insert(o.object_type().to_string());
+        }
+        for e in log.events() {
+            activities.insert(e.activity().to_string());
+        }
+        OcelDims {
+            object_types: object_types.into_iter().collect(),
+            activities: activities.into_iter().collect(),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.object_types.is_empty() && self.activities.is_empty()
+    }
+}
+
+// ── Phantom Tag and Domain-wrapping Types ─────────────────────────────────
+
+pub trait AttributeTypeTag {
+    const ATTR_NAME: &'static str;
+}
+
+#[derive(Debug, Clone)]
+pub struct TypedAttribute<Tag> {
+    inner: OcelAttribute,
+    _phantom: std::marker::PhantomData<Tag>,
+}
+
+impl<Tag: AttributeTypeTag> TypedAttribute<Tag> {
+    pub fn wrap(inner: OcelAttribute) -> Self {
+        TypedAttribute {
+            inner,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+    pub fn inner(&self) -> &OcelAttribute {
+        &self.inner
+    }
+    pub fn into_inner(self) -> OcelAttribute {
+        self.inner
+    }
+}
+
+pub trait EventTypeTag {
+    const ACTIVITY_NAME: &'static str;
+}
+
+#[derive(Debug, Clone)]
+pub struct TypedEvent<Tag> {
+    inner: OcelEvent,
+    _phantom: std::marker::PhantomData<Tag>,
+}
+
+impl<Tag: EventTypeTag> TypedEvent<Tag> {
+    pub fn new(id: &str) -> Self {
+        TypedEvent {
+            inner: OcelEvent::new(id, Tag::ACTIVITY_NAME),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+    pub fn wrap(inner: OcelEvent) -> Self {
+        TypedEvent {
+            inner,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+    pub fn inner(&self) -> &OcelEvent {
+        &self.inner
+    }
+    pub fn into_inner(self) -> OcelEvent {
+        self.inner
+    }
+}
+
+pub trait ObjectTypeTag {
+    const TYPE_NAME: &'static str;
+}
+
+#[derive(Debug, Clone)]
+pub struct TypedObject<Tag> {
+    inner: OcelObject,
+    _phantom: std::marker::PhantomData<Tag>,
+}
+
+impl<Tag: ObjectTypeTag> TypedObject<Tag> {
+    pub fn new(id: &str) -> Self {
+        TypedObject {
+            inner: OcelObject::new(id, Tag::TYPE_NAME),
+            _phantom: std::marker::PhantomData,
+        }
+    }
+    pub fn wrap(inner: OcelObject) -> Self {
+        TypedObject {
+            inner,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+    pub fn inner(&self) -> &OcelObject {
+        &self.inner
+    }
+    pub fn into_inner(self) -> OcelObject {
+        self.inner
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TypedObjectChange {
+    object_id: String,
+    attribute: String,
+    value: OcelAttributeValue,
+    timestamp_ns: Option<u64>,
+}
+
+impl TypedObjectChange {
+    pub fn new(object_id: &str, attribute: &str, value: OcelAttributeValue) -> Self {
+        TypedObjectChange {
+            object_id: object_id.to_owned(),
+            attribute: attribute.to_owned(),
+            value,
+            timestamp_ns: None,
+        }
+    }
+    pub fn object_id(&self) -> &str {
+        &self.object_id
+    }
+    pub fn attribute(&self) -> &str {
+        &self.attribute
+    }
+    pub fn value(&self) -> &OcelAttributeValue {
+        &self.value
+    }
+    pub fn timestamp_ns(&self) -> Option<u64> {
+        self.timestamp_ns
+    }
+    pub fn at_ns(mut self, ns: u64) -> Self {
+        self.timestamp_ns = Some(ns);
+        self
+    }
+}

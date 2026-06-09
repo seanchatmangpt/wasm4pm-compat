@@ -1,13 +1,15 @@
 [package]
 name = "c8-instruments"
-version = "26.6.5"
+version = "26.6.9"
 edition = "2021"
 description = "Market telescopes and colliders: event horizon detection, hidden market body inference."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/wasm4pm/wasm4pm-compat"
 
 [dependencies]
-c8-time = { path = "../c8-time" }
-c8-market = { path = "../c8-market" }
+c8-time = { path = "../c8-time", version = "26.6.9" }
+c8-market = { path = "../c8-market", version = "26.6.9" }
 
 [dev-dependencies]
+
+[workspace]

@@ -1,6 +1,6 @@
 # Explanation: Refusal-First Boundary Design
 
-This document discusses the architectural context and advantages of the "refusal-first" design pattern implemented in `wasm4pm-compat` version `26.6.8`.
+This document discusses the architectural context and advantages of the "refusal-first" design pattern implemented in `wasm4pm-compat` version `26.6.9`.
 
 ---
 

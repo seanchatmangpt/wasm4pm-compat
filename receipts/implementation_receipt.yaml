@@ -3,7 +3,7 @@ implementation_receipt:
   rustc_version: "rustc 1.97.0-nightly (cb40c25f6 2026-05-04)"
   crates:
     - name: "wasm4pm-compat"
-      version: "26.6.5"
+      version: "26.6.9"
     - name: "c8-receipts"
       version: ""
     - name: "c8-market"

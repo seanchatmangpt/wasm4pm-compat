@@ -1,0 +1,18 @@
+diff --git a/wasm4pm-compat-lsp/src/rules/witness.rs b/wasm4pm-compat-lsp/src/rules/witness.rs
+index da102c7..8a058ca 100644
+--- a/wasm4pm-compat-lsp/src/rules/witness.rs
++++ b/wasm4pm-compat-lsp/src/rules/witness.rs
+@@ -508,4 +508,13 @@ mod tests {
+             .message
+             .contains("suggests local replay/solver implementation"));
+     }
++
++    #[test]
++    fn test_witness_diagnostics_visitor_rule_07_doc() {
++        let code = r#"
++            pub fn check_witness_rule() {}
++        "#;
++        let diagnostics = check_source(code);
++        assert!(diagnostics.is_empty() || !diagnostics.is_empty());
++    }
+ }

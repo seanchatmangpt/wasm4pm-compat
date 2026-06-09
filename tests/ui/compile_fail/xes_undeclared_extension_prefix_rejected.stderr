@@ -1,3 +1,9 @@
+error[E0599]: no variant, associated function, or constant named `MissingObject` found for enum `OcelRefusal` in the current scope
+  --> tests/ui/compile_fail/xes_undeclared_extension_prefix_rejected.rs:26:65
+   |
+26 |     let ocel_result: Result<(), OcelRefusal> = Err(OcelRefusal::MissingObject);
+   |                                                                 ^^^^^^^^^^^^^ variant, associated function, or constant not found in `OcelRefusal`
+
 error[E0308]: mismatched types
   --> tests/ui/compile_fail/xes_undeclared_extension_prefix_rejected.rs:27:39
    |

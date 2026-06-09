@@ -1,0 +1,17 @@
+diff --git a/wasm4pm-compat-lsp/src/actions.rs b/wasm4pm-compat-lsp/src/actions.rs
+index 38c35b6..4e4169a 100644
+--- a/wasm4pm-compat-lsp/src/actions.rs
++++ b/wasm4pm-compat-lsp/src/actions.rs
+@@ -429,4 +429,12 @@ mod tests {
+         let nonexistent = get_diagnostic_explanation("SomeFakeDiagnostic");
+         assert!(nonexistent.is_none());
+     }
++
++    #[test]
++    fn test_code_actions_visitor_rule_08_doc() {
++        let edit = generate_admit_stub_edit(
++            "MyType", "RawData", "AdmittedData", "Ocel20", "MyReason", "MyReason::Invalid", 10
++        );
++        assert_eq!(edit.range.start.line, 10);
++    }
+ }

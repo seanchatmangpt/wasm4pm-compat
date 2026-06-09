@@ -93,6 +93,17 @@ pub use crate::law::EvidenceMode;
 /// its witness.
 #[doc(alias = "process evidence")]
 #[doc(alias = "evidence carrier")]
+pub struct AdmittedEvidence<T> {
+    pub data: T,
+    pub hash: [u8; 32],
+}
+
+pub struct RefusedEvidence<T> {
+    pub raw_data: T,
+    pub refusal_reason: String,
+    pub code: u32,
+}
+
 pub struct Evidence<T, State: EvidenceState, W> {
     /// The underlying evidence shape.
     pub value: T,

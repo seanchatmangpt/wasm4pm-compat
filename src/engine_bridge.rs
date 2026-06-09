@@ -191,4 +191,8 @@ pub trait GraduateToWasm4pm {
     /// assert!(c.is_grounded());
     /// ```
     fn candidate(&self) -> GraduationCandidate;
+
+    fn is_grounded(&self) -> bool {
+        self.candidate().is_grounded()
+    }
 }

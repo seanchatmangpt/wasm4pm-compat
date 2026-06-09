@@ -296,4 +296,4 @@ reachable code, passing gates, negative fixtures, receipts, and replay.
 ---
 
 *Repository: https://github.com/seanchatmangpt/wasm4pm-compat*
-*Version: 26.6.8 | Rust edition: 2024 | Toolchain: nightly (covenant)*
+*Version: 26.6.9 | Rust edition: 2024 | Toolchain: nightly (covenant)*

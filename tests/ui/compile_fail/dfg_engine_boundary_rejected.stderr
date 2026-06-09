@@ -1,3 +1,18 @@
+error[E0599]: no associated function or constant named `default` found for struct `Dfg` in the current scope
+  --> tests/ui/compile_fail/dfg_engine_boundary_rejected.rs:22:73
+   |
+22 |     let raw_dfg: Evidence<Dfg, _, Pm4pyApiGrammar> = Evidence::raw(Dfg::default());
+   |                                                                         ^^^^^^^ associated function or constant not found in `Dfg`
+   |
+note: if you're trying to build a new `Dfg`, consider using `Dfg::new` which returns `Dfg`
+  --> src/dfg.rs
+   |
+   | /     pub fn new(
+   | |         nodes: impl IntoIterator<Item = DfgNode>,
+   | |         edges: impl IntoIterator<Item = DfgEdge>,
+   | |     ) -> Self {
+   | |_____________^
+
 error[E0599]: no method named `into_inner` found for struct `Evidence<Dfg, wasm4pm_compat::Raw, wasm4pm_compat::witness::Pm4pyApiGrammar>` in the current scope
   --> tests/ui/compile_fail/dfg_engine_boundary_rejected.rs:27:35
    |

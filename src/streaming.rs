@@ -48,7 +48,9 @@ pub struct StreamingSource<const WINDOW_SIZE: usize>;
 /// This is structure only. See [`crate::streaming`]. Graduate to `wasm4pm`
 /// when window contents must be consumed by an online monitor.
 pub struct EventWindow<T, const SIZE: usize> {
-    _items: PhantomData<T>,
+    pub buffer: [Option<T>; SIZE],
+    pub head: usize,
+    pub count: usize,
 }
 
 impl<T, const SIZE: usize> EventWindow<T, SIZE> {
@@ -63,8 +65,17 @@ impl<T, const SIZE: usize> EventWindow<T, SIZE> {
     /// ```
     pub fn new() -> Self {
         Self {
-            _items: PhantomData,
+            buffer: std::array::from_fn(|_| None),
+            head: 0,
+            count: 0,
         }
+    }
+
+    pub fn push(&mut self, event: T) -> Option<T> {
+        let old = self.buffer[self.head].take();
+        self.buffer[self.head] = Some(event);
+        self.head = (self.head + 1) % SIZE;
+        old
     }
 }
 
@@ -180,3 +191,9 @@ pub type OnlineEvidence<T> = ContextualEvidence<T, OnlineMonitoringContext>;
 /// assert_eq!(ev.inner, 7);
 /// ```
 pub type OfflineEvidence<T> = ContextualEvidence<T, OfflineAnalysisContext>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TemporalOrderConfusion {
+    pub current_timestamp: u64,
+    pub offending_timestamp: u64,
+}

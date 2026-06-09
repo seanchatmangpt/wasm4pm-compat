@@ -1,15 +1,15 @@
-error[E0277]: the trait bound `BypassAttempt: Sealed` is not satisfied
+error[E0277]: the trait bound `BypassAttempt: wasm4pm_compat::interop::graduation_seal::Sealed` is not satisfied
   --> tests/ui/compile_fail/graduation_candidate_bypassed.rs:28:30
    |
 28 | impl GraduationCandidate for BypassAttempt {}
    |                              ^^^^^^^^^^^^^ unsatisfied trait bound
    |
-help: the trait `Sealed` is not implemented for `BypassAttempt`
+help: the trait `wasm4pm_compat::interop::graduation_seal::Sealed` is not implemented for `BypassAttempt`
   --> tests/ui/compile_fail/graduation_candidate_bypassed.rs:22:1
    |
 22 | struct BypassAttempt;
    | ^^^^^^^^^^^^^^^^^^^^
-note: required by a bound in `wasm4pm_compat::interop::GraduationCandidate`
+note: required by a bound in `GraduationCandidate`
   --> src/interop.rs
    |
    | pub trait GraduationCandidate: graduation_seal::Sealed {}

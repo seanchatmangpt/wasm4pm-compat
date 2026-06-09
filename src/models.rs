@@ -101,6 +101,14 @@ pub struct Arc {
     pub weight: Option<usize>,
     #[serde(default)]
     pub object_type: Option<(String, bool)>,
+    #[serde(default)]
+    pub is_place_to_transition: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ArcDirection {
+    PlaceToTransition,
+    TransitionToPlace,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -502,12 +510,14 @@ mod tests_declare {
             to: "t1".to_string(),
             weight: Some(1),
             object_type: None,
+            is_place_to_transition: true,
         });
         net.arcs.push(Arc {
             from: "t1".to_string(),
             to: "p2".to_string(),
             weight: Some(2),
             object_type: None,
+            is_place_to_transition: false,
         });
 
         let w = net.incidence_matrix();
@@ -542,12 +552,14 @@ mod tests_declare {
             to: "t1".to_string(),
             weight: None,
             object_type: None,
+            is_place_to_transition: true,
         });
         net.arcs.push(Arc {
             from: "t1".to_string(),
             to: "p2".to_string(),
             weight: None,
             object_type: None,
+            is_place_to_transition: false,
         });
 
         assert!(net.is_structural_workflow_net());
@@ -564,6 +576,7 @@ mod tests_declare {
             to: "p2".to_string(),
             weight: None,
             object_type: None,
+            is_place_to_transition: false,
         });
 
         assert!(!net.is_structural_workflow_net());
@@ -606,28 +619,74 @@ impl DeclareModel {
 }
 
 impl Place {
-    pub fn new(id: &str) -> Self { Place { id: id.to_owned() } }
+    pub fn new(id: &str) -> Self {
+        Place { id: id.to_owned() }
+    }
 }
 
 impl Transition {
     pub fn new(id: &str, label: &str) -> Self {
-        Transition { id: id.to_owned(), label: label.to_owned(), is_invisible: None }
+        Transition {
+            id: id.to_owned(),
+            label: label.to_owned(),
+            is_invisible: None,
+        }
     }
 }
 
 impl Arc {
     pub fn place_to_transition(from: &str, to: &str) -> Self {
-        Arc { from: from.to_owned(), to: to.to_owned(), weight: None, object_type: None }
+        Arc {
+            from: from.to_owned(),
+            to: to.to_owned(),
+            weight: None,
+            object_type: None,
+            is_place_to_transition: true,
+        }
     }
 
     pub fn transition_to_place(from: &str, to: &str) -> Self {
-        Arc { from: from.to_owned(), to: to.to_owned(), weight: None, object_type: None }
+        Arc {
+            from: from.to_owned(),
+            to: to.to_owned(),
+            weight: None,
+            object_type: None,
+            is_place_to_transition: false,
+        }
     }
 
     #[must_use]
     pub fn typed(mut self, object_type: &str, read_arc: bool) -> Self {
         self.object_type = Some((object_type.to_owned(), read_arc));
         self
+    }
+
+    pub fn direction(&self) -> ArcDirection {
+        if self.is_place_to_transition {
+            ArcDirection::PlaceToTransition
+        } else {
+            ArcDirection::TransitionToPlace
+        }
+    }
+
+    pub fn object_type(&self) -> Option<&str> {
+        self.object_type.as_ref().map(|(ot, _)| ot.as_str())
+    }
+
+    pub fn is_variable(&self) -> bool {
+        self.object_type
+            .as_ref()
+            .map(|(_, iv)| *iv)
+            .unwrap_or(false)
+    }
+
+    pub fn with_weight(mut self, weight: usize) -> Self {
+        self.weight = Some(weight);
+        self
+    }
+
+    pub fn weight(&self) -> usize {
+        self.weight.unwrap_or(1)
     }
 }
 

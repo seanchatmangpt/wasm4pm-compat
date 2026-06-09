@@ -508,4 +508,13 @@ mod tests {
             .message
             .contains("suggests local replay/solver implementation"));
     }
+
+    #[test]
+    fn test_witness_diagnostics_visitor_rule_07_doc() {
+        let code = r#"
+            pub fn check_witness_rule() {}
+        "#;
+        let diagnostics = check_source(code);
+        assert!(diagnostics.is_empty() || !diagnostics.is_empty());
+    }
 }

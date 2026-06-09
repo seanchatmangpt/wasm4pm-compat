@@ -139,7 +139,7 @@ where
 /// `Between01<2, 1>` does **not compile**: `NUM <= DEN` is violated.
 /// `Between01<0, 0>` does **not compile**: `DEN > 0` is required.
 ///
-/// Used for [`crate::conformance::Metric`] to make out-of-range fitness/precision/F1 a compile
+/// Used to make out-of-range fitness/precision/F1 a compile
 /// error rather than a runtime panic.
 ///
 /// ```

@@ -972,3 +972,16 @@ pub trait Project {
         policy: LossPolicy,
     ) -> Result<LossReport<Self::From, Self::To, Self::Lost>, Self::Reason>;
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct MissingObjectRelation {
+    pub event_id: String,
+    pub expected_object_id: String,
+    pub relation_type: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct FlatteningLoss<From, To, Lost> {
+    pub policy_violated: LossPolicy,
+    pub report: LossReport<From, To, Lost>,
+}

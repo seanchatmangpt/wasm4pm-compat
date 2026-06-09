@@ -1,6 +1,6 @@
 # How-To: Enforcing Opt-in Strict Boundaries
 
-This guide demonstrates how to configure, write, and verify opt-in strict boundary declarations in `wasm4pm-compat` version `26.6.8` to validate process-evidence metadata.
+This guide demonstrates how to configure, write, and verify opt-in strict boundary declarations in `wasm4pm-compat` version `26.6.9` to validate process-evidence metadata.
 
 ---
 
@@ -16,7 +16,7 @@ In your `Cargo.toml`, enable the `strict` feature flag:
 
 ```toml
 [dependencies]
-wasm4pm-compat = { version = "26.6.8", features = ["strict"] }
+wasm4pm-compat = { version = "26.6.9", features = ["strict"] }
 ```
 
 ---

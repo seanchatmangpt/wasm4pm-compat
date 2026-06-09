@@ -1,6 +1,6 @@
 # Crate Verification & Examples Status Report
 **Project:** `wasm4pm-compat`
-**Target Version:** `26.6.8`
+**Target Version:** `26.6.9`
 **Execution Timestamp:** 2026-06-04T20:35:00Z
 
 This report contains details on the compilation and execution status of the code examples located under `examples/`, as well as failures identified in cargo doc-tests and UI trybuild tests on Mac OS.

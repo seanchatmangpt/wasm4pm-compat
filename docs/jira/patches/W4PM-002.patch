@@ -1,0 +1,39 @@
+diff --git a/src/loss.rs b/src/loss.rs
+index f7b6f33..f858ff1 100644
+--- a/src/loss.rs
++++ b/src/loss.rs
+@@ -972,3 +972,16 @@ pub trait Project {
+         policy: LossPolicy,
+     ) -> Result<LossReport<Self::From, Self::To, Self::Lost>, Self::Reason>;
+ }
++
++#[derive(Debug, Clone, PartialEq, Eq, Hash)]
++pub struct MissingObjectRelation {
++    pub event_id: String,
++    pub expected_object_id: String,
++    pub relation_type: String,
++}
++
++#[derive(Debug, Clone)]
++pub struct FlatteningLoss<From, To, Lost> {
++    pub policy_violated: LossPolicy,
++    pub report: LossReport<From, To, Lost>,
++}
+diff --git a/src/ocel.rs b/src/ocel.rs
+index 1545098..ab347d2 100644
+--- a/src/ocel.rs
++++ b/src/ocel.rs
+@@ -505,3 +505,13 @@ impl std::fmt::Display for OcelRefusal {
+ }
+ 
+ impl std::error::Error for OcelRefusal {}
++
++#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
++pub struct OcelTuple<E, O, EA, OA, E2O, O2O> {
++    pub events: Vec<E>,
++    pub objects: Vec<O>,
++    pub event_attrs: Vec<EA>,
++    pub object_attrs: Vec<OA>,
++    pub event_object_relations: Vec<E2O>,
++    pub object_object_relations: Vec<O2O>,
++}

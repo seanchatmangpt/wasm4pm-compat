@@ -4,11 +4,11 @@ version = 4
 
 [[package]]
 name = "c8-market"
-version = "0.1.0"
+version = "26.6.9"
 dependencies = [
  "c8-time",
 ]
 
 [[package]]
 name = "c8-time"
-version = "0.1.0"
+version = "26.6.9"

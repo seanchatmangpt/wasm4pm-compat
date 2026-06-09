@@ -6,7 +6,7 @@
 use std::fmt;
 
 /// A single event in a case trace.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Event {
     activity: String,
     timestamp_ns: u64,
@@ -25,21 +25,43 @@ impl Event {
     }
 
     #[must_use]
-    pub fn at_ns(mut self, ns: u64) -> Self { self.timestamp_ns = ns; self }
+    pub fn at_ns(mut self, ns: u64) -> Self {
+        self.timestamp_ns = ns;
+        self
+    }
 
     #[must_use]
-    pub fn by(mut self, resource: &str) -> Self { self.resource = Some(resource.to_owned()); self }
+    pub fn by(mut self, resource: &str) -> Self {
+        self.resource = Some(resource.to_owned());
+        self
+    }
 
     #[must_use]
-    pub fn with_lifecycle(mut self, lc: &str) -> Self { self.lifecycle = Some(lc.to_owned()); self }
+    pub fn with_lifecycle(mut self, lc: &str) -> Self {
+        self.lifecycle = Some(lc.to_owned());
+        self
+    }
 
-    pub fn activity(&self) -> &str { &self.activity }
-    pub fn resource(&self) -> Option<&str> { self.resource.as_deref() }
-    pub fn lifecycle(&self) -> Option<&str> { self.lifecycle.as_deref() }
+    pub fn activity(&self) -> &str {
+        &self.activity
+    }
+    pub fn timestamp_ns(&self) -> Option<u64> {
+        if self.timestamp_ns == 0 {
+            None
+        } else {
+            Some(self.timestamp_ns)
+        }
+    }
+    pub fn resource(&self) -> Option<&str> {
+        self.resource.as_deref()
+    }
+    pub fn lifecycle(&self) -> Option<&str> {
+        self.lifecycle.as_deref()
+    }
 }
 
 /// An ordered sequence of events belonging to one case.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Trace {
     case_id: String,
     events: Vec<Event>,
@@ -47,24 +69,39 @@ pub struct Trace {
 
 impl Trace {
     pub fn new(case_id: &str, events: impl IntoIterator<Item = Event>) -> Self {
-        Trace { case_id: case_id.to_owned(), events: events.into_iter().collect() }
+        Trace {
+            case_id: case_id.to_owned(),
+            events: events.into_iter().collect(),
+        }
     }
 
     pub fn from_events(events: impl IntoIterator<Item = Event>) -> Self {
-        Trace { case_id: String::new(), events: events.into_iter().collect() }
+        Trace {
+            case_id: "_".to_owned(),
+            events: events.into_iter().collect(),
+        }
     }
 
-    pub fn case_id(&self) -> &str { &self.case_id }
-    pub fn len(&self) -> usize { self.events.len() }
-    pub fn is_empty(&self) -> bool { self.events.is_empty() }
-    pub fn events(&self) -> &[Event] { &self.events }
+    pub fn case_id(&self) -> &str {
+        &self.case_id
+    }
+    pub fn len(&self) -> usize {
+        self.events.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+    pub fn events(&self) -> &[Event] {
+        &self.events
+    }
 
-    #[must_use]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
         if self.events.is_empty() {
             return Err(EventLogRefusal::EmptyTrace);
         }
-        let stamped: Vec<u64> = self.events.iter()
+        let stamped: Vec<u64> = self
+            .events
+            .iter()
             .map(|e| e.timestamp_ns)
             .filter(|&t| t > 0)
             .collect();
@@ -78,23 +115,30 @@ impl Trace {
 }
 
 /// A collection of traces forming a process event log.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct EventLog {
     traces: Vec<Trace>,
 }
 
 impl EventLog {
     pub fn from_traces(traces: impl IntoIterator<Item = Trace>) -> Self {
-        EventLog { traces: traces.into_iter().collect() }
+        EventLog {
+            traces: traces.into_iter().collect(),
+        }
     }
 
-    pub fn traces(&self) -> &[Trace] { &self.traces }
+    pub fn traces(&self) -> &[Trace] {
+        &self.traces
+    }
 
-    pub fn trace_count(&self) -> usize { self.traces.len() }
+    pub fn trace_count(&self) -> usize {
+        self.traces.len()
+    }
 
-    pub fn event_count(&self) -> usize { self.traces.iter().map(|t| t.len()).sum() }
+    pub fn event_count(&self) -> usize {
+        self.traces.iter().map(|t| t.len()).sum()
+    }
 
-    #[must_use]
     pub fn validate(&self) -> Result<(), EventLogRefusal> {
         for trace in &self.traces {
             trace.validate()?;
@@ -110,10 +154,18 @@ pub struct EventStream {
 }
 
 impl EventStream {
-    pub fn new() -> Self { EventStream::default() }
-    pub fn push(&mut self, e: Event) { self.events.push(e); }
-    pub fn is_empty(&self) -> bool { self.events.is_empty() }
-    pub fn len(&self) -> usize { self.events.len() }
+    pub fn new() -> Self {
+        EventStream::default()
+    }
+    pub fn push(&mut self, e: Event) {
+        self.events.push(e);
+    }
+    pub fn is_empty(&self) -> bool {
+        self.events.is_empty()
+    }
+    pub fn len(&self) -> usize {
+        self.events.len()
+    }
 }
 
 /// Named refusal variants for event-log validation laws.
@@ -126,6 +178,11 @@ pub enum EventLogRefusal {
     EmptyTrace,
     /// Events with explicit timestamps are not in non-decreasing order.
     NonMonotonicTrace,
+    MissingCaseId,
+    MissingActivity,
+    MissingTimestamp,
+    DuplicateEvent,
+    InvalidLifecycle,
 }
 
 impl fmt::Display for EventLogRefusal {
@@ -133,6 +190,11 @@ impl fmt::Display for EventLogRefusal {
         match self {
             EventLogRefusal::EmptyTrace => write!(f, "EmptyTrace"),
             EventLogRefusal::NonMonotonicTrace => write!(f, "NonMonotonicTrace"),
+            EventLogRefusal::MissingCaseId => write!(f, "MissingCaseId"),
+            EventLogRefusal::MissingActivity => write!(f, "MissingActivity"),
+            EventLogRefusal::MissingTimestamp => write!(f, "MissingTimestamp"),
+            EventLogRefusal::DuplicateEvent => write!(f, "DuplicateEvent"),
+            EventLogRefusal::InvalidLifecycle => write!(f, "InvalidLifecycle"),
         }
     }
 }

@@ -25,7 +25,6 @@ pub use crate::loss::{LossPolicy, LossReport, ProjectionName};
 
 pub use crate::event_log::{Event, EventLog, Trace};
 
-
 pub use crate::object_lifecycle::{
     ActiveObject, ArchivedObject, CreatedObject, DeletedObject, ModifiedObject,
     ObjectLifecyclePhase,

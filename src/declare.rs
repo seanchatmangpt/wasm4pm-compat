@@ -112,8 +112,12 @@ impl DeclareTemplate {
 pub struct Activity(pub String);
 
 impl Activity {
-    pub fn new(name: impl Into<String>) -> Self { Activity(name.into()) }
-    pub fn name(&self) -> &str { &self.0 }
+    pub fn new(name: impl Into<String>) -> Self {
+        Activity(name.into())
+    }
+    pub fn name(&self) -> &str {
+        &self.0
+    }
 }
 
 // ── DeclareScope ──────────────────────────────────────────────────────────────
@@ -148,16 +152,22 @@ impl DeclareConstraint {
         target: Activity,
         scope: DeclareScope,
     ) -> Self {
-        DeclareConstraint { template, activation, target: Some(target), scope }
+        DeclareConstraint {
+            template,
+            activation,
+            target: Some(target),
+            scope,
+        }
     }
 
     /// Construct a unary constraint (template arity = 1).
-    pub fn unary(
-        template: DeclareTemplate,
-        activation: Activity,
-        scope: DeclareScope,
-    ) -> Self {
-        DeclareConstraint { template, activation, target: None, scope }
+    pub fn unary(template: DeclareTemplate, activation: Activity, scope: DeclareScope) -> Self {
+        DeclareConstraint {
+            template,
+            activation,
+            target: None,
+            scope,
+        }
     }
 }
 
@@ -180,13 +190,14 @@ pub enum DeclareRefusal {
 
 impl fmt::Display for DeclareRefusal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            DeclareRefusal::MissingTarget => write!(f, "MissingTarget"),
-            DeclareRefusal::InvalidTemplateArity => write!(f, "InvalidTemplateArity"),
-            DeclareRefusal::EmptyObjectScope => write!(f, "EmptyObjectScope"),
-            DeclareRefusal::SynchronizationViolation => write!(f, "SynchronizationViolation"),
-            DeclareRefusal::MissingActivation => write!(f, "MissingActivation"),
-        }
+        let law = match self {
+            DeclareRefusal::MissingActivation => "MissingActivation",
+            DeclareRefusal::MissingTarget => "MissingTarget",
+            DeclareRefusal::InvalidTemplateArity => "InvalidTemplateArity",
+            DeclareRefusal::EmptyObjectScope => "EmptyObjectScope",
+            DeclareRefusal::SynchronizationViolation => "SynchronizationViolation",
+        };
+        write!(f, "Declare refused: {law}")
     }
 }
 
@@ -204,7 +215,10 @@ pub struct OcDeclareConstraint {
 }
 
 impl OcDeclareConstraint {
-    pub fn new(constraint: DeclareConstraint, object_types: impl IntoIterator<Item = String>) -> Self {
+    pub fn new(
+        constraint: DeclareConstraint,
+        object_types: impl IntoIterator<Item = String>,
+    ) -> Self {
         OcDeclareConstraint {
             constraint,
             object_types: object_types.into_iter().collect(),
@@ -223,9 +237,10 @@ impl OcDeclareConstraint {
         }
     }
 
-    pub fn is_synchronized(&self) -> bool { self.synchronized }
+    pub fn is_synchronized(&self) -> bool {
+        self.synchronized
+    }
 
-    #[must_use]
     pub fn validate(&self) -> Result<(), OcDeclareRefusal> {
         if self.object_types.is_empty() {
             return Err(OcDeclareRefusal::EmptyObjectTypeList);
@@ -261,11 +276,11 @@ pub enum OcDeclareRefusal {
 impl fmt::Display for OcDeclareRefusal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OcDeclareRefusal::EmptyObjectTypeList => write!(f, "EmptyObjectTypeList"),
+            OcDeclareRefusal::EmptyObjectTypeList => write!(f, "OcDeclare refused: EmptyObjectTypeList"),
             OcDeclareRefusal::SynchronizationRequiresMultipleTypes => {
-                write!(f, "SynchronizationRequiresMultipleTypes")
+                write!(f, "OcDeclare refused: SynchronizationRequiresMultipleTypes")
             }
-            OcDeclareRefusal::ScopeMismatch => write!(f, "ScopeMismatch"),
+            OcDeclareRefusal::ScopeMismatch => write!(f, "OcDeclare refused: ScopeMismatch"),
         }
     }
 }

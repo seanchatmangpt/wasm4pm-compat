@@ -86,7 +86,7 @@ mod tests {
     fn implementation_receipt_new() {
         let receipt = ImplementationReceipt::new(
             "nightly-2025-06-01".to_string(),
-            "26.6.5".to_string(),
+            "26.6.9".to_string(),
             vec!["market".to_string()],
             "release".to_string(),
             "x86_64-unknown-linux-gnu".to_string(),
@@ -94,7 +94,7 @@ mod tests {
         );
 
         assert_eq!(receipt.rustc_version, "nightly-2025-06-01");
-        assert_eq!(receipt.c8_version, "26.6.5");
+        assert_eq!(receipt.c8_version, "26.6.9");
         assert_eq!(receipt.receipt_count, 0);
     }
 
@@ -102,7 +102,7 @@ mod tests {
     fn implementation_receipt_record() {
         let mut receipt = ImplementationReceipt::new(
             "nightly".to_string(),
-            "26.6.5".to_string(),
+            "26.6.9".to_string(),
             vec![],
             "release".to_string(),
             "x86_64".to_string(),
@@ -121,7 +121,7 @@ mod tests {
     fn implementation_receipt_avg_empty() {
         let receipt = ImplementationReceipt::new(
             "nightly".to_string(),
-            "26.6.5".to_string(),
+            "26.6.9".to_string(),
             vec![],
             "release".to_string(),
             "x86_64".to_string(),
@@ -135,7 +135,7 @@ mod tests {
     fn implementation_receipt_to_json() {
         let mut receipt = ImplementationReceipt::new(
             "nightly".to_string(),
-            "26.6.5".to_string(),
+            "26.6.9".to_string(),
             vec!["market".to_string()],
             "release".to_string(),
             "x86_64".to_string(),

@@ -1,6 +1,6 @@
 # Reference: Refusal Laws & Violations
 
-This document catalogs the domain-specific refusal enums and structural law violations returned when process evidence fails boundary validation in `wasm4pm-compat` version `26.6.8`.
+This document catalogs the domain-specific refusal enums and structural law violations returned when process evidence fails boundary validation in `wasm4pm-compat` version `26.6.9`.
 
 ---
 

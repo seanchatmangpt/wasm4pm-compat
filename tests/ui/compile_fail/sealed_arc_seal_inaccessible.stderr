@@ -1,11 +1,5 @@
-error[E0603]: module `arc_seal` is private
-   --> tests/ui/compile_fail/sealed_arc_seal_inaccessible.rs:4:28
-    |
-  4 | use wasm4pm_compat::petri::arc_seal;
-    |                            ^^^^^^^^ private module
-    |
-note: the module `arc_seal` is defined here
-   --> src/petri.rs:317:1
-    |
-317 | mod arc_seal {
-    | ^^^^^^^^^^^^
+error[E0432]: unresolved import `wasm4pm_compat::petri::arc_seal`
+ --> tests/ui/compile_fail/sealed_arc_seal_inaccessible.rs:4:5
+  |
+4 | use wasm4pm_compat::petri::arc_seal;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `arc_seal` in `petri`

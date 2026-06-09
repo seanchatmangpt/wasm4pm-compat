@@ -1,0 +1,67 @@
+diff --git a/src/conformance.rs b/src/conformance.rs
+index 3f009e0..77cfc17 100644
+--- a/src/conformance.rs
++++ b/src/conformance.rs
+@@ -1,5 +1,17 @@
+ use serde::{Deserialize, Serialize};
+ 
++use std::simd::u32x16;
++
++pub struct SimdMarking {
++    pub vector: u32x16,
++}
++
++impl SimdMarking {
++    pub fn fire_transitions(&mut self, input_mask: u32x16, output_mask: u32x16) {
++        self.vector = (self.vector - input_mask) + output_mask;
++    }
++}
++
+ /// Result of token-based replay conformance checking
+ #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+ pub struct TokenReplayResult {
+diff --git a/src/streaming.rs b/src/streaming.rs
+index e2f7a00..cd34cd4 100644
+--- a/src/streaming.rs
++++ b/src/streaming.rs
+@@ -48,7 +48,9 @@ pub struct StreamingSource<const WINDOW_SIZE: usize>;
+ /// This is structure only. See [`crate::streaming`]. Graduate to `wasm4pm`
+ /// when window contents must be consumed by an online monitor.
+ pub struct EventWindow<T, const SIZE: usize> {
+-    _items: PhantomData<T>,
++    pub buffer: [Option<T>; SIZE],
++    pub head: usize,
++    pub count: usize,
+ }
+ 
+ impl<T, const SIZE: usize> EventWindow<T, SIZE> {
+@@ -63,9 +65,18 @@ impl<T, const SIZE: usize> EventWindow<T, SIZE> {
+     /// ```
+     pub fn new() -> Self {
+         Self {
+-            _items: PhantomData,
++            buffer: std::array::from_fn(|_| None),
++            head: 0,
++            count: 0,
+         }
+     }
++
++    pub fn push(&mut self, event: T) -> Option<T> {
++        let old = self.buffer[self.head].take();
++        self.buffer[self.head] = Some(event);
++        self.head = (self.head + 1) % SIZE;
++        old
++    }
+ }
+ 
+ impl<T, const SIZE: usize> Default for EventWindow<T, SIZE> {
+@@ -180,3 +191,9 @@ pub type OnlineEvidence<T> = ContextualEvidence<T, OnlineMonitoringContext>;
+ /// assert_eq!(ev.inner, 7);
+ /// ```
+ pub type OfflineEvidence<T> = ContextualEvidence<T, OfflineAnalysisContext>;
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
++pub struct TemporalOrderConfusion {
++    pub current_timestamp: u64,
++    pub offending_timestamp: u64,
++}
