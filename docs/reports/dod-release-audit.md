@@ -63,31 +63,53 @@ Following the codebase-wide documentation hygiene patches, all intra-doc and pri
 
 | File / Module | Warning Count | Status | Notes |
 |---|---|---|---|
+| `src/admission.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/bpmn.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/causal_net.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/causality.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/choice_graph.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/conformance.rs` | 0 | **PASS** | Clean of unresolved links; mathematical brackets escaped. |
 | `src/correlation.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/declare.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/dense_kernel.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/dfg.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/diagnostic.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/engine_bridge.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/error.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/event_log.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/eventlog.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/evidence.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/formats.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/hash.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/ids.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/import` | 0 | **PASS** | Clean of unresolved links. |
 | `src/interop.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/law.rs` | 0 | **PASS** | Clean of unresolved links; invalid `Metric` link resolved. |
 | `src/loss.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/models.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/multiperspective.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/nightly_foundry.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/object_lifecycle.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/ocel.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/ocpq.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/parity` | 0 | **PASS** | Clean of unresolved links. |
 | `src/petri.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/powl.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/powl8_op.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/prediction.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/prelude.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/process_cube.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/process_tree.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/receipt.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/state.rs` | 0 | **PASS** | Clean of unresolved links. |
-| `src/witness.rs` | 0 | **PASS** | Clean of unresolved links. |
-| `src/xes.rs` | 0 | **PASS** | Clean of unresolved links. |
-| `src/formats.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/streaming.rs` | 0 | **PASS** | Clean of unresolved links. |
 | `src/strict.rs` | 0 | **PASS** | Clean of unresolved links. |
-| `src/nightly_foundry.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/temporal.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/verifier` | 0 | **PASS** | Clean of unresolved links. |
+| `src/witness.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/witnesses.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/workflow.rs` | 0 | **PASS** | Clean of unresolved links. |
+| `src/xes.rs` | 0 | **PASS** | Clean of unresolved links. |
 
 ---
 

@@ -19,16 +19,16 @@ The table below maps the required DoD canon shapes to their concrete Rust implem
 
 | Canon Shape | Rust Type(s) | Source File | Academic Canon & Structural Verification Details |
 | :--- | :--- | :--- | :--- |
-| **Event** | `Event` (XES style), `Event` (OCEL simple), `XesEvent` | `src/event_log.rs`, `src/eventlog.rs`, `src/xes.rs` | Represents an occurrence of an activity. Conforms to IEEE 1849 XES / van der Aalst process mining definitions. Uses attribute collections or simple structured fields (activity, timestamp, resource, lifecycle). |
+| **Event** | `Event` (XES style), `Event` (OCEL simple), `XesEvent`, `OcelEvent`, `OCELEvent` | `src/event_log.rs`, `src/eventlog.rs`, `src/xes.rs`, `src/ocel.rs` | Represents an occurrence of an activity. Conforms to IEEE 1849 XES / van der Aalst process mining definitions. Uses attribute collections or simple structured fields (activity, timestamp, resource, lifecycle). |
 | **Trace** | `Trace` (XES style), `Trace` (OCEL simple), `XesTrace` | `src/event_log.rs`, `src/eventlog.rs`, `src/xes.rs` | Ordered case-scoped sequence of events. Represents a single case execution. Conforms to van der Aalst's log theory. |
-| **Log** | `EventLog` (XES), `EventLog` (simple), `XesLog`, `OcelLog` | `src/event_log.rs`, `src/eventlog.rs`, `src/xes.rs`, `src/ocel.rs` | Collections of case-centric traces or object-centric logs. Thin wrappers around sequence lists. |
-| **OCEL** | `OcelLog`, `OCEL` | `src/ocel.rs` | Captures OCEL 2.0 object-centric structure (objects, events, types, attributes, event-to-object and object-to-object relationships, changes). Conforms to Gatta et al. (2023) standard. |
+| **Log** | `EventLog` (XES), `EventLog` (simple), `XesLog`, `OcelLog`, `OCEL` | `src/event_log.rs`, `src/eventlog.rs`, `src/xes.rs`, `src/ocel.rs` | Collections of case-centric traces or object-centric logs. Thin wrappers around sequence lists. |
+| **OCEL** | `OcelLog`, `OCEL`, `OcelObject`, `OCELObject`, `OcelEvent`, `OCELEvent`, `OcelAttribute`, `OCELRelationship`, `OCELObjectAttribute`, `OCELEventAttribute`, `OCELAttributeValue`, `EventObjectLink`, `OcelTuple`, `OcelDims` | `src/ocel.rs` | Captures OCEL 2.0 object-centric structure (objects, events, types, attributes, event-to-object and object-to-object relationships, changes). Conforms to Gatta et al. (2023) standard. |
 | **XES** | `XesLog`, `XesTrace`, `XesEvent`, `XesExtension` | `src/xes.rs` | Captures IEEE 1849 XES XML nested trace/event interchange format, namespaces, and standard global/extension attributes. |
-| **BPMN** | `BpmnProcess`, `BpmnNode`, `BpmnEdge` | `src/bpmn.rs` | Graph-only layout containing task nodes, gateways (Exclusive, Parallel, Inclusive, EventBased, Complex), events (Start, Intermediate, End, Boundary), and directed flow edges. Conforms to OMG BPMN 2.0. |
-| **Petri Net** | `PetriNet`, `Place`, `Transition`, `Arc` | `src/petri.rs`, `src/models.rs` | Directed bipartite graph containing places, transitions, directed arcs, and markings. Conforms to Carl Adam Petri (1962). |
-| **WF-net** | `WfNet`, `WfNetConst`, `Marking` | `src/petri.rs` | Extends `PetriNet` with designated source/sink places, initial/final markings, and typestate/const-generic soundness tracking. Conforms to van der Aalst (1998) Workflow Nets. |
+| **BPMN** | `BpmnProcess`, `BpmnNode`, `BpmnEdge`, `BpmnTask`, `BpmnGateway`, `BpmnEvent`, `BpmnNodeKind` | `src/bpmn.rs` | Graph-only layout containing task nodes, gateways (Exclusive, Parallel, Inclusive, EventBased, Complex), events (Start, Intermediate, End, Boundary), and directed flow edges. Conforms to OMG BPMN 2.0. |
+| **Petri Net** | `PetriNet`, `Place`, `Transition`, `Arc`, `Marking`, `ArcDirection`, `PetriRefusal`, `PetriNetRefusal` | `src/petri.rs`, `src/models.rs` | Directed bipartite graph containing places, transitions, directed arcs, and markings. Conforms to Carl Adam Petri (1962). |
+| **WF-net** | `WfNet`, `WfNetConst`, `Marking`, `SoundnessUnknown`, `SoundnessClaimed`, `SoundnessWitnessed`, `WfNetSoundnessProofOf` | `src/petri.rs` | Extends `PetriNet` with designated source/sink places, initial/final markings, and typestate/const-generic soundness tracking. Conforms to van der Aalst (1998) Workflow Nets. |
 | **OC-Petri-net** | `ObjectCentricPetriNet` | `src/petri.rs` | Object-centric Petri net, where places, transitions, and arcs are annotated/typed by object types. Conforms to van der Aalst (2019). |
-| **POWL** | `Powl`, `PowlNode`, `OrderEdge` | `src/powl.rs` | Partially ordered workflow language model. Nodes include Choice, Loop, PartialOrder, Silent, Atom, and Irreducible. Conforms to Kourani, Park, van der Aalst (2026). |
+| **POWL** | `Powl`, `PowlNode`, `OrderEdge`, `PowlNodeKind`, `Powl8Op` | `src/powl.rs`, `src/powl8_op.rs` | Partially ordered workflow language model. Nodes include Choice, Loop, PartialOrder, Silent, Atom, and Irreducible. Conforms to Kourani, Park, van der Aalst (2026). |
 | **Choice Graph** | `ChoiceGraph`, `ChoiceGraphNode` | `src/choice_graph.rs`, `src/powl.rs` | Validated Choice Graph containing nodes (Start, End, Activity, SubModel) and DAG precedence edges on paths. Conforms to Kourani, Park, van der Aalst (arXiv:2505.07052). |
 | **Process Tree** | `ProcessTree`, `ProcessTreeNode`, `ProcessTreeOperator` | `src/process_tree.rs` | Block-structured tree with operators (Loop, Sequence, Xor, Parallel, Or, Silent) and leaf activities. Conforms to Leemans et al. (2013) Inductive Miner. |
 | **Declare** | `DeclareConstraint`, `DeclareTemplate`, `Activity`, `DeclareScope` | `src/declare.rs`, `src/models.rs` | DECLARE constraint-based modeling. Binds 22 canonical templates (Existence, Response, Precedence, Succession, CoExistence, etc.) to activities and scopes. Conforms to Pesic & van der Aalst (2007). |
@@ -46,6 +46,10 @@ The table below maps the required DoD canon shapes to their concrete Rust implem
 | **Conformance Verdict** | `ConformanceVerdict`, `Deviation`, `QualityProfile` | `src/conformance.rs` | Verdict metrics (Fitness, Precision, F1, Simplicity, Generalization) and structural deviations (Sync, LogOnly, ModelOnly moves). |
 | **Prediction Problem** | `PredictionProblem`, `PrefixTrace`, `OutcomeLabel` | `src/prediction.rs` | Target kinds (next activity, remaining time, compliance, risk, drift) and prefix trace horizons. |
 | **Receipt Evidence** | `ReceiptEnvelope`, `ProvenanceChain`, `Blake3Hash` | `src/receipt.rs` | Provenance-bearing cryptographic envelope containing digests and replay hints. |
+| **Object Lifecycle** | `ObjectLifecyclePhase`, `ObjectState`, `LifecycleTransition`, `ObjectLifecycleWitness`, `LifecycledObject`, `CreatedObject`, `ActiveObject`, `ModifiedObject`, `ArchivedObject`, `DeletedObject` | `src/object_lifecycle.rs` | Zero-cost const-generic lifecycle phase tracking for objects. Conforms to OCEL 2.0 / object-centric process mining object lifecycle phases (creation, active participation, modification, archival, deletion). |
+| **Evidence Admission & Refusal** | `Admission<T, W>`, `Refusal<R, W>` | `src/admission.rs` | Enforces explicit, non-panicking boundaries for log admission and policy/law compliance. `Admission` carries admitted evidence, while `Refusal` records structured reasons for admission failure. |
+| **Lossy Projection & Loss Accountability** | `LossPolicy`, `LossReport<From, To, Items>`, `ProjectionName`, `Project`, `NamedLoss`, `LossChain`, `FlatteningLoss` | `src/loss.rs` | Models information loss when projecting between process models or log formats. Conforms to process mining projection theory (van der Aalst). Enforces named policies and explicit reports. |
+| **Compatibility Diagnostics** | `CompatDiagnostic`, `DiagnosticSeverity` | `src/diagnostic.rs` | Provides the diagnostic vocabulary and severity levels for auditing process-evidence boundary law compliance (e.g., secret/hidden flattening, missing witnesses, raw evidence leaks). Structure-only enum/advisory metadata. |
 
 ---
 
@@ -61,14 +65,18 @@ The table below maps the required DoD canon shapes to their concrete Rust implem
 - **`ObjectScopeConst<KIND>`** (defined in `src/ocpq.rs`): Pins the object scope strategy (`Open`, `Closed`, `SingleType`) at compile time.
 - **`CubeSlice<D, V>`** (defined in `src/process_cube.rs`): Connects a cell slice to its static `CubeDimension` type.
 - **`MultiPerspectiveEvidence<T, Perspectives>`** (defined in `src/multiperspective.rs`): Wraps evidence with zero-cost type combinations (e.g. `ControlFlowPerspective`).
+- **`LifecycledObject<T, PHASE>`** (defined in `src/object_lifecycle.rs`): Enforces lawful phase transitions of objects at compile time via const-generic `PHASE` parameter and `ObjectState` phantom markers.
+- **`Admission<T, W>`** and **`Refusal<R, W>`** (defined in `src/admission.rs`): Bind log evidence and refusal reasons to compile-time witness type markers `W`.
+- **`LossReport<From, To, Items>`** (defined in `src/loss.rs`): Connects projection loss reports to the source (`From`) and destination (`To`) types using phantom type parameters.
 
 ### `#[repr(transparent)]` Zero-Cost Wrappers
 To prevent argument mixing and type confusion, identifier and score primitives are wrapped using transparent newtypes:
-- **Kind-Typed IDs** (defined in `src/ids.rs`): `EventId<K>`, `ObjectId<K>`, `CaseId<K>`, `ActivityId<K>`, `ObjectTypeId<K>`, `EventTypeId<K>`, and `RelationId<K>` are zero-cost `#[repr(transparent)]` wrappers over `u64`/`u32` tagged with a phantom namespace `K`.
+- **Kind-Typed IDs** (defined in `src/ids.rs`): `EventId<K>`, `ObjectId<K>`, `CaseId<K>`, `ActivityId<K>`, `ObjectTypeId<K>`, `EventTypeId<K>`, `RelationId<K>`, and `TraceId<K>` are zero-cost `#[repr(transparent)]` wrappers over `u64`/`u32` tagged with a phantom namespace `K`.
 - **Quality Metrics** (defined in `src/conformance.rs`): `Fitness`, `Precision`, `F1`, `Generalization`, and `Simplicity` are transparent wrappers over `f64` (and compile-time fractions via `FitnessConst`, `PrecisionConst`, etc.).
 - **Digest and Replay Carriers** (defined in `src/receipt.rs`): `Digest` and `ReplayHint` are `#[repr(transparent)]` wrappers over `String`.
 - **Names** (defined in `src/declare.rs`): `Activity` is a transparent wrapper over `String`.
 - **Weights** (defined in `src/dfg.rs`): `DfgWeight` is a transparent wrapper over `u64`.
+- **Projection Names** (defined in `src/loss.rs`): `ProjectionName` is a transparent wrapper over `&'static str`.
 
 ---
 
