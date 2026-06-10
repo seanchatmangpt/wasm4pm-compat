@@ -72,6 +72,9 @@ strict = []
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
 
+# ts: Generate TypeScript/Specta bindings for frontend integration.
+ts = ["dep:specta", "serde/derive"]
+
 [dependencies]
 quick-xml = "0.36.0"
 
@@ -82,6 +85,8 @@ serde_json = "1.0"
 uuid = { version = "1.23.2", features = ["v4", "serde", "js"] }
 hashbrown = "0.17.1"
 rustc-hash = "2"
+
+specta = { version = "1.0.5", optional = true }
 
 
 [dev-dependencies]

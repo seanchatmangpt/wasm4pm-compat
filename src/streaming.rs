@@ -75,6 +75,9 @@ impl<T, const SIZE: usize> EventWindow<T, SIZE> {
         let old = self.buffer[self.head].take();
         self.buffer[self.head] = Some(event);
         self.head = (self.head + 1) % SIZE;
+        if self.count < SIZE {
+            self.count += 1;
+        }
         old
     }
 }
