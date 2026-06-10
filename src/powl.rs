@@ -1128,3 +1128,235 @@ mod tests {
         assert_eq!(p.validate(), Err(PowlRefusal::ChoiceGraphDisconnected));
     }
 }
+
+// ── PowlBuilder ──────────────────────────────────────────────────────────────
+
+/// Ergonomic arena builder for [`Powl`] models.
+///
+/// Assigns [`PowlNodeId`]s automatically; callers use string labels. Call
+/// [`PowlBuilder::build`] to get the validated [`Powl`] or a [`PowlRefusal`].
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::powl::{PowlBuilder, PowlRefusal};
+///
+/// let powl = PowlBuilder::new()
+///     .atom("register")
+///     .atom("approve")
+///     .partial_order("po", &["register", "approve"], &[("register", "approve")])
+///     .build()
+///     .expect("valid model");
+/// assert_eq!(powl.node_count(), 3);
+/// ```
+#[derive(Debug, Default)]
+pub struct PowlBuilder {
+    powl: Powl,
+    // label → PowlNodeId index for name resolution
+    label_map: std::collections::HashMap<String, PowlNodeId>,
+}
+
+impl PowlBuilder {
+    /// Create an empty builder.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Add an activity (Atom) node.  Returns the assigned [`PowlNodeId`].
+    pub fn atom(mut self, label: &str) -> Self {
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl
+            .nodes
+            .push(PowlNode::new(id, PowlNodeKind::Atom(label.to_string())));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add a silent (tau) node.
+    pub fn silent(mut self, label: &str) -> Self {
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl
+            .nodes
+            .push(PowlNode::new(id, PowlNodeKind::Silent));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add a partial-order node over `children` with precedence `edges` (pairs of labels).
+    /// Children that don't yet exist as atoms are added automatically as atoms.
+    pub fn partial_order(
+        mut self,
+        label: &str,
+        children: &[&str],
+        edges: &[(&str, &str)],
+    ) -> Self {
+        // Ensure all referenced children exist.
+        for &c in children {
+            if !self.label_map.contains_key(c) {
+                self = self.atom(c);
+            }
+        }
+        let child_ids: Vec<PowlNodeId> = children
+            .iter()
+            .map(|c| self.label_map[*c])
+            .collect();
+        for &(from_lbl, to_lbl) in edges {
+            if let (Some(&from), Some(&to)) =
+                (self.label_map.get(from_lbl), self.label_map.get(to_lbl))
+            {
+                self.powl.edges.push(OrderEdge::new(from, to));
+            }
+        }
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl
+            .nodes
+            .push(PowlNode::new(id, PowlNodeKind::PartialOrder(child_ids)));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add an exclusive-choice node over `branches` (labels of existing nodes).
+    pub fn choice(mut self, label: &str, branches: &[&str]) -> Self {
+        for &b in branches {
+            if !self.label_map.contains_key(b) {
+                self = self.atom(b);
+            }
+        }
+        let branch_ids: Vec<PowlNodeId> = branches
+            .iter()
+            .map(|b| self.label_map[*b])
+            .collect();
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl
+            .nodes
+            .push(PowlNode::new(id, PowlNodeKind::Choice(branch_ids)));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add a loop node: mandatory `do_label` body with an optional `redo_label`.
+    pub fn loop_node(mut self, label: &str, do_label: &str, redo_label: Option<&str>) -> Self {
+        if !self.label_map.contains_key(do_label) {
+            self = self.atom(do_label);
+        }
+        if let Some(r) = redo_label {
+            if !self.label_map.contains_key(r) {
+                self = self.atom(r);
+            }
+        }
+        let body = self.label_map[do_label];
+        let redo = redo_label.map(|r| self.label_map[r]);
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl
+            .nodes
+            .push(PowlNode::new(id, PowlNodeKind::Loop { body, redo }));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add a POWL 2.0 choice-graph node.
+    /// `nodes` are labels; `edges` are (from_label, to_label) pairs.
+    pub fn choice_graph(
+        mut self,
+        label: &str,
+        nodes: &[&str],
+        edges: &[(&str, &str)],
+    ) -> Self {
+        for &n in nodes {
+            if !self.label_map.contains_key(n) {
+                self = self.atom(n);
+            }
+        }
+        let node_ids: Vec<PowlNodeId> = nodes.iter().map(|n| self.label_map[*n]).collect();
+        let edge_objs: Vec<ChoiceGraphEdge> = edges
+            .iter()
+            .filter_map(|&(f, t)| {
+                Some(ChoiceGraphEdge::new(
+                    *self.label_map.get(f)?,
+                    *self.label_map.get(t)?,
+                ))
+            })
+            .collect();
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl.nodes.push(PowlNode::new(
+            id,
+            PowlNodeKind::ChoiceGraph {
+                nodes: node_ids,
+                edges: edge_objs,
+            },
+        ));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Set the root node by label.
+    pub fn root(mut self, label: &str) -> Self {
+        if let Some(&id) = self.label_map.get(label) {
+            self.powl.root = Some(id);
+        }
+        self
+    }
+
+    /// Finalise and structurally validate the model.
+    /// Returns `Err(PowlRefusal)` if any structural law is violated.
+    pub fn build(self) -> Result<Powl, PowlRefusal> {
+        self.powl.validate()?;
+        Ok(self.powl)
+    }
+
+    /// Finalise without validation (for tests that intentionally build invalid models).
+    pub fn build_unchecked(self) -> Powl {
+        self.powl
+    }
+}
+
+#[cfg(test)]
+mod builder_tests {
+    use super::*;
+
+    #[test]
+    fn builder_atom_sequence() {
+        let powl = PowlBuilder::new()
+            .atom("a")
+            .atom("b")
+            .partial_order("po", &["a", "b"], &[("a", "b")])
+            .build()
+            .unwrap();
+        assert_eq!(powl.node_count(), 3);
+        assert!(powl.root.is_none()); // root not set — caller sets it explicitly
+    }
+
+    #[test]
+    fn builder_choice() {
+        let powl = PowlBuilder::new()
+            .atom("x")
+            .atom("y")
+            .choice("c", &["x", "y"])
+            .root("c")
+            .build()
+            .unwrap();
+        assert_eq!(powl.node_count(), 3);
+        assert_eq!(powl.root, Some(PowlNodeId(2)));
+    }
+
+    #[test]
+    fn builder_loop() {
+        let powl = PowlBuilder::new()
+            .atom("do")
+            .atom("redo")
+            .loop_node("lp", "do", Some("redo"))
+            .build()
+            .unwrap();
+        assert_eq!(powl.node_count(), 3);
+    }
+
+    #[test]
+    fn builder_cyclic_partial_order_refused() {
+        let result = PowlBuilder::new()
+            .atom("a")
+            .atom("b")
+            .partial_order("po", &["a", "b"], &[("a", "b"), ("b", "a")])
+            .build();
+        assert_eq!(result, Err(PowlRefusal::CyclicPartialOrder));
+    }
+}
