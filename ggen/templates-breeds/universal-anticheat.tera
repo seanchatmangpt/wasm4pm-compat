@@ -2,7 +2,7 @@
 // Enforces: paper pointer decoy values must not appear as literals in breed source files.
 // True values must be derived by the algorithm, not hardcoded.
 
-{% for row in rows %}
+{% for row in sparql_results %}
 #[test]
 fn anticheat_{{ row.breed_id }}_decoy_{{ row.pointer_value | replace(from=".", to="_") | replace(from=" ", to="_") | replace(from="/", to="_") }}_not_in_source() {
     // {{ row.pointer_locus }}{% if row.decoy_reason is defined %}

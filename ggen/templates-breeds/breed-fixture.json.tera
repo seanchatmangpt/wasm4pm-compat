@@ -1,6 +1,6 @@
 {
-  "breed": "{{ row.breed_id }}",
-  "description": "{{ row.breed_doc }} — {{ row.citation }}",
+  "breed": "{{ breed_id }}",
+  "description": "{{ breed_doc }} — {{ citation }}",
   "input": {
     "facts": []
   },

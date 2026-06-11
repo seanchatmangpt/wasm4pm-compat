@@ -2,7 +2,7 @@
 // DO NOT EDIT — re-sync from ggen to regenerate.
 // Each test: true value must appear in output; decoy must NOT appear in breed source.
 
-{% for row in rows %}{% if row.pointer_kind == "true" %}
+{% for row in sparql_results %}{% if row.pointer_kind == "true" %}
 #[test]
 fn paper_pointer_{{ row.breed_id }}_{{ row.pointer_value | replace(from=".", to="_") | replace(from=" ", to="_") }}_appears_in_output() {
     // {{ row.pointer_locus }}{% if row.pointer_derivation %}

@@ -1,14 +1,13 @@
-// Breed stub: {{ row.breed_id }} — generated skeleton, implement and remove this comment.
-// Citation: {{ row.citation }}
+// Breed stub: {{ breed_id }} — generated skeleton, implement and remove this comment.
+// Citation: {{ citation }}
 use crate::breeds::{BreedError, BreedId, BreedInput, BreedOutput, CognitionBreed};
 use crate::breeds::support::tracer::Tracer;
-use crate::breeds::support::BreedOutput as _;
 
-pub struct {{ row.rust_variant | default(value=row.breed_id | title) }};
+pub struct {{ breed_label }};
 
-impl CognitionBreed for {{ row.rust_variant | default(value=row.breed_id | title) }} {
+impl CognitionBreed for {{ breed_label }} {
     fn id(&self) -> BreedId {
-        BreedId::{{ row.rust_variant | default(value=row.breed_id | title) }}
+        BreedId::{{ breed_label }}
     }
 
     fn run(&self, input: &BreedInput) -> Result<BreedOutput, BreedError> {
