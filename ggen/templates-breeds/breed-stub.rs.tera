@@ -10,9 +10,18 @@ impl CognitionBreed for {{ breed_label }} {
         BreedId::{{ breed_label }}
     }
 
-    fn run(&self, input: &BreedInput) -> Result<BreedOutput, BreedError> {
+    fn preconditions(&self, _input: &BreedInput) -> Result<(), String> {
+        Err("breed not yet implemented".to_string())
+    }
+
+    fn postconditions(&self, _input: &BreedInput, _output: &BreedOutput) -> Result<(), String> {
+        Err("breed not yet implemented".to_string())
+    }
+
+    fn run(&self, _input: &BreedInput) -> Result<BreedOutput, BreedError> {
         let mut trace = Tracer::new();
-        trace.push(0, "stub", "NOT YET IMPLEMENTED", 0, vec![]);
+        trace.push("stub", "NOT YET IMPLEMENTED");
+        let _ = trace;
         Err(self.error("breed not yet implemented".to_string()))
     }
 }
