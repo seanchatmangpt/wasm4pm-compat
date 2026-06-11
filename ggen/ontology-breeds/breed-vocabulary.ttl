@@ -48,3 +48,5 @@ compat:decoyReason   a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:ran
   rdfs:comment "Why this number is a plausible miscitation (for decoy pointers)." .
 compat:outputJsonPath a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
   rdfs:comment "Optional JSON pointer into BreedOutput where this value should appear." .
+compat:hardcodeLockable a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "Gates the derive-not-hardcode (A8) lock on a true pointer. \"true\" emits a hardcode lock asserting the full published literal is ABSENT from production code (the algorithm must derive it). \"false\" (or absent) emits NO lock — the value is a low-cardinality vocabulary/frame token that legitimately appears as a production literal, so locking it would false-positive. Set per the lock-audit, not by numeric-ness of the value." .

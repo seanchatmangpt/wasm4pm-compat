@@ -16,13 +16,44 @@ fn breed_source(module: &str) -> String {
         .unwrap_or_else(|_| panic!("MISSING SOURCE: {} — every pointer-bearing breed must have its module on disk", src_path))
 }
 
-/// Strip inline `#[cfg(test)]` modules: doc-comment examples and unit tests may
-/// legitimately mention paper values; the lock applies to production code only.
-fn production_half(src: &str) -> &str {
-    match src.find("#[cfg(test)]") {
-        Some(i) => &src[..i],
-        None => src,
+/// Strip ALL inline `#[cfg(test)]` modules/items, not just the first.
+///
+/// Doc-comment examples and unit tests may legitimately mention paper values;
+/// the lock applies to production code only. A single truncate-at-first-marker
+/// is exploitable: an injected top-level `#[cfg(test)] mod _z {}` near the top
+/// of the file would hide the entire algorithm body from the lock. We instead
+/// scan line-by-line and, at every line whose trimmed text starts with
+/// `#[cfg(test)]`, drop that line and the following brace-balanced block
+/// (`{ ... }`) until brace depth returns to where it was before the marker.
+/// The surviving production lines are concatenated and returned for searching.
+fn production_half(src: &str) -> String {
+    let mut out = String::new();
+    let mut lines = src.lines();
+    while let Some(line) = lines.next() {
+        if line.trim_start().starts_with("#[cfg(test)]") {
+            // Consume the marker's following brace-balanced block until depth
+            // returns to the pre-marker level (0 net). Drop the whole region.
+            let mut depth: i32 = 0;
+            let mut opened = false;
+            while let Some(cur) = lines.next() {
+                for ch in cur.chars() {
+                    if ch == '{' {
+                        depth += 1;
+                        opened = true;
+                    } else if ch == '}' {
+                        depth -= 1;
+                    }
+                }
+                if opened && depth <= 0 {
+                    break;
+                }
+            }
+            continue;
+        }
+        out.push_str(line);
+        out.push('\n');
     }
+    out
 }
 {% for row in sparql_results %}{% if row.pointer_kind == "decoy" %}
 #[test]
@@ -38,22 +69,20 @@ fn anticheat_{{ row.breed_id }}_decoy_{{ loop.index }}_not_in_source() {
         "{{ row.module_file }}"
     );
 }
-{% endif %}{% if row.pointer_kind == "true" %}
+{% endif %}{% if row.pointer_kind == "true" and row.hardcode_lockable == "true" %}
 #[test]
 fn anticheat_{{ row.breed_id }}_true_{{ loop.index }}_not_hardcoded() {
     // {{ row.pointer_locus }}{% if row.pointer_derivation %}
     // Derivation: {{ row.pointer_derivation }}{% endif %}
-    let value = r#"{{ row.pointer_value }}"#;
-    // The hardcode lock applies to DERIVED values (numerics): a verdict
-    // vocabulary string ("UNSAT", "valid") legitimately exists as a literal.
-    if value.parse::<f64>().is_err() {
-        return;
-    }
+    // Lockability is decided by the wasm4pm-compat lock-audit (compat:hardcodeLockable),
+    // NOT by whether the value parses as a float. The full published literal is
+    // currently absent from production, so this lock is a true constraint with
+    // no false positive: the algorithm must DERIVE the answer, not hardcode it.
     let src = breed_source("{{ row.module_file }}");
-    let needle = format!("{:?}", value);
+    let needle = r#"{{ row.pointer_value }}"#;
     assert!(
-        !production_half(&src).contains(&needle),
-        "ANTI-CHEAT A8: published value {} appears as a string literal in {}.rs production code — it must be DERIVED by the algorithm, not hardcoded",
+        !production_half(&src).contains(needle),
+        "ANTI-CHEAT A8: published value {:?} appears as a literal in {}.rs production code — it must be DERIVED by the algorithm, not hardcoded",
         needle,
         "{{ row.module_file }}"
     );
