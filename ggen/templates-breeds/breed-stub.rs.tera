@@ -1,8 +1,9 @@
-// Breed stub: {{ breed_id }} — generated skeleton, implement and remove this comment.
-// Citation: {{ citation }}
+//! Breed stub: {{ breed_id }} — generated skeleton, implement and replace this doc.
+//! Citation: {{ citation }}
 use crate::breeds::{BreedError, BreedId, BreedInput, BreedOutput, CognitionBreed};
 use crate::breeds::support::tracer::Tracer;
 
+/// {{ breed_label }} — unimplemented stub for breed `{{ breed_id }}`.
 pub struct {{ breed_label }};
 
 impl CognitionBreed for {{ breed_label }} {
