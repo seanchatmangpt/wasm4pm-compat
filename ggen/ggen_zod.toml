@@ -1,0 +1,28 @@
+[project]
+name = "wasm4pm-zod-gen"
+version = "26.6.9"
+description = "Zod generation manifest"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ontology/wasm4pm-compat.ttl"
+# removing additional to avoid duplicate load errors
+additional = []
+standard_only = false
+
+[generation]
+output_dir = "/Users/sac/wasm4pm-compat"
+
+[[generation.rules]]
+name = "zod-schemas"
+query = { file = "queries/extract-zod-schemas.rq" }
+template = { file = "templates/zod-schemas.ts.tera" }
+output_file = "examples/zod_integration/zod_schemas.ts"
+mode = "Overwrite"
+
+[inference]
+enabled = true
+rules = [
+  { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1" }
+]

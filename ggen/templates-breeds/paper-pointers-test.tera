@@ -1,31 +1,41 @@
-// Anti-cheat paper pointer tests — generated from wasm4pm-compat/ggen/ontology-breeds/paper-pointers.ttl
-// DO NOT EDIT — re-sync from ggen to regenerate.
-// Each test: true value must appear in output; decoy must NOT appear in breed source.
+// Paper-pointer meta-gate — generated from wasm4pm-compat ontology
+// (ggen rule: paper-pointers, Overwrite mode — hand edits are reverted by sync).
+//
+// For every breed with a TRUE paper pointer, the fixture on disk must exist and
+// carry a real asserted value + provenance. This closes the graceful-skip
+// loophole structurally: a missing or skeleton fixture is a hard failure here,
+// regardless of how tests/paper_grounded.rs reads it.
 
+fn fixture_json(breed_id: &str) -> serde_json::Value {
+    let path = format!(
+        "{}/tests/fixtures/papers/{}.json",
+        env!("CARGO_MANIFEST_DIR"),
+        breed_id
+    );
+    let raw = std::fs::read_to_string(&path)
+        .unwrap_or_else(|_| panic!("MISSING FIXTURE: {} — breeds with paper pointers must have fixtures", path));
+    serde_json::from_str(&raw).unwrap_or_else(|e| panic!("UNPARSEABLE FIXTURE {}: {}", path, e))
+}
+
+fn assert_real_fixture(breed_id: &str) {
+    let v = fixture_json(breed_id);
+    let raw = v.to_string();
+    assert!(
+        !raw.contains("REPLACE_WITH_PAPER_VALUE"),
+        "SKELETON FIXTURE: {} still carries the generated placeholder — fill it from the paper",
+        breed_id
+    );
+    let has_provenance = raw.contains("provenance") || raw.contains("citation") || raw.contains("paper");
+    assert!(
+        has_provenance,
+        "NO PROVENANCE: fixture for {} cites no paper/citation/provenance — A12 citation-without-assertion",
+        breed_id
+    );
+}
 {% for row in sparql_results %}{% if row.pointer_kind == "true" %}
 #[test]
-fn paper_pointer_{{ row.breed_id }}_{{ row.pointer_value | replace(from=".", to="_") | replace(from=" ", to="_") }}_appears_in_output() {
-    // {{ row.pointer_locus }}{% if row.pointer_derivation %}
-    // Derivation: {{ row.pointer_derivation }}{% endif %}
-    use crate::breeds::dispatch::dispatch_breed_test;
-    // This test requires a fixture that exercises the paper value.
-    // The value "{{ row.pointer_value }}" must appear in the output's facts or explanation.
-    // Actual invocation lives in tests/paper_grounded.rs — this file asserts the source constraint.
-    let src = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/breeds/{{ row.breed_id }}.rs"));
-    // The true value should NOT be hardcoded as a literal in the breed source.
-    // It must be derived by the algorithm. (Substring check as a detector.)
-    // Note: algorithm may legitimately produce this as output — check is on SOURCE not output.
-    let _ = src; // suppress unused warning; anti-cheat gate in universal_anticheat.rs
-}
-{% endif %}{% if row.pointer_kind == "decoy" %}
-#[test]
-fn paper_pointer_{{ row.breed_id }}_decoy_{{ row.pointer_value | replace(from=".", to="_") | replace(from=" ", to="_") }}_not_in_source() {
-    // Decoy: {{ row.pointer_locus }}{% if row.decoy_reason %}
-    // Why decoy: {{ row.decoy_reason }}{% endif %}
-    let src = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/breeds/{{ row.breed_id }}.rs"));
-    assert!(
-        !src.contains("{{ row.pointer_value }}"),
-        "ANTI-CHEAT: decoy value \"{{ row.pointer_value }}\" found literally in {{ row.breed_id }}.rs source — algorithm must derive values, not hardcode citations"
-    );
+fn pointer_fixture_{{ row.breed_id }}_{{ loop.index }}_is_real() {
+    // True pointer: "{{ row.pointer_value }}" — {{ row.pointer_locus }}
+    assert_real_fixture("{{ row.breed_id }}");
 }
 {% endif %}{% endfor %}

@@ -10,7 +10,8 @@ source = "ontology/wasm4pm-compat.ttl"
 additional = [
   "ontology/papers.ttl",
   "ontology/ggen-substrate.ttl",
-  "ontology/audit-machinery.ttl"
+  "ontology/audit-machinery.ttl",
+  "ontology/zod-types.ttl"
 ]
 standard_only = false
 
@@ -34,7 +35,7 @@ local_cache = "ontology/.open-ontologies-cache"
 allow_remote_fetch = true
 
 [generation]
-output_dir = ".."
+output_dir = "/Users/sac/wasm4pm-compat"
 
 # ---------------------------------------------------------------------------
 # Rule: witness-markers
@@ -126,6 +127,17 @@ name = "audit-projection-receipts"
 query = { file = "queries/extract-blocking-audits.rq" }
 template = { file = "templates/audit-projection-receipts.sh.tera" }
 output_file = "audits/audit-projection-receipts.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: zod-schemas
+# Extracts Zod schema metadata and renders bindings/zod_schemas.ts.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "zod-schemas"
+query = { file = "queries/extract-zod-schemas.rq" }
+template = { file = "templates/zod-schemas.ts.tera" }
+output_file = "bindings/zod_schemas.ts"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
