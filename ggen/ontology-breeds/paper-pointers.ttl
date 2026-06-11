@@ -705,3 +705,80 @@ compat:PP_version_space_true_SunnyWarmStrong a compat:PaperPointer ;
   compat:pointerValue "Sunny,Warm,?,Strong,?,?" ;
   compat:pointerLocus "Mitchell 1982, Artificial Intelligence 18(2), Sections 3-4 (candidate-elimination); EnjoySport worked instance in Mitchell 1997 ML, Ch. 2, Tables 2.1/2.5" ;
   compat:pointerDerivation "expected.s — final specific boundary S4 after the four EnjoySport examples" .
+
+compat:PP_autoinstinct_semantics_decoy2_pp_569 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_autoinstinct_semantics ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "pp. 569" ;
+  compat:pointerLocus "Schank 1972, Cognitive Psychology 3(4), Section 3 'The Primitive Acts', Table 1, 'John gave Mary a book'" ;
+  compat:decoyReason "A careless agent collapses the canonical example's true page span (pp. 567-571) to a single mid-span page 'pp. 569', a plausible off-by-citation miscitation of the same Schank 1972 ATRANS worked example. It is not a substring of the true pointer 'Atrans' (and vice versa), is >=3 chars, and grep returns 0 occurrences in autoinstinct_semantics.rs." .
+
+compat:PP_construction_grammar_decoy2_CAUSETRANSFER a compat:PaperPointer ;
+  compat:forBreed compat:Breed_construction_grammar ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "CAUSE-TRANSFER" ;
+  compat:pointerLocus "Goldberg 1995, Constructions, Univ. of Chicago Press, Ch. 1-2 (ditransitive construction, 'Pat faxed Bill the letter')" ;
+  compat:decoyReason "A careless agent reading Goldberg's prose about the ditransitive construction \"supplying the transfer meaning\" would hardcode the meaning frame as CAUSE-TRANSFER instead of the paper's actual frame label CAUSE-RECEIVE. It is a plausible paraphrase miscitation of the same expected.meaning_frame from the same Goldberg 1995 citation, shares no substring with the true value CAUSE-RECEIVE, and avoids the genuine sibling frame CAUSE-MOVE (caused-motion) which legitimately appears in the source." .
+
+compat:PP_contingent_plan_decoy2_sense_nodes2 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_contingent_plan ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "sense_nodes=2" ;
+  compat:pointerLocus "Russell & Norvig 2010 (AIMA 3rd ed.), §4.3.2, AND-OR search in the partially observable vacuum world" ;
+  compat:decoyReason "A careless agent miscounts the conditional plan's sense nodes as 2 — double-counting by treating each branch of the if-then-else as carrying its own sense, or counting the else (done) branch as a second sense test. The true AND-OR plan '(sense check-dirt dirt (act suck (done)) (done))' has exactly one sense node (sense_nodes=1). This same-paper misreading is a plausible off-by-one hardcode, is not a substring of the true pointer value (and vice versa), and is >=3 chars." .
+
+compat:PP_markov_logic_decoy2_2_600000 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_markov_logic ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "2.600000" ;
+  compat:pointerLocus "Richardson & Domingos 2006, Machine Learning 62(1-2):107-136, Table 1 / Fig. 1 (smokes/friends MLN, w=1.5 and w=1.1 clauses) grounded for {anna, bob}" ;
+  compat:decoyReason "A careless agent mis-sums the weights of one smoke-cancer clause (1.5) and one friends clause (1.1) as if those ground clauses were left unsatisfied, hardcoding cost 2.600000 instead of the true MAP cost of 0.000000 where every ground clause is satisfied." .
+
+compat:PP_mdp_decoy2_1_62 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_mdp ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "1.62" ;
+  compat:pointerLocus "Bellman 1957, Dynamic Programming, Princeton Univ. Press, Ch. III–IV (functional equation / value iteration)" ;
+  compat:decoyReason "A careless agent applies the discount factor γ one extra time to the converged optimal value: 0.9·V(s0)=0.9·1.8=1.62 (equivalently γ²·V(s1)=0.81·2.0=1.62), one over-discounted iteration short of the true fixed point V(s0)=1.8. Plausible mis-chained product, not a substring of \"1.8\", >=3 chars, absent from mdp.rs." .
+
+compat:PP_meta_reasoning_decoy2_0_48 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_meta_reasoning ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "0.48" ;
+  compat:pointerLocus "Cox & Raja (eds.) 2011, Metareasoning: Thinking about Thinking, MIT Press, Ch. 1" ;
+  compat:decoyReason "A careless agent might report the arbitration confidence as 0.48, the mis-chained product of the two reasoners' confidences (0.8 x 0.6), instead of the true outcome 'gentamicin'. Confidence-weighted arbitration does NOT multiply the competing confidences; it selects the higher-confidence (0.8 mycin) conclusion. 0.48 is a plausible wrong-number misreading and is absent from the source." .
+
+compat:PP_morphological_decoy2_18432 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_morphological ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "18432" ;
+  compat:pointerLocus "Zwicky, F. 1969, Discovery, Invention, Research Through the Morphological Approach, Macmillan — propulsive system morphology (1947 jet engine field)" ;
+  compat:decoyReason "Zwicky's famous propulsive-system morphological box yields 36,864 combinations; 18432 is that total halved — the value a careless agent gets by dropping one of the binary parameters (one iteration short of the full Cartesian product). It is a wrong number, not the breed's true pointer value (thrust-augmentation-1=translatory-motion), shares no substring with it, and references the same Zwicky 1969 citation." .
+
+compat:PP_mycin_decoy2_0_63 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_mycin ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "0.63" ;
+  compat:pointerLocus "Shortliffe & Buchanan 1975, Math. Biosciences 23(3–4):351–379, §11.4 p.247 (MB[h,e] for the streptococcus rule)" ;
+  compat:decoyReason "Mis-chained CF: a careless agent multiplies the two rule certainties (0.7 organism rule × 0.9 therapy rule = 0.63) and reports that as the final/organism CF, instead of the paper's stated MB[h,e]=0.7. Plausible wrong number, not a substring of the true value 0.7." .
+
+compat:PP_ocpm_route_discoverer_decoy2_PayShip a compat:PaperPointer ;
+  compat:forBreed compat:Breed_ocpm_route_discoverer ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "Pay->Ship" ;
+  compat:pointerLocus "van der Aalst, W.M.P. 2019, Object-Centric Process Mining: Dealing with Divergence and Convergence — Route Discovery" ;
+  compat:decoyReason "A careless agent flattens all events into a single global route ignoring object identity — the exact divergence/convergence error the paper warns against. Sequencing e2(Pay) before e3(Ship) yields the bogus \"Pay->Ship\" route, mixing the o1 (order) and i1 (item) lifecycles that should be kept separate. It is neither a substring of the true pointer \"Create->Pay\" nor contains it, and grep -c confirms 0 occurrences in src/breeds/ocpm_route_discoverer.rs." .
+
+compat:PP_tableaux_decoy2_2_0 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_tableaux ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "2.0" ;
+  compat:pointerLocus "Smullyan 1968, First-Order Logic, Part I Ch. II — Analytic Tableaux; F(A -> (B -> A)) tableau, beta (branching) expansion count" ;
+  compat:decoyReason "A careless agent miscounts the two implication connectives in A -> (B -> A) as requiring two beta (branching) expansions, hardcoding beta_expansions = 2.0. In fact the K-axiom signed tableau closes using only alpha (non-branching) rules, so the true beta_expansions is 0 and the verdict value is \"valid\". The number 2.0 is a plausible branch-miscount, is not a substring of \"valid\" (nor vice versa), is >=3 chars, and is grep-confirmed absent (count 0) from tableaux.rs." .
+
+compat:PP_version_space_decoy2_SunnyWarmStrongWarmSame a compat:PaperPointer ;
+  compat:forBreed compat:Breed_version_space ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "Sunny,Warm,?,Strong,Warm,Same" ;
+  compat:pointerLocus "Mitchell 1982, Artificial Intelligence 18(2), Sections 3-4 (candidate-elimination); EnjoySport worked instance in Mitchell 1997 ML, Ch. 2, Tables 2.1/2.5" ;
+  compat:decoyReason "This is the specific boundary S after example 2 (and unchanged by the negative example 3), i.e. S2/S3 = <Sunny,Warm,?,Strong,Warm,Same>. A careless agent stops one iteration short of processing the fourth positive EnjoySport example, which generalizes both water (Warm->?) and forecast (Same->?). The true converged S4 is \"Sunny,Warm,?,Strong,?,?\". This off-by-one-iteration hypothesis is a plausible misreading: it shares the prefix but is neither a substring of nor contains the true value." .
