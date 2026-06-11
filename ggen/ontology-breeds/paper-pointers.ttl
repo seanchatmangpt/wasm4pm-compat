@@ -1,0 +1,45 @@
+@prefix rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:    <http://www.w3.org/2001/XMLSchema#> .
+@prefix compat: <https://wasm4pm.dev/ns#> .
+
+# ── Morphological Analysis — paper pointers ─────────────────────────────────
+
+compat:PP_morph_true_576 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_morphological ;
+  compat:pointerKind "true" ;
+  compat:pointerValue "576" ;
+  compat:pointerLocus "Ritchey 2011, Fig 2.1 (Springer)" ;
+  compat:pointerDerivation "4×4×3×3×2×2 = 576 field configurations" ;
+  compat:outputJsonPath "/facts/morphological:solution_space" .
+
+compat:PP_morph_decoy_36864 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_morphological ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "36864" ;
+  compat:pointerLocus "Zwicky 1951 (miscited early edition)" ;
+  compat:decoyReason "Plausible 2^15 variant a naive agent might cite from a secondary source." .
+
+compat:PP_morph_true_186624 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_morphological ;
+  compat:pointerKind "true" ;
+  compat:pointerValue "186624" ;
+  compat:pointerLocus "Ritchey 2011, Fig 2.3 (Springer)" ;
+  compat:pointerDerivation "6×6×6×6×4×6×6 = 186,624 FOI organisational configurations" ;
+  compat:outputJsonPath "/facts/morphological:solution_space" .
+
+# ── MYCIN Production Rules — paper pointers ──────────────────────────────────
+
+compat:PP_mycin_true_cf a compat:PaperPointer ;
+  compat:forBreed compat:Breed_mycin ;
+  compat:pointerKind "true" ;
+  compat:pointerValue "0.63" ;
+  compat:pointerLocus "Buchanan & Shortliffe 1984, MYCIN CF chain example" ;
+  compat:pointerDerivation "rule.certainty(0.9) × min(premise CFs: 0.7) = 0.63" ;
+  compat:outputJsonPath "/output/certainty_factor" .
+
+compat:PP_mycin_decoy_09 a compat:PaperPointer ;
+  compat:forBreed compat:Breed_mycin ;
+  compat:pointerKind "decoy" ;
+  compat:pointerValue "0.9" ;
+  compat:pointerLocus "Miscited as final CF (it is the rule certainty, not the chain result)" ;
+  compat:decoyReason "Naive agents return the rule certainty directly, skipping the min-premise propagation." .

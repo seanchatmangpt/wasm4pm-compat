@@ -1,0 +1,8 @@
+breeds! {
+{% for row in rows %}    /// {{ row.breed_doc }}
+    {{ row.breed_label }} = "{{ row.breed_id }}" => crate::breeds::{{ row.module_path | default(value=row.breed_id) }}::{{ row.breed_label }};
+{% endfor %}}
+
+pub const ALL: &[BreedId] = &[
+{% for row in rows %}{% if row.breed_status is defined and row.breed_status == "PARTIAL_ALIVE" %}    BreedId::{{ row.breed_label }},
+{% endif %}{% endfor %}];

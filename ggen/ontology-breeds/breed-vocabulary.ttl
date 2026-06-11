@@ -1,0 +1,50 @@
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix compat: <https://wasm4pm.dev/ns#> .
+
+# ── CognitionBreed class ────────────────────────────────────────────────────
+
+compat:CognitionBreed a rdfs:Class ;
+  rdfs:label "Cognition Breed" ;
+  rdfs:comment "A registered cognition algorithm breed in the wasm4pm platform." .
+
+compat:breedId       a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string ;
+  rdfs:comment "Canonical lowercase snake_case breed identifier (matches Rust Display, TS schema)." .
+
+compat:breedLabel    a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string .
+compat:breedDoc      a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string .
+compat:citation      a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string .
+compat:breedStanding a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string ;
+  rdfs:comment "UNSUPPORTED | PARTIAL_ALIVE (NEVER hand-written — derived from evidence.ttl via alive-gate CONSTRUCT)." .
+
+compat:modulePath    a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string ;
+  rdfs:comment "Rust module path when it differs from breedId (e.g. production_rules for mycin)." .
+
+compat:rustVariant   a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string ;
+  rdfs:comment "PascalCase Rust enum variant when auto-PascalCase of breedId is wrong." .
+
+compat:measuredFitness a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:decimal .
+compat:ocelAdmitted    a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:boolean .
+compat:fitnessProvenance a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string .
+compat:breedStatus   a rdf:Property ; rdfs:domain compat:CognitionBreed ; rdfs:range xsd:string ;
+  rdfs:comment "Derived by alive-gate CONSTRUCT — NEVER assert manually in breeds.ttl." .
+
+# ── PaperPointer class ──────────────────────────────────────────────────────
+
+compat:PaperPointer a rdfs:Class ;
+  rdfs:label "Paper Pointer" ;
+  rdfs:comment "Anti-cheat assertion: a specific numeric/string value derived from a primary source paper, paired with a decoy miscitation that must NOT appear in the breed's source." .
+
+compat:forBreed      a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range compat:CognitionBreed .
+compat:pointerKind   a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "true | decoy" .
+compat:pointerValue  a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string .
+compat:pointerLocus  a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "Bibliographic location: Author Year, Figure/Table/Eq ref." .
+compat:pointerDerivation a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "How the true value was derived (e.g. 4×4×3×3×2×2)." .
+compat:decoyReason   a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "Why this number is a plausible miscitation (for decoy pointers)." .
+compat:outputJsonPath a rdf:Property ; rdfs:domain compat:PaperPointer ; rdfs:range xsd:string ;
+  rdfs:comment "Optional JSON pointer into BreedOutput where this value should appear." .

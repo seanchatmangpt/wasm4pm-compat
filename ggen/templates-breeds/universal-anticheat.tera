@@ -1,0 +1,24 @@
+// Universal anti-cheat tests — generated from wasm4pm-compat ontology.
+// Enforces: paper pointer decoy values must not appear as literals in breed source files.
+// True values must be derived by the algorithm, not hardcoded.
+
+{% for row in rows %}
+#[test]
+fn anticheat_{{ row.breed_id }}_decoy_{{ row.pointer_value | replace(from=".", to="_") | replace(from=" ", to="_") | replace(from="/", to="_") }}_not_in_source() {
+    // {{ row.pointer_locus }}{% if row.decoy_reason is defined %}
+    // Why this is a decoy: {{ row.decoy_reason }}{% endif %}
+    let module = "{{ row.module_path | default(value=row.breed_id) }}";
+    let src_path = format!(
+        "{}/src/breeds/{}.rs",
+        env!("CARGO_MANIFEST_DIR"),
+        module
+    );
+    let src = std::fs::read_to_string(&src_path)
+        .unwrap_or_else(|_| panic!("MISSING SOURCE: {}", src_path));
+    assert!(
+        !src.contains("{{ row.pointer_value }}"),
+        "ANTI-CHEAT A8/A12: decoy value \"{{ row.pointer_value }}\" found literally in {}.rs          — algorithms must derive values, not hardcode citations. Locus: {{ row.pointer_locus }}",
+        module
+    );
+}
+{% endfor %}
