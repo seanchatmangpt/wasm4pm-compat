@@ -1,0 +1,10 @@
+{
+  "operation_id": "3fa85f73-23b4-4dfe-a685-8c22d5f8582f",
+  "timestamp": "2026-06-10T01:49:07.841470Z",
+  "input_hashes": [],
+  "output_hashes": [
+    "/Users/sac/wasm4pm-compat/examples/zod_integration/zod_schemas.ts:ae6165c72cfd4c2d47efd3460da369f2490318d37abd1dd744d981b809f51105"
+  ],
+  "signature": "13dbc894f3e42cb7e77fd300864c0fb8f6ec60ac40880350bb097763ce3165aa7acf7c3dff0fc08cb6c16e3443f564266aca5fbd676faf4a2a25fd974f034406",
+  "previous_receipt_hash": "6bb6ea0c28d4edcf0ce93c97c1380404096d5dfe2d6d31f891dc662c9cee7ea6"
+}
