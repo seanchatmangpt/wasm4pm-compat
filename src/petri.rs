@@ -381,6 +381,12 @@ impl<T, P, W> IsValidArc for TransitionToPlaceArc<T, P, W> {}
 
 pub struct SeparableWfNetMarker;
 
+// The private `_seal` field is the non-forgeability mechanism, NOT an
+// accidental near-`#[non_exhaustive]`. `#[non_exhaustive]` would not reproduce
+// the "field `_seal` is private" compile error that the
+// `wfnet_to_powl_nonseparable` type-law receipt asserts, and it permits
+// struct-literal construction within this crate. Keep the private field.
+#[allow(clippy::manual_non_exhaustive)]
 pub struct SeparableWfNet<const S: SoundnessState> {
     pub net: WfNetConst<S>,
     /// Non-forgeable seal: this private field prevents constructing a

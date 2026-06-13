@@ -657,6 +657,79 @@ impl std::fmt::Display for OcelRefusal {
 
 impl std::error::Error for OcelRefusal {}
 
+/// The sanctioned `Raw → Admitted` boundary for an [`OcelLog`], judged against
+/// the [`Ocel20`] authority.
+///
+/// ## What this IS
+///
+/// - The **only** concrete admission path that wires [`OcelLog::validate`]'s
+///   structural laws (no dangling event→object link; non-empty E2O) into the
+///   typed one-way door of [`crate::admission::Admit`]. It turns *authority
+///   labeling* into *authority enforcement*: the crate does not merely name
+///   `DanglingEventObjectLink`, this function detects it and refuses with it.
+///
+/// ## What this is **NOT**
+///
+/// - **Not** an engine. It performs O(events × links) structural checking only —
+///   no discovery, conformance, or replay. Those graduate to `wasm4pm`.
+/// - **Not** a semantic OCEL 2.0 validator. It enforces the two object-centricity
+///   structure laws the crate names; full standard conformance graduates.
+///
+/// Graduate to `wasm4pm` when the OCEL log must be *executed* (mined, replayed,
+/// conformance-checked), not merely admitted as structurally lawful.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::admission::Admit;
+/// use wasm4pm_compat::evidence::Evidence;
+/// use wasm4pm_compat::ocel::{
+///     EventObjectLink, LinkedOcel, Object, OcelEvent, OcelLog, OcelRefusal,
+/// };
+///
+/// // A log whose single event links to a declared object: lawful.
+/// let lawful = OcelLog::new(
+///     [Object::new("o1", "order")],
+///     [OcelEvent::new("e1", "place")],
+///     [EventObjectLink::new("e1", "o1")],
+///     [],
+///     [],
+/// );
+/// assert!(LinkedOcel::admit(Evidence::raw(lawful)).is_ok());
+///
+/// // A log whose event links to an object that does not exist: refused, by name.
+/// let dangling = OcelLog::new(
+///     [Object::new("o1", "order")],
+///     [OcelEvent::new("e1", "place")],
+///     [EventObjectLink::new("e1", "missing")],
+///     [],
+///     [],
+/// );
+/// let refusal = LinkedOcel::admit(Evidence::raw(dangling)).unwrap_err();
+/// assert_eq!(refusal.reason, OcelRefusal::DanglingEventObjectLink);
+/// ```
+pub enum LinkedOcel {}
+
+impl crate::admission::Admit for LinkedOcel {
+    type Raw = OcelLog;
+    type Admitted = OcelLog;
+    type Reason = OcelRefusal;
+    type Witness = crate::witness::Ocel20;
+
+    fn admit(
+        raw: crate::evidence::Evidence<OcelLog, crate::state::Raw, crate::witness::Ocel20>,
+    ) -> Result<
+        crate::admission::Admission<OcelLog, crate::witness::Ocel20>,
+        crate::admission::Refusal<OcelRefusal, crate::witness::Ocel20>,
+    > {
+        let log = raw.value;
+        match log.validate() {
+            Ok(()) => Ok(crate::admission::Admission::new(log)),
+            Err(reason) => Err(crate::admission::Refusal::new(reason)),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct OcelTuple<E, O, EA, OA, E2O, O2O> {
     pub events: Vec<E>,
