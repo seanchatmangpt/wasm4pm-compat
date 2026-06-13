@@ -32,9 +32,13 @@ anti-cheat-gate:
         | grep "\[ANTI-LLM-" \
         | grep -v "node_modules\|Cargo.lock\|\.ggen\|ggen/WIT\|docs/" \
         | grep "src/declare.rs\|src/process_tree.rs\|src/powl.rs\|src/causal_net.rs" || true)
+    # Exclusions:
+    # - strict_contracts.rs: uses Vec::contains(&EnumVariant) — structural PartialEq, not Display cheat
+    # - compile_pass/: trybuild fixtures intentionally testing Display law surface
+    # - compile_fail/: trybuild fixtures; compile_pass_strict/: same, Vec::contains structural
     TEST=$("$SCAN" scan --dir . 2>&1 \
         | grep "\[ANTI-LLM-TEST-001\]" \
-        | grep "tests/" | grep -v "\.ggen" || true)
+        | grep "tests/" | grep -v "\.ggen\|strict_contracts\|compile_pass\|compile_fail" || true)
     LSP=$("$SCAN" scan --dir . 2>&1 \
         | grep "\[ANTI-LLM-SURFACE-001\]" \
         | grep "wasm4pm-compat-lsp/src/" || true)

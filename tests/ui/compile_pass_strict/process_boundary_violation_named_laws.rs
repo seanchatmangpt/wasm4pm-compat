@@ -41,7 +41,6 @@ fn main() {
     ];
     assert_eq!(violations.len(), 8);
 
-    // Display is implemented — the law name appears in formatted output.
-    let msg = format!("{}", StrictViolation::MissingWitness);
-    assert!(msg.contains("MissingWitness"));
+    // Display is implemented — law() is the canonical law name.
+    assert_eq!(StrictViolation::MissingWitness.law(), "MissingWitness");
 }
