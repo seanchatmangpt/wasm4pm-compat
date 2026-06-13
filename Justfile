@@ -24,12 +24,20 @@ anti-cheat-gate:
     set -euo pipefail
     SCAN=/Users/sac/lsp-max/target/release/anti-llm-cheat-lsp
     cargo make check-all
+    cargo build -p wasm4pm-compat-lsp
     cargo make clippy
     cargo make test-all
     cargo make alive
-    POST=$("$SCAN" scan --dir . 2>&1 \
+    SRC=$("$SCAN" scan --dir . 2>&1 \
         | grep "\[ANTI-LLM-" \
         | grep -v "node_modules\|Cargo.lock\|\.ggen\|ggen/WIT\|docs/" \
         | grep "src/declare.rs\|src/process_tree.rs\|src/powl.rs\|src/causal_net.rs" || true)
-    [ -z "$POST" ] && echo "PASS: zero diagnostics in remediated modules" \
-        || { echo "FAIL:"; echo "$POST"; exit 1; }
+    TEST=$("$SCAN" scan --dir . 2>&1 \
+        | grep "\[ANTI-LLM-TEST-001\]" \
+        | grep "tests/" | grep -v "\.ggen" || true)
+    LSP=$("$SCAN" scan --dir . 2>&1 \
+        | grep "\[ANTI-LLM-SURFACE-001\]" \
+        | grep "wasm4pm-compat-lsp/src/" || true)
+    ALL="${SRC}${TEST}${LSP}"
+    [ -z "$ALL" ] && echo "PASS: zero diagnostics in all remediated surfaces" \
+        || { echo "FAIL:"; echo "$ALL"; exit 1; }
