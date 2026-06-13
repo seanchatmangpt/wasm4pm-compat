@@ -7,11 +7,12 @@ PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
 PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
 
-SELECT ?form ?rustType ?sourceFile
+SELECT ?form ?rustType ?sourceFile ?reason
 WHERE {
   ?form a compat:ProcessForm ;
         compat:rustType          ?rustType ;
         compat:sourceFile        ?sourceFile ;
-        compat:graduatesToWasm4pm true .
+        compat:graduatesToWasm4pm true ;
+        compat:graduationReason  ?reason .
 }
 ORDER BY ?rustType
