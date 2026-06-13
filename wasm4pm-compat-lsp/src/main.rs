@@ -10,9 +10,9 @@ use std::sync::Mutex;
 use syn::spanned::Spanned;
 use syn::visit::Visit;
 use syn::{Expr, ExprCall, ExprMethodCall, Ident, UseTree};
-use tower_lsp::jsonrpc::Result;
-use tower_lsp::lsp_types::*;
-use tower_lsp::{Client, LanguageServer, LspService, Server};
+use lsp_max::jsonrpc::Result;
+use lsp_max::lsp_types_max::*;
+use lsp_max::{Client, LanguageServer, LspService, Server};
 use tracing::{error, info};
 
 /// CLI arguments for the LSP server.
@@ -173,10 +173,11 @@ impl Backend {
     }
 }
 
-#[tower_lsp::async_trait]
+#[lsp_max::async_trait]
 impl LanguageServer for Backend {
     async fn initialize(&self, _: InitializeParams) -> Result<InitializeResult> {
         Ok(InitializeResult {
+            offset_encoding: None,
             server_info: Some(ServerInfo {
                 name: "wasm4pm-compat-lsp".to_string(),
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
@@ -344,7 +345,7 @@ impl LanguageServer for Backend {
             }
             _ => {
                 error!("LSP command not found: {}", params.command);
-                Err(tower_lsp::jsonrpc::Error::method_not_found())
+                Err(lsp_max::jsonrpc::Error::method_not_found())
             }
         }
     }

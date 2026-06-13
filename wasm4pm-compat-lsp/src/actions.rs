@@ -1,4 +1,4 @@
-use lsp_types::{Position, Range, TextEdit};
+use lsp_max::lsp_types_max::{Position, Range, TextEdit};
 
 /// Generates a code snippet implementing the `Admit` trait for the target type.
 ///
