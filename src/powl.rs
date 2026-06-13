@@ -1105,7 +1105,10 @@ mod tests {
         ));
         assert_eq!(
             p.validate(),
-            Err(PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 })
+            Err(PowlRefusal::InvalidChoiceArity {
+                declared: 1,
+                required_min: 2
+            })
         );
     }
 
@@ -1193,22 +1196,14 @@ impl PowlBuilder {
 
     /// Add a partial-order node over `children` with precedence `edges` (pairs of labels).
     /// Children that don't yet exist as atoms are added automatically as atoms.
-    pub fn partial_order(
-        mut self,
-        label: &str,
-        children: &[&str],
-        edges: &[(&str, &str)],
-    ) -> Self {
+    pub fn partial_order(mut self, label: &str, children: &[&str], edges: &[(&str, &str)]) -> Self {
         // Ensure all referenced children exist.
         for &c in children {
             if !self.label_map.contains_key(c) {
                 self = self.atom(c);
             }
         }
-        let child_ids: Vec<PowlNodeId> = children
-            .iter()
-            .map(|c| self.label_map[*c])
-            .collect();
+        let child_ids: Vec<PowlNodeId> = children.iter().map(|c| self.label_map[*c]).collect();
         for &(from_lbl, to_lbl) in edges {
             if let (Some(&from), Some(&to)) =
                 (self.label_map.get(from_lbl), self.label_map.get(to_lbl))
@@ -1231,10 +1226,7 @@ impl PowlBuilder {
                 self = self.atom(b);
             }
         }
-        let branch_ids: Vec<PowlNodeId> = branches
-            .iter()
-            .map(|b| self.label_map[*b])
-            .collect();
+        let branch_ids: Vec<PowlNodeId> = branches.iter().map(|b| self.label_map[*b]).collect();
         let id = PowlNodeId(self.powl.nodes.len());
         self.powl
             .nodes
@@ -1265,12 +1257,7 @@ impl PowlBuilder {
 
     /// Add a POWL 2.0 choice-graph node.
     /// `nodes` are labels; `edges` are (from_label, to_label) pairs.
-    pub fn choice_graph(
-        mut self,
-        label: &str,
-        nodes: &[&str],
-        edges: &[(&str, &str)],
-    ) -> Self {
+    pub fn choice_graph(mut self, label: &str, nodes: &[&str], edges: &[(&str, &str)]) -> Self {
         for &n in nodes {
             if !self.label_map.contains_key(n) {
                 self = self.atom(n);

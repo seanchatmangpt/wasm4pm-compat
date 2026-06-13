@@ -94,7 +94,6 @@ mod sealed {
     pub trait IsRustLaw {}
     /// Sealed marker: only [`WitnessFamily::InternalBridge`] witnesses implement this.
     pub trait IsInternalBridge {}
-
 }
 
 /// Compile-time proof that `W` belongs to the [`WitnessFamily::Standard`] family.
@@ -183,15 +182,15 @@ impl StandardAuthority for XesLifecycleExt {}
 // ── Paper-family witness impls ────────────────────────────────────────────────
 
 use crate::witness::{
-    AlphaMiner, DeclareFamily, OcpqPaper, ObjectCentricPetriNetPaper, PowlPaper,
+    AlphaMiner, DeclareFamily, ObjectCentricPetriNetPaper, OcpqPaper, PowlPaper,
     PredictiveMonitoringFamily, ReceiptFamily, WfNetSoundnessPaper, YawlPaper,
 };
 use crate::witnesses::{
     AggregationView, AlignmentPaper, AnalyticalView, CausalConsistencyWitness,
     ControlFlowPerspectiveWitness, ConvergenceWitness, CrossLogCorrelationWitness,
-    DataPerspectiveWitness, DeclareConstraints, DivergenceWitness, InductiveMiner,
-    LogSkeleton, OcPetriNets, OcpqPaper as OcpqPaperFull, OperationalView,
-    ProcessCubePaper, ResourcePerspectiveWitness, SeparableWfNetPaper, StreamingEvidenceWitness,
+    DataPerspectiveWitness, DeclareConstraints, DivergenceWitness, InductiveMiner, LogSkeleton,
+    OcPetriNets, OcpqPaper as OcpqPaperFull, OperationalView, ProcessCubePaper,
+    ResourcePerspectiveWitness, SeparableWfNetPaper, StreamingEvidenceWitness,
     TemporalProfileWitness, TimeAwareWitness, TimePerspectiveWitness, WfNet2Powl,
     WorkflowPatternsPaper,
 };
@@ -322,7 +321,9 @@ impl<W: StandardAuthority> StandardWitness<W> {
 }
 
 impl<W: StandardAuthority> Default for StandardWitness<W> {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Zero-sized proof token: `W` is a [`PaperAuthority`] witness.
@@ -346,7 +347,9 @@ impl<W: PaperAuthority> PaperWitness<W> {
 }
 
 impl<W: PaperAuthority> Default for PaperWitness<W> {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 // ── Co-citation with string-level law ────────────────────────────────────────
@@ -450,5 +453,7 @@ impl<const F: WitnessFamily> FamilyGated<F> {
 }
 
 impl<const F: WitnessFamily> Default for FamilyGated<F> {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }

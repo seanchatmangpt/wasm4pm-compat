@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 //! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
 //!
 //! Every entry here is derived from a `compat:CognitionBreed` instance in the ontology.
@@ -17,7 +9,6 @@
 //! to `wasm4pm` when the breed must actually manufacture an artifact.
 
 use crate::witness::WitnessFamily;
-
 
 witness_marker!(
     /// Harman, G. H. (1965). The Inference to the Best Explanation. The Philosophical Review, 74(1), 88–95. Thagard, P. R. (...

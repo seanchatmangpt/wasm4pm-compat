@@ -487,7 +487,10 @@ pub mod token_law {
 /// let mask = families_match_simd(mixed, WitnessFamily::Paper);
 /// assert_eq!(mask, 0b1101_1101u8); // bits 1 and 4 unset (Standard slots)
 /// ```
-pub fn families_match_simd(families: [crate::witness::WitnessFamily; 8], target: crate::witness::WitnessFamily) -> u8 {
+pub fn families_match_simd(
+    families: [crate::witness::WitnessFamily; 8],
+    target: crate::witness::WitnessFamily,
+) -> u8 {
     use core::simd::{cmp::SimdPartialEq, u8x8};
     let fam_vec = u8x8::from_array(families.map(|f| f as u8));
     let target_vec = u8x8::splat(target as u8);

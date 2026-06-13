@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 //! RDF/SPARQL/KG witness markers — compiled from `ontology/witnesses-rdf.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` tagged
@@ -24,9 +11,7 @@
 //! Structure-only authority labels. Graduate to `wasm4pm` when the
 //! paper's algorithm must actually execute.
 
-
 use crate::witness::WitnessFamily;
-
 
 witness_marker!(
     /// AGENTICT2S: agentic multi-model Text-to-SPARQL for heterogeneous circular economy KGs.

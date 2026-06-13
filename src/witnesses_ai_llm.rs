@@ -1,16 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
 //! AI/LLM/Agents witness markers — compiled from `ontology/witnesses-ai-llm.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` tagged
@@ -24,9 +11,7 @@
 //! Structure-only authority labels. Graduate to `wasm4pm` when the
 //! paper's algorithm must actually execute.
 
-
 use crate::witness::WitnessFamily;
-
 
 witness_marker!(
     /// CBR foundations (Aamodt & Plaza 1994) — PDF in AI_LLM/, breed witness in cognition.
