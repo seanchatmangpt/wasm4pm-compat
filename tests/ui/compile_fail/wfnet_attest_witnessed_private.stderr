@@ -1,15 +1,5 @@
-warning: unreachable statement
- --> tests/ui/compile_fail/wfnet_attest_witnessed_private.rs:8:5
+error[E0121]: the placeholder `_` is not allowed within types on item signatures for functions
+ --> tests/ui/compile_fail/wfnet_attest_witnessed_private.rs:6:21
   |
-7 |     let net: WfNet<_> = todo!();
-  |                         ------- any code following this expression is unreachable
-8 |     let _witnessed = net.attest_witnessed(); // ERROR: E0624
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
-  |
-  = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
-
-error[E0599]: no method named `attest_witnessed` found for struct `WfNet<S>` in the current scope
- --> tests/ui/compile_fail/wfnet_attest_witnessed_private.rs:8:26
-  |
-8 |     let _witnessed = net.attest_witnessed(); // ERROR: E0624
-  |                          ^^^^^^^^^^^^^^^^ method not found in `WfNet<_>`
+6 | fn _test(net: WfNet<_>) {
+  |                     ^ not allowed in type signatures

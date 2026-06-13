@@ -7,8 +7,9 @@ use wasm4pm_compat::ocel::OcelLog;
 
 fn requires_event_log(_l: EventLog) {}
 
-fn main() {
-    let ocel: OcelLog = todo!();
+fn _test(ocel: OcelLog) {
     // This must fail: OcelLog is not EventLog.
     requires_event_log(ocel);
 }
+
+fn main() {}

@@ -10,9 +10,10 @@ use wasm4pm_compat::witness::Ocel20;
 
 fn requires_ocel_admission(_a: Admission<String, Ocel20>) {}
 
-fn main() {
-    let no_witness: Admission<String, String> = todo!();
+fn _test(no_witness: Admission<String, String>) {
     // This must fail: Admission<String, String> is not Admission<String, Ocel20>.
     // String is not a lawful witness marker; Ocel20 is.
     requires_ocel_admission(no_witness);
 }
+
+fn main() {}

@@ -7,8 +7,9 @@ use wasm4pm_compat::witness::{Pm4pyApiGrammar, PmaxConsumerGrammar};
 
 fn requires_pmax_evidence(_: Evidence<String, Admitted, PmaxConsumerGrammar>) {}
 
-fn main() {
-    let pm4py_ev: Evidence<String, Admitted, Pm4pyApiGrammar> = todo!();
+fn _test(pm4py_ev: Evidence<String, Admitted, Pm4pyApiGrammar>) {
     // This must fail: Pm4pyApiGrammar witness is not PmaxConsumerGrammar.
     requires_pmax_evidence(pm4py_ev);
 }
+
+fn main() {}

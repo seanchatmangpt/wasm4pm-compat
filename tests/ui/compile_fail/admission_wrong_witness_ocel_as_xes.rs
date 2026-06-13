@@ -7,7 +7,8 @@ use wasm4pm_compat::ocel::OcelLog;
 
 fn requires_xes_admission(_: Admission<OcelLog, Xes1849>) {}
 
-fn main() {
-    let ocel_admission: Admission<OcelLog, Ocel20> = todo!();
+fn _test(ocel_admission: Admission<OcelLog, Ocel20>) {
     requires_xes_admission(ocel_admission); // ERROR: expected Xes1849, found Ocel20
 }
+
+fn main() {}

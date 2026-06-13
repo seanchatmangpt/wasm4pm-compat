@@ -8,8 +8,9 @@ use wasm4pm_compat::witness::{DeclareFamily, OcpqPaper};
 
 fn requires_ocpq_evidence(_: Evidence<String, Admitted, OcpqPaper>) {}
 
-fn main() {
-    let decl_ev: Evidence<String, Admitted, DeclareFamily> = todo!();
+fn _test(decl_ev: Evidence<String, Admitted, DeclareFamily>) {
     // This must fail: DeclareFamily witness is not OcpqPaper.
     requires_ocpq_evidence(decl_ev);
 }
+
+fn main() {}

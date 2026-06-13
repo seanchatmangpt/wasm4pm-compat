@@ -12,9 +12,10 @@ use wasm4pm_compat::witness::{Ocel20, Xes1849};
 
 fn requires_xes_receipted(_: Evidence<String, Receipted, Xes1849>) {}
 
-fn main() {
-    let ocel_receipted: Evidence<String, Receipted, Ocel20> = todo!();
+fn _test(ocel_receipted: Evidence<String, Receipted, Ocel20>) {
     // This must fail: Evidence<String, Receipted, Ocel20> is not
     // Evidence<String, Receipted, Xes1849>. The witness type makes them distinct.
     requires_xes_receipted(ocel_receipted);
 }
+
+fn main() {}

@@ -12,7 +12,5 @@ use wasm4pm_compat::law::SoundnessState;
 
 fn main() {
     // Direct struct-literal construction fails: _seal is a private field.
-    let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
-        _seal: todo!(),
-    };
+    let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {};
 }

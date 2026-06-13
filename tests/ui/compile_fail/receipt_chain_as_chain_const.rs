@@ -6,8 +6,9 @@ use wasm4pm_compat::receipt::{ReceiptChain, ReceiptChainConst};
 
 fn requires_chain_const(_c: ReceiptChainConst<1>) {}
 
-fn main() {
-    let dynamic_chain: ReceiptChain = todo!();
+fn _test(dynamic_chain: ReceiptChain) {
     // This must fail: ReceiptChain is not ReceiptChainConst<1>.
     requires_chain_const(dynamic_chain);
 }
+
+fn main() {}

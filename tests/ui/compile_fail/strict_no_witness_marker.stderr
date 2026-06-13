@@ -12,5 +12,5 @@ error[E0599]: the associated function or constant `new` exists for struct `Recei
 note: the trait `Witness` must be implemented
   --> src/witness.rs
    |
-   | pub trait Witness {
-   | ^^^^^^^^^^^^^^^^^
+   | pub const trait Witness {
+   | ^^^^^^^^^^^^^^^^^^^^^^^

@@ -17,6 +17,10 @@ error[E0599]: no method named `into_inner` found for struct `Evidence<Dfg, wasm4
   --> tests/ui/compile_fail/dfg_engine_boundary_rejected.rs:27:35
    |
 27 |     let _discovered_dfg = raw_dfg.into_inner();
-   |                                   ^^^^^^^^^^ method not found in `Evidence<Dfg, wasm4pm_compat::Raw, wasm4pm_compat::witness::Pm4pyApiGrammar>`
+   |                                   ^^^^^^^^^^
    |
-   = note: the method was found for `Evidence<T, wasm4pm_compat::Admitted, W>`
+help: there is a method `inner` with a similar name
+   |
+27 -     let _discovered_dfg = raw_dfg.into_inner();
+27 +     let _discovered_dfg = raw_dfg.inner();
+   |

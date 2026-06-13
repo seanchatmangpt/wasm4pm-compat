@@ -7,8 +7,9 @@ use wasm4pm_compat::witness::{InductiveMiner, YawlPaper};
 
 fn requires_inductive_miner_evidence(_: Evidence<String, Admitted, InductiveMiner>) {}
 
-fn main() {
-    let yawl_ev: Evidence<String, Admitted, YawlPaper> = todo!();
+fn _test(yawl_ev: Evidence<String, Admitted, YawlPaper>) {
     // This must fail: YawlPaper witness is not InductiveMiner.
     requires_inductive_miner_evidence(yawl_ev);
 }
+
+fn main() {}

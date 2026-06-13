@@ -8,8 +8,9 @@ use wasm4pm_compat::witness::{WfNetSoundnessPaper, Xes1849};
 
 fn requires_wfnet_evidence(_: Evidence<String, Admitted, WfNetSoundnessPaper>) {}
 
-fn main() {
-    let xes_ev: Evidence<String, Admitted, Xes1849> = todo!();
+fn _test(xes_ev: Evidence<String, Admitted, Xes1849>) {
     // This must fail: Xes1849 witness is not WfNetSoundnessPaper.
     requires_wfnet_evidence(xes_ev);
 }
+
+fn main() {}

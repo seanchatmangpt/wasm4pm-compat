@@ -15,7 +15,3 @@ note: function defined here
    |    ^^^^^^^^^^^^^^^^^^
 26 |     _separable: SeparableWfNet<S>,
    |     -----------------------------
-help: try wrapping the expression in `wasm4pm_compat::petri::SeparableWfNet`
-   |
-37 |     let _w = wfnet_to_powl_gate(wasm4pm_compat::petri::SeparableWfNet { net: plain });
-   |                                 ++++++++++++++++++++++++++++++++++++++++++++       +

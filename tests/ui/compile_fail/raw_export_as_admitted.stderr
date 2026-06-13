@@ -2,6 +2,10 @@ error[E0599]: no method named `into_inner` found for struct `Evidence<u32, wasm4
   --> tests/ui/compile_fail/raw_export_as_admitted.rs:10:17
    |
 10 |     let _ = raw.into_inner();
-   |                 ^^^^^^^^^^ method not found in `Evidence<u32, wasm4pm_compat::Raw, wasm4pm_compat::witness::Ocel20>`
+   |                 ^^^^^^^^^^
    |
-   = note: the method was found for `Evidence<T, wasm4pm_compat::Admitted, W>`
+help: there is a method `inner` with a similar name
+   |
+10 -     let _ = raw.into_inner();
+10 +     let _ = raw.inner();
+   |

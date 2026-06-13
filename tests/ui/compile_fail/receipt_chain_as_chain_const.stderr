@@ -1,18 +1,7 @@
-warning: unreachable statement
-  --> tests/ui/compile_fail/receipt_chain_as_chain_const.rs:12:5
-   |
-10 |     let dynamic_chain: ReceiptChain = todo!();
-   |                                       ------- any code following this expression is unreachable
-11 |     // This must fail: ReceiptChain is not ReceiptChainConst<1>.
-12 |     requires_chain_const(dynamic_chain);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
-   |
-   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
-
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/receipt_chain_as_chain_const.rs:12:26
+  --> tests/ui/compile_fail/receipt_chain_as_chain_const.rs:11:26
    |
-12 |     requires_chain_const(dynamic_chain);
+11 |     requires_chain_const(dynamic_chain);
    |     -------------------- ^^^^^^^^^^^^^ expected `ReceiptChainConst<1>`, found `ReceiptChain`
    |     |
    |     arguments to this function are incorrect

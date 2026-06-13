@@ -6,8 +6,9 @@ use wasm4pm_compat::witness::Ocel20;
 
 fn requires_exportable(_: Evidence<String, Exportable, Ocel20>) {}
 
-fn main() {
-    let receipted: Evidence<String, Receipted, Ocel20> = todo!();
+fn _test(receipted: Evidence<String, Receipted, Ocel20>) {
     // This must fail: Receipted is not Exportable.
     requires_exportable(receipted);
 }
+
+fn main() {}

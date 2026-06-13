@@ -8,8 +8,9 @@ use wasm4pm_compat::witness::{Ocel20, PowlPaper};
 
 fn requires_powl_evidence(_: Evidence<String, Admitted, PowlPaper>) {}
 
-fn main() {
-    let ocel_ev: Evidence<String, Admitted, Ocel20> = todo!();
+fn _test(ocel_ev: Evidence<String, Admitted, Ocel20>) {
     // This must fail: Ocel20 witness is not PowlPaper witness.
     requires_powl_evidence(ocel_ev);
 }
+
+fn main() {}

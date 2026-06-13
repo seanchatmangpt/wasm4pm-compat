@@ -18,7 +18,5 @@ fn main() {
     // This must fail because:
     // 1. _seal is a private field
     // 2. _seal's type wfnet_seal::WfNetSeal is private
-    let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {
-        _seal: todo!(),
-    };
+    let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {};
 }

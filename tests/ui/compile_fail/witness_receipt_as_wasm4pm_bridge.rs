@@ -8,8 +8,9 @@ use wasm4pm_compat::witness::{ReceiptFamily, Wasm4pmBridge};
 
 fn requires_bridge_evidence(_: Evidence<String, Admitted, Wasm4pmBridge>) {}
 
-fn main() {
-    let receipt_ev: Evidence<String, Admitted, ReceiptFamily> = todo!();
+fn _test(receipt_ev: Evidence<String, Admitted, ReceiptFamily>) {
     // This must fail: ReceiptFamily witness is not Wasm4pmBridge.
     requires_bridge_evidence(receipt_ev);
 }
+
+fn main() {}

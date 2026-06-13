@@ -35,6 +35,5 @@ fn main() {
     // separability was never established.
     let _forged: SeparableWfNet<{ SoundnessState::Unknown }> = SeparableWfNet {
         net,
-        _seal: todo!(),
     };
 }

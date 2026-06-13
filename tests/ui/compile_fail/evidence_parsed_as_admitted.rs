@@ -7,8 +7,9 @@ use wasm4pm_compat::witness::Ocel20;
 
 fn requires_admitted(_: Evidence<String, Admitted, Ocel20>) {}
 
-fn main() {
-    let parsed: Evidence<String, Parsed, Ocel20> = todo!();
+fn _test(parsed: Evidence<String, Parsed, Ocel20>) {
     // This must fail: Parsed is not Admitted.
     requires_admitted(parsed);
 }
+
+fn main() {}

@@ -3,7 +3,8 @@
 
 use wasm4pm_compat::petri::WfNet;
 
-fn main() {
-    let net: WfNet<_> = todo!();
+fn _test(net: WfNet<_>) {
     let _witnessed = net.attest_witnessed(); // ERROR: E0624
 }
+
+fn main() {}

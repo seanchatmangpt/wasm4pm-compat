@@ -5,8 +5,9 @@ use wasm4pm_compat::conformance::{ConformanceVerdict, Deviation};
 
 fn requires_deviation(_d: Deviation) {}
 
-fn main() {
-    let verdict: ConformanceVerdict = todo!();
+fn _test(verdict: ConformanceVerdict) {
     // This must fail: ConformanceVerdict is not Deviation.
     requires_deviation(verdict);
 }
+
+fn main() {}

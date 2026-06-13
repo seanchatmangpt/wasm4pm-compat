@@ -6,9 +6,9 @@ use wasm4pm_compat::witness::Ocel20;
 
 fn requires_admission(_a: Admission<String, Ocel20>) {}
 
-fn main() {
-    // Refusal with a named reason type (&'static str).
-    let refused: Refusal<&'static str, Ocel20> = todo!();
+fn _test(refused: Refusal<&'static str, Ocel20>) {
     // This must fail: Refusal is not Admission.
     requires_admission(refused);
 }
+
+fn main() {}

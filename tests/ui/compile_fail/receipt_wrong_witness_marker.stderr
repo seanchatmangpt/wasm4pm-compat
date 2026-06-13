@@ -1,18 +1,7 @@
-warning: unreachable statement
-  --> tests/ui/compile_fail/receipt_wrong_witness_marker.rs:19:5
-   |
-16 |     let ocel_receipted: Evidence<String, Receipted, Ocel20> = todo!();
-   |                                                               ------- any code following this expression is unreachable
-...
-19 |     requires_xes_receipted(ocel_receipted);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
-   |
-   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
-
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/receipt_wrong_witness_marker.rs:19:28
+  --> tests/ui/compile_fail/receipt_wrong_witness_marker.rs:18:28
    |
-19 |     requires_xes_receipted(ocel_receipted);
+18 |     requires_xes_receipted(ocel_receipted);
    |     ---------------------- ^^^^^^^^^^^^^^ expected `Evidence<String, Receipted, Xes1849>`, found `Evidence<String, Receipted, Ocel20>`
    |     |
    |     arguments to this function are incorrect

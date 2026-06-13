@@ -1,18 +1,7 @@
-warning: unreachable statement
-  --> tests/ui/compile_fail/evidence_admitted_as_exportable.rs:16:5
-   |
-13 |     let admitted: Evidence<String, Admitted, Ocel20> = todo!();
-   |                                                        ------- any code following this expression is unreachable
-...
-16 |     requires_exportable(admitted);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unreachable statement
-   |
-   = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
-
 error[E0308]: mismatched types
-  --> tests/ui/compile_fail/evidence_admitted_as_exportable.rs:16:25
+  --> tests/ui/compile_fail/evidence_admitted_as_exportable.rs:15:25
    |
-16 |     requires_exportable(admitted);
+15 |     requires_exportable(admitted);
    |     ------------------- ^^^^^^^^ expected `Evidence<String, Exportable, Ocel20>`, found `Evidence<String, Admitted, Ocel20>`
    |     |
    |     arguments to this function are incorrect

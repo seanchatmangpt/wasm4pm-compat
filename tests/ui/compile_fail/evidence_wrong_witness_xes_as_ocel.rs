@@ -15,11 +15,10 @@ use wasm4pm_compat::witness::{Ocel20, Xes1849};
 
 fn requires_ocel_evidence(_: Evidence<String, Admitted, Ocel20>) {}
 
-fn main() {
-    // Constructing an Admitted value directly is pub(crate); use todo!() to
-    // produce a value of the right type without calling internal constructors.
-    let xes_ev: Evidence<String, Admitted, Xes1849> = todo!();
+fn _test(xes_ev: Evidence<String, Admitted, Xes1849>) {
     // This must fail: Evidence<String, Admitted, Xes1849> is not Evidence<String, Admitted, Ocel20>.
     // The witness type parameter W makes them distinct types with no conversion path.
     requires_ocel_evidence(xes_ev);
 }
+
+fn main() {}

@@ -6,8 +6,9 @@ use wasm4pm_compat::xes::XesLog;
 
 fn requires_xes_log(_log: XesLog) {}
 
-fn main() {
-    let ocel: OcelLog = todo!();
+fn _test(ocel: OcelLog) {
     // This must fail: OcelLog is not XesLog.
     requires_xes_log(ocel);
 }
+
+fn main() {}

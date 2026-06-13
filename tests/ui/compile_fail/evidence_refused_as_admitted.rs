@@ -7,8 +7,9 @@ use wasm4pm_compat::witness::Ocel20;
 
 fn requires_admitted(_: Evidence<String, Admitted, Ocel20>) {}
 
-fn main() {
-    let refused: Evidence<String, Refused, Ocel20> = todo!();
+fn _test(refused: Evidence<String, Refused, Ocel20>) {
     // This must fail: Refused is terminal and is not Admitted.
     requires_admitted(refused);
 }
+
+fn main() {}
