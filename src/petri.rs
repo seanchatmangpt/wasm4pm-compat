@@ -383,11 +383,17 @@ pub struct SeparableWfNetMarker;
 
 pub struct SeparableWfNet<const S: SoundnessState> {
     pub net: WfNetConst<S>,
+    /// Non-forgeable seal: this private field prevents constructing a
+    /// separability claim via struct-literal syntax outside
+    /// [`SeparableWfNet::declare_separable`] (Kourani, Park & van der Aalst
+    /// 2026, Theorem 4.3). Without it, a non-separable WF-net could be forged
+    /// into the POWL conversion path.
+    _seal: (),
 }
 
 impl<const S: SoundnessState> SeparableWfNet<S> {
     pub fn declare_separable(net: WfNetConst<S>) -> Self {
-        SeparableWfNet { net }
+        SeparableWfNet { net, _seal: () }
     }
 }
 
