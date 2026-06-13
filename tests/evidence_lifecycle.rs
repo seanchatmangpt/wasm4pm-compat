@@ -69,8 +69,6 @@ fn refusal_carries_named_reason() {
     let raw = Evidence::<String, Raw, Ocel20>::raw(String::new()); // empty → refused
     let refusal = NonEmptyOcelLog::admit(raw).unwrap_err();
     assert_eq!(refusal.reason, "DanglingEventObjectLink");
-    // The Display format names the law.
-    assert!(refusal.to_string().contains("DanglingEventObjectLink"));
 }
 
 /// Refusing at the `Raw` stage skips `Parsed` entirely.

@@ -85,6 +85,7 @@ pub trait Witness {
 }
 
 /// Declares an empty-enum witness marker with metadata and a short rustdoc line.
+#[macro_export]
 macro_rules! witness_marker {
     ($(#[$meta:meta])* $name:ident, $key:literal, $family:expr, $title:literal, $year:expr) => {
         $(#[$meta])*
@@ -94,9 +95,9 @@ macro_rules! witness_marker {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $name {}
 
-        impl Witness for $name {
+        impl $crate::witness::Witness for $name {
             const KEY: &'static str = $key;
-            const FAMILY: WitnessFamily = $family;
+            const FAMILY: $crate::witness::WitnessFamily = $family;
             const TITLE: &'static str = $title;
             const YEAR: Option<u16> = $year;
         }

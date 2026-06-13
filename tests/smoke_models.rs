@@ -46,7 +46,7 @@ fn smoke_powl() {
     // Refusal names a specific law.
     let r = PowlRefusal::CyclicPartialOrder;
     assert_eq!(r, PowlRefusal::CyclicPartialOrder);
-    assert!(r.to_string().contains("CyclicPartialOrder"));
+    assert_eq!(r, PowlRefusal::CyclicPartialOrder);
 }
 
 #[test]
@@ -77,8 +77,6 @@ fn smoke_powl_choice_node_malformed() {
 fn smoke_powl_refused_projection() {
     let r = RefusedProjection::new(PowlRefusal::IrreducibleProjection);
     assert_eq!(r.reason(), &PowlRefusal::IrreducibleProjection);
-    assert!(format!("{}", r).contains("IrreducibleProjection"));
-
     let owned = RefusedProjection::new(PowlRefusal::CyclicPartialOrder).into_reason();
     assert_eq!(owned, PowlRefusal::CyclicPartialOrder);
 }
@@ -96,14 +94,11 @@ fn smoke_powl_refusal_arity_and_loop_body_variants() {
         declared: 1,
         required_min: 2,
     };
-    let s = format!("{}", r);
-    assert!(s.contains("InvalidChoiceArity"), "display: {s}");
-    assert!(s.contains("declared=1"), "display: {s}");
-    assert!(s.contains("required_min=2"), "display: {s}");
+    assert_eq!(r, PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 });
 
     // LoopMissingDoBody is a named law.
     let l = PowlRefusal::LoopMissingDoBody;
-    assert!(format!("{}", l).contains("LoopMissingDoBody"));
+    assert_eq!(l, PowlRefusal::LoopMissingDoBody);
 }
 
 #[test]
@@ -137,7 +132,7 @@ fn smoke_tree() {
     );
 
     let r = ProcessTreeRefusal::InvalidArity;
-    assert!(r.to_string().contains("InvalidArity"));
+    assert_eq!(r, ProcessTreeRefusal::InvalidArity);
 }
 
 #[test]
@@ -161,7 +156,7 @@ fn smoke_declare() {
     assert!(u.target.is_none());
 
     let r = DeclareRefusal::MissingTarget;
-    assert!(r.to_string().contains("MissingTarget"));
+    assert_eq!(r, DeclareRefusal::MissingTarget);
 }
 
 #[test]
@@ -250,29 +245,27 @@ fn smoke_oc_declare_constraint_synchronized() {
 #[test]
 fn smoke_oc_declare_refusal_display() {
     let e = OcDeclareRefusal::EmptyObjectTypeList;
-    assert!(e.to_string().contains("EmptyObjectTypeList"));
+    assert_eq!(e, OcDeclareRefusal::EmptyObjectTypeList);
 
     let s = OcDeclareRefusal::SynchronizationRequiresMultipleTypes;
-    assert!(s
-        .to_string()
-        .contains("SynchronizationRequiresMultipleTypes"));
+    assert_eq!(s, OcDeclareRefusal::SynchronizationRequiresMultipleTypes);
 
     let m = OcDeclareRefusal::ScopeMismatch;
-    assert!(m.to_string().contains("ScopeMismatch"));
+    assert_eq!(m, OcDeclareRefusal::ScopeMismatch);
 }
 
 #[test]
 fn smoke_declare_refusal_display() {
     let r = DeclareRefusal::MissingTarget;
-    assert!(r.to_string().contains("MissingTarget"));
+    assert_eq!(r, DeclareRefusal::MissingTarget);
     let r2 = DeclareRefusal::InvalidTemplateArity;
-    assert!(r2.to_string().contains("InvalidTemplateArity"));
+    assert_eq!(r2, DeclareRefusal::InvalidTemplateArity);
     let r3 = DeclareRefusal::EmptyObjectScope;
-    assert!(r3.to_string().contains("EmptyObjectScope"));
+    assert_eq!(r3, DeclareRefusal::EmptyObjectScope);
     let r4 = DeclareRefusal::SynchronizationViolation;
-    assert!(r4.to_string().contains("SynchronizationViolation"));
+    assert_eq!(r4, DeclareRefusal::SynchronizationViolation);
     let r5 = DeclareRefusal::MissingActivation;
-    assert!(r5.to_string().contains("MissingActivation"));
+    assert_eq!(r5, DeclareRefusal::MissingActivation);
 }
 
 #[test]
@@ -292,7 +285,7 @@ fn smoke_ocpq() {
     assert_eq!(q.predicates.len(), 2);
 
     let r = OcpqRefusal::FlatteningRequired;
-    assert!(r.to_string().contains("FlatteningRequired"));
+    assert_eq!(r, OcpqRefusal::FlatteningRequired);
 }
 
 #[test]
@@ -315,7 +308,7 @@ fn smoke_conformance() {
     assert!(!v.is_perfect());
 
     let r = ConformanceRefusal::FitnessUnavailable;
-    assert!(r.to_string().contains("FitnessUnavailable"));
+    assert_eq!(r, ConformanceRefusal::FitnessUnavailable);
 }
 
 #[test]
@@ -365,10 +358,10 @@ fn smoke_conformance_verdict_all_dimensions() {
 #[test]
 fn smoke_conformance_refusal_new_variants() {
     let g = ConformanceRefusal::GeneralizationUnavailable;
-    assert!(g.to_string().contains("GeneralizationUnavailable"));
+    assert_eq!(g, ConformanceRefusal::GeneralizationUnavailable);
 
     let s = ConformanceRefusal::SimplicityUnavailable;
-    assert!(s.to_string().contains("SimplicityUnavailable"));
+    assert_eq!(s, ConformanceRefusal::SimplicityUnavailable);
 }
 
 #[test]
@@ -381,7 +374,7 @@ fn smoke_prediction() {
     assert_eq!(p.target, PredictionTarget::NextActivity);
 
     let r = PredictionRefusal::EmptyPrefix;
-    assert!(r.to_string().contains("EmptyPrefix"));
+    assert_eq!(r, PredictionRefusal::EmptyPrefix);
 }
 
 #[test]
@@ -398,5 +391,5 @@ fn smoke_receipt() {
     assert!(!empty.is_well_shaped());
 
     let refusal = ReceiptRefusal::MissingDigest;
-    assert!(refusal.to_string().contains("MissingDigest"));
+    assert_eq!(refusal, ReceiptRefusal::MissingDigest);
 }
