@@ -19,7 +19,7 @@ use tracing::{error, info};
 #[derive(Parser, Debug)]
 #[command(
     name = "wasm4pm-compat-lsp",
-    version = "26.6.9",
+    version = env!("CARGO_PKG_VERSION"),
     about = "Language Server Protocol daemon for the wasm4pm-compat process-evidence framework"
 )]
 struct CliArgs {
@@ -179,7 +179,7 @@ impl LanguageServer for Backend {
         Ok(InitializeResult {
             server_info: Some(ServerInfo {
                 name: "wasm4pm-compat-lsp".to_string(),
-                version: Some("26.6.9".to_string()),
+                version: Some(env!("CARGO_PKG_VERSION").to_string()),
             }),
             capabilities: ServerCapabilities {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
