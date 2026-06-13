@@ -1,0 +1,41 @@
+{# witness-marker-category.tera — renders a per-category witnesses_*.rs module.    #}
+{# Category metadata comes from SPARQL bindings (same on every row).               #}
+{# Variables per row (from extract-witnesses-<category>.rq):                        #}
+{#   rustType      — CamelCase Rust name                                             #}
+{#   witnessKey    — stable lowercase key with category prefix                       #}
+{#   witnessTitle  — human-facing title                                               #}
+{#   witnessYear   — publication year string or "" (empty = None)                    #}
+{#   witnessFamily — "Paper" or "Standard"                                           #}
+{#   description   — one-line doc string                                             #}
+{#   categoryId    — e.g. "rdf", "ai-llm", "domain", "workflow" (same for all rows) #}
+{#   categoryLabel — e.g. "RDF/SPARQL/KG" (same for all rows)                       #}
+{#   sourceTtl     — e.g. "ontology/witnesses-rdf.ttl" (same for all rows)          #}
+{% if sparql_results | length > 0 %}
+//! {{ sparql_results[0].categoryLabel }} witness markers — compiled from `{{ sparql_results[0].sourceTtl }}`.
+//!
+//! Every entry here is derived from a `compat:WitnessMarker` tagged
+//! `compat:paperCategory "{{ sparql_results[0].categoryId }}"` in the ontology.
+//!
+//! To add a paper: declare a `compat:WitnessMarker` with
+//! `compat:paperCategory "{{ sparql_results[0].categoryId }}"` in
+//! `{{ sparql_results[0].sourceTtl }}`, then run
+//! `cargo make ggen-witnesses-{{ sparql_results[0].categoryId }}`.
+//!
+//! Structure-only authority labels. Graduate to `wasm4pm` when the
+//! paper's algorithm must actually execute.
+{% else %}
+//! Witness markers — empty (no papers declared in this category yet).
+{% endif %}
+
+use crate::witness::WitnessFamily;
+
+{% for row in sparql_results %}
+witness_marker!(
+    /// {{ row.description }}
+    {{ row.rustType }},
+    "{{ row.witnessKey }}",
+    WitnessFamily::{{ row.witnessFamily | split(pat="#") | last }},
+    "{{ row.witnessTitle }}",
+    {% if row.witnessYear %}Some({{ row.witnessYear }}){% else %}None{% endif %}
+);
+{% endfor %}

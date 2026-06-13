@@ -17,7 +17,7 @@
 //! This file and `witness.rs` are the same kind of source — one happens to be compiled
 //! from the ontology, one defines the trait. Neither is second-class.
 
-use crate::witness::{witness_marker, WitnessFamily};
+use crate::witness::WitnessFamily;
 
 {% for row in sparql_results %}
 witness_marker!(

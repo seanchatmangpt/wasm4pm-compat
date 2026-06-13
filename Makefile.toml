@@ -113,6 +113,53 @@ cwd = "ggen"
 command = "ggen"
 args = ["sync", "--rule", "witness-markers", "--dry_run", "true", "--manifest", "ggen.toml"]
 
+[tasks.ggen-witnesses-all]
+description = "Render all per-category witness modules (cognition, rdf, ai-llm, domain, workflow, breeds)"
+dependencies = [
+  "ggen-witnesses-cognition",
+  "ggen-witnesses-rdf",
+  "ggen-witnesses-ai-llm",
+  "ggen-witnesses-domain",
+  "ggen-witnesses-workflow",
+  "ggen-witnesses-breeds",
+]
+
+[tasks.ggen-witnesses-cognition]
+description = "Render src/witnesses_cognition.rs from witnesses-cognition.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "cognition-witnesses", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-rdf]
+description = "Render src/witnesses_rdf.rs from witnesses-rdf.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "rdf-witnesses", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-ai-llm]
+description = "Render src/witnesses_ai_llm.rs from witnesses-ai-llm.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "ai-llm-witnesses", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-domain]
+description = "Render src/witnesses_domain.rs from witnesses-domain.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "domain-witnesses", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-workflow]
+description = "Render src/witnesses_workflow.rs from witnesses-workflow.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "workflow-witnesses", "--manifest", "ggen.toml"]
+
+[tasks.ggen-witnesses-breeds]
+description = "Render src/witnesses_breeds.rs from breed-vocabulary.ttl"
+cwd = "ggen"
+command = "ggen"
+args = ["sync", "--rule", "cognition-breed-witnesses", "--manifest", "ggen.toml"]
+
 # ---------------------------------------------------------------------------
 # CI aggregate
 # ---------------------------------------------------------------------------

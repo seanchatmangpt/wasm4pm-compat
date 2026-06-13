@@ -1,0 +1,30 @@
+{# breed-witness.tera — renders src/witnesses_cognition.rs from CognitionBreed instances #}
+{# Variables (from extract-breed-witnesses.rq):                                         #}
+{#   rustType     — e.g. "AbductiveIbePaper"                                            #}
+{#   witnessKey   — e.g. "cognition/abductive-ibe"                                      #}
+{#   witnessTitle — e.g. "AbductiveIbe"                                                 #}
+{#   witnessYear  — e.g. "1965" or "" (empty = None)                                   #}
+{#   witnessFamily — e.g. "Paper"                                                       #}
+{#   description  — citation text (truncated)                                           #}
+//! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
+//!
+//! Every entry here is derived from a `compat:CognitionBreed` instance in the ontology.
+//! To add a breed witness: declare the breed in `breed-vocabulary.ttl`, run
+//! `ggen sync --rule cognition-witnesses`, this file updates.
+//!
+//! These are structure-only authority labels. A witness names the founding paper
+//! of a cognition breed algorithm. It does not implement the algorithm. Graduate
+//! to `wasm4pm` when the breed must actually manufacture an artifact.
+
+use crate::witness::WitnessFamily;
+
+{% for row in sparql_results %}
+witness_marker!(
+    /// {{ row.description }}
+    {{ row.rustType }},
+    "{{ row.witnessKey }}",
+    WitnessFamily::{{ row.witnessFamily }},
+    "{{ row.witnessTitle }}",
+    {% if row.witnessYear %}Some({{ row.witnessYear }}){% else %}None{% endif %}
+);
+{% endfor %}

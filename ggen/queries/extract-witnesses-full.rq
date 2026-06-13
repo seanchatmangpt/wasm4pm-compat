@@ -13,6 +13,9 @@ WHERE {
           compat:witnessKey   ?witnessKey ;
           compat:witnessTitle ?witnessTitle .
 
+  # Exclude per-category witnesses — those are rendered into witnesses_<category>.rs modules.
+  FILTER NOT EXISTS { ?marker compat:paperCategory ?_cat . }
+
   OPTIONAL { ?marker compat:witnessYear    ?witnessYear . }
   OPTIONAL { ?marker compat:witnessFamily  ?witnessFamily . }
   OPTIONAL { ?marker compat:paperReference ?paperReference . }
