@@ -6,9 +6,7 @@
 
 use wasm4pm_compat::admission::Admit;
 use wasm4pm_compat::evidence::Evidence;
-use wasm4pm_compat::ocel::{
-    EventObjectLink, LinkedOcel, Object, OcelEvent, OcelLog, OcelRefusal,
-};
+use wasm4pm_compat::ocel::{EventObjectLink, LinkedOcel, Object, OcelEvent, OcelLog, OcelRefusal};
 
 fn log_with_link(event: &str, links_to: &str, declared_object: &str) -> OcelLog {
     OcelLog::new(
@@ -31,7 +29,8 @@ fn lawful_ocel_is_admitted_through_the_one_way_door() {
 #[test]
 fn dangling_link_is_refused_by_its_named_law() {
     let dangling = log_with_link("e1", "missing", "o1");
-    let refusal = LinkedOcel::admit(Evidence::raw(dangling)).expect_err("dangling link must refuse");
+    let refusal =
+        LinkedOcel::admit(Evidence::raw(dangling)).expect_err("dangling link must refuse");
     assert_eq!(refusal.reason, OcelRefusal::DanglingEventObjectLink);
 }
 

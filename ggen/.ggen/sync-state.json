@@ -1,20 +1,76 @@
 {
   "version": "1.0.0",
-  "created_at": "2026-06-10T02:09:57.361471+00:00",
+  "created_at": "2026-06-13T23:04:58.499176+00:00",
   "ontology": {
-    "hash": "4d08b2b238fac829e3ed3fe7f5262baf51fadac07978bee17e34fb06c886c937",
-    "timestamp": "2026-06-10T02:09:57.361469+00:00",
-    "size_bytes": 88679
+    "hash": "a0fe68977a8c5f8631df6b606092d8c3427e5484f201c8c86ea38992e49cb20e",
+    "timestamp": "2026-06-13T23:04:58.499175+00:00",
+    "size_bytes": 75453
   },
   "manifest": {
-    "hash": "8013e80973cf0160277f5c3bd8a4f715f25b60662a9543ffae186b0f07734c89",
-    "timestamp": "2026-06-10T02:09:57.361469+00:00",
-    "size_bytes": 689
+    "hash": "e249c26ec7356c6e45e821e8f9b86f40bba460e0115b0dc266e16db63a30363d",
+    "timestamp": "2026-06-13T23:04:58.499175+00:00",
+    "size_bytes": 10948
   },
   "inference_rules": {
     "alive-gate": "2be82aef2a61c8956a28eefb10730a53b7cd66d979d8ff5c360982f30ff58ec9"
   },
-  "imports": {},
-  "files_synced": 1,
-  "sync_duration_ms": 30
+  "imports": {
+    "ontology/ggen-substrate.ttl": {
+      "hash": "64fddd73a8f31f7a8e47ebcccd0f842f23ad19f278b0902a28320467ab80df92",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 13070
+    },
+    "ontology/witnesses-domain.ttl": {
+      "hash": "2c3e75584c93619d4122cef32f46b61c6de2a612a8abbcaee437419d9405fb6d",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 63312
+    },
+    "ontology/witnesses-workflow.ttl": {
+      "hash": "3bc1a4424acbfe6c4f8da284c7ed3cdbd8ef3c0d260f120a705e76737b91b768",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 10552
+    },
+    "ontology/witnesses-cognition.ttl": {
+      "hash": "5528828c42c861d28ac5a91fefc355eec21fe72fab31b1d6651315863308a41f",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 26604
+    },
+    "ontology/papers.ttl": {
+      "hash": "51a12c41e86b593916c97008abbfccff9cdd23a58c5000d6dca61a34d1ae50d0",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 22198
+    },
+    "ontology-breeds/paper-pointers.ttl": {
+      "hash": "7eef8efd8df67d039fa454043d90a44c95c5a2bf716e6b91e44fcbf289ccc3f3",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 58473
+    },
+    "ontology-breeds/breed-vocabulary.ttl": {
+      "hash": "40931a7aca1187f0fd69100a17aa70c07300f63d4e3149762a8678994632cef6",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 30285
+    },
+    "ontology/witnesses-rdf.ttl": {
+      "hash": "cfd5dd9715541ad458dea15809b42e79d598e052ec2f079998751c7b18264e6a",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 41060
+    },
+    "ontology/witnesses-ai-llm.ttl": {
+      "hash": "27ee6d80984ce706c6cd0193d8a61871ed41b75de9744bab3d891d88760b9adb",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 49253
+    },
+    "ontology/audit-machinery.ttl": {
+      "hash": "f9d3a1afcd0039db3e87fcae43530c047a774c346120a9f9064b10f9840779b8",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 46511
+    },
+    "ontology/zod-types.ttl": {
+      "hash": "fb31d4e92dc3afd25c66e850a9e5acc18ea3f09a3c6101f041fffef6d5952d94",
+      "timestamp": "2026-06-13T23:04:58.499175+00:00",
+      "size_bytes": 13598
+    }
+  },
+  "files_synced": 14,
+  "sync_duration_ms": 77
 }

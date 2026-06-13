@@ -1,9 +1,9 @@
 {
-  "operation_id": "57a028af-d856-4aca-8c4c-137d4235f478",
-  "timestamp": "2026-06-13T23:04:58.507119Z",
+  "operation_id": "a9d5bb5a-7a10-4518-ac7e-0ab8584ebca3",
+  "timestamp": "2026-06-13T21:44:12.044791Z",
   "input_hashes": [
     "actuator:ggen-sync@26.6.9",
-    "ggen.toml:e249c26ec7356c6e45e821e8f9b86f40bba460e0115b0dc266e16db63a30363d",
+    "ggen.toml:be82cd4ce22019e1d35122a9faa192613c958a7649aff0d270afb1ae8242aa78",
     "ontology/wasm4pm-compat.ttl:a0fe68977a8c5f8631df6b606092d8c3427e5484f201c8c86ea38992e49cb20e",
     "ontology/papers.ttl:51a12c41e86b593916c97008abbfccff9cdd23a58c5000d6dca61a34d1ae50d0",
     "ontology/ggen-substrate.ttl:64fddd73a8f31f7a8e47ebcccd0f842f23ad19f278b0902a28320467ab80df92",
@@ -18,8 +18,6 @@
     "ontology/witnesses-workflow.ttl:3bc1a4424acbfe6c4f8da284c7ed3cdbd8ef3c0d260f120a705e76737b91b768",
     "queries/extract-witnesses-full.rq:2c18a45a20596beebdf903ea33e6f0e236df2c247bfe869a10881e3574e09a1a",
     "templates/witness-marker.tera:25808d3b158d118f6daa4f90f626c8ef51233e8674908bd9a04a03792f460723",
-    "queries/extract-all-witness-keys.rq:ae163fc9df33c72d0659564aa1ea7a8fc318e340411309838c45caf97df4aae2",
-    "templates/all-witness-keys.tera:902c75e6cd04ddc1b450fbead25c277acde11c9faad5b3973480625c4a9e63de",
     "queries-breeds/extract-breeds.rq:2c16ff1de82385f03219d814d32310bb24b775db9db40925d9666fa29559fad2",
     "templates-breeds/breed-ids.ts.tera:df5cf912cff8297a26d2f3f7f34064ae64965da36591bc83e90358a31b21c258",
     "queries-breeds/extract-breeds.rq:2c16ff1de82385f03219d814d32310bb24b775db9db40925d9666fa29559fad2",
@@ -31,7 +29,7 @@
     "queries-breeds/extract-paper-pointers.rq:0d23d05b54986ce12b8337e1b6e7eaa513caec29e3d40ec48b93b0d567c6cdd0",
     "templates-breeds/universal-anticheat.tera:c4a1736648bafd794b1bae1d3aaae0bd0a7a4a385e5d4b6cecf594a5fd8e2744",
     "queries-breeds/extract-fresh-names.rq:5c547a3fc018c9c82cc2a4871e50489b92530e4deda158eb4a70367f384a6d80",
-    "templates-breeds/fresh-name-manifest.rs.tera:ee00e37745d7409a3b1441e910f4bc9646eda2ba82f4773ad0ab264b2d29c6a2",
+    "templates-breeds/fresh-name-manifest.rs.tera:b8687f83e4110d0408c68788cae4a8db9cdbf1f6afdf13bcf9f450af5837f19f",
     "queries/extract-witnesses-cognition.rq:e39ba5dcae42ea40320cdbaafc0874308c5a5588f8c670154f5839c7e75deef2",
     "templates/witness-marker-category.tera:4f0bd80e7d524f0c42fe2f69269ba311b54abcab0e1118aad6ceff4415da8f60",
     "queries/extract-witnesses-rdf.rq:6348ebad81a2537cd5a3ea422b9e36d7333c296f7b84f25ed20552213453f21c",
@@ -47,13 +45,12 @@
   ],
   "output_hashes": [
     "/Users/sac/wasm4pm-compat/src/witnesses.rs:0253b21470cdf58888f5e358cd537f28c4c293ed5850d062e2ae3169aedb8829",
-    "/Users/sac/wasm4pm-compat/src/witness_corpus.rs:b78a5df40ad9de6d461f92763c3afd7929a3d778aa1d95a4cd4b866b8bccb4be",
     "/Users/sac/wasm4pm/packages/cognition/src/breed-ids.ts:0cae447da38256dd3bb1a784d6399481ad341f285e5124f71221640da221ab8a",
     "/Users/sac/wasm4pm/crates/wasm4pm-cognition/src/breeds/registration.rs:35bdce205742ff04217c23bb5d6b8dd48bcf65b4ab14c29155203fb8cd24878b",
     "/Users/sac/wasm4pm/crates/wasm4pm-cognition/breeds/registry.json:e586062e3babda5d89fc3c7efe11c70906a1b78de7c25e0d122a46d540312d5a",
     "/Users/sac/wasm4pm/crates/wasm4pm-cognition/tests/paper_pointers_generated.rs:34cdd6dc4af25e3b315f004730482a0ca6742940c80eff91c30ea933b3bc7d1a",
     "/Users/sac/wasm4pm/crates/wasm4pm-cognition/tests/universal_anticheat_generated.rs:56d545227531e0429ad85482efba0b41733c4b40c12adc947dd8d5a92bd34150",
-    "/Users/sac/wasm4pm-compat/src/fresh_names.rs:4d4e2330b0bcc6f0af379f11312be36b65b8cc36935a9057be702b52048c12ec",
+    "/Users/sac/wasm4pm-compat/src/fresh_names.rs:0451ac9261c9f9f51d5d0b0befc2019eeadc8d18c165379a8233d2a5ed2d2981",
     "/Users/sac/wasm4pm-compat/src/witnesses_cognition.rs:7ca7e1ec63c97bf29f16b2f9dbd1998c9b60d8988b3df241688139df5624b8b2",
     "/Users/sac/wasm4pm-compat/src/witnesses_rdf.rs:8f6959c28af1a094bc1118579084775c84b82e38e46b17339de985769c208510",
     "/Users/sac/wasm4pm-compat/src/witnesses_ai_llm.rs:50b113b684fe7f41240dcffc261348401c1b1ecc5cdc1a6a28cab7d574b57fd4",
@@ -61,6 +58,6 @@
     "/Users/sac/wasm4pm-compat/src/witnesses_workflow.rs:ef4fb82dc8b7e4342ea1e75a685470d5255b1b0a3b7468146dfaa2d03860e8b7",
     "/Users/sac/wasm4pm-compat/src/witnesses_breeds.rs:f9da33bfa73b23beb2884b925e8461fc6dc803b56565e0ec004f916f06a4814f"
   ],
-  "signature": "8abca7a23924764b283e82a4bc04e6fbe82beb89f9bde89bff8865825148c49bef005a4767aa87b04f700283178b9e8aca37fc55c7a1e178b8ae0dcdf23dde01",
-  "previous_receipt_hash": "001222fe3519aaa10a3409396ba264133475322d70b30bc58ac9483a04a9da3b"
+  "signature": "bf6c499cc6bcf514cae0c7b1b32214e89cff6f03f3c3aeba9142eb4f0c9c20707811bbe164a64b73e07c1f3bc59630506b77d36512de2288c956fb68282b5d0d",
+  "previous_receipt_hash": "499e417b317b7c4ecda48d2a21bed43e0c697aa6309663e8c7e757a9868bdcc7"
 }

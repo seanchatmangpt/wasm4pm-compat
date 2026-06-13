@@ -1,0 +1,32 @@
+{
+  "operation_id": "12467b15-b2be-4c39-9c38-74f3142a77e8",
+  "timestamp": "2026-06-13T18:08:46.869056Z",
+  "input_hashes": [
+    "actuator:ggen-sync@26.6.9",
+    "ggen.toml:c3b34ead75c86971ce38f971ad49b4dd488dcab473ee4bfa2e9546d4f1cc4be7",
+    "ontology/wasm4pm-compat.ttl:f30c1795be202832d7045158909523d4328d9b35d1a533ad9a134ad89699b835",
+    "ontology/papers.ttl:51a12c41e86b593916c97008abbfccff9cdd23a58c5000d6dca61a34d1ae50d0",
+    "ontology/ggen-substrate.ttl:64fddd73a8f31f7a8e47ebcccd0f842f23ad19f278b0902a28320467ab80df92",
+    "ontology/audit-machinery.ttl:f9d3a1afcd0039db3e87fcae43530c047a774c346120a9f9064b10f9840779b8",
+    "ontology/zod-types.ttl:fb31d4e92dc3afd25c66e850a9e5acc18ea3f09a3c6101f041fffef6d5952d94",
+    "ontology-breeds/breed-vocabulary.ttl:c045b785f399735da07931b83cbad7099bda352d1640e4862d3074b7d8197225",
+    "ontology-breeds/paper-pointers.ttl:7eef8efd8df67d039fa454043d90a44c95c5a2bf716e6b91e44fcbf289ccc3f3",
+    "queries/extract-witnesses-full.rq:0d00f5feffa90902f654cf00456f2c44b17e9cb1f7d2d5bfedea14bff7a5a5ae",
+    "templates/witness-marker.tera:f7117e98147f60ea0e8527e24b30594faef07d84ada2d98ae6c0484bbf3eef3e",
+    "queries-breeds/extract-breeds.rq:2c16ff1de82385f03219d814d32310bb24b775db9db40925d9666fa29559fad2",
+    "templates-breeds/breed-ids.ts.tera:df5cf912cff8297a26d2f3f7f34064ae64965da36591bc83e90358a31b21c258",
+    "queries-breeds/extract-breeds.rq:2c16ff1de82385f03219d814d32310bb24b775db9db40925d9666fa29559fad2",
+    "templates-breeds/breed-registration.rs.tera:27281db87e58b313c8d3db8f02828b19c823d079a6186298c4dc8801a05d8adf",
+    "queries-breeds/extract-breeds.rq:2c16ff1de82385f03219d814d32310bb24b775db9db40925d9666fa29559fad2",
+    "templates-breeds/registry.json.tera:2a82383813221f1881712e67393744f1898e51ff348bbbf83a0107e1d1190a2f",
+    "queries-breeds/extract-paper-pointers.rq:0d23d05b54986ce12b8337e1b6e7eaa513caec29e3d40ec48b93b0d567c6cdd0",
+    "templates-breeds/paper-pointers-test.tera:771eefcae5e90f1268ed680f2ea09c1b8f74dea42b911503c93184202e0e9c6c",
+    "queries-breeds/extract-paper-pointers.rq:0d23d05b54986ce12b8337e1b6e7eaa513caec29e3d40ec48b93b0d567c6cdd0",
+    "templates-breeds/universal-anticheat.tera:c4a1736648bafd794b1bae1d3aaae0bd0a7a4a385e5d4b6cecf594a5fd8e2744"
+  ],
+  "output_hashes": [
+    "/Users/sac/wasm4pm-compat/src/witnesses.rs:5f91520779901ad0d66f56f16cb3afe65679f4ec57daf434fa84395e7e7afd89"
+  ],
+  "signature": "efc3c7d4da8dda7a7393683863bc269e45218f3fe1d2e6c4f2e62433160b0f991b43ddebb4eb8363d236e9cf03c0d4cec505899333cb7491cc9049e826141d0b",
+  "previous_receipt_hash": "18fe6e31f88faba52ddf1d5e23957564422ff8dfb5b911d4779007e59b8c92ff"
+}

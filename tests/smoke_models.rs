@@ -69,7 +69,10 @@ fn smoke_powl_choice_node_malformed() {
     assert!(!bad.is_well_formed());
     assert_eq!(
         bad.validate(),
-        Err(PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 })
+        Err(PowlRefusal::InvalidChoiceArity {
+            declared: 1,
+            required_min: 2
+        })
     );
 }
 
@@ -94,7 +97,13 @@ fn smoke_powl_refusal_arity_and_loop_body_variants() {
         declared: 1,
         required_min: 2,
     };
-    assert_eq!(r, PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 });
+    assert_eq!(
+        r,
+        PowlRefusal::InvalidChoiceArity {
+            declared: 1,
+            required_min: 2
+        }
+    );
 
     // LoopMissingDoBody is a named law.
     let l = PowlRefusal::LoopMissingDoBody;
@@ -107,7 +116,10 @@ fn smoke_powl_choice_node_validate_arity_refusal() {
     let empty = PowlChoiceNode::new(vec![]);
     assert_eq!(
         empty.validate(),
-        Err(PowlRefusal::InvalidChoiceArity { declared: 0, required_min: 2 })
+        Err(PowlRefusal::InvalidChoiceArity {
+            declared: 0,
+            required_min: 2
+        })
     );
 }
 
