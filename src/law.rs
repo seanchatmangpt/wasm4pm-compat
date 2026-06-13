@@ -224,6 +224,47 @@ where
     }
 }
 
+// ── GCD normalization for metrics ────────────────────────────────────────────
+
+/// Euclidean GCD — reduces metric fractions to canonical form.
+///
+/// `gcd(3, 6) == 3`, `gcd(1, 2) == 1`, `gcd(0, N) == N`.
+/// Used by [`NormedBetween01`] to ensure `Between01<3, 6>` and `Between01<1, 2>`
+/// are the same type.
+///
+/// ```
+/// use wasm4pm_compat::law::gcd;
+/// assert_eq!(gcd(3, 6), 3);
+/// assert_eq!(gcd(5, 5), 5);
+/// assert_eq!(gcd(7, 1), 1);
+/// ```
+pub const fn gcd(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    a
+}
+
+/// `Between01` normalized by GCD so equivalent ratios share the same type.
+///
+/// `NormedBetween01<3, 6>` and `NormedBetween01<1, 2>` are the **same type**
+/// because both reduce to `Between01<1, 2>`. Without normalization, `Between01<3,
+/// 6>` and `Between01<1, 2>` are distinct types even though they represent the
+/// same rational value, causing spurious mismatches in conformance pipelines.
+///
+/// ```
+/// # #![feature(generic_const_exprs, adt_const_params)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::law::NormedBetween01;
+/// let _a: NormedBetween01<3, 6> = Default::default();
+/// let _b: NormedBetween01<1, 2> = Default::default();
+/// // _a and _b are the same type — Between01<1, 2>
+/// ```
+pub type NormedBetween01<const N: u64, const D: u64> =
+    Between01<{ N / gcd(N, D) }, { D / gcd(N, D) }>;
+
 // ── ConstParamTy enum set (adt_const_params) ─────────────────────────────────
 
 /// Evidence lifecycle mode — what stage of the admission pipeline a value is at.

@@ -218,6 +218,8 @@ pub mod temporal;
 /// Witness markers and witness families (type-level proof carriers).
 #[macro_use]
 pub mod witness;
+/// Compile-time law enforcement: family-gated proof tokens, co-citation, const string equality.
+pub mod witness_law;
 /// Parity Delta Analyzer: Drift Detection and Conformance Delta Reporting.
 pub mod parity;
 /// Residual Failset Analyzer and Compliance Replay Verification Reports.

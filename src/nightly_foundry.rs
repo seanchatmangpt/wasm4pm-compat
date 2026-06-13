@@ -448,6 +448,53 @@ pub mod token_law {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Surface 5: Witness family batch check  (portable_simd + adt_const_params)
+//
+// `WitnessFamily` now derives `ConstParamTy`, so each variant is a `u8`-ordinal
+// value. We pack up to 8 family tags into a `u8x8` SIMD lane and compare all at
+// once — 8 comparisons in one instruction on architectures that support SIMD.
+//
+// Use case: checking that all witnesses in a `GraduationCandidate` belong to the
+// same family (e.g. all `Paper`) before graduation — zero runtime cost beyond the
+// SIMD load/compare/bitmask sequence.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// Batch family-membership check for up to 8 witness family tags via SIMD.
+///
+/// Each `WitnessFamily` value is cast to its `u8` ordinal. All 8 are loaded into
+/// a `u8x8` SIMD vector and compared against `target` in one operation.
+/// The result is a bitmask: bit `i` is set iff `families[i] == target`.
+///
+/// On x86-64 with SSE2 this is a single `pcmpeqb` + `pmovmskb` pair.
+/// On aarch64 with NEON it is `vceqq_u8` + `vmovmaskq_u8`.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::nightly_foundry::families_match_simd;
+/// use wasm4pm_compat::witness::WitnessFamily;
+///
+/// let all_paper = [WitnessFamily::Paper; 8];
+/// let mask = families_match_simd(all_paper, WitnessFamily::Paper);
+/// assert_eq!(mask, 0b1111_1111u8); // all 8 match
+///
+/// let mixed = [
+///     WitnessFamily::Paper, WitnessFamily::Standard,
+///     WitnessFamily::Paper, WitnessFamily::Paper,
+///     WitnessFamily::Standard, WitnessFamily::Paper,
+///     WitnessFamily::Paper, WitnessFamily::Paper,
+/// ];
+/// let mask = families_match_simd(mixed, WitnessFamily::Paper);
+/// assert_eq!(mask, 0b1101_1101u8); // bits 1 and 4 unset (Standard slots)
+/// ```
+pub fn families_match_simd(families: [crate::witness::WitnessFamily; 8], target: crate::witness::WitnessFamily) -> u8 {
+    use core::simd::{cmp::SimdPartialEq, u8x8};
+    let fam_vec = u8x8::from_array(families.map(|f| f as u8));
+    let target_vec = u8x8::splat(target as u8);
+    fam_vec.simd_eq(target_vec).to_bitmask() as u8
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Tests — always compiled (nightly-only crate, no cfg gate required)
 // ─────────────────────────────────────────────────────────────────────────────
 

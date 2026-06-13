@@ -35,7 +35,7 @@
 /// Families let diagnostics and indexes group witnesses by provenance without
 /// hard-coding each marker. This is structure only: a family is a label, not a
 /// capability.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, core::marker::ConstParamTy)]
 pub enum WitnessFamily {
     /// A published interchange/data standard (e.g. OCEL 2.0, XES 1849-2016).
     Standard,
@@ -73,7 +73,7 @@ pub enum WitnessFamily {
 /// assert_eq!(Ocel20::YEAR, Some(2023));
 /// assert_eq!(Ocel20::FAMILY, WitnessFamily::Standard);
 /// ```
-pub trait Witness {
+pub const trait Witness {
     /// A stable, lowercase, machine-facing key (e.g. `"ocel-2.0"`).
     const KEY: &'static str;
     /// The family this witness belongs to.
@@ -95,7 +95,7 @@ macro_rules! witness_marker {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $name {}
 
-        impl $crate::witness::Witness for $name {
+        impl const $crate::witness::Witness for $name {
             const KEY: &'static str = $key;
             const FAMILY: $crate::witness::WitnessFamily = $family;
             const TITLE: &'static str = $title;
