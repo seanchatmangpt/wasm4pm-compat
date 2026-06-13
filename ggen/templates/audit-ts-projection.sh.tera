@@ -1,7 +1,7 @@
 #!/bin/bash
 # {{ header_comment }}
 # Audit: TypeScript Projection Validation
-# Authority: ts-projection-law v1.0.0
+# Authority: ts-projection-law v26.6.13
 # Generated: {{ generated_timestamp }}
 # Template: ggen/templates/audit-ts-projection.sh.tera
 #
@@ -353,7 +353,7 @@ generate_json_report() {
   cat > "$RESULTS_JSON" << 'EOJSON'
 {
   "audit": "audit-ts-projection",
-  "authority": "ts-projection-law v1.0.0",
+  "authority": "ts-projection-law v26.6.13",
   "timestamp": "{{ generated_timestamp }}",
   "dts_file": "{{ dts_file_path }}",
   "summary": {
@@ -380,7 +380,7 @@ generate_markdown_report() {
   cat > "$RESULTS_MD" << 'EOMD'
 # TypeScript Projection Audit Results
 
-**Authority:** ts-projection-law v1.0.0
+**Authority:** ts-projection-law v26.6.13
 **Timestamp:** {{ generated_timestamp }}
 **DTS File:** {{ dts_file_path }}
 
@@ -456,7 +456,7 @@ EOMD
 
 main() {
   log_info "TypeScript Projection Audit"
-  log_info "Authority: ts-projection-law v1.0.0"
+  log_info "Authority: ts-projection-law v26.6.13"
   log_info "DTS File: $DTS_FILE"
   echo ""
 
