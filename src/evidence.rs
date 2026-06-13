@@ -137,6 +137,18 @@ impl<T, W> Evidence<T, Raw, W> {
         }
     }
 
+    /// Alias for [`Self::raw`] — names the entry point as a boundary crossing.
+    #[inline]
+    pub const fn from_boundary(value: T) -> Evidence<T, Raw, W> {
+        Self::raw(value)
+    }
+
+    /// Borrows the underlying raw value without consuming the evidence.
+    #[inline]
+    pub fn inner(&self) -> &T {
+        &self.value
+    }
+
     /// Advances `Raw → Refused` directly, without a parse step.
     ///
     /// This is the *fast-reject* path: when a raw value is structurally
@@ -285,6 +297,12 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
     #[inline]
     pub fn into_inner(self) -> T {
         self.value
+    }
+
+    /// Borrows the admitted value without consuming the evidence.
+    #[inline]
+    pub fn inner(&self) -> &T {
+        &self.value
     }
 
     /// Stamps admitted evidence as *export-cleared*, advancing it to `Exportable`.
@@ -546,6 +564,14 @@ impl<T, W> Evidence<T, Exportable, W> {
             state: PhantomData,
             witness: PhantomData,
         }
+    }
+}
+
+impl<T, W> Evidence<T, Receipted, W> {
+    /// Borrows the receipted value without consuming the evidence.
+    #[inline]
+    pub fn inner(&self) -> &T {
+        &self.value
     }
 }
 

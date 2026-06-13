@@ -279,6 +279,7 @@ pub use crate::receipt::Blake3Hash;
 pub use crate::receipt::ProvenanceChain;
 pub use crate::receipt::ReceiptEnvelope;
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
+pub use crate::witness::{Witness, WitnessFamily};
 pub use crate::streaming::{OfflineEvidence, OnlineEvidence};
 pub use crate::workflow::{
     BranchToken, Canceled, Completed, CompletedWorkflow, JoinPoint, ParallelWorkflow, Pending,

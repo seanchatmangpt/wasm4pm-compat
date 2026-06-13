@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.6.10"
+version = "26.6.11"
 edition = "2021"
 description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
