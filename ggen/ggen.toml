@@ -135,6 +135,18 @@ output_file = "/Users/sac/wasm4pm/crates/wasm4pm-cognition/tests/universal_antic
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
+# Rule: fresh-name-manifest
+# Derives the A8 oracle fresh-name table from compat:freshName predicates.
+# Output: src/fresh_names.rs (Overwrite — fully ontology-derived).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "fresh-name-manifest"
+query    = { file = "queries-breeds/extract-fresh-names.rq" }
+template = { file = "templates-breeds/fresh-name-manifest.rs.tera" }
+output_file = "src/fresh_names.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
 # NOTE: breed-stubs and breed-fixtures are NOT wired here.
 # ggen does not support SkipExisting mode — scaffolding new breeds must use
 # ggen-breed-scaffold.toml (invoked via `just scaffold-breed <name>`).

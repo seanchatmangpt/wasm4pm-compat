@@ -132,6 +132,12 @@ compat:sourceFile
     rdfs:comment "The src/*.rs file path (relative to crate root) where this entity is defined." ;
     rdfs:range xsd:string .
 
+compat:paperCategory
+    a rdf:Property ;
+    rdfs:label "paperCategory" ;
+    rdfs:comment "The source-directory category of a WitnessMarker, matching the ~/Documents/Papers subdirectory it was sourced from. Used to route the marker to the correct per-category generated module. Values: 'cognition', 'rdf', 'ai-llm', 'domain', 'workflow'." ;
+    rdfs:range xsd:string .
+
 compat:witnessKey
     a rdf:Property ;
     rdfs:label "witnessKey" ;
