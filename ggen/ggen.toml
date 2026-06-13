@@ -38,6 +38,19 @@ output_file = "src/witnesses.rs"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
+# Rule: witness-corpus
+# Aggregates EVERY witness key across all categories into src/witness_corpus.rs
+# with a compile-time KEY-uniqueness proof. Closes the authority-collision hole
+# that SPARQL dedup alone cannot enforce in Rust source.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "witness-corpus"
+query = { file = "queries/extract-all-witness-keys.rq" }
+template = { file = "templates/all-witness-keys.tera" }
+output_file = "src/witness_corpus.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
 # Rule: compile-fail-fixtures (DISABLED — template references ?witnessA/?witnessB/?rustType
 # that are not bound by the SPARQL query; fixtures in tests/ui/compile_fail/ are hand-authored)
 # ---------------------------------------------------------------------------

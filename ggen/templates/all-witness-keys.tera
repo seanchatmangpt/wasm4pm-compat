@@ -1,0 +1,53 @@
+{# all-witness-keys.tera — renders src/witness_corpus.rs.                          #}
+{# Compile-time corpus-integrity proof: every witness KEY across all categories    #}
+{# must be unique. Closes the KEY-collision hole that SPARQL dedup alone misses.    #}
+{# Variables per row: witnessKey, witnessFamily (URI), witnessYear (or "").         #}
+//! Corpus-integrity proof — every witness KEY in the bibliography is unique.
+//!
+//! ## What this module IS
+//!
+//! - A ggen-rendered census of every `compat:WitnessMarker` key across the core
+//!   module and all per-category modules ([`crate::witnesses`],
+//!   [`crate::witnesses_cognition`], …).
+//! - A **compile-time law**: the [`const _: () = { … }`] block below proves no two
+//!   witnesses share a `KEY`. Two distinct witness types with the same key would
+//!   compile (Rust only rejects duplicate type *names*) yet print identical
+//!   provenance — silently reviving the authority-erasure problem. This module
+//!   makes that a build error regardless of how a witness file was produced.
+//!
+//! ## What this module is **NOT**
+//!
+//! - Not a runtime registry. The arrays are `const`; the proof runs at compile
+//!   time and costs nothing at runtime.
+//! - Not hand-maintained. It is rendered by `ggen sync --rule witness-corpus`
+//!   from the witness ontologies. To change it, edit the TTL and re-render.
+//!
+//! Structure-only. There is nothing to graduate — corpus integrity is a property
+//! of this crate's bibliography, not of any execution engine.
+
+/// Every witness key in the corpus, sorted. One entry per `compat:WitnessMarker`
+/// across all category modules.
+pub const ALL_WITNESS_KEYS: &[&str] = &[
+{% for row in sparql_results %}    "{{ row.witnessKey }}",
+{% endfor %}];
+
+/// Compile-time proof that every entry in [`ALL_WITNESS_KEYS`] is unique.
+///
+/// If two witnesses ever collide on `KEY`, this `const` block fails to evaluate
+/// with `duplicate witness key — authority collision`, breaking the build.
+const _: () = {
+    let keys = ALL_WITNESS_KEYS;
+    let n = keys.len();
+    let mut i = 0;
+    while i < n {
+        let mut j = i + 1;
+        while j < n {
+            assert!(
+                !crate::witness_law::str_eq(keys[i], keys[j]),
+                "duplicate witness key — authority collision in ALL_WITNESS_KEYS"
+            );
+            j += 1;
+        }
+        i += 1;
+    }
+};
