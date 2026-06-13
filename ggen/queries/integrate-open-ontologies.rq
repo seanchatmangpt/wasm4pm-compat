@@ -63,7 +63,7 @@ WHERE {
            rdfs:label ?label .
     BIND("dfg" AS ?standard)
     BIND(IF(?label = "Activity", compat:DfgActivity,
-        IF(?label = "Edge", compat:DfgEdge, ?class))) AS ?compat_class)
+        IF(?label = "Edge", compat:DfgEdge, ?class)) AS ?compat_class)
     BIND("Canonical Directly-Follows Graph mapping" AS ?mapping_reason)
   }
   UNION
@@ -74,7 +74,7 @@ WHERE {
     BIND("event-model" AS ?standard)
     BIND(IF(?label = "Timestamp", compat:Timestamp,
         IF(?label = "Lifecycle", compat:Lifecycle,
-        IF(?label = "Resource", compat:Resource, ?class)))) AS ?compat_class)
+        IF(?label = "Resource", compat:Resource, ?class))) AS ?compat_class)
     BIND("Canonical event attribute mapping" AS ?mapping_reason)
   }
 }
