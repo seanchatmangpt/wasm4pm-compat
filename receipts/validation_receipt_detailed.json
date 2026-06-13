@@ -5,7 +5,10 @@
     "timestamp": "2026-06-02T05:14:26Z",
     "agent": "AGENT_9_VALIDATION",
     "crate": "wasm4pm-compat",
-    "project_root": "/Users/sac/wasm4pm-compat"
+    "project_root": "/Users/sac/wasm4pm-compat",
+    "run_id": "AGENT_9_VALIDATION-1780377266",
+    "output_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+    "replay_pointer": null
   },
   "validation_summary": {
     "total_checks": 10,
