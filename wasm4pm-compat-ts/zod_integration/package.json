@@ -1,0 +1,23 @@
+{
+  "name": "wasm4pm-zod-example",
+  "version": "26.6.9",
+  "description": "Example using ggen-generated Zod schemas for wasm4pm-compat",
+  "main": "main.ts",
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "ts-node": "^10.9.0"
+  },
+  "scripts": {
+    "start": "ts-node main.ts",
+    "validate": "ts-node validate_log.ts",
+    "test-real": "ts-node real_data_test.ts",
+    "demo": "ts-node comprehensive_demo.ts",
+    "demo-advanced": "ts-node complex_models_demo.ts",
+    "validate-path": "ts-node validate_external.ts",
+    "typecheck": "tsc --noEmit",
+    "test-all": "npm run start && npm run validate && npm run test-real && npm run demo && npm run demo-advanced"
+  }
+}

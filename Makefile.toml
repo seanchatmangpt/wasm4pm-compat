@@ -167,3 +167,23 @@ args = ["sync", "--rule", "cognition-breed-witnesses", "--manifest", "ggen.toml"
 [tasks.ci]
 description = "Full CI: check-all, test-all, clippy, fmt, alive"
 dependencies = ["check-all", "test-all", "clippy", "fmt", "alive"]
+
+# ── Verification bridge: MIRI ────────────────────────────────────────────────
+# Proves no undefined behavior across the transitive dependency graph and in
+# const-eval — the surface #![forbid(unsafe_code)] does NOT cover (blake3,
+# hashbrown, quick-xml, uuid, rustc-hash all carry internal unsafe).
+# NOT yet wired into `ci`: run it once, resolve/flag findings, then add.
+
+[tasks.miri-setup]
+description = "Install the MIRI component on the pinned nightly"
+command = "rustup"
+args = ["component", "add", "miri"]
+
+[tasks.miri]
+description = "Run tests under MIRI (no-UB proof across the dep graph)"
+dependencies = ["miri-setup"]
+command = "cargo"
+args = ["miri", "test", "--tests"]
+# uuid v4 / chrono touch the clock + RNG; MIRI needs isolation relaxed for those.
+[tasks.miri.env]
+MIRIFLAGS = "-Zmiri-disable-isolation"

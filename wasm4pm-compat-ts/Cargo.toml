@@ -1,0 +1,18 @@
+[package]
+name = "wasm4pm-compat-ts"
+version = "26.6.13"
+edition = "2021"
+description = "TypeScript / Zod binding surface for wasm4pm-compat. Keeps specta and all TS tooling OUT of the structure-only core crate."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
+publish = false
+
+# Sidecar rationale: wasm4pm-compat holds the invariants "exactly three public
+# Cargo features" and "no runtime dependencies". TypeScript binding generation
+# needs a fourth feature and the optional `specta` dependency — so it lives here
+# instead, depending on the core crate rather than polluting it.
+
+[dependencies]
+wasm4pm-compat = { path = ".." }
+specta = "1.0.5"
+serde = { version = "1.0.228", features = ["derive"] }

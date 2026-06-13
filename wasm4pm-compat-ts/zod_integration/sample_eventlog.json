@@ -1,0 +1,23 @@
+{
+  "traces": [
+    {
+      "id": "case_1",
+      "events": [
+        { "activity": "register request", "timestamp_ns": 1717891200000000000, "resource": "system", "lifecycle": "start" },
+        { "activity": "examine casually", "timestamp_ns": 1717891260000000000, "resource": "user_1", "lifecycle": "complete" },
+        { "activity": "decide", "timestamp_ns": 1717891320000000000, "resource": "manager", "lifecycle": "complete" }
+      ]
+    },
+    {
+      "id": "case_2",
+      "events": [
+        { "activity": "register request", "timestamp_ns": 1717891400000000000, "resource": "system", "lifecycle": "start" },
+        { "activity": "check", "timestamp_ns": 1717891460000000000, "resource": "user_2", "lifecycle": "complete" }
+      ]
+    }
+  ],
+  "attributes": {
+    "concept:name": "Example Event Log",
+    "source": "wasm4pm-compat-demo"
+  }
+}

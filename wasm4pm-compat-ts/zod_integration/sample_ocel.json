@@ -1,0 +1,71 @@
+{
+  "eventTypes": [
+    {
+      "name": "create order",
+      "attributes": [
+        { "name": "channel", "type": "string" }
+      ]
+    },
+    {
+      "name": "pick item",
+      "attributes": [
+        { "name": "picker", "type": "string" }
+      ]
+    }
+  ],
+  "objectTypes": [
+    {
+      "name": "order",
+      "attributes": [
+        { "name": "total", "type": "float" }
+      ]
+    },
+    {
+      "name": "item",
+      "attributes": []
+    }
+  ],
+  "events": [
+    {
+      "id": "e_1",
+      "type": "create order",
+      "time": 1717891200000,
+      "attributes": [
+        { "name": "channel", "value": { "String": "web" } }
+      ],
+      "relationships": [
+        { "objectId": "o_1", "qualifier": "order" }
+      ]
+    },
+    {
+      "id": "e_2",
+      "type": "pick item",
+      "time": 1717891260000,
+      "attributes": [
+        { "name": "picker", "value": { "String": "alice" } }
+      ],
+      "relationships": [
+        { "objectId": "o_1", "qualifier": "belongs_to" },
+        { "objectId": "i_1", "qualifier": "item" }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "o_1",
+      "type": "order",
+      "attributes": [
+        { "name": "total", "value": { "Float": 299.99 }, "time": 1717891200000 }
+      ],
+      "relationships": []
+    },
+    {
+      "id": "i_1",
+      "type": "item",
+      "attributes": [],
+      "relationships": [
+        { "objectId": "o_1", "qualifier": "contained_in" }
+      ]
+    }
+  ]
+}
