@@ -77,6 +77,16 @@ pub const trait Witness {
     /// A stable, lowercase, machine-facing key (e.g. `"ocel-2.0"`).
     const KEY: &'static str;
     /// The family this witness belongs to.
+    ///
+    /// NOTE (durability): this would ideally be a `type const` (mGCA) so it could
+    /// appear as an associated-const-equality bound `Witness<FAMILY = {...}>`,
+    /// collapsing the sealed-trait family gating in [`crate::witness_law`]. A live
+    /// spike (2026-06, nightly 2026-05-04) proved this is **not viable**: enabling
+    /// `min_generic_const_args` is mutually exclusive with `generic_const_exprs`,
+    /// and mGCA forbids generic params in computed const operations — so the
+    /// computed-const law kernel (`Between01`, `Metric`, `ConditionCell`) has no
+    /// mGCA path. We stay on `generic_const_exprs` and gate families via sealed
+    /// traits until mGCA's non-min expansion supports computed const arguments.
     const FAMILY: WitnessFamily;
     /// A human-facing title (e.g. `"OCEL 2.0"`).
     const TITLE: &'static str;

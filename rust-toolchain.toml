@@ -1,2 +1,10 @@
 [toolchain]
-channel = "nightly-2026-04-15"
+# Pinned to a dated nightly so a const-generics / const-trait syntax flip lands
+# on ONE known toolchain, not silently. This crate's computed-const law kernel
+# (Between01, Metric, ConditionCell, WfNetConst soundness) is irreducibly
+# `generic_const_exprs`-bound; mGCA (min_generic_const_args) cannot express
+# generic params in const operations, so there is no stable-floor migration path
+# yet. Watch mGCA's non-min expansion before re-evaluating.
+# Validated: type-law receipts (ALIVE gate) green on 2026-05-04.
+channel = "nightly-2026-05-04"
+components = ["rustfmt", "clippy", "rust-src"]
