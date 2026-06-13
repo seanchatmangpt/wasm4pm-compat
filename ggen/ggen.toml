@@ -7,32 +7,15 @@ license = "MIT"
 
 [ontology]
 source = "ontology/wasm4pm-compat.ttl"
-additional = [
+imports = [
   "ontology/papers.ttl",
   "ontology/ggen-substrate.ttl",
   "ontology/audit-machinery.ttl",
-  "ontology/zod-types.ttl"
+  "ontology/zod-types.ttl",
+  "ontology-breeds/breed-vocabulary.ttl",
+  "ontology-breeds/paper-pointers.ttl"
 ]
 standard_only = false
-
-# ---------------------------------------------------------------------------
-# Ontology Pack: open-ontologies
-# Integrates standard RDF ontologies for OCEL, XES, BPMN, Petri nets, DFG
-# and process-mining vocabularies. Sources: PM4Py, OCEL specification, W3C.
-# ---------------------------------------------------------------------------
-[[ontology.pack]]
-name = "open-ontologies"
-namespace = "https://open-ontologies.github.io/"
-sources = [
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/ocel.ttl",
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/xes.ttl",
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/bpmn.ttl",
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/petri.ttl",
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/dfg.ttl",
-  "https://raw.githubusercontent.com/open-ontologies/ontologies/main/event-model.ttl"
-]
-local_cache = "ontology/.open-ontologies-cache"
-allow_remote_fetch = true
 
 [generation]
 output_dir = "/Users/sac/wasm4pm-compat"
@@ -163,10 +146,73 @@ mode = "Overwrite"
 # (disabled: CONSTRUCT rule has no template field — ggen requires template for generation rules)
 
 # ---------------------------------------------------------------------------
+# Rule: breed-ids
+# Derives the canonical TS breed ID constants from breed-vocabulary.ttl.
+# Output: packages/cognition/src/breed-ids.ts (Overwrite — fully ontology-derived).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "breed-ids"
+query = { file = "queries-breeds/extract-breeds.rq" }
+template = { file = "templates-breeds/breed-ids.ts.tera" }
+output_file = "../wasm4pm/packages/cognition/src/breed-ids.ts"
+mode = "Overwrite"
 
+# ---------------------------------------------------------------------------
+# Rule: breed-registration
+# Derives the breeds! macro invocation and BreedId::ALL array.
+# Output: crates/wasm4pm-cognition/src/breeds/registration.rs (Overwrite).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "breed-registration"
+query = { file = "queries-breeds/extract-breeds.rq" }
+template = { file = "templates-breeds/breed-registration.rs.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/src/breeds/registration.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: registry-json
+# Derives the breed registry JSON from ontology fitness evidence.
+# Output: crates/wasm4pm-cognition/breeds/registry.json (Overwrite).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "registry-json"
+query = { file = "queries-breeds/extract-breeds.rq" }
+template = { file = "templates-breeds/registry.json.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/breeds/registry.json"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: paper-pointers-test
+# Generates the paper_pointers_generated.rs test suite from paper-pointers.ttl.
+# Output: crates/wasm4pm-cognition/tests/paper_pointers_generated.rs (Overwrite).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "paper-pointers-test"
+query = { file = "queries-breeds/extract-paper-pointers.rq" }
+template = { file = "templates-breeds/paper-pointers-test.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/tests/paper_pointers_generated.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: universal-anticheat
+# Generates the universal_anticheat_generated.rs anti-oracle test suite.
+# Output: crates/wasm4pm-cognition/tests/universal_anticheat_generated.rs (Overwrite).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "universal-anticheat"
+query = { file = "queries-breeds/extract-paper-pointers.rq" }
+template = { file = "templates-breeds/universal-anticheat.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/tests/universal_anticheat_generated.rs"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# NOTE: breed-stubs and breed-fixtures are NOT wired here.
+# ggen does not support SkipExisting mode — scaffolding new breeds must use
+# ggen-breed-scaffold.toml (invoked via `just scaffold-breed <name>`).
+# Wiring them here with Overwrite would clobber hand-authored implementations.
+# ---------------------------------------------------------------------------
 
 [inference]
-enabled = true
 rules = [
   { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1" }
 ]

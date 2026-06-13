@@ -526,7 +526,34 @@ impl ProcessTree {
                 }
             }
         }
+        // Cycle detection: DFS from root; a back-edge (node already on current
+        // path) means the arena contains a cycle and is inadmissible.
+        if let Some(root) = self.root {
+            let mut on_path = std::collections::HashSet::new();
+            if Self::has_cycle(&self.nodes, root.0, &mut on_path) {
+                return Err(ProcessTreeRefusal::CycleDetected);
+            }
+        }
         Ok(())
+    }
+
+    fn has_cycle(
+        nodes: &[ProcessTreeNode],
+        idx: usize,
+        on_path: &mut std::collections::HashSet<usize>,
+    ) -> bool {
+        if !on_path.insert(idx) {
+            return true; // back-edge
+        }
+        let result = if let Some(ProcessTreeNode::Operator { children, .. }) = nodes.get(idx) {
+            children
+                .iter()
+                .any(|c| Self::has_cycle(nodes, c.0, on_path))
+        } else {
+            false
+        };
+        on_path.remove(&idx);
+        result
     }
 }
 

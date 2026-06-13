@@ -67,7 +67,10 @@ fn smoke_powl_choice_node_well_formed() {
 fn smoke_powl_choice_node_malformed() {
     let bad = PowlChoiceNode::new(vec![PowlNodeId(0)]);
     assert!(!bad.is_well_formed());
-    assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoice));
+    assert_eq!(
+        bad.validate(),
+        Err(PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 })
+    );
 }
 
 #[test]
@@ -107,7 +110,10 @@ fn smoke_powl_refusal_arity_and_loop_body_variants() {
 fn smoke_powl_choice_node_validate_arity_refusal() {
     // An empty choice node produces InvalidChoiceArity via validate_arity.
     let empty = PowlChoiceNode::new(vec![]);
-    assert_eq!(empty.validate(), Err(PowlRefusal::InvalidChoice));
+    assert_eq!(
+        empty.validate(),
+        Err(PowlRefusal::InvalidChoiceArity { declared: 0, required_min: 2 })
+    );
 }
 
 #[test]

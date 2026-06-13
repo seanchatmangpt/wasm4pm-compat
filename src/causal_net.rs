@@ -155,6 +155,47 @@ pub enum CausalNetRefusal {
     DisconnectedGraph,
 }
 
+impl CausalNet {
+    /// Validate the causal net's structural law, returning the first violated law.
+    ///
+    /// Checks (in order): `MissingActivity`, `InvalidDependencyScore`,
+    /// `DisconnectedGraph` (isolated-node variant — a node present in `nodes`
+    /// but absent from all dependency-measure arcs).
+    ///
+    /// ```
+    /// use wasm4pm_compat::causal_net::{CausalNet, CausalNetRefusal};
+    /// let mut net = CausalNet::default();
+    /// net.nodes.push("".into());
+    /// assert_eq!(net.validate(), Err(CausalNetRefusal::MissingActivity));
+    /// ```
+    pub fn validate(&self) -> Result<(), CausalNetRefusal> {
+        for node in &self.nodes {
+            if node.trim().is_empty() {
+                return Err(CausalNetRefusal::MissingActivity);
+            }
+        }
+        for (_, _, score) in &self.dependency_measures {
+            if score.is_nan() || *score < 0.0 || *score > 1.0 {
+                return Err(CausalNetRefusal::InvalidDependencyScore);
+            }
+        }
+        // Isolated-node check: any node not referenced by any arc is disconnected.
+        if self.nodes.len() > 1 {
+            let arc_nodes: std::collections::HashSet<&str> = self
+                .dependency_measures
+                .iter()
+                .flat_map(|(src, tgt, _)| [src.as_str(), tgt.as_str()])
+                .collect();
+            for node in &self.nodes {
+                if !arc_nodes.contains(node.as_str()) {
+                    return Err(CausalNetRefusal::DisconnectedGraph);
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
 impl core::fmt::Display for CausalNetRefusal {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {

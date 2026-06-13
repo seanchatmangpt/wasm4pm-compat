@@ -203,6 +203,49 @@ impl fmt::Display for DeclareRefusal {
 
 impl std::error::Error for DeclareRefusal {}
 
+impl DeclareConstraint {
+    /// Validate the constraint's structural law, returning the first violated law.
+    ///
+    /// Checks (in order): `MissingActivation`, `EmptyObjectScope`,
+    /// `SynchronizationViolation`, `MissingTarget`, `InvalidTemplateArity`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::declare::{
+    ///     DeclareConstraint, DeclareRefusal, DeclareScope, DeclareTemplate, Activity,
+    /// };
+    /// let c = DeclareConstraint::unary(
+    ///     DeclareTemplate::Existence,
+    ///     Activity::new(""),
+    ///     DeclareScope::SingleObjectScope("order".into()),
+    /// );
+    /// assert_eq!(c.validate(), Err(DeclareRefusal::MissingActivation));
+    /// ```
+    pub fn validate(&self) -> Result<(), DeclareRefusal> {
+        if self.activation.name().trim().is_empty() {
+            return Err(DeclareRefusal::MissingActivation);
+        }
+        match &self.scope {
+            DeclareScope::MultiObjectScope(types) if types.is_empty() => {
+                return Err(DeclareRefusal::EmptyObjectScope);
+            }
+            DeclareScope::SynchronizedObjectScope(types) if types.is_empty() => {
+                return Err(DeclareRefusal::EmptyObjectScope);
+            }
+            DeclareScope::SynchronizedObjectScope(types) if types.len() < 2 => {
+                return Err(DeclareRefusal::SynchronizationViolation);
+            }
+            _ => {}
+        }
+        if self.template.arity() == 2 && self.target.is_none() {
+            return Err(DeclareRefusal::MissingTarget);
+        }
+        if self.template.arity() == 1 && self.target.is_some() {
+            return Err(DeclareRefusal::InvalidTemplateArity);
+        }
+        Ok(())
+    }
+}
+
 // ── OcDeclareConstraint ───────────────────────────────────────────────────────
 
 /// A DECLARE constraint extended with object-type annotations,

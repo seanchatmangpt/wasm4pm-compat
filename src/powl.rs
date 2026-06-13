@@ -348,14 +348,14 @@ impl PowlChoiceNode {
     }
 
     /// Attempt to validate the choice node, returning the branches on success
-    /// or [`PowlRefusal::InvalidChoice`] when fewer than two branches are present.
+    /// or [`PowlRefusal::InvalidChoiceArity`] when fewer than two branches are present.
     ///
     /// # Examples
     ///
     /// ```
     /// use wasm4pm_compat::powl::{PowlChoiceNode, PowlNodeId, PowlRefusal};
     /// let bad = PowlChoiceNode::new(vec![PowlNodeId(0)]);
-    /// assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoice));
+    /// assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 }));
     /// let ok  = PowlChoiceNode::new(vec![PowlNodeId(0), PowlNodeId(1)]);
     /// assert!(ok.validate().is_ok());
     /// ```
@@ -364,7 +364,10 @@ impl PowlChoiceNode {
         if self.is_well_formed() {
             Ok(&self.branches)
         } else {
-            Err(PowlRefusal::InvalidChoice)
+            Err(PowlRefusal::InvalidChoiceArity {
+                declared: self.branches.len(),
+                required_min: 2,
+            })
         }
     }
 }
@@ -543,7 +546,10 @@ impl Powl {
             match &node.kind {
                 PowlNodeKind::Choice(branches) => {
                     if branches.len() < 2 {
-                        return Err(PowlRefusal::InvalidChoice);
+                        return Err(PowlRefusal::InvalidChoiceArity {
+                            declared: branches.len(),
+                            required_min: 2,
+                        });
                     }
                 }
                 PowlNodeKind::Loop { body, redo } => {
@@ -1097,7 +1103,10 @@ mod tests {
             PowlNodeId(0),
             PowlNodeKind::Choice(vec![PowlNodeId(1)]),
         ));
-        assert_eq!(p.validate(), Err(PowlRefusal::InvalidChoice));
+        assert_eq!(
+            p.validate(),
+            Err(PowlRefusal::InvalidChoiceArity { declared: 1, required_min: 2 })
+        );
     }
 
     #[test]
