@@ -1,3 +1,18 @@
+//! Serde-facing event-log import shapes (the `event_log` spelling).
+//!
+//! ## What this module IS
+//!
+//! - Concrete, serializable event/log structs used when *importing* external
+//!   logs (timestamps as `chrono` types, attributes as plain fields).
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** the typed canon surface. The builder-ergonomic, engine-graduating
+//!   shapes live in [`crate::eventlog`]; this module is the wire/import shape.
+//! - **Not** an engine. It parses structure; it mines nothing.
+//!
+//! Structure only. Graduate to `wasm4pm` for any analysis over these logs.
+
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

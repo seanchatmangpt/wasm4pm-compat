@@ -1,3 +1,17 @@
+//! Directly-follows graph (DFG) shapes — nodes, edges, and the graph container.
+//!
+//! ## What this module IS
+//!
+//! - The structural shape of a DFG: activities as nodes, directly-follows
+//!   relations as weighted edges, and named refusals for malformed graphs.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a DFG miner. It does not discover a graph from an event log,
+//!   filter by frequency, or compute any statistic. It only holds the shape.
+//!
+//! Structure only. Graduate to `wasm4pm` when a DFG must be *mined* from a log.
+
 pub use crate::models::{DFGEdge, DFGNode, DFG};
 
 // ── Van der Aalst-grounded DFG types (camelCase, OCEL-compatible) ────────────

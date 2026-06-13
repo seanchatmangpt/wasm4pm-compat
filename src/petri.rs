@@ -1,3 +1,19 @@
+//! Petri-net shapes — typed places/transitions/arcs and const-generic soundness.
+//!
+//! ## What this module IS
+//!
+//! - The structural shape of a (workflow) Petri net: bipartite typed arcs,
+//!   `WfNetConst<SOUNDNESS>` carrying a non-forgeable soundness typestate, and
+//!   `SeparableWfNet` whose private seal makes a separability claim unforgeable.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a soundness checker or token-replay engine. The soundness *witness*
+//!   is issued by a proof token; this crate never *computes* soundness, fires a
+//!   transition, or explores a marking graph.
+//!
+//! Structure only. Graduate to `wasm4pm` to *decide* soundness or replay tokens.
+
 use crate::law::SoundnessState;
 pub use crate::models::{Arc, ArcDirection, PetriNet, PetriNetRefusal, Place, Transition};
 use std::fmt;

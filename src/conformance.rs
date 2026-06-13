@@ -1,3 +1,19 @@
+//! Conformance verdict shapes — the *structure* of a fitness/precision result.
+//!
+//! ## What this module IS
+//!
+//! - The shape of a conformance outcome: `Metric<KIND, NUM, DEN>` bounded to
+//!   `[0, 1]` at the type level, and the verdict containers that carry it.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a conformance checker. It computes no alignment, replays no token,
+//!   derives no metric from a log-and-model. It only *holds* a verdict an engine
+//!   produced.
+//!
+//! Structure only. Graduate to `wasm4pm` when a metric must be *computed* from an
+//! event log and a process model.
+
 use serde::{Deserialize, Serialize};
 
 use std::simd::u32x16;

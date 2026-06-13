@@ -174,8 +174,7 @@ pub mod declare;
 pub mod dfg;
 /// Diagnostic shapes for explaining admission and refusal.
 pub mod diagnostic;
-/// Event, trace, and event-log shapes.
-/// Receipt-shaped evidence values (structure only).
+/// The universal evidence carrier `Evidence<T, State, W>` and its typestate transitions.
 pub mod evidence;
 /// Zero-cost `#[repr(transparent)]` identifier wrappers.
 pub mod ids;
@@ -315,9 +314,14 @@ pub use crate::xes::XesLog;
 pub mod hash;
 
 pub mod choice_graph;
+/// FNV-1a hashing kernel for content-addressed structural digests (no engine logic).
 pub mod dense_kernel;
+/// Crate-wide error shape for fallible structural operations.
 pub mod error;
+/// Serde-facing OCEL/event-log import shapes (`event_log` spelling).
 pub mod event_log;
+/// Event, trace, and event-log shapes with builder ergonomics.
 pub mod eventlog;
+/// Import adapters: timestamp parsing and persistence shapes for external logs.
 pub mod import;
 pub mod models;

@@ -1,0 +1,31 @@
+//! A8 oracle fresh-name manifest — ggen-rendered from `breed-vocabulary.ttl`.
+//!
+//! ## What this module IS
+//!
+//! - A compiled `(breed_id, fresh_name)` table derived from `compat:freshName`
+//!   predicates on each `compat:CognitionBreed`. Structure-only lookup data.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** hand-authored — edit `breed-vocabulary.ttl` and run
+//!   `ggen sync --rule fresh-name-manifest`, never this file.
+//! - **Not** an engine. It maps ids to names; it runs nothing.
+//!
+//! Structure only.
+
+/// The A8 oracle fresh-name table: `(breed_id, fresh_name)` pairs.
+///
+/// Multiple entries share a `breed_id` when a breed has several oracle names.
+/// Consumers filter by `breed_id`:
+/// ```
+/// use wasm4pm_compat::fresh_names::FRESH_NAME_PAIRS;
+/// let names: Vec<&str> = FRESH_NAME_PAIRS
+///     .iter()
+///     .filter(|(b, _)| *b == "ltl_monitor")
+///     .map(|(_, n)| *n)
+///     .collect();
+/// let _ = names; // structure-only lookup; may be empty if the breed declares none
+/// ```
+pub const FRESH_NAME_PAIRS: &[(&str, &str)] = &[
+{% for row in sparql_results %}    ("{{ row.breed_id }}", "{{ row.fresh_name }}"),
+{% endfor %}];

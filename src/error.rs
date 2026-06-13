@@ -1,3 +1,18 @@
+//! Crate-wide error shape for fallible structural operations.
+//!
+//! ## What this module IS
+//!
+//! - A small, serializable error type for structural failures (parse, lookup,
+//!   malformed input) that are not boundary *refusals*.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** the refusal surface. A boundary verdict carries a *named law* via
+//!   [`crate::admission::Refusal`]; this type is for ordinary fallible helpers,
+//!   never a substitute for a named refusal reason.
+//!
+//! Structure only — no engine ever surfaces through this type.
+
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

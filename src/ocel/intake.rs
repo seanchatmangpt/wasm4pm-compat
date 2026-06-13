@@ -1,3 +1,17 @@
+//! OCEL intake — parse raw OCEL 2.0 JSON into the typed [`crate::ocel`] shape.
+//!
+//! ## What this module IS
+//!
+//! - The structural parse step turning external OCEL JSON into in-memory OCEL
+//!   structs, ready to be admitted via [`crate::ocel::LinkedOcel`].
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** admission, and **not** an engine. Intake yields *raw* structure;
+//!   the named object-centricity laws are enforced only at the admit boundary.
+//!
+//! Structure only.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use std::io::BufRead;

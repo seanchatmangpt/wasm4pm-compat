@@ -1,3 +1,22 @@
+//! OCEL 2.0 shapes — the object-centric event log structure and its laws.
+//!
+//! ## What this module IS
+//!
+//! - The structural shape of an OCEL 2.0 log: events, objects, E2O/O2O links,
+//!   and object changes, plus the named admission laws ([`OcelRefusal`]) and the
+//!   sole concrete admitter [`LinkedOcel`] that enforces them through the typed
+//!   one-way door.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** an OCEL engine. It does not discover object-centric Petri nets,
+//!   flatten for conformance, or compute any metric. `flatten`/`intake` are
+//!   structural transforms only.
+//! - **Not** a full standard validator. It enforces the two object-centricity
+//!   structure laws it names; semantic OCEL 2.0 conformance graduates.
+//!
+//! Structure only. Graduate to `wasm4pm` when an OCEL log must be *executed*.
+
 pub mod flatten;
 pub mod intake;
 pub mod validate;

@@ -1,3 +1,17 @@
+//! Timestamp parsing helpers for log import.
+//!
+//! ## What this module IS
+//!
+//! - Pure functions that normalize external timestamp encodings into
+//!   `chrono::DateTime<FixedOffset>` for typed event shapes.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** an engine. It parses strings to times; it never orders events,
+//!   derives durations, or computes a temporal profile (that graduates).
+//!
+//! Structure only.
+
 use chrono::{DateTime, FixedOffset, NaiveDateTime};
 
 pub fn parse_timestamp<'a>(

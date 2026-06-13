@@ -1,3 +1,17 @@
+//! Persistence shapes for imported logs — serializable intermediate structures.
+//!
+//! ## What this module IS
+//!
+//! - Plain serde structs that hold an imported log in memory between parsing and
+//!   admission (lookup maps, id sets).
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a database or store, and **not** an engine. It persists nothing to
+//!   disk and analyzes nothing; it is a transient in-memory shape.
+//!
+//! Structure only.
+
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 

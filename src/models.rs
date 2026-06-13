@@ -1,3 +1,17 @@
+//! Shared process-model shapes (DFG, Petri, tree nodes) used across modules.
+//!
+//! ## What this module IS
+//!
+//! - The common, serializable model structs (`DFG`, nodes, edges) re-exported by
+//!   the typed surfaces in [`crate::dfg`] and friends.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a discovery or analysis engine. These are inert containers; nothing
+//!   here mines, replays, or scores a model.
+//!
+//! Structure only. Graduate to `wasm4pm` to *do* anything with a model.
+
 use serde::{Deserialize, Serialize};
 
 /// Named refusal for `PetriNet::validate()` — structural completeness law.

@@ -1,3 +1,17 @@
+//! Conformance-delta shapes — the typed difference between two metric readings.
+//!
+//! ## What this module IS
+//!
+//! - Const-generic delta containers over `[0, 1]`-bounded fitness/precision
+//!   values, carrying the *shape* of a baseline-vs-current comparison.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a comparison engine. It does not run two pipelines or compute the
+//!   metrics it compares; it holds the delta as inert, bounded data.
+//!
+//! Structure only. Graduate to `wasm4pm` to *compute* the metrics being compared.
+
 use crate::conformance::{FitnessConst, PrecisionConst};
 use crate::law::{IsTrue, Require};
 

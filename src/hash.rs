@@ -1,3 +1,18 @@
+//! Content-addressed hashing helpers for structural digests.
+//!
+//! ## What this module IS
+//!
+//! - Thin wrappers over BLAKE3 and canonical JSON to produce stable,
+//!   content-addressed digests of structural values (used by receipts).
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a provenance engine. It computes a digest of a value; it does not
+//!   build, verify, or chain receipts — that is [`crate::receipt`]'s structure
+//!   and `wasm4pm`'s execution.
+//!
+//! Structure only.
+
 use serde::{Deserialize, Serialize};
 
 /// BLAKE3 hash wrapper (256-bit = 64 hex characters)

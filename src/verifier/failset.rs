@@ -1,3 +1,17 @@
+//! Residual-failset shapes — which checks failed, as inert structured data.
+//!
+//! ## What this module IS
+//!
+//! - Serializable containers naming the compliance checks that did not pass and
+//!   the residual evidence left after a replay verification.
+//!
+//! ## What this module is **NOT**
+//!
+//! - **Not** a checker. It evaluates no rule and replays no log; it only holds
+//!   the failset another (graduated) engine produced.
+//!
+//! Structure only.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
