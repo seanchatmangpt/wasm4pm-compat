@@ -1,0 +1,68 @@
+error[E0277]: `wasm4pm_compat::witness::PowlPaper` is not a Standard-family authority
+  --> tests/ui/compile_fail/witness_wrong_family_authority.rs:17:18
+   |
+17 |     let _forged: StandardWitness<PowlPaper> = StandardWitness::new();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ only normative-standard witnesses (ISO/IEEE/OMG) satisfy `StandardAuthority`
+   |
+   = help: the trait `StandardAuthority` is not implemented for `wasm4pm_compat::witness::PowlPaper`
+   = note: use a `WitnessFamily::Standard` witness (e.g. `Ocel20`, `Xes1849`), or `PaperAuthority` for a published paper
+   = help: the following other types implement trait `StandardAuthority`:
+             wasm4pm_compat::witness::Ocel20
+             wasm4pm_compat::witness::OcelAttributeType
+             wasm4pm_compat::witness::OcelEventType
+             wasm4pm_compat::witness::OcelObjectType
+             wasm4pm_compat::witness::Xes1849
+             wasm4pm_compat::witnesses::XesConceptExt
+             wasm4pm_compat::witnesses::XesLifecycleExt
+note: required by a bound in `StandardWitness`
+  --> src/witness_law.rs
+   |
+   | pub struct StandardWitness<W: StandardAuthority> {
+   |                               ^^^^^^^^^^^^^^^^^ required by this bound in `StandardWitness`
+
+error[E0277]: `wasm4pm_compat::witness::PowlPaper` is not a Standard-family authority
+  --> tests/ui/compile_fail/witness_wrong_family_authority.rs:17:47
+   |
+17 |     let _forged: StandardWitness<PowlPaper> = StandardWitness::new();
+   |                                               ^^^^^^^^^^^^^^^ only normative-standard witnesses (ISO/IEEE/OMG) satisfy `StandardAuthority`
+   |
+   = help: the trait `StandardAuthority` is not implemented for `wasm4pm_compat::witness::PowlPaper`
+   = note: use a `WitnessFamily::Standard` witness (e.g. `Ocel20`, `Xes1849`), or `PaperAuthority` for a published paper
+   = help: the following other types implement trait `StandardAuthority`:
+             wasm4pm_compat::witness::Ocel20
+             wasm4pm_compat::witness::OcelAttributeType
+             wasm4pm_compat::witness::OcelEventType
+             wasm4pm_compat::witness::OcelObjectType
+             wasm4pm_compat::witness::Xes1849
+             wasm4pm_compat::witnesses::XesConceptExt
+             wasm4pm_compat::witnesses::XesLifecycleExt
+note: required by a bound in `StandardWitness`
+  --> src/witness_law.rs
+   |
+   | pub struct StandardWitness<W: StandardAuthority> {
+   |                               ^^^^^^^^^^^^^^^^^ required by this bound in `StandardWitness`
+
+error[E0277]: `wasm4pm_compat::witness::PowlPaper` is not a Standard-family authority
+  --> tests/ui/compile_fail/witness_wrong_family_authority.rs:17:47
+   |
+17 |     let _forged: StandardWitness<PowlPaper> = StandardWitness::new();
+   |                                               ^^^^^^^^^^^^^^^^^^^^^^ only normative-standard witnesses (ISO/IEEE/OMG) satisfy `StandardAuthority`
+   |
+   = help: the trait `StandardAuthority` is not implemented for `wasm4pm_compat::witness::PowlPaper`
+   = note: use a `WitnessFamily::Standard` witness (e.g. `Ocel20`, `Xes1849`), or `PaperAuthority` for a published paper
+   = help: the following other types implement trait `StandardAuthority`:
+             wasm4pm_compat::witness::Ocel20
+             wasm4pm_compat::witness::OcelAttributeType
+             wasm4pm_compat::witness::OcelEventType
+             wasm4pm_compat::witness::OcelObjectType
+             wasm4pm_compat::witness::Xes1849
+             wasm4pm_compat::witnesses::XesConceptExt
+             wasm4pm_compat::witnesses::XesLifecycleExt
+note: required by a bound in `StandardWitness::<W>::new`
+  --> src/witness_law.rs
+   |
+   | impl<W: StandardAuthority> StandardWitness<W> {
+   |         ^^^^^^^^^^^^^^^^^ required by this bound in `StandardWitness::<W>::new`
+   |     /// Construct the proof token. Only compiles when `W: StandardAuthority`.
+   |     pub fn new() -> Self {
+   |            --- required by a bound in this associated function

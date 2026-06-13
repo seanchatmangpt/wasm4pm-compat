@@ -110,18 +110,48 @@ mod sealed {
 /// fn requires_standard<W: StandardAuthority>() {}
 /// requires_standard::<Ocel20>(); // Ocel20 is Standard ✓
 /// ```
+///
+/// A wrong-family witness produces a *teaching* diagnostic naming the law, not a
+/// bare "trait not satisfied" — these sealed traits fail as `E0277`, where
+/// `#[diagnostic::on_unimplemented]` can fire (unlike the arithmetic const-laws,
+/// which fail as `E0308` const-unification and cannot carry a custom message).
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not a Standard-family authority",
+    label = "only normative-standard witnesses (ISO/IEEE/OMG) satisfy `StandardAuthority`",
+    note = "use a `WitnessFamily::Standard` witness (e.g. `Ocel20`, `Xes1849`), or `PaperAuthority` for a published paper"
+)]
 pub trait StandardAuthority: Witness + sealed::IsStandard {}
 
 /// Compile-time proof that `W` belongs to the [`WitnessFamily::Paper`] family.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not a Paper-family authority",
+    label = "only academic-paper witnesses satisfy `PaperAuthority`",
+    note = "use a `WitnessFamily::Paper` witness (e.g. `AlphaMiner`, `PowlPaper`), or `StandardAuthority` for a normative standard"
+)]
 pub trait PaperAuthority: Witness + sealed::IsPaper {}
 
 /// Compile-time proof that `W` belongs to the [`WitnessFamily::ApiGrammar`] family.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not an ApiGrammar-family authority",
+    label = "only consumer-grammar witnesses satisfy `ApiGrammarAuthority`",
+    note = "use a `WitnessFamily::ApiGrammar` witness (e.g. `Pm4pyApiGrammar`, `PmaxConsumerGrammar`)"
+)]
 pub trait ApiGrammarAuthority: Witness + sealed::IsApiGrammar {}
 
 /// Compile-time proof that `W` belongs to the [`WitnessFamily::RustLaw`] family.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not a RustLaw-family authority",
+    label = "only Rust-language-law witnesses satisfy `RustLawAuthority`",
+    note = "use a `WitnessFamily::RustLaw` witness (e.g. `RustTypestateLaw`)"
+)]
 pub trait RustLawAuthority: Witness + sealed::IsRustLaw {}
 
 /// Compile-time proof that `W` belongs to the [`WitnessFamily::InternalBridge`] family.
+#[diagnostic::on_unimplemented(
+    message = "`{Self}` is not an InternalBridge-family authority",
+    label = "only graduation-bridge witnesses satisfy `InternalBridgeAuthority`",
+    note = "use a `WitnessFamily::InternalBridge` witness (e.g. `Wasm4pmBridge`, `ConformanceWitness`)"
+)]
 pub trait InternalBridgeAuthority: Witness + sealed::IsInternalBridge {}
 
 // ── Standard-family witness impls ─────────────────────────────────────────────
