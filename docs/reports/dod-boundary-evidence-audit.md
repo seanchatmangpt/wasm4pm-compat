@@ -1,7 +1,7 @@
-# DoD Boundary and Evidence Gates Compliance Audit (v26.6.9)
+# DoD Boundary and Evidence Gates Compliance Audit (v26.6.13)
 
 ## Executive Summary
-This report audits compliance of the `wasm4pm-compat` codebase (version `26.6.9`, specifically `/Users/sac/wasm4pm-compat/src`) against the DoD Boundary and Evidence gates:
+This report audits compliance of the `wasm4pm-compat` codebase (version `26.6.13`, specifically `/Users/sac/wasm4pm-compat/src`) against the DoD Boundary and Evidence gates:
 1. **No format-to-format laundering**: Checked.
 2. **Public rejections refuse with a specific named law (not bare `InvalidInput`)**: Checked.
 3. **Lossy projection carries `ProjectionName`, `LossPolicy`, `LossReport`, and a refusal path**: Checked.

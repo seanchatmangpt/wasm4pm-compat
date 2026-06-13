@@ -1,6 +1,6 @@
 # Reference: Public API for ggen
 
-This document specifies the expected target surface for `ggen` integration and compiler pipeline alignment within `wasm4pm-compat` version `26.6.9`. These paths are formulated as the **expected target surface for ggen** rather than "guaranteed forever" invariants, aligning code-generation expectations with the evolutionary boundary design.
+This document specifies the expected target surface for `ggen` integration and compiler pipeline alignment within `wasm4pm-compat` version `26.6.13`. These paths are formulated as the **expected target surface for ggen** rather than "guaranteed forever" invariants, aligning code-generation expectations with the evolutionary boundary design.
 
 ---
 

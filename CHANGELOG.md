@@ -5,7 +5,80 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
-## PAPERLAW_ALIVE_003 — Nightly-first type-law foundry (current)
+## v26.6.13 — 271-paper corpus, durability hardening & authority enforcement (current)
+
+**Status:** ALIVE (CROWN target)
+**Date:** 2026-06-13
+
+### Summary
+
+Ships the 271-paper witness corpus and five nightly zero-cost innovations, then
+hardens the crate against nightly churn and closes a real authority-enforcement
+gap. The ALIVE gate is green (217 compile-fail + 408 compile-pass receipts);
+MIRI reports no UB across the dependency graph.
+
+### Witnesses & corpus integrity
+
+- 271-paper witness corpus across seven per-category modules (rendered via ggen).
+- **Self-validating bibliography**: new `witness_corpus` module renders
+  `ALL_WITNESS_KEYS` (436 keys) with a compile-time `const` proof that no two
+  witnesses share a `KEY` — closing a hole that SPARQL dedup alone could not
+  enforce in Rust source. A runtime companion test names any collision.
+
+### Nightly zero-cost innovations
+
+- `WitnessFamily` derives `ConstParamTy`; `FamilyGated<const F: WitnessFamily>`.
+- `pub const trait Witness` with `impl const` across all witnesses.
+- `witness_law` module: sealed family-authority traits, `CoCitedKey` string law,
+  `families_match_simd` (portable_simd), `gcd`/`NormedBetween01`.
+
+### Teaching diagnostics
+
+- `#[diagnostic::on_unimplemented]` on the five family-authority traits: a
+  wrong-family witness now reads `` `PowlPaper` is not a Standard-family
+  authority `` instead of a bare bound error. (Finding: the arithmetic const-laws
+  fail as `E0308` const-unification, where custom messages are unreachable.)
+
+### Authority enforcement (not just labeling)
+
+- `LinkedOcel`: the first concrete `Admit` impl in `src/`. The crate now not only
+  *names* `DanglingEventObjectLink` / `EmptyEventObjectLinks` but ships a function
+  that *detects* them and refuses through the typed `Raw → Admitted` one-way door.
+
+### Durability
+
+- Pinned `rust-toolchain.toml` to `nightly-2026-05-04` (+ components) so a
+  const-generics / const-trait syntax flip lands on one known toolchain.
+- **Finding (documented in-code):** the `generic_const_exprs → min_generic_const_args`
+  migration is *not viable* — mGCA forbids generic params in computed const
+  operations, so the computed-const law kernel (`Between01`, `Metric`,
+  `ConditionCell`) has no stable-floor path; the two features are mutually
+  exclusive in one crate. Watch mGCA's non-min expansion.
+
+### Hygiene & structure
+
+- TypeScript bindings extracted to the `wasm4pm-compat-ts` sidecar crate,
+  restoring the *exactly three public features* and *no runtime dependencies*
+  invariants (`ts`/`specta` removed from the core crate).
+- 10 rough examples moved to `examples/illustrative/`; backups, `node_modules`,
+  and TS artifacts excluded from the publish tarball and gitignored.
+- `wasm4pm-compat-lsp` dropped from workspace members (separate tool/cadence).
+- MIRI verification bridge wired (`cargo make miri`); restored the
+  `SeparableWfNet` non-forgeability seal lost in a prior refactor.
+
+### Known follow-up
+
+- Literal-100% item-level rustdoc is in progress: module-level docs are complete;
+  ~690 public item docs (compiler-measured via `missing_docs`, largely serde
+  struct fields in `ocel`/`models`/`petri`) remain a tracked effort.
+
+### ALIVE gate
+
+```
+cargo test --test ui_tests -- --ignored
+```
+
+## PAPERLAW_ALIVE_003 — Nightly-first type-law foundry
 
 **Status:** ALIVE (CROWN target)
 

@@ -1,6 +1,6 @@
 # Reference: Module Map & Layout
 
-This document maps the public Rust module layout in `wasm4pm-compat` version `26.6.9` to their physical files. This mapping is compiled directly from the module declarations in `src/lib.rs`.
+This document maps the public Rust module layout in `wasm4pm-compat` version `26.6.13` to their physical files. This mapping is compiled directly from the module declarations in `src/lib.rs`.
 
 ---
 

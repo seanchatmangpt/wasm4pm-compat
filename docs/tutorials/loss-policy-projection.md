@@ -15,7 +15,7 @@ By the end of this tutorial, you will:
 ## Prerequisites
 
 - Nightly Rust toolchain.
-- `wasm4pm-compat` version `26.6.9` included in your project, with the default `formats` feature enabled.
+- `wasm4pm-compat` version `26.6.13` included in your project, with the default `formats` feature enabled.
 
 ---
 

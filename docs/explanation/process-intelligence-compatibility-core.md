@@ -1,6 +1,6 @@
 # Explanation: The Process Intelligence Compatibility Core
 
-This document provides a comprehensive overview of how `wasm4pm-compat` version `26.6.9` serves as the foundational process-evidence type standard for the entire process intelligence workspace.
+This document provides a comprehensive overview of how `wasm4pm-compat` version `26.6.13` serves as the foundational process-evidence type standard for the entire process intelligence workspace.
 
 ---
 
@@ -49,4 +49,4 @@ Because these type-level constraints and compile-time evaluations rely on advanc
 
 ## 5. Versioning Policy
 
-To respect package and workspace constraints, the physical `Cargo.toml` version field is locked at `26.6.9`. However, the logical target of all reports, specifications, and documentation is the release version `26.6.9`.
+To respect package and workspace constraints, the physical `Cargo.toml` version field is locked at `26.6.13`. However, the logical target of all reports, specifications, and documentation is the release version `26.6.13`.

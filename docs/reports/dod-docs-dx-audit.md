@@ -2,11 +2,11 @@
 
 **Date:** 2026-06-08
 **Crate:** `wasm4pm-compat`
-**Version:** `26.6.9`
+**Version:** `26.6.13`
 **Target Path:** `/Users/sac/wasm4pm-compat/src`
 **Status:** 🟢 **Fully Compliant**
 
-This report summarizes compliance of the `wasm4pm-compat` codebase with the **Docs** and **DX** gates specified in the [Definition of Done](file:///Users/sac/wasm4pm-compat/docs/DEFINITION_OF_DONE.md) as of version `26.6.9`.
+This report summarizes compliance of the `wasm4pm-compat` codebase with the **Docs** and **DX** gates specified in the [Definition of Done](file:///Users/sac/wasm4pm-compat/docs/DEFINITION_OF_DONE.md) as of version `26.6.13`.
 
 ---
 
@@ -116,7 +116,7 @@ All public modules, types, and functions in the audited set are fully compliant.
 
 ## 5. Re-Verification Log
 
-On **2026-06-08**, a comprehensive verification of the documentation and DX gates was re-run to guarantee absolute alignment with the `26.6.9` release:
+On **2026-06-08**, a comprehensive verification of the documentation and DX gates was re-run to guarantee absolute alignment with the `26.6.13` release:
 1. **Doctests:** Verified that all `424` public doctests compile and run successfully via `cargo test --doc --all-features`.
 2. **Rustdoc Cleanliness:** Verified that `cargo doc --all-features --no-deps` builds cleanly with zero warnings or errors.
 3. **Code Quality:** Verified that `cargo clippy --all-features -- -D warnings` and `cargo fmt --check` run cleanly.

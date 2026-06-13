@@ -1,6 +1,6 @@
 # DoD Structural and Canon Gates Compliance Audit
 
-This report documents the structural and canon gates compliance audit for the `wasm4pm-compat` crate at version `26.6.9`, specifically scanning all source files in the `/Users/sac/wasm4pm-compat/src` directory.
+This report documents the structural and canon gates compliance audit for the `wasm4pm-compat` crate at version `26.6.13`, specifically scanning all source files in the `/Users/sac/wasm4pm-compat/src` directory.
 
 ## 1. Executive Summary
 

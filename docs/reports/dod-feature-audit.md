@@ -1,7 +1,7 @@
 # DoD Feature Gate Audit Report
 
 **Date:** 2026-06-08  
-**Crate:** `wasm4pm-compat` (version `26.6.9`)  
+**Crate:** `wasm4pm-compat` (version `26.6.13`)  
 **Target Files:** [Cargo.toml](file:///Users/sac/wasm4pm-compat/Cargo.toml), [src/lib.rs](file:///Users/sac/wasm4pm-compat/src/lib.rs), [rust-toolchain.toml](file:///Users/sac/wasm4pm-compat/rust-toolchain.toml)
 
 ---

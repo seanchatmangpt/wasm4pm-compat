@@ -2,14 +2,14 @@
 
 - **Date of Audit:** June 8, 2026
 - **Crate Name:** `wasm4pm-compat`
-- **Crate Version:** `26.6.9`
+- **Crate Version:** `26.6.13`
 - **Target Release:** crates.io Publishing Ready
 
 ---
 
 ## 1. Executive Summary
 
-As part of the publish-readiness verification for `wasm4pm-compat v26.6.9`, a comprehensive release audit was performed covering linting (clippy), formatting checks, and API documentation generation. 
+As part of the publish-readiness verification for `wasm4pm-compat v26.6.13`, a comprehensive release audit was performed covering linting (clippy), formatting checks, and API documentation generation. 
 
 ### Audit Verdict Summary
 | Audit Step | Command Run | Status | Notes |

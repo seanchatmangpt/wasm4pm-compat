@@ -1,6 +1,6 @@
 # Explanation: The "No Format Laundering" Covenant
 
-This document explains the conceptual underpinnings and technical implementation of the "no format laundering" covenant in `wasm4pm-compat` version `26.6.9`.
+This document explains the conceptual underpinnings and technical implementation of the "no format laundering" covenant in `wasm4pm-compat` version `26.6.13`.
 
 ---
 
