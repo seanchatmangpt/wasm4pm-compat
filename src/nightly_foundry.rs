@@ -485,7 +485,7 @@ pub mod token_law {
 ///     WitnessFamily::Paper, WitnessFamily::Paper,
 /// ];
 /// let mask = families_match_simd(mixed, WitnessFamily::Paper);
-/// assert_eq!(mask, 0b1101_1101u8); // bits 1 and 4 unset (Standard slots)
+/// assert_eq!(mask, 0b1110_1101u8); // bits 1 and 4 unset (Standard slots)
 /// ```
 pub fn families_match_simd(
     families: [crate::witness::WitnessFamily; 8],
