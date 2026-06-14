@@ -1,11 +1,13 @@
 import { readdir, readFile } from "fs/promises";
 import { execSync } from "child_process";
+import { existsSync } from "fs";
 import { join } from "path";
 import { notFound } from "next/navigation";
 
-// RSC + static generation: pre-renders every example at build time by actually
-// running `cargo run --example <name>`. Output is real binary stdout/stderr.
-// No mocking. No pre-captured fixtures. The HTML contains what the binary produced.
+// RSC + static generation.
+// Runs the pre-compiled binary from target/debug/examples/<name> if it exists,
+// falling back to `cargo run` (slow, only on cold cache).
+// Output is real binary stdout — no mocking, no fixtures.
 
 const CRATE_ROOT = join(process.cwd(), "..");
 
@@ -21,10 +23,38 @@ interface RunResult {
   stdout: string;
   exitCode: number;
   durationMs: number;
+  ranVia: "binary" | "cargo" | "none";
 }
 
 function runExample(name: string, featureFlag: string | null): RunResult {
+  // Prefer the pre-compiled binary — avoids 2-minute recompile in CI.
+  const binaryPath = join(CRATE_ROOT, "target", "debug", "examples", name);
   const start = Date.now();
+
+  if (existsSync(binaryPath)) {
+    try {
+      const raw = execSync(binaryPath, {
+        encoding: "utf-8",
+        timeout: 30_000,
+      });
+      return {
+        stdout: raw.trim(),
+        exitCode: 0,
+        durationMs: Date.now() - start,
+        ranVia: "binary",
+      };
+    } catch (e: unknown) {
+      const err = e as { stdout?: string; stderr?: string; status?: number };
+      return {
+        stdout: ((err.stdout ?? "") + (err.stderr ?? "")).trim(),
+        exitCode: err.status ?? 1,
+        durationMs: Date.now() - start,
+        ranVia: "binary",
+      };
+    }
+  }
+
+  // Fall back to cargo run (slow but faithful).
   const cmd = featureFlag
     ? `cargo run --example ${name} --features ${featureFlag}`
     : `cargo run --example ${name}`;
@@ -36,20 +66,21 @@ function runExample(name: string, featureFlag: string | null): RunResult {
     });
     const lines = raw.split("\n");
     const runIdx = lines.reduce(
-      (last: number, line: string, i: number) => (line.trimStart().startsWith("Running `") ? i : last),
+      (last: number, line: string, i: number) =>
+        line.trimStart().startsWith("Running `") ? i : last,
       -1
     );
     const output = (runIdx >= 0 ? lines.slice(runIdx + 1) : lines)
       .join("\n")
       .trim();
-    return { stdout: output, exitCode: 0, durationMs: Date.now() - start };
+    return { stdout: output, exitCode: 0, durationMs: Date.now() - start, ranVia: "cargo" };
   } catch (e: unknown) {
     const err = e as { stdout?: string; stderr?: string; status?: number };
-    const combined = ((err.stdout ?? "") + "\n" + (err.stderr ?? "")).trim();
     return {
-      stdout: combined,
+      stdout: ((err.stdout ?? "") + (err.stderr ?? "")).trim(),
       exitCode: err.status ?? 1,
       durationMs: Date.now() - start,
+      ranVia: "cargo",
     };
   }
 }
@@ -119,7 +150,7 @@ export default async function ExamplePage({
           <span className={`text-xs font-mono px-2 py-0.5 rounded border ${exitBadge}`}>
             EXIT {result.exitCode}
           </span>
-          <span className="text-xs text-zinc-600">{result.durationMs}ms</span>
+          <span className="text-xs text-zinc-600">{result.durationMs}ms via {result.ranVia}</span>
         </div>
         <pre className={`text-xs font-mono bg-zinc-950 border border-zinc-800 rounded p-4 overflow-x-auto whitespace-pre-wrap ${exitColor}`}>
           {result.stdout || "(no stdout)"}
