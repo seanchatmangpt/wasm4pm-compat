@@ -44,7 +44,7 @@ The LSP resides in a dedicated crate root directory parallel to the core library
 
 ## 3. LSP Event Loop & Lifecycle
 
-The LSP implementation leverages `tower-lsp` and runs asynchronously on `tokio`. It supports standard lifecycle events:
+The LSP implementation leverages `lsp-max` and runs asynchronously. It supports standard lifecycle events:
 
 - **Initialize / Initialized**: Negotiates server capabilities with the client, advertising support for full document synchronization (`TextDocumentSyncKind::FULL`), code actions, and custom commands.
 - **DidOpen / DidChange / DidSave**: Document text changes are stored in an in-memory cache and immediately analyzed to provide real-time diagnostic markers.
@@ -80,7 +80,7 @@ Because source files may contain syntax errors while actively being typed by a d
 - **Trigger**: Calling format projection or flattening functions (e.g., `flatten_ocel_to_xes`, `.project()`, `.flatten()`) without passing an argument that references `LossPolicy` or `policy`.
 - **Message**: "Format Covenant Violation: Lossy projections (like OCEL to XES flattening) must explicitly specify a `LossPolicy` argument."
 - **Severity**: `Error`
-- **Quick Fix**: Suggest inserting `LossPolicy::KeepAll` as a default.
+- **Quick Fix**: Suggest inserting `LossPolicy::AllowLossWithReport` as a starting policy.
 
 ---
 
@@ -96,8 +96,7 @@ The LSP exposes custom workspace commands that can be invoked via `workspace/exe
 ## 7. Dependency Selection
 
 The subproject depends on the following crate ecosystem:
-- **`tower-lsp`**: High-level, async language server framework.
-- **`tokio`**: Runtime handling standard input/output streams and TCP sockets.
+- **`lsp-max`**: High-level, async language server framework (replaces `tower-lsp`; `tokio` is a transitive dependency via `lsp-max`).
 - **`clap`**: Declarative command-line options parser.
 - **`syn` / `proc-macro2`**: Full Rust AST parsing, walking, and span extraction.
 - **`regex`**: Fast pattern matching fallback for invalid/partial source files.
