@@ -1,0 +1,22 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/cocited_self_citation.rs:17:19
+   |
+17 |     let _forged = CoCitedKey::<u32, "ocel-2.0", "ocel-2.0">::new(1);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `CoCitedKey`
+  --> src/witness_law.rs
+   |
+   | pub struct CoCitedKey<T, const K1: &'static str, const K2: &'static str>
+   |            ---------- required by a bound in this struct
+   | where
+   |     Assert<{ !str_eq(K1, K2) }>: IsTrue,
+   |                                  ^^^^^^ required by this bound in `CoCitedKey`
+
+error[E0599]: no associated function or constant named `new` found for struct `CoCitedKey<u32, "ocel-2.0", "ocel-2.0">` in the current scope
+  --> tests/ui/compile_fail/cocited_self_citation.rs:17:62
+   |
+17 |     let _forged = CoCitedKey::<u32, "ocel-2.0", "ocel-2.0">::new(1);
+   |                                                              ^^^ associated function or constant cannot be called on `CoCitedKey<u32, "ocel-2.0", "ocel-2.0">` due to unsatisfied trait bounds
