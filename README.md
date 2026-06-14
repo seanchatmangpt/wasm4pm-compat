@@ -306,6 +306,7 @@ cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
 | `dfg_shape` | (none) | `Dfg` + `validate()`, `DfgRefusal::EmptyGraph` / `DanglingEdge`, `DfgEdgeFull` with duration, `ObjectCentricDfg` per-type DFG map |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
 | `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
+| `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — the four-module pipeline composition; all handoffs explicit |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
 | `c8_event_horizon_demo` | (none) | Event-horizon boundary detection in liquidity-collapse scenarios; boundary proof receipts |

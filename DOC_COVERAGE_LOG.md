@@ -208,3 +208,40 @@ Priority 1 — Cross-product example: compose OcelLog admission + Dfg shape + Co
 Priority 2 — `streaming` module (StreamingConformance, EventWindow — check src/streaming.rs for pub API)
 Priority 3 — `process_cube` module (ProcessCubeSlice, ProcessCubeDimension)
 Priority 4 — `workflow` / `object_lifecycle` modules (check pub API size)
+
+---
+
+## 2026-06-14 — Iteration 6
+
+**Cluster:** Cross-product composition — OcelLog → ObjectCentricDfg → ConformanceResult → ReceiptEnvelope
+
+**Triple:**
+- **Doc:** Header in example file + cross-references to `src/ocel.rs`, `src/dfg.rs`, `src/conformance.rs`, `src/receipt.rs`
+- **Example:** `examples/ocel_to_conformance_pipeline.rs` — exercises the 4-module pipeline: OCEL with E2O links + validate(), ObjectCentricDfg per-type, ConformanceResult held verdict + NaN coercion, ReceiptEnvelope well-shaped check + MissingSubject refusal
+- **Link:** README.md and CLAUDE.md example tables updated
+
+**Run output (real exit code):**
+```
+=== Pipeline complete — all module handoffs witnessed ===
+  Stage 1: OcelLog.validate() → Ok  (E2O link admission)
+  Stage 2: Dfg.validate() × 2 → Ok  (per-type DFG shapes)
+  Stage 3: ConformanceResult.conformance_rate() = 1.00  (held verdict)
+  Stage 4: ReceiptEnvelope.is_well_shaped() → true  (provenance stamp)
+EXIT: 0
+```
+
+**Covered ✅:** Cross-product composition — the canonical four-module pipeline.
+
+**Hard stop:** 3 triples this iteration (iterations 4 + 5 + 6). Queue below.
+
+**Gap map update (remaining documented-but-unexercised):**
+- `streaming` module — check pub API
+- `process_cube` module — check pub API
+- `multiperspective` module — check pub API
+- `workflow` module — check pub API
+- `object_lifecycle` module — check pub API
+
+### Queued (next iterations)
+
+Priority 1 — Survey `src/streaming.rs`, `src/process_cube.rs`, `src/multiperspective.rs`, `src/workflow.rs`, `src/object_lifecycle.rs` pub API size — some may be thin wrappers with trivial surface; close the largest gaps first
+Priority 2 — Additional cross-product: Evidence lifecycle → loss projection → receipt chain (the three-law pipeline: admit + project + stamp)
