@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.6.13"
+version = "26.6.14"
 edition = "2021"
 description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
@@ -76,6 +76,18 @@ strict = []
 
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
+
+# NOTE (otel instrumentation — N/A for this crate): No `otel` feature and no
+# opentelemetry/tracing-opentelemetry dependency is added here. This crate is
+# structure-only compat/format glue — it admits external process-evidence
+# formats into typed compat values and exports them back out (or graduates to
+# `wasm4pm`); it has no long-lived runtime, no service loop, and no execution
+# code paths worth tracing as spans. Its public surface is type-law (zero-sized
+# witnesses, computed-const bounds) resolved at compile time, not runtime. Adding
+# opentelemetry would also break two stated invariants: "exactly three public
+# Cargo features" (default/formats + strict + wasm4pm) and the leaf crate's
+# minimal-dependency posture. Tracing belongs in the engine-facing `wasm4pm`
+# consumer, not in this boundary layer.
 
 # NOTE: TypeScript binding generation lives in the `wasm4pm-compat-ts` sidecar
 # crate, NOT here. A `ts`/specta feature in this crate would be a fourth public

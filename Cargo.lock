@@ -933,7 +933,7 @@ dependencies = [
 
 [[package]]
 name = "wasm4pm-compat"
-version = "26.6.13"
+version = "26.6.14"
 dependencies = [
  "blake3",
  "chrono",
