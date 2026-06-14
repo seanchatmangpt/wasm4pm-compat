@@ -75,6 +75,10 @@ The universal carrier struct `Evidence<T, State: EvidenceState, W>` wraps the pr
 
 Transitions between states consume the carrier struct by-value (`self`), preventing use-after-move defects at compile time. `Evidence::inner()` borrows the payload without consuming the carrier; `Evidence::from_boundary()` is an alias for `Evidence::raw()` that signals intent at call sites where the value originates at a process boundary.
 
+### Builder Ergonomics
+
+Structure construction stays terse without weakening the type law. `PowlBuilder` is a fluent arena builder for POWL models — `PowlBuilder::new().atom("a").silent("τ").partial_order(…).choice(…).loop_node(…).choice_graph(…)` — terminated by a checked `build()` that returns a named `PowlRefusal` on malformed input (or `build_unchecked()` when the shape is already known lawful). The same pattern appears across the canon (`Event::new(…)`, `Trace::from_events(…)`, `EventLog::from_traces(…)`), so building evidence reads naturally while every illegal shape remains a typed refusal rather than a panic.
+
 ---
 
 ## Witness Markers
