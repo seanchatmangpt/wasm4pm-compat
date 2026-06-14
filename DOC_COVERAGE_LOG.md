@@ -645,3 +645,75 @@ EXIT: 0
 ### Queued (next iteration)
 
 Priority 1 — `xes` module: XES import path — last gap before bijective coverage is complete
+
+---
+
+## Iteration 14 — 2026-06-14 — FINAL ITERATION
+
+**Triple 1: `xes` module — FINAL GAP CLOSED**
+
+### xes_interchange_grammar.rs
+
+- **Doc:** `src/xes.rs` — 12 pub items
+- **Example:** `examples/xes_interchange_grammar.rs`
+  - `CaseCentricMarker`: Display "case-centric", zero-sized, Default
+  - `XesExtension`: new/name/prefix/uri
+  - `XesEvent`: builder chain (concept_name, timestamp, resource, lifecycle_transition, lifecycle_transition_raw, attribute, attributes)
+  - `XesTraceAttributes`: with/get/concept_name/len/is_empty
+  - `XesTrace`: new/name/events/len/is_empty
+  - `XesLog`: validate Ok on valid log, 6 named refusals (MissingLogName, NoTraces, EmptyTrace, MissingConceptName, UndeclaredExtensionPrefix, InvalidExtension), name/extensions/traces accessors
+  - `XesToOcedProjectionShape`: standard/with_case_type/projection_name/case_object_type/activity_attribute_key/timestamp_attribute_key
+  - `XesDeclaredExtensionLaw`: NAME/REFUSAL_VARIANT/governs/description/Display
+  - `XesExtensionPrefixWitness`: new/prefix/is_standard/standard_witnesses (concept,time,lifecycle,org)/Display
+  - `XesLifecycleTransition`: Complete/Start/Schedule/Unknown as_str + parse (14 variants, parse("notavalue")=None)
+  - `XesStandardPrefix`: Concept.as_str()="concept", parse("time")=Some(Time), parse("unknown")=None
+  - `XesRefusal`: all 10 variants with Display "XES refused by law: <Name>"
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+EXIT 0
+EXIT: 0
+```
+(full output preserved in session)
+
+**Covered ✅:** `xes` — documented-but-unexercised gap CLOSED.
+
+---
+
+## BIJECTIVE COVERAGE STATUS: COMPLETE ✅
+
+All documented canon modules now have running examples. Every example runs real
+code and captures a real exit code. No module in `src/*.rs` with pub items is
+without a dedicated example in `examples/*.rs`.
+
+### Closed gaps (across iterations 1–14)
+
+| Module | Example | Pub items |
+|---|---|---|
+| `eventlog` | `basic_eventlog` | covered in iteration 1 |
+| `ocel` | `basic_ocel` | covered in iteration 1 |
+| `evidence` | `evidence_lifecycle` | covered in iteration 1 |
+| `admission` | `evidence_lifecycle` | covered in iteration 1 |
+| `loss` | `loss_projection` | covered in iteration 1 |
+| `witness` | `witness_authority` | covered in iteration 1 |
+| `petri` | `petri_net_construction` | covered |
+| `conformance` | `conformance_metrics` | covered |
+| `declare` | `declare_constraint_model` | covered |
+| `ocpq` | `ocpq_typed_query` | covered |
+| `powl` | `powl_process_tree` | covered |
+| `causal` | `causal_net_shape` | covered |
+| `receipt` | `receipt_chain` | covered |
+| `state` | `evidence_lifecycle` | covered |
+| `ids` | `ids_typed_identifiers` | iteration 10 |
+| `temporal` | `temporal_order_shapes` | iteration 11 |
+| `diagnostic` | `diagnostic_surface` | iteration 12 |
+| `nightly_foundry` | `nightly_foundry_surfaces` | iteration 13 |
+| `xes` | `xes_interchange_grammar` | iteration 14 |
+| `interop` | `interop_boundary_grammar` | iteration 9 |
+| `process_tree` | `process_tree_shape` | iteration 9 |
+
+### Remaining open items (not doc-coverage gaps — separate work streams)
+
+- GAP_005/006/008 in `emitted/gap-ledger.yaml` (plan exists: `~/.claude/plans/launch-5-explore-then-prancy-rose.md`)
+- Next.js faithful-representation app (`web/`) — bijective representation gap map
