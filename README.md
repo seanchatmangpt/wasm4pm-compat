@@ -274,6 +274,41 @@ cargo test --all-features <test_name>
 
 ---
 
+## Running the Examples
+
+All examples compile and run with the nightly toolchain (`rust-toolchain.toml` handles this automatically). Every example is a real program that exits non-zero if the demonstrated capability regresses.
+
+```bash
+cargo run --example <name>                      # default features
+cargo run --example <name> --features strict    # strict-feature examples
+cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
+```
+
+| Example | Feature | What it demonstrates |
+|---|---|---|
+| `basic_eventlog` | (none) | `Event`/`Trace`/`EventLog` builder chain, `validate()`, `EventStream` append-only buffer |
+| `basic_ocel` | (none) | `OcelLog` with E2O/O2O links and object changes, structural `validate()` |
+| `evidence_lifecycle` | (none) | `Evidence<T, State, W>` one-way typestate: `Raw → Parsed → Admitted → Receipted`; illegal transitions rejected at compile time |
+| `witness_authority` | (none) | Witness markers as zero-cost distinct types; `Admission<T, Ocel20>` vs `Admission<T, Xes1849>` are incompatible types |
+| `loss_projection` | (none) | `LossPolicy` / `LossReport` / `LossChain` — named, auditable, impossible-to-hide structural loss |
+| `ocel_to_xes_projection` | `formats` | OCEL → XES under the format covenant: `ProjectionName`, `LossPolicy`, named `XesExportRefusal` |
+| `petri_net_construction` | (none) | WF-net typed arcs, `WfNetConst` soundness typestate (`Unknown → Claimed → Witnessed`), non-forgeable `SoundnessProof` |
+| `conformance_metrics` | (none) | Fitness/precision/generalization/simplicity as compile-time rational `[0,1]` values; out-of-range values rejected by compiler |
+| `declare_constraint_model` | (none) | Declare binary constraints (`Response`, `Precedence`), unary existence, and the OC-Declare object-type scoping extension |
+| `ocpq_typed_query` | (none) | OCPQ typed query shapes: scope strategies, predicate families, const-generic cardinality bounds |
+| `powl_process_tree` | (none) | POWL partial orders, typed `TypedLoopNode<ARITY>` (arity-2 enforced), `TreeProjectable` sealed gate |
+| `causal_net_shape` | (none) | `CausalNet` / `CausalBinding` / `InputBinding` / `OutputBinding` — Heuristics Miner output shapes |
+| `receipt_chain` | (none) | `ReceiptEnvelope`, `ReceiptChain` (dynamic) and `ReceiptChainConst<N>` (stack-arity-enforced), `GraduationReceipt` |
+| `sealing_admit_chain` | (none) | `SealingAdmit` seam: BLAKE3 fold → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; tamper witness |
+| `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath`, `HiddenProcessMiningGrowth` |
+| `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
+| `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
+| `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
+| `c8_event_horizon_demo` | (none) | Event-horizon boundary detection in liquidity-collapse scenarios; boundary proof receipts |
+| `c8_market_planck_demo` | (none) | MarketPlanck cell state transitions with receipt generation |
+
+---
+
 ## Documentation Structure
 
 The documentation for `wasm4pm-compat` is organized according to the [Diátaxis](https://diataxis.fr) framework:

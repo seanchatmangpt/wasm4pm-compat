@@ -199,12 +199,26 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 
 | Example | Feature flag | What it demonstrates |
 |---|---|---|
-| `basic_eventlog` | (none) | `Event`/`Trace`/`EventLog` builder API, `validate()`, `EventStream` append-only buffer |
-| `basic_ocel` | (none) | `OcelLog` construction with E2O/O2O links and object changes, structural `validate()` |
-| `ocel_to_xes_projection` | `formats` (default) | Full OCEL → XES loss covenant: `ProjectionName`, `LossPolicy::AllowWithReport` vs `ForbidLoss`, named `XesExportRefusal` |
-| `strict_boundary_claim` | `strict` | Declare `ProcessBoundary`, run `StrictCheck`, observe `StrictViolation::MissingLossPolicy`, `MissingRefusalPath`, `HiddenProcessMiningGrowth` |
-| `graduation_candidate` | `wasm4pm` | Implement `GraduateToWasm4pm`, produce a grounded vs ungrounded `GraduationCandidate` |
-| `sealing_admit_chain` | (none) | `SealingAdmit` end-to-end: `recompute_and_match` → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; named refusals for both structural and chain-seal violations |
+| `basic_eventlog` | (none) | `Event`/`Trace`/`EventLog` builder chain, `validate()`, `EventStream` append-only buffer |
+| `basic_ocel` | (none) | `OcelLog` with E2O/O2O links and object changes, structural `validate()` |
+| `evidence_lifecycle` | (none) | `Evidence<T, State, W>` one-way typestate: `Raw → Parsed → Admitted → Receipted`; illegal transitions rejected at compile time |
+| `witness_authority` | (none) | Witness markers as zero-cost distinct types; cross-standard admission confusion rejected at compile time |
+| `loss_projection` | (none) | `LossPolicy` / `LossReport` / `LossChain` — named, auditable structural loss; compiler enforces accounting |
+| `ocel_to_xes_projection` | `formats` | OCEL → XES under format covenant: `ProjectionName`, `LossPolicy`, named `XesExportRefusal` |
+| `petri_net_construction` | (none) | WF-net typed arcs, `WfNetConst` soundness typestate (`Unknown → Claimed → Witnessed`), non-forgeable `SoundnessProof` |
+| `conformance_metrics` | (none) | Fitness/precision/generalization/simplicity as compile-time `[0,1]` rationals; out-of-range rejected by compiler |
+| `declare_constraint_model` | (none) | Declare binary constraints (`Response`, `Precedence`), unary existence, OC-Declare object-type scoping |
+| `ocpq_typed_query` | (none) | OCPQ typed query shapes: scope strategies, predicate families, const-generic cardinality bounds |
+| `powl_process_tree` | (none) | POWL partial orders, `TypedLoopNode<ARITY>` (arity-2 enforced), `TreeProjectable` sealed gate |
+| `causal_net_shape` | (none) | `CausalNet` / `CausalBinding` — Heuristics Miner output shapes (structure only, no mining) |
+| `receipt_chain` | (none) | `ReceiptEnvelope`, `ReceiptChain`, `ReceiptChainConst<N>` (stack-arity-enforced), `GraduationReceipt` |
+| `sealing_admit_chain` | (none) | `SealingAdmit` seam: BLAKE3 fold → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; tamper witness |
+| `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
+| `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
+| `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer); unified-semantics witness |
+| `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
+| `c8_event_horizon_demo` | (none) | Event-horizon boundary detection; boundary proof receipts |
+| `c8_market_planck_demo` | (none) | MarketPlanck cell state transitions with receipt generation |
 
 ## Invariants that must never be violated
 
