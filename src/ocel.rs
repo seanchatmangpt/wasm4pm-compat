@@ -148,6 +148,15 @@ pub struct ObjectTypeCardinality {
 
 impl ObjectTypeCardinality {
     /// True if `count` satisfies the `[min_count, max_count]` window.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::ObjectTypeCardinality;
+    /// let card = ObjectTypeCardinality { min_count: Some(1), max_count: Some(3), ..Default::default() };
+    /// assert!(card.admits(1));
+    /// assert!(card.admits(3));
+    /// assert!(!card.admits(0));
+    /// assert!(!card.admits(4));
+    /// ```
     #[must_use]
     pub fn admits(&self, count: usize) -> bool {
         let above_min = self.min_count.is_none_or(|m| count >= m);
@@ -168,12 +177,36 @@ impl OCEL {
     // attribute values (oaval) vary per timestamp.
 
     /// `E` — the set of events.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELEvent};
+    /// let log = OCEL {
+    ///     event_types: vec![],
+    ///     object_types: vec![],
+    ///     events: vec![OCELEvent::new("e1".to_string(), "place_order")],
+    ///     objects: vec![],
+    /// };
+    /// assert_eq!(log.event_set().len(), 1);
+    /// assert_eq!(log.event_set()[0].id, "e1");
+    /// ```
     #[must_use]
     pub fn event_set(&self) -> &[OCELEvent] {
         &self.events
     }
 
     /// `O` — the set of objects.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELObject};
+    /// let log = OCEL {
+    ///     event_types: vec![],
+    ///     object_types: vec![],
+    ///     events: vec![],
+    ///     objects: vec![OCELObject::new("o1".to_string(), "order")],
+    /// };
+    /// assert_eq!(log.object_set().len(), 1);
+    /// assert_eq!(log.object_set()[0].id, "o1");
+    /// ```
     #[must_use]
     pub fn object_set(&self) -> &[OCELObject] {
         &self.objects
@@ -181,6 +214,24 @@ impl OCEL {
 
     /// `eval(e)` — the event-attribute-value map for event `e` (name → value).
     /// Returns `None` if the event id is unknown.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELEvent, OCELEventAttribute, OCELAttributeValue};
+    /// let event = OCELEvent {
+    ///     id: "e1".to_string(),
+    ///     event_type: "place_order".to_string(),
+    ///     time: "2026-01-01T00:00:00+00:00".parse().unwrap(),
+    ///     attributes: vec![OCELEventAttribute {
+    ///         name: "amount".to_string(),
+    ///         value: OCELAttributeValue::Integer(42),
+    ///     }],
+    ///     relationships: vec![],
+    /// };
+    /// let log = OCEL { event_types: vec![], object_types: vec![], events: vec![event], objects: vec![] };
+    /// let attrs = log.eval("e1").unwrap();
+    /// assert_eq!(attrs.get("amount"), Some(&&OCELAttributeValue::Integer(42)));
+    /// assert!(log.eval("missing").is_none());
+    /// ```
     #[must_use]
     pub fn eval(&self, event_id: &str) -> Option<BTreeMap<&str, &OCELAttributeValue>> {
         let e = self.events.iter().find(|e| e.id == event_id)?;
@@ -197,6 +248,32 @@ impl OCEL {
     /// Time-varying semantics: for each attribute name, returns the latest value
     /// whose stamp is `<= t`. Attributes first set after `t` are absent. This is
     /// the temporal projection of the OCED `object attribute value` node.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELObject, OCELObjectAttribute, OCELAttributeValue};
+    /// let object = OCELObject {
+    ///     id: "o1".to_string(),
+    ///     object_type: "order".to_string(),
+    ///     attributes: vec![
+    ///         OCELObjectAttribute {
+    ///             name: "status".to_string(),
+    ///             value: OCELAttributeValue::String("placed".to_string()),
+    ///             time: "2026-01-01T00:00:00+00:00".parse().unwrap(),
+    ///         },
+    ///         OCELObjectAttribute {
+    ///             name: "status".to_string(),
+    ///             value: OCELAttributeValue::String("shipped".to_string()),
+    ///             time: "2026-01-03T00:00:00+00:00".parse().unwrap(),
+    ///         },
+    ///     ],
+    ///     relationships: vec![],
+    /// };
+    /// let log = OCEL { event_types: vec![], object_types: vec![], events: vec![], objects: vec![object] };
+    /// // As of Jan 2, only the first ("placed") value is in effect.
+    /// let at = "2026-01-02T00:00:00+00:00".parse().unwrap();
+    /// let snapshot = log.oaval("o1", at).unwrap();
+    /// assert_eq!(snapshot.get("status"), Some(&&OCELAttributeValue::String("placed".to_string())));
+    /// ```
     #[must_use]
     pub fn oaval(
         &self,
@@ -224,6 +301,32 @@ impl OCEL {
 
     /// The distinct timestamps at which object `o`'s attributes change
     /// (the temporal support of `oaval(o, .)`), sorted ascending.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELObject, OCELObjectAttribute, OCELAttributeValue};
+    /// let object = OCELObject {
+    ///     id: "o1".to_string(),
+    ///     object_type: "order".to_string(),
+    ///     attributes: vec![
+    ///         OCELObjectAttribute {
+    ///             name: "status".to_string(),
+    ///             value: OCELAttributeValue::String("placed".to_string()),
+    ///             time: "2026-01-03T00:00:00+00:00".parse().unwrap(),
+    ///         },
+    ///         OCELObjectAttribute {
+    ///             name: "status".to_string(),
+    ///             value: OCELAttributeValue::String("placed".to_string()),
+    ///             time: "2026-01-01T00:00:00+00:00".parse().unwrap(),
+    ///         },
+    ///     ],
+    ///     relationships: vec![],
+    /// };
+    /// let log = OCEL { event_types: vec![], object_types: vec![], events: vec![], objects: vec![object] };
+    /// let timeline = log.object_attr_timeline("o1");
+    /// // Distinct stamps, sorted ascending.
+    /// assert_eq!(timeline.len(), 2);
+    /// assert!(timeline[0] < timeline[1]);
+    /// ```
     #[must_use]
     pub fn object_attr_timeline(&self, object_id: &str) -> Vec<DateTime<FixedOffset>> {
         let mut stamps: BTreeSet<DateTime<FixedOffset>> = BTreeSet::new();
@@ -237,6 +340,23 @@ impl OCEL {
 
     /// E2O — qualified event→object references for event `e` (object_id, qualifier).
     /// Mirrors the dotted `C` arc (event — qualifier — object) of the meta-model.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELEvent, OCELRelationship};
+    /// let event = OCELEvent {
+    ///     id: "e1".to_string(),
+    ///     event_type: "place_order".to_string(),
+    ///     time: "2026-01-01T00:00:00+00:00".parse().unwrap(),
+    ///     attributes: vec![],
+    ///     relationships: vec![OCELRelationship {
+    ///         object_id: "o1".to_string(),
+    ///         qualifier: "places".to_string(),
+    ///     }],
+    /// };
+    /// let log = OCEL { event_types: vec![], object_types: vec![], events: vec![event], objects: vec![] };
+    /// assert_eq!(log.e2o("e1"), vec![("o1", "places")]);
+    /// assert!(log.e2o("missing").is_empty());
+    /// ```
     #[must_use]
     pub fn e2o(&self, event_id: &str) -> Vec<(&str, &str)> {
         self.events
@@ -253,6 +373,22 @@ impl OCEL {
 
     /// O2O — qualified object→object references for object `o` (to_object_id, qualifier).
     /// Mirrors the `B` `from/to` object-relation with an object-relation-type/qualifier.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELObject, OCELRelationship};
+    /// let order = OCELObject {
+    ///     id: "o1".to_string(),
+    ///     object_type: "order".to_string(),
+    ///     attributes: vec![],
+    ///     relationships: vec![OCELRelationship {
+    ///         object_id: "i1".to_string(),
+    ///         qualifier: "contains".to_string(),
+    ///     }],
+    /// };
+    /// let log = OCEL { event_types: vec![], object_types: vec![], events: vec![], objects: vec![order] };
+    /// assert_eq!(log.o2o("o1"), vec![("i1", "contains")]);
+    /// assert!(log.o2o("missing").is_empty());
+    /// ```
     #[must_use]
     pub fn o2o(&self, object_id: &str) -> Vec<(&str, &str)> {
         self.objects
@@ -268,6 +404,23 @@ impl OCEL {
     }
 
     /// Count objects of a given type (`|{o in O : type(o) = ot}|`).
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OCEL, OCELObject};
+    /// let log = OCEL {
+    ///     event_types: vec![],
+    ///     object_types: vec![],
+    ///     events: vec![],
+    ///     objects: vec![
+    ///         OCELObject::new("o1".to_string(), "order"),
+    ///         OCELObject::new("o2".to_string(), "order"),
+    ///         OCELObject::new("i1".to_string(), "item"),
+    ///     ],
+    /// };
+    /// assert_eq!(log.count_objects_of_type("order"), 2);
+    /// assert_eq!(log.count_objects_of_type("item"), 1);
+    /// assert_eq!(log.count_objects_of_type("delivery"), 0);
+    /// ```
     #[must_use]
     pub fn count_objects_of_type(&self, object_type: &str) -> usize {
         self.objects
