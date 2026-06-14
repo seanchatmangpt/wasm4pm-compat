@@ -78,6 +78,53 @@ MIRI reports no UB across the dependency graph.
 cargo test --test ui_tests -- --ignored
 ```
 
+## v26.6.8–v26.6.11 — OCEL 2.0 canon, builder ergonomics & ghost-refusal enforcement
+
+**Status:** ALIVE
+**Span:** the patch series leading into v26.6.13.
+
+### Summary
+
+The work between the type-law foundry and the v26.6.13 corpus release: it landed the
+OCEL 2.0 / Petri / conformance canon, hardened the refusal surface against unreachable
+("ghost") variants, added builder ergonomics, and modernized the surrounding tooling.
+
+### Canon (v26.6.8 → v26.6.9)
+
+- OCEL 2.0 object-centric types, Petri-net const-generic soundness typestate, and van der
+  Aalst conformance verdict shapes (v26.6.8).
+- The W4PM-001 through W4PM-010 patch set; version bump to 26.6.9.
+
+### Builder & DX ergonomics (v26.6.11)
+
+- `PowlBuilder` — an ergonomic arena builder for POWL models with a fluent surface
+  (`atom`, `silent`, `partial_order`, `choice`, `loop_node`, `choice_graph`) and a checked
+  `build()` (plus `build_unchecked()`) returning a named `PowlRefusal` on malformed input.
+- `Evidence::inner()` — borrow the payload without consuming the typestate carrier.
+- `Evidence::from_boundary()` — a `const` alias for `Evidence::raw()` that signals intent at
+  call sites where the value originates at a process boundary.
+
+### Refusal law — ghost-variant enforcement
+
+- Enforced previously-unreachable refusal variants so every named law is actually
+  constructible and tested: `DeclareRefusal` (`declare`), `CausalNetRefusal` (`causal_net`),
+  `InvalidChoiceArity { declared, required_min }` (`powl`), and `CycleDetected`
+  (`process_tree`). A refusal type that names a law but can never be produced is itself a
+  defect; these close that gap.
+
+### Receipts
+
+- CROWN provenance fields on the validation receipt: `run_id`, `output_hash`,
+  `replay_pointer` (the `ReceiptEnvelope` carries `output_hash`).
+
+### Tooling
+
+- `wasm4pm-compat-lsp` migrated from `tower-lsp` to `lsp-max`.
+- ggen substrate: breed-scaffold pack (ontology + queries + templates), 100 verified paper
+  pointers, and hardened anti-cheat / meta-gate templates (raw-string needles, numeric-only
+  hardcode lock, structural fixture-provenance gate). Signing keys rotated; `.ggen/keys/`
+  untracked and gitignored.
+
 ## PAPERLAW_ALIVE_003 — Nightly-first type-law foundry
 
 **Status:** ALIVE (CROWN target)

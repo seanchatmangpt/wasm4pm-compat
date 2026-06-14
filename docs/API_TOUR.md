@@ -129,6 +129,35 @@ assert_eq!(receipted_via_export.value, "v");
 assert_eq!(receipted_direct.value, "v");
 ```
 
+### Builder ergonomics: `PowlBuilder`
+
+Construction stays terse without weakening the type law. `PowlBuilder` is a fluent arena
+builder for POWL models; its terminal `build()` is *checked* and returns a named
+`PowlRefusal` on malformed input (use `build_unchecked()` only when the shape is already
+known lawful).
+
+```rust
+use wasm4pm_compat::powl::{PowlBuilder, PowlRefusal};
+
+// A lawful choice with two branches builds.
+let model = PowlBuilder::new()
+    .atom("a")
+    .atom("b")
+    .choice("c", &["a", "b"])
+    .build();
+assert!(model.is_ok());
+
+// A choice with a single branch is refused — by name, not by panic.
+let bad = PowlBuilder::new()
+    .atom("a")
+    .choice("c", &["a"])
+    .build();
+assert!(matches!(bad, Err(PowlRefusal::InvalidChoiceArity { .. })));
+```
+
+Other builder surfaces follow the same shape across the canon: `Event::new(…)`,
+`Trace::from_events(…)`, `EventLog::from_traces(…)`, and the OCEL link/change builders.
+
 ---
 
 ## 2. The Witness marker system

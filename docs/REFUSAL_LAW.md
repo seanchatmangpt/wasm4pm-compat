@@ -142,6 +142,15 @@ The `Admit` trait in `src/admission.rs` defines the `Reason` associated type and
 | Loss | `FlatteningLoss` | Object-centric links dropped without policy |
 | POWL | `CyclicPartialOrder` | Partial order is not acyclic |
 | POWL | `DanglingOperatorChild` | Operator references a missing child |
+| POWL | `InvalidChoiceArity { declared, required_min }` | A choice node has fewer than two branches |
+| Declare | `DeclareRefusal::MissingTarget` | A binary constraint names no target activity |
+| Causal Net | `CausalNetRefusal::CycleDetected` | Dependency relations form an illegal cycle |
+| Process Tree | `ProcessTreeRefusal::CycleDetected` | The tree contains a back-reference |
+| Process Tree | `MissingDoBody` | A loop node declares no "do" body child |
+
+The last five were previously **named but unreachable** ("ghost") variants — they named a
+law no code path could ever produce. They are now constructible and tested, because a
+refusal type that names a law it cannot raise is itself a defect.
 
 ### The compile-fail receipt
 
