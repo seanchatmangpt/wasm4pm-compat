@@ -306,6 +306,9 @@ cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
 | `dfg_shape` | (none) | `Dfg` + `validate()`, `DfgRefusal::EmptyGraph` / `DanglingEdge`, `DfgEdgeFull` with duration, `ObjectCentricDfg` per-type DFG map |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
 | `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
+| `workflow_typestate` | (none) | `BranchToken<T,S>` Pending→Running→Completed, `ParallelWorkflow::split`, `JoinPoint::join_success` / `join_canceled_b`, zero-size verification (all state markers = 0 bytes) |
+| `object_lifecycle_phases` | (none) | `ObjectLifecyclePhase` ×5 Display, `LifecycledObject::new`, all 5 type aliases; transition methods partially blocked by nightly E0391 cycle bug |
+| `streaming_context` | (none) | `ContextualEvidence::online/offline`, `EventWindow<T,SIZE>` ring-buffer eviction (`push` returns evicted), `StreamingSource<WINDOW_SIZE>`, `TemporalOrderConfusion` |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — the four-module pipeline composition; all handoffs explicit |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |

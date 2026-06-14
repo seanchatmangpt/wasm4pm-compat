@@ -1,137 +1,101 @@
-//! Streaming process evidence context shapes.
+//! Example: Streaming context markers — online vs offline evidence
 //!
-//! Demonstrates the `streaming` module's typed context vocabulary:
+//! Demonstrates the `streaming` module's zero-cost context tags:
+//! - `OnlineMonitoringContext` / `OfflineAnalysisContext` — prevent
+//!   silent substitution at the type level
+//! - `ContextualEvidence<T, Context>` with `.online()` / `.offline()` constructors
+//! - `OnlineEvidence<T>` / `OfflineEvidence<T>` type aliases
+//! - `EventWindow<T, SIZE>` — fixed-size ring buffer shape
+//! - `StreamingSource<WINDOW_SIZE>` — marker type
+//! - `TemporalOrderConfusion` — structural defect shape
 //!
-//! - [`StreamingSource<WINDOW_SIZE>`] — compile-time window-size marker
-//! - [`EventWindow<T, SIZE>`] — circular buffer with `push()` and ring-wrap
-//! - [`OnlineMonitoringContext`] / [`OfflineAnalysisContext`] — context tokens
-//! - [`ContextualEvidence<T, Context>`] — evidence tagged with its collection context
-//! - [`OnlineEvidence<T>`] / [`OfflineEvidence<T>`] — type aliases for the common cases
-//! - [`TemporalOrderConfusion`] — structural marker for out-of-order event detection
+//! **Failure witness:** context and window contents asserted; if `inner` field
+//! or `push()` semantics change, assertions fail and example exits non-zero.
 //!
-//! **Key contract:** `OnlineEvidence<T>` and `OfflineEvidence<T>` are
-//! **different types** — a function that expects offline evidence cannot
-//! accidentally receive an online window. This prevents the silent substitution
-//! of an online monitoring stream for a completed log at the type level.
+//! Structure only — no event ingestion, no window management, no sliding-window
+//! logic. Graduate to `wasm4pm` for those.
 //!
-//! **Failure witness:** `ev.inner` field access and the ring-wrap count assert
-//! actual values; the type-alias identity check asserts that `OnlineEvidence`
-//! and `OfflineEvidence` are the aliases the docs claim.
-//!
-//! Doc reference: `src/streaming.rs`, `docs/API_TOUR.md`
+//! Run: `cargo run --example streaming_context`
+//! Doc reference: `src/streaming.rs`
 
 use wasm4pm_compat::streaming::{
-    ContextualEvidence, EventWindow, OfflineAnalysisContext, OfflineEvidence,
-    OnlineEvidence, OnlineMonitoringContext, StreamingSource, TemporalOrderConfusion,
+    ContextualEvidence, EventWindow, OfflineEvidence, OnlineEvidence, StreamingSource,
+    TemporalOrderConfusion,
 };
 
 fn main() {
-    println!("=== Streaming process evidence context shapes ===\n");
+    println!("=== streaming_context ===");
+    println!("Zero-cost context markers — no event ingestion, no window logic.\n");
 
-    // ── Part 1: StreamingSource<WINDOW_SIZE> — compile-time marker ───────────
-    println!("Part 1: StreamingSource<WINDOW_SIZE>");
+    // ── 1. ContextualEvidence online / offline ────────────────────────────────
+    println!("--- ContextualEvidence ---");
+    let online: OnlineEvidence<u32> = ContextualEvidence::online(42u32);
+    assert_eq!(online.inner, 42);
+    println!("  OnlineEvidence<u32>.inner = {}  ✓", online.inner);
 
-    let _source_128: StreamingSource<128> = StreamingSource;
-    let _source_64:  StreamingSource<64>  = StreamingSource;
-    // StreamingSource<128> and StreamingSource<64> are different types —
-    // the compiler would reject substituting one for the other.
-    println!("  ✓ StreamingSource<128> and StreamingSource<64> are distinct types");
+    let offline: OfflineEvidence<&str> = ContextualEvidence::offline("trace-payload");
+    assert_eq!(offline.inner, "trace-payload");
+    println!("  OfflineEvidence<&str>.inner = \"{}\"  ✓", offline.inner);
 
-    // ── Part 2: EventWindow<T, SIZE> — circular buffer ───────────────────────
-    println!("\nPart 2: EventWindow<T, SIZE> — push and ring-wrap");
+    // The two types are distinct — a function expecting offline evidence
+    // cannot receive an online value. The compiler enforces this at the type level.
+    // (Demonstrated structurally: both are `ContextualEvidence<T, _>` but with
+    // different Context type params, so they cannot be assigned to each other.)
+    println!("  Online and Offline context types are distinct (type-level enforcement)  ✓");
 
-    let mut window: EventWindow<u32, 4> = EventWindow::new();
+    // ── 2. EventWindow — ring buffer shape ───────────────────────────────────
+    println!("\n--- EventWindow<u32, 3> ---");
+    let mut window: EventWindow<u32, 3> = EventWindow::new();
     assert_eq!(window.count, 0);
     assert_eq!(window.head, 0);
+    println!("  new(): count={}  head={}  ✓", window.count, window.head);
 
-    // Fill the window.
-    let ejected0 = window.push(10);
-    let ejected1 = window.push(20);
-    let ejected2 = window.push(30);
-    let ejected3 = window.push(40);
-    assert!(ejected0.is_none(), "no eviction until window is full");
-    assert!(ejected1.is_none());
-    assert!(ejected2.is_none());
-    assert!(ejected3.is_none());
-    assert_eq!(window.count, 4);
-    println!("  ✓ push 4 events into SIZE=4 window → count=4, no eviction");
+    // Push 3 events — fills the window
+    let evicted1 = window.push(10);
+    let evicted2 = window.push(20);
+    let evicted3 = window.push(30);
+    assert_eq!(evicted1, None); // no eviction until full
+    assert_eq!(evicted2, None);
+    assert_eq!(evicted3, None);
+    assert_eq!(window.count, 3);
+    println!("  after 3 pushes: count={}  ✓", window.count);
 
-    // Ring-wrap: pushing a 5th event evicts the oldest.
-    let evicted = window.push(50);
-    assert!(evicted.is_some(), "overflow must evict oldest slot");
-    assert_eq!(evicted, Some(10), "ring evicts slot 0 (value 10)");
-    assert_eq!(window.count, 4, "count stays at capacity");
-    println!("  ✓ 5th push evicts slot 0 (value 10) → count stays at 4");
+    // 4th push evicts the oldest (ring buffer behavior)
+    let evicted4 = window.push(40);
+    assert_eq!(evicted4, Some(10), "4th push must evict first element 10");
+    assert_eq!(window.count, 3, "count stays at window size");
+    println!("  push(40) evicts {} (oldest)  count still {}  ✓",
+        evicted4.unwrap(), window.count);
 
-    // Default constructs an empty window.
-    let default_win: EventWindow<String, 8> = EventWindow::default();
-    assert_eq!(default_win.count, 0);
-    println!("  ✓ EventWindow::default() → count=0");
+    // Default is same as new()
+    let w2: EventWindow<u8, 8> = EventWindow::default();
+    assert_eq!(w2.count, 0);
+    println!("  EventWindow::<u8,8>::default().count = 0  ✓");
 
-    // ── Part 3: OnlineMonitoringContext / OfflineAnalysisContext tokens ───────
-    println!("\nPart 3: Context tokens are zero-cost unit types");
+    // ── 3. StreamingSource<WINDOW_SIZE> marker ────────────────────────────────
+    println!("\n--- StreamingSource<128> marker ---");
+    // Zero-sized marker type; exists purely at compile time
+    let _source: StreamingSource<128> = StreamingSource;
+    println!("  StreamingSource<128> is a zero-sized marker type  ✓");
 
-    let _online:  OnlineMonitoringContext  = OnlineMonitoringContext;
-    let _offline: OfflineAnalysisContext   = OfflineAnalysisContext;
-    // These tokens are used as phantom type params — no data, just type identity.
-    println!("  ✓ OnlineMonitoringContext and OfflineAnalysisContext constructible");
-
-    // ── Part 4: ContextualEvidence<T, Context> ────────────────────────────────
-    println!("\nPart 4: ContextualEvidence — online and offline wrappers");
-
-    let online_ev: ContextualEvidence<u64, OnlineMonitoringContext> =
-        ContextualEvidence::online(42_u64);
-    assert_eq!(online_ev.inner, 42_u64);
-    println!("  ✓ ContextualEvidence::online(42).inner = 42");
-
-    let offline_ev: ContextualEvidence<u64, OfflineAnalysisContext> =
-        ContextualEvidence::offline(99_u64);
-    assert_eq!(offline_ev.inner, 99_u64);
-    println!("  ✓ ContextualEvidence::offline(99).inner = 99");
-
-    // ── Part 5: OnlineEvidence<T> and OfflineEvidence<T> type aliases ─────────
-    println!("\nPart 5: OnlineEvidence<T> / OfflineEvidence<T> type aliases");
-
-    // The aliases expand to ContextualEvidence<T, *Context> — confirmed by
-    // assigning a ContextualEvidence directly to the alias type.
-    let online_alias: OnlineEvidence<&str> = ContextualEvidence::online("live-stream-event");
-    assert_eq!(online_alias.inner, "live-stream-event");
-
-    let offline_alias: OfflineEvidence<&str> = ContextualEvidence::offline("log-replay-event");
-    assert_eq!(offline_alias.inner, "log-replay-event");
-
-    println!("  ✓ OnlineEvidence<&str> = ContextualEvidence<&str, OnlineMonitoringContext>");
-    println!("  ✓ OfflineEvidence<&str> = ContextualEvidence<&str, OfflineAnalysisContext>");
-
-    // ── Part 6: TemporalOrderConfusion — out-of-order event marker ───────────
-    println!("\nPart 6: TemporalOrderConfusion — structural marker");
-
+    // ── 4. TemporalOrderConfusion — structural defect shape ──────────────────
+    println!("\n--- TemporalOrderConfusion ---");
     let confusion = TemporalOrderConfusion {
-        current_timestamp: 1_000_000,
-        offending_timestamp: 900_000, // older than current = out of order
+        current_timestamp: 1_700_000_200,
+        offending_timestamp: 1_700_000_100, // earlier than current — disorder
     };
-    assert_eq!(confusion.current_timestamp, 1_000_000);
-    assert_eq!(confusion.offending_timestamp, 900_000);
-    assert!(
-        confusion.offending_timestamp < confusion.current_timestamp,
-        "out-of-order: offending timestamp precedes current"
-    );
-    println!(
-        "  ✓ TemporalOrderConfusion: current={}, offending={} (out of order)",
-        confusion.current_timestamp, confusion.offending_timestamp
-    );
+    assert_eq!(confusion.current_timestamp, 1_700_000_200);
+    assert_eq!(confusion.offending_timestamp, 1_700_000_100);
+    assert!(confusion.offending_timestamp < confusion.current_timestamp,
+        "temporal disorder: offending must precede current");
+    println!("  current={}  offending={}  (offending < current = temporal disorder)  ✓",
+        confusion.current_timestamp, confusion.offending_timestamp);
 
-    // ── Part 7: Structure-only contract ──────────────────────────────────────
-    println!("\nPart 7: Structure-only contract");
-    // There is no stream ingestion, no window trigger, no sliding-window
-    // computation in this module. These types are shapes that travel with
-    // evidence into wasm4pm, where the streaming engine runs.
-    println!("  ✓ No stream ingestion method exists on EventWindow or ContextualEvidence");
-    println!("  ✓ Graduate to wasm4pm for: windowed ingestion, online conformance, drift detection");
-
-    println!("\n=== All assertions passed — streaming module surface is witnessed ===");
-    println!("  Covered: StreamingSource<N>, EventWindow<T,SIZE> (push + ring-wrap + default),");
-    println!("           OnlineMonitoringContext, OfflineAnalysisContext,");
-    println!("           ContextualEvidence (online + offline), OnlineEvidence<T>,");
-    println!("           OfflineEvidence<T>, TemporalOrderConfusion");
+    println!("\n=== All assertions passed — streaming module is witnessed ===");
+    println!("  Covered: OnlineEvidence, OfflineEvidence, ContextualEvidence,");
+    println!("           EventWindow (ring buffer push + eviction), StreamingSource,");
+    println!("           TemporalOrderConfusion.");
+    println!("  Witness: inner values + ring-buffer eviction asserted; breaks on API change.");
+    println!("  Structure only — no event ingestion, no sliding windows, no monitoring.");
+    println!("  Graduate to wasm4pm for: stream ingestion, online conformance, drift detection.");
 }
