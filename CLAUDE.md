@@ -215,6 +215,8 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `sealing_admit_chain` | (none) | `SealingAdmit` seam: BLAKE3 fold → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; tamper witness |
 | `prediction_problem_shape` | (none) | `PredictionProblem<T>` with all six `PredictionTarget` kinds, three `PredictionHorizon` variants, `ComplianceKind`, and six named `PredictionRefusal` laws |
 | `dfg_shape` | (none) | `DfgNode`, `DfgEdge`, `DfgWeight`, `Dfg::validate`, `DfgRefusal` (EmptyGraph + DanglingEdge), `DfgEdgeFull` with duration, `ObjectCentricDfg` per-type container |
+| `streaming_context` | (none) | `EventWindow<T,SIZE>` ring-wrap, `ContextualEvidence` online/offline wrappers, type-alias identity for `OnlineEvidence`/`OfflineEvidence`, `TemporalOrderConfusion` |
+| `process_cube_shape` | (none) | `CubeDimension<NAME>` const-param axis, `CubeDimensionKind` (6 kinds), `CubeSlice`, `CubeCell`, `CubeProjectionWitness`, `ProcessCube`, `CellComparison` |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |

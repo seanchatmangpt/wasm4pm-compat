@@ -535,6 +535,35 @@ prediction *problem*, never the *answer*. Graduate to `wasm4pm` to train, encode
 
 Running example: `cargo run --example prediction_problem_shape`
 
+### `streaming` — streaming process evidence context
+
+Core types: `StreamingSource<WINDOW_SIZE>`, `EventWindow<T, SIZE>`,
+`OnlineMonitoringContext`, `OfflineAnalysisContext`, `ContextualEvidence<T, Context>`,
+`OnlineEvidence<T>`, `OfflineEvidence<T>`, `TemporalOrderConfusion`.
+
+`EventWindow<T, SIZE>` is a circular buffer (ring) — `push()` returns the evicted
+slot when the window is full. `OnlineEvidence<T>` and `OfflineEvidence<T>` are
+**different types**: the compiler prevents an online stream from silently substituting
+for a completed log. Structure only — graduate to `wasm4pm` for windowed ingestion
+and online conformance checking.
+
+Running example: `cargo run --example streaming_context`
+
+### `process_cube` — Process Cube framework shapes
+
+Core types: `CubeDimension<NAME>`, `CubeDimensionKind`, `CubeSlice<D, V>`,
+`CubeCell<DIMS>`, `CubeProjectionWitness<FROM, TO>`, `ProcessCube<Log, DIMS>`,
+`CellComparison<DIMS>`.
+
+`CubeDimension<"resource">` and `CubeDimension<"time">` are **distinct types** — axis
+identity is enforced at compile time. `CubeProjectionWitness<FROM, TO>` records
+the arity reduction from a projection step. The process cube framework (van der Aalst 2013)
+enables multi-dimensional comparison: slicing by resource, time, activity, or OCEL object
+type, then comparing sub-log behavior per cell. Structure only — graduate to `wasm4pm`
+for sub-log extraction, per-cell discovery, and cross-cell conformance comparison.
+
+Running example: `cargo run --example process_cube_shape`
+
 ### `causal_net` — causal net shape
 
 Core types: `CausalNet`, `CausalNode`, `InputBinding`, `OutputBinding`.
