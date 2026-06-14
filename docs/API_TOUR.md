@@ -522,7 +522,12 @@ metric value is provably in `[0, 1]` at the type level:
 
 ### `prediction` — prediction problem shape
 
-Core types: `PredictionProblem`, `PredictionTarget`. Structure only; no predictor.
+Core types: `PredictionProblem<T>`, `PredictionTarget`, `PredictionHorizon`, `PredictionRefusal`,
+`ComplianceKind`, and six target witnesses (`NextActivity`, `OutcomeLabel`, `RemainingTime`,
+`DriftSignal`, `RiskScore`, `ComplianceTarget`). Structure only; this module states the
+prediction *problem*, never the *answer*. Graduate to `wasm4pm` to train, encode, and infer.
+
+Running example: `cargo run --example prediction_problem_shape`
 
 ### `causal_net` — causal net shape
 

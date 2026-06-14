@@ -213,6 +213,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `causal_net_shape` | (none) | `CausalNet` / `CausalBinding` — Heuristics Miner output shapes (structure only, no mining) |
 | `receipt_chain` | (none) | `ReceiptEnvelope`, `ReceiptChain`, `ReceiptChainConst<N>` (stack-arity-enforced), `GraduationReceipt` |
 | `sealing_admit_chain` | (none) | `SealingAdmit` seam: BLAKE3 fold → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; tamper witness |
+| `prediction_problem_shape` | (none) | `PredictionProblem<T>` with all six `PredictionTarget` kinds, three `PredictionHorizon` variants, `ComplianceKind`, and six named `PredictionRefusal` laws |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer); unified-semantics witness |
