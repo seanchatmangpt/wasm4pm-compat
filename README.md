@@ -14,27 +14,11 @@ The logical system version, target specification, and documented release standar
 
 ---
 
-## What's New in v26.6.13
-
-This release ships the full witness corpus and five nightly zero-cost innovations, then hardens the crate against nightly churn and closes the gap between *naming* a law and *enforcing* it. The ALIVE gate is green (217 compile-fail + 408 compile-pass receipts) and MIRI reports no undefined behavior across the dependency graph.
-
-*   **271-paper witness corpus.** Every paper in the research library now has a zero-sized witness marker, rendered via `ggen` into seven per-category modules.
-*   **Self-validating bibliography.** The new `witness_corpus` module renders `ALL_WITNESS_KEYS` (436 keys) with a compile-time `const` proof that no two witnesses share a `KEY` — closing a collision hole that SPARQL deduplication alone could not enforce in Rust source. A runtime companion test names any offending key.
-*   **Authority enforcement, not just labeling.** `LinkedOcel` is the first concrete `Admit` impl in `src/`. The crate no longer merely *names* `DanglingEventObjectLink` / `EmptyEventObjectLinks` — it ships a function that *detects* them and refuses through the typed `Raw → Admitted` one-way door.
-*   **Teaching diagnostics.** `#[diagnostic::on_unimplemented]` on the five family-authority traits: a wrong-family witness now reads ``` `PowlPaper` is not a Standard-family authority ``` with the list of witnesses that do qualify, instead of a bare bound error.
-*   **Nightly zero-cost innovations.** `WitnessFamily` derives `ConstParamTy`; `Witness` is a `const trait`; the `witness_law` module adds sealed family-authority gating, a compile-time co-citation string law, `gcd`/`NormedBetween01`, and a `portable_simd` family-batch check.
-*   **TypeScript bindings extracted to a sidecar.** The `ts`/`specta` surface moved to the `wasm4pm-compat-ts` companion crate, restoring the *exactly three public features* and *no runtime dependencies* invariants in the core crate.
-*   **Durability.** The toolchain is pinned to a dated nightly so a const-generics or const-trait syntax flip lands on one known toolchain. A documented in-code finding records why the `generic_const_exprs → min_generic_const_args` migration is **not viable** today: mGCA forbids generic parameters in computed const operations, so the computed-const law kernel (`Between01`, `Metric`, `ConditionCell`) has no stable-floor path, and the two features are mutually exclusive in one crate.
-
-> **In progress:** literal-100% item-level rustdoc. Module-level documentation is complete across all canon modules; remaining public-item docs (compiler-measured via `missing_docs`) are a tracked follow-up.
-
----
-
 ## Toolchain & Runtime Constraints
 
 This crate provides no Minimum Supported Rust Version (MSRV) guarantees and contains no stable Rust fallback mechanisms. It is designed and implemented exclusively for the nightly compiler toolchain.
 
-Applications using this library **must run under nightly Rust (refer to docs/explanation/why-nightly.md)**. 
+Applications using this library **must run under nightly Rust (refer to docs/explanation/why-nightly.md)**.
 
 The toolchain is pinned via `rust-toolchain.toml` to a specific nightly release. The crate root declares `#![feature(generic_const_exprs, adt_const_params, const_trait_impl, min_specialization, portable_simd)]` without conditional gates. This design ensures that the compiler's monomorphization and const-evaluation engines enforce domain-specific type laws before runtime code generation occurs.
 
@@ -63,7 +47,7 @@ To maintain a clean architectural boundary, `wasm4pm-compat` is:
 *   **Not an engine**: It contains no execution environment, solver, or simulation runtime.
 *   **Not a conformance checker**: It does not compute fitness, precision, generalization, or trace alignment scores. It only models their static verdict structures.
 *   **Not a replay/discovery engine**: It does not execute discovery algorithms (such as Alpha, Inductive, or Heuristics miners) or replay logs against models.
-*   **Not a TypeScript/Zod generator**: It does not generate serialization wrappers or frontend interface schemas.
+*   **Not a TypeScript/Zod generator**: It does not generate serialization wrappers or frontend interface schemas. TypeScript bindings live in the `wasm4pm-compat-ts` sidecar crate.
 *   **Not a WASM ABI crate**: It does not define low-level WASM linear memory layouts or foreign function interfaces (FFIs).
 *   **Not a format laundromat**: It forbids direct, unmonitored format-to-format conversion. Translating data requires admitting the input into a typed compat value under a witness, resolving any data loss under an explicit policy, and then exporting or graduating the result.
 
@@ -89,7 +73,7 @@ The universal carrier struct `Evidence<T, State: EvidenceState, W>` wraps the pr
 6.  **Receipted**: Sealed inside a provenance-bearing cryptographic receipt envelope.
 7.  **Graduation Candidate**: Prepared to exit the compat boundary and pass to the execution engine.
 
-Transitions between states consume the carrier struct by-value (`self`), preventing use-after-move defects at compile time.
+Transitions between states consume the carrier struct by-value (`self`), preventing use-after-move defects at compile time. `Evidence::inner()` borrows the payload without consuming the carrier; `Evidence::from_boundary()` is an alias for `Evidence::raw()` that signals intent at call sites where the value originates at a process boundary.
 
 ---
 
@@ -99,7 +83,15 @@ Witnesses are zero-sized empty enums implementing the `Witness` trait (e.g., `Oc
 
 Because witnesses are part of the type signature, `Evidence<T, Admitted, Ocel20>` and `Evidence<T, Admitted, Xes1849>` are incompatible types. This prevents the silent mixing of standards. The library tracks witness validation status monotonically using a Join-Semilattice representation (`WitnessState<W: Witness>` with states `Unknown`, `Satisfied`, `Violated`, and `Contradiction`).
 
-Every witness belongs to a `WitnessFamily` (`Standard`, `Paper`, `ApiGrammar`, `RustLaw`, `InternalBridge`). The `witness_law` module gates types by family at compile time: `StandardWitness<W>` only accepts a `Standard`-family witness, and a wrong-family witness fails with a teaching diagnostic naming the law. The full corpus (271 papers, 436 unique keys) is rendered from ontology and self-validated — the `witness_corpus` module carries a compile-time proof that no two witnesses share a key.
+### Bibliography Coverage
+
+`src/witnesses.rs` (ggen-rendered) carries **271 paper witness markers** spanning every major process mining sub-discipline — discovery algorithms, conformance checking, object-centric formalisms, POWL, temporal logic, and predictive monitoring. Each marker exposes four `const` metadata fields: `KEY` (a short bibliographic slug), `TITLE`, `YEAR`, and `FAMILY`.
+
+A compile-time uniqueness proof (`witness_law` module) asserts that no two witnesses share a `KEY`. Adding a duplicate key fails the build with a named law violation rather than silently shadowing the existing marker.
+
+### Family Authority Diagnostics
+
+The `Witness` trait uses `#[rustc_on_unimplemented]` annotations to produce teaching compiler diagnostics when a caller passes evidence governed by the wrong witness family. Instead of a bare type-mismatch error, the compiler emits a message identifying which family the value belongs to and which family the call site requires.
 
 ---
 
@@ -107,14 +99,24 @@ Every witness belongs to a `WitnessFamily` (`Standard`, `Paper`, `ApiGrammar`, `
 
 ### The Admission/Refusal Law
 
-Boundary validation is governed by the `Admit` trait, which evaluates raw evidence against a witness and returns `Result<Admission<T, W>, Refusal<R, W>>`. A `Refusal` cannot contain generic error messages or raw strings. Its `R` parameter must be a domain-specific enum variant representing the exact structural law that was violated:
+Boundary validation is governed by the `Admit` trait, which evaluates raw evidence against a witness and returns `Result<Admission<T, W>, Refusal<R, W>>`. A `Refusal` cannot contain generic error messages or raw strings. Its `R` parameter must be a domain-specific enum variant representing the exact structural law that was violated.
 
-*   **OCEL**: `DanglingEventObjectLink`, `DuplicateObjectId`, `UnqualifiedObjectRelation`.
-*   **WF-net**: `MissingFinalMarking`, `UnsoundWfNet`, `DeadTransition`.
-*   **XES**: `MissingConceptName`, `NonMonotonicTimestamps`.
-*   **POWL**: `CyclicPartialOrder`, `DanglingOperatorChild`.
+Current named refusal laws by domain:
 
-This ensures that all boundary rejections are typed, auditable, and testable.
+| Domain | Named refusal variants |
+|---|---|
+| **OCEL** | `DanglingEventObjectLink`, `DuplicateObjectId`, `UnqualifiedObjectRelation` |
+| **WF-net** | `MissingFinalMarking`, `UnsoundWfNet`, `DeadTransition` |
+| **XES** | `MissingConceptName`, `NonMonotonicTimestamps` |
+| **POWL** | `CyclicPartialOrder`, `DanglingOperatorChild`, `InvalidChoiceArity { declared, required_min }`, `CycleDetected` |
+| **Declare** | `MissingTarget`, `InvalidTemplateArity`, `EmptyObjectScope`, `SynchronizationViolation`, `MissingActivation` |
+| **Causal Net** | `InvalidBinding`, `MissingInputPlace`, `MissingOutputPlace`, `CycleDetected` |
+| **Process Tree** | `InvalidArity`, `MissingDoBody` |
+| **OCPQ** | `FlatteningRequired`, `EmptyObjectTypeList`, `SynchronizationRequiresMultipleTypes`, `ScopeMismatch` |
+| **Conformance** | `FitnessUnavailable`, `GeneralizationUnavailable`, `SimplicityUnavailable` |
+| **Receipt** | `MissingDigest`, `BrokenChainLink(u32)`, `EmptyChain`, `MissingWitness` |
+
+All refusal variants are `PartialEq + Eq`, enabling structural equality assertions in tests (`assert_eq!(r, DeclareRefusal::MissingTarget)`) rather than Display-string substring searches.
 
 ### The Loss Law
 
@@ -123,11 +125,23 @@ Transformations that discard evidence (such as flattening multi-perspective OCEL
 $$\text{LossPolicy} \longrightarrow \text{ProjectionName} \longrightarrow \text{LossReport}$$
 
 1.  **LossPolicy**: The caller must explicitly select the loss policy before projection:
-    *   `RefuseLoss`: The projection fails and returns a named refusal (e.g., `FlatteningLoss`) if any evidence would be dropped.
+    *   `RefuseLoss`: The projection fails and returns a named refusal if any evidence would be dropped.
     *   `AllowNamedProjection`: The projection is permitted under a static `ProjectionName`.
     *   `AllowLossWithReport`: The projection is permitted and produces a `LossReport` itemizing the discarded items.
-2.  **ProjectionName**: A newtype wrapper of a `&'static str` (e.g., `ProjectionName("ocel-flatten-to-xes:by-case")`) representing a static, hardcoded transformation name.
+2.  **ProjectionName**: A newtype wrapper of a `&'static str` representing a static, hardcoded transformation name.
 3.  **LossReport**: A structured record containing the projection name, policy, and the itemized collection of lost items, parameterized by the source and target shape tags.
+
+---
+
+## OCEL 2.0 — LinkedOcel Admitter
+
+The `LinkedOcel` type provides a concrete OCEL 2.0 admitter with authority enforcement rather than just structural labeling. Admission validates:
+
+- No dangling event-object links (every linked object ID must exist in the object registry)
+- No duplicate object IDs within a type namespace
+- Qualified object-object relations carry a non-empty qualifier
+
+The admitter returns `Admission<LinkedOcel, Ocel20>` on success and `Refusal<OcelRefusal, Ocel20>` on any structural violation, keeping the OCEL 2.0 boundary law enforced at the type level.
 
 ---
 
@@ -135,9 +149,21 @@ $$\text{LossPolicy} \longrightarrow \text{ProjectionName} \longrightarrow \text{
 
 When a host needs to perform active computation (such as model discovery or conformance checking), the evidence must graduate:
 
-*   **Receipt-Shaped Evidence**: Modeled via `ReceiptShape` and `ReceiptEnvelope`. These structures represent the cryptographic metadata, digests, and replay hints, but perform no actual hashing or signing.
+*   **Receipt-Shaped Evidence**: Modeled via `ReceiptShape` and `ReceiptEnvelope`. These structures represent the cryptographic metadata, digests, and replay hints, but perform no actual hashing or signing. Every receipt envelope requires three CROWN fields: `run_id`, `output_hash`, and `replay_pointer`.
 *   **Graduation Bridge**: Decoupled from the execution engine, the `GraduateToWasm4pm` trait (enabled under the `wasm4pm` feature) allows structural shapes to compile a `GraduationCandidate`.
-*   **GraduationCandidate**: A structural wrapper containing a `GraduationReason` (such as `NeedsDiscovery`, `NeedsConformanceExecution`, `NeedsReplay`, or `RebuildingProcessMiningLocally`), the subject name, and a hash reference to the grounding evidence. The external engine consumes these candidates to perform the actual process mining calculations.
+*   **GraduationCandidate**: A structural wrapper containing a `GraduationReason`, the subject name, and a hash reference to the grounding evidence. The external engine consumes these candidates to perform the actual process mining calculations.
+
+Current `GraduationReason` variants:
+
+| Reason | Hard signal | Meaning |
+|---|:---:|---|
+| `NeedsDiscovery` | yes | No process model exists yet |
+| `NeedsConformanceExecution` | yes | A model exists but fitness has not been measured |
+| `NeedsBenchmarkGate` | yes | Alignment cost is untested against baselines |
+| `NeedsObjectCentricQueryExecution` | yes | OCPQ queries have not been executed against the log |
+| `NeedsReplay` | no | Replay is stale or missing |
+| `RebuildingProcessMiningLocally` | no | Local rebuild required before graduation |
+| `NeedsReceipts` | no | Provenance receipts are absent or incomplete |
 
 ---
 
@@ -155,44 +181,91 @@ There are no per-format features (e.g., no `ocel` or `xes` flags). The entire ca
 
 ---
 
+## TypeScript Sidecar
+
+TypeScript bindings and Zod schemas live in the `wasm4pm-compat-ts` sidecar crate rather than in this crate. The separation enforces the "not a TypeScript/Zod generator" invariant: the compat core defines type law; the sidecar exposes it to TypeScript consumers. Refer to the sidecar crate for schema generation, round-trip covenants, and `bindings/zod_schemas.ts`.
+
+---
+
 ## ggen Ecosystem Projection
 
-`ggen` (the Ostar generative pipeline/stewardship compiler) operates as a provision instrument that translates ontologies (the witness TTLs defining the 271-paper corpus, 436 unique witness keys) and manifests into Rust source definitions, the per-category witness registries (`src/witnesses.rs`, `src/witnesses_*.rs`), the `witness_corpus` uniqueness proof, and negative verification fixtures. `wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
+`ggen` (the generative provision compiler) operates as a provision instrument that translates ontologies (e.g., `wasm4pm-compat.ttl` defining the 271 canonical paper witnesses across all process mining families) and manifests into Rust source definitions, witness registries (`src/witnesses.rs`), and negative verification fixtures.
 
-wasm4pm-compat defines the Rust process-evidence court.
-ggen will later project into that court.
-wasm4pm will later execute judgment after graduation.
+`wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
+
+```
+wasm4pm-compat  — defines the Rust process-evidence court
+ggen            — projects into that court from ontology
+wasm4pm         — executes judgment after graduation
+```
+
+The `graduation-boundary-map` ggen rule maps each `GraduationReason` variant to its target wasm4pm intake handler. The `extract-graduation-candidates` SPARQL query binds both `?candidate` and `?reason` to produce fully-typed graduation manifests.
+
+---
+
+## Anti-Cheat Infrastructure
+
+### Compile-Fail Fixtures
+
+The ALIVE gate (`cargo make alive`) runs 217 compile-fail fixtures and 406 compile-pass fixtures. Compile-fail fixtures use the **function-parameter pattern** to create typed values without calling `pub(crate)` constructors:
+
+```rust
+// Law: Evidence<T, Admitted, Xes1849> cannot be passed where Evidence<T, Admitted, Ocel20> is required.
+fn _test(xes_ev: Evidence<String, Admitted, Xes1849>) {
+    requires_ocel_evidence(xes_ev); // E0308 — the law violation, proven at compile time
+}
+```
+
+Fixtures that test private-field non-forgeability omit the private field entirely:
+
+```rust
+let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {}; // E0063 + E0451
+```
+
+Neither pattern uses `todo!()`, `unimplemented!()`, or any stub macro. The type error is the proof; no runtime code is needed.
+
+### Anti-Cheat Gate
+
+`just anti-cheat-gate` runs the full verification pipeline and then passes the source tree through `anti-llm-cheat-lsp` to detect fabricated evidence patterns. The gate covers `src/` law modules, `tests/` (excluding structural-check paths and trybuild fixtures), and `wasm4pm-compat-lsp/src/`. Per-repo suppressions for domain vocabulary (e.g., "fully admitted" as a typestate term) live in `anti-llm.toml`.
 
 ---
 
 ## Verification Commands
 
-To verify that the compatibility core compiles, conforms to all type-law covenants, and passes all tests, execute the following commands in order:
+**Always use `cargo make`.** Direct `cargo` invocations are only used when running a single test by name.
 
 ```bash
-# Code formatting check
-cargo fmt --check
+# Fast type check
+cargo make check
 
-# Clippy lints with all features enabled
-cargo clippy --all-features -- -D warnings
+# Type check — all features
+cargo make check-all
 
-# Build the codebase with all features
-cargo build --all-features
+# Unit + integration tests
+cargo make test-all
 
-# Run standard unit and integration tests
-cargo test --all-features --tests
+# Lint
+cargo make clippy
 
-# Run the ALIVE gate (trybuild compile-pass and compile-fail fixtures)
-cargo test --test ui_tests -- --ignored
+# Format check / apply
+cargo make fmt
+cargo make fmt-fix
 
-# Run all public documentation tests
-cargo test --doc --all-features
+# Type-law receipt gate (ALIVE) — compile-fail + compile-pass fixtures
+cargo make alive
 
-# Verify packaging list
-cargo package --list
+# Full CI pipeline
+cargo make ci
 
-# Verify crate publishability via a dry run
-cargo publish --dry-run
+# Anti-cheat gate
+just anti-cheat-gate
+
+# ggen provision (render src/witnesses.rs from ontology)
+cargo make ggen-witnesses
+cargo make ggen-witnesses-dry   # preview without writing
+
+# Run a single test by name
+cargo test --all-features <test_name>
 ```
 
 ---
