@@ -220,6 +220,8 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `multiperspective_evidence` | (none) | `ProcessPerspective` (4 kinds), four perspective markers, `MultiPerspectiveEvidence`, `PerspectiveCombination` (2/3/4-way), `ParityComparer::assert_epsilon_close` |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
 | `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
+| `workflow_typestate` | (none) | `BranchToken<T,S>` Pending→Running→Completed, `ParallelWorkflow::split`, `JoinPoint` join_success / join_canceled_b, zero-size verification |
+| `object_lifecycle_phases` | (none) | `ObjectLifecyclePhase` ×5 Display, `LifecycledObject::new`, 5 type aliases; transition methods blocked by nightly E0391 |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — four-module pipeline composition |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
@@ -227,6 +229,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
 | `c8_event_horizon_demo` | (none) | Event-horizon boundary detection; boundary proof receipts |
 | `c8_market_planck_demo` | (none) | MarketPlanck cell state transitions with receipt generation |
+| `process_pipeline_composition` | (none) | **Cross-product (7 modules):** `OcelLog` → `ObjectCentricDfg` → `ConformanceTriple+check_filter_shape` → `PredictionProblem<NextActivity>` → `MultiPerspectiveEvidence<ControlFlow+Time>` → `ProcessCube<OcelLog,2>` + `CubeSlice` |
 
 ## Invariants that must never be violated
 
