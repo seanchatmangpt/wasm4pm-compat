@@ -1544,17 +1544,44 @@ pub enum ConformanceVerdict {
     DeadlockEncountered,
 }
 
+/// Incremental BLAKE3 chainer over a trace's `(event, transition, marking)`
+/// steps. Structure only: it accumulates bytes into a digest shape; it replays
+/// no log and fires no transition.
 pub struct TraceChainer {
+    /// The running BLAKE3 hasher, salted at construction.
     pub hasher: Hasher,
 }
 
 impl TraceChainer {
+    /// A fresh chainer, domain-separated by a fixed receipt salt.
     pub fn new() -> Self {
         let mut hasher = Hasher::new();
         hasher.update(b"W4PM_RECEIPT_SALT_V1");
         Self { hasher }
     }
 
+    /// Absorb one trace step `(event_id, transition_id, marking_state)` into the
+    /// running digest. Order- and content-sensitive.
+    ///
+    /// ```
+    /// use wasm4pm_compat::receipt::TraceChainer;
+    /// let mut a = TraceChainer::new();
+    /// a.chain_step(b"e1", b"t1", b"m1");
+    /// a.chain_step(b"e2", b"t2", b"m2");
+    /// let ha = a.finalize();
+    ///
+    /// // Deterministic: an identical step sequence yields an identical digest.
+    /// let mut b = TraceChainer::new();
+    /// b.chain_step(b"e1", b"t1", b"m1");
+    /// b.chain_step(b"e2", b"t2", b"m2");
+    /// assert_eq!(ha, b.finalize());
+    ///
+    /// // Sensitive: changing one byte of one step changes the digest.
+    /// let mut c = TraceChainer::new();
+    /// c.chain_step(b"e1", b"t1", b"m1");
+    /// c.chain_step(b"e2", b"t2", b"CHANGED");
+    /// assert_ne!(ha, c.finalize());
+    /// ```
     pub fn chain_step(&mut self, event_id: &[u8], transition_id: &[u8], marking_state: &[u8]) {
         self.hasher.update(event_id);
         self.hasher.update(transition_id);
