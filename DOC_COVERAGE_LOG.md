@@ -176,3 +176,35 @@ Priority 1 — `models` module: `PetriNet` structural metrics (`explain()`, `str
 Priority 2 — Cross-product example: `OcelLog` → `Dfg` (shape) + `ConformanceResult` — compose OCEL admission, DFG construction, and conformance verdict into a single pipeline witness
 Priority 3 — `streaming` module (StreamingConformance, EventWindow)
 Priority 4 — `process_cube` / `multiperspective`
+
+---
+
+## 2026-06-14 — Iteration 5
+
+**Cluster:** `models::PetriNet` structural metrics (the only metric surface in the crate that derives from graph structure, not from log replay)
+
+**Triple:**
+- **Doc:** `src/models.rs` rustdoc (complete with per-fn doctests and IS/IS-NOT framing)
+- **Example:** `examples/petri_net_metrics.rs` — exercises `is_structural_workflow_net()` (true/false/empty), `structural_unsoundness_score()` (0.0 sound, >0 defective, 10.0 sentinel), `mdl_score()`, `mdl_score_with_ontology(4)`, `explain()` (self-derived, checked for node counts not static string), `canonical_hash()` (deterministic, distinct), `incidence_matrix()` with `FlatIncidenceMatrix::get()`, `PetriNetRefusal::EmptyNet`
+- **Link:** README.md and CLAUDE.md example tables updated
+
+**Run output (real exit code):**
+```
+=== All assertions passed — models::PetriNet structural metrics witnessed ===
+  explain() = "Structural summary: 2 places, 1 transitions, 2 arcs. Structural workflow-net: true. Structural unsoundness score: 0.0."
+  canonical_hash same structure = 0x4a6682df2b990e0a
+EXIT: 0
+```
+
+**Covered ✅:** `models::PetriNet` structural metrics — documented-but-unexercised gap CLOSED.
+
+**Gap map update:**
+- `models` (PetriNet metrics) → COVERED ✅
+- Remaining documented-but-unexercised: `streaming`, `process_cube`, `multiperspective`, `workflow`, `object_lifecycle`
+
+### Queued (next iterations)
+
+Priority 1 — Cross-product example: compose OcelLog admission + Dfg shape + ConformanceResult into single pipeline (this is the highest-value composition — no cross-module example shows the handoff between OCEL, DFG, and conformance verdict)
+Priority 2 — `streaming` module (StreamingConformance, EventWindow — check src/streaming.rs for pub API)
+Priority 3 — `process_cube` module (ProcessCubeSlice, ProcessCubeDimension)
+Priority 4 — `workflow` / `object_lifecycle` modules (check pub API size)

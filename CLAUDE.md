@@ -218,6 +218,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `streaming_context` | (none) | `EventWindow<T,SIZE>` ring-wrap, `ContextualEvidence` online/offline wrappers, type-alias identity for `OnlineEvidence`/`OfflineEvidence`, `TemporalOrderConfusion` |
 | `process_cube_shape` | (none) | `CubeDimension<NAME>` const-param axis, `CubeDimensionKind` (6 kinds), `CubeSlice`, `CubeCell`, `CubeProjectionWitness`, `ProcessCube`, `CellComparison` |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
+| `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer); unified-semantics witness |
