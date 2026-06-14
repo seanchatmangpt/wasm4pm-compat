@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/family_gated_wrong_family.rs:20:16
+   |
+20 |     only_paper(FamilyGated::<{ WitnessFamily::Standard }>::new());
+   |     ---------- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `Paper`, found `Standard`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `FamilyGated<Paper>`
+              found struct `FamilyGated<Standard>`
+note: function defined here
+  --> tests/ui/compile_fail/family_gated_wrong_family.rs:16:4
+   |
+16 | fn only_paper(_: FamilyGated<{ WitnessFamily::Paper }>) {}
+   |    ^^^^^^^^^^ ----------------------------------------
