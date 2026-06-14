@@ -222,6 +222,8 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
 | `workflow_typestate` | (none) | `BranchToken<T,S>` Pending→Running→Completed, `ParallelWorkflow::split`, `JoinPoint` join_success / join_canceled_b, zero-size verification |
 | `object_lifecycle_phases` | (none) | `ObjectLifecyclePhase` ×5 Display, `LifecycledObject::new`, 5 type aliases; transition methods blocked by nightly E0391 |
+| `interop_boundary_grammar` | (none) | `Pm4pyShape` (7 tags), `FilterShape`, `SummaryShape`, `ConformanceTriple`, `ArtifactGrounding`, `InteropRefusal` (5 named laws), `check_filter_shape`, `OcelToXesProjection` + `XesToOcedProjection`, `FilterShapeConst<IS_OC>`, `GraduationCandidate` |
+| `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (6 kinds), `TypedLoopNode/XorNode/AndNode/SeqNode/OrNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — four-module pipeline composition |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |

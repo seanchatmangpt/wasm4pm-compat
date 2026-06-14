@@ -355,3 +355,77 @@ All documented modules in `src/` now have a running example in `examples/`:
 - All prior modules (eventlog, ocel, evidence, admission, loss, formats, strict, wasm4pm, witness, petri, powl, conformance, declare, causality, ocpq, receipt) ✅
 
 Every example in `examples/` is referenced in README.md and CLAUDE.md. Every documented module has at least one running example. Bijective coverage achieved.
+
+---
+
+## 2026-06-14 — Iteration 9
+
+**Gap audit result:** The DOC_COVERAGE_LOG.md previously declared BIJECTIVE COVERAGE STATUS: COMPLETE, but a module-by-module audit of `src/*.rs` vs `examples/*.rs` revealed additional uncovered canon modules. Re-opened the loop.
+
+**New gaps found:**
+- `interop` — 17 pub items; partially exercised in `process_pipeline_composition` but no dedicated example
+- `process_tree` — 12 pub items; used in `powl_process_tree` for `TypedLoopNode` only; `ProcessTree::admit_shape()`, all refusals, all 5 typed operator nodes unexercised
+- `ids`, `temporal`, `diagnostic`, `law`, `nightly_foundry` — 2–25 pub items; no examples
+
+**Cluster:** `interop` + `process_tree` (2 triples this iteration — hard stop)
+
+### interop_boundary_grammar.rs
+
+- **Doc:** `src/interop.rs` — 17 pub items covering PM4Py adoption grammar
+- **Example:** `examples/interop_boundary_grammar.rs` — Pm4pyShape (7 tag+oc assertions), FilterShape×5, SummaryShape×5, ConformanceTriple (claimed_count + is_grounded), ArtifactGrounding (lawful + UngroundedArtifact + FlatClaimOverObjectCentric), InteropRefusal (5 named laws + Display contains law name), check_filter_shape (ok + DimensionShapeMismatch), OcelToXesProjection::project() ok, XesToOcedProjection RefuseLoss→err/AllowLoss→ok, OcelShape/XesShape/OcedShape zero-sized, FilterShapeConst<true> passes RequiresObjectCentric, GraduationCandidate sealed marker
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+=== All assertions passed — interop module surface is witnessed ===
+  Covered: Pm4pyShape (7 tags), FilterShape, SummaryShape,
+           ConformanceTriple (is_grounded + claimed_count),
+           ArtifactGrounding (lawful + 2 refusals),
+           InteropRefusal (5 named laws + Display),
+           check_filter_shape (ok + DimensionShapeMismatch),
+           OcelToXesProjection + XesToOcedProjection (Project impls),
+           OcelShape/XesShape/OcedShape (zero-sized markers),
+           FilterShapeConst<IS_OC> + assert_filter_oc_compatible,
+           GraduationCandidate sealed trait.
+EXIT:0
+```
+
+**Covered ✅:** `interop` — documented-but-unexercised gap CLOSED.
+
+---
+
+### process_tree_shape.rs
+
+- **Doc:** `src/process_tree.rs` — 12 pub items
+- **Example:** `examples/process_tree_shape.rs` — operator_minimum/maximum_arity (6 kinds, const fn), TypedLoopNode<ARITY=2>/TypedXorNode<3>/TypedAndNode/TypedSeqNode/TypedOrNode (arity law compile-time), ProcessTreeNodeId zero-cost + ordered, ProcessTree::admit_shape() (valid Sequence(a,b)), 5 named refusals (MissingRoot, DanglingNodeReference, TauLeafWithChildren, BelowMinimumArity, InvalidArity), all 9 Display strings asserted, ProcessTreeOperator×6
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+=== All assertions passed — process_tree module surface is witnessed ===
+  Covered: operator_minimum/maximum_arity (6 operator kinds),
+           TypedLoopNode/XorNode/AndNode/SeqNode/OrNode (arity law),
+           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (6),
+           ProcessTree::admit_shape() (ok + 5 named refusal laws),
+           ProcessTreeRefusal (9 laws with Display).
+EXIT:0
+```
+
+**Covered ✅:** `process_tree` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 2 triples reached in this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `ids` (5 pub items) — `ObjectTypeName<K>`, `EventTypeName<K>`, `id_of<T>`, `TypedId` trait, `NewFromRaw` trait
+- `temporal` (5 pub items) — check src/temporal.rs for actual API
+- `diagnostic` (2 pub items) — check src/diagnostic.rs for actual API
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — import path only partially covered by ocel_to_xes_projection
+
+### Queued (next iterations)
+
+Priority 1 — `ids` module: zero-cost typed identifier newtypes — foundation for all event/object referencing
+Priority 2 — `temporal` module: temporal ordering vocabulary
+Priority 3 — `diagnostic` module: minimal pub surface
+Priority 4 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 5 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal) — unexercised outside ocel_to_xes_projection

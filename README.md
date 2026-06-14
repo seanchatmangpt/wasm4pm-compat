@@ -309,6 +309,8 @@ cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
 | `workflow_typestate` | (none) | `BranchToken<T,S>` Pending→Running→Completed, `ParallelWorkflow::split`, `JoinPoint::join_success` / `join_canceled_b`, zero-size verification (all state markers = 0 bytes) |
 | `object_lifecycle_phases` | (none) | `ObjectLifecyclePhase` ×5 Display, `LifecycledObject::new`, all 5 type aliases; transition methods partially blocked by nightly E0391 cycle bug |
 | `streaming_context` | (none) | `ContextualEvidence::online/offline`, `EventWindow<T,SIZE>` ring-buffer eviction (`push` returns evicted), `StreamingSource<WINDOW_SIZE>`, `TemporalOrderConfusion` |
+| `interop_boundary_grammar` | (none) | `Pm4pyShape` (7 tags), `FilterShape`, `SummaryShape`, `ConformanceTriple`, `ArtifactGrounding`, `InteropRefusal` (5 named laws), `check_filter_shape`, `OcelToXesProjection` + `XesToOcedProjection`, `FilterShapeConst<IS_OC>`, `GraduationCandidate` |
+| `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (6 kinds), `TypedLoopNode/XorNode/AndNode/SeqNode/OrNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — the four-module pipeline composition; all handoffs explicit |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
