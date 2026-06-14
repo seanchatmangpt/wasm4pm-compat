@@ -302,6 +302,8 @@ cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
 | `sealing_admit_chain` | (none) | `SealingAdmit` seam: BLAKE3 fold → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; tamper witness |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath`, `HiddenProcessMiningGrowth` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |
+| `prediction_problem_shape` | (none) | `PredictionProblem<T>` builder, all 6 `PredictionTarget` variants, 3 `PredictionHorizon` variants, 6 named `PredictionRefusal` laws |
+| `dfg_shape` | (none) | `Dfg` + `validate()`, `DfgRefusal::EmptyGraph` / `DanglingEdge`, `DfgEdgeFull` with duration, `ObjectCentricDfg` per-type DFG map |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |
 | `c8_event_horizon_demo` | (none) | Event-horizon boundary detection in liquidity-collapse scenarios; boundary proof receipts |
