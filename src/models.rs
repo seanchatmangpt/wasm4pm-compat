@@ -7,10 +7,15 @@
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** a discovery or analysis engine. These are inert containers; nothing
-//!   here mines, replays, or scores a model.
+//! - **Not** a discovery, replay, or conformance engine. Nothing here mines a
+//!   model from a log, replays a trace, or scores a model *against a log*. The
+//!   structural metrics it does expose (`mdl_score`,
+//!   `structural_unsoundness_score`, `is_structural_workflow_net`,
+//!   `verifies_state_equation_calculus`) are computed **only over the net's own
+//!   shape** — counts and incidence — never against event data.
 //!
-//! Structure only. Graduate to `wasm4pm` to *do* anything with a model.
+//! Structure only. Graduate to `wasm4pm` to mine, replay, or judge a model
+//! against a log.
 
 use serde::{Deserialize, Serialize};
 
@@ -635,23 +640,38 @@ impl PetriNet {
         t + (a * vocabulary_size.log2())
     }
 
-    /// Returns a fixed, static selection-rationale string.
+    /// A self-derived **structural** summary of this net: node/arc counts, the
+    /// structural workflow-net verdict, and the structural unsoundness score.
     ///
-    /// Note: the returned text is a hardcoded narrative; it is not derived from
-    /// any analysis of `self` and does not reflect this net's structure.
+    /// Every clause is computed from `self`'s own shape. It makes **no** claim of
+    /// replay fitness, conformance, or manifest verification — this crate does
+    /// not compute those (graduate to `wasm4pm` to judge a model against a log).
     ///
     /// ```
-    /// use wasm4pm_compat::models::PetriNet;
-    /// let s = PetriNet::default().explain();
-    /// assert!(s.contains("This model was selected because"));
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("i"), Place::new("o")],
+    ///     [Transition::new("t", "do")],
+    ///     [Arc::place_to_transition("i", "t"), Arc::transition_to_place("t", "o")],
+    ///     Marking::new([("i".to_string(), 1)]),
+    /// );
+    /// let s = net.explain();
+    /// assert!(s.contains("2 places"));
+    /// assert!(s.contains("1 transitions"));
+    /// // The summary is derived from this net — a structurally different net differs.
+    /// assert_ne!(net.explain(), PetriNet::default().explain());
     /// ```
     pub fn explain(&self) -> String {
-        "This model was selected because:\n\
-         1. It achieved full replay fitness.\n\
-         2. It had the lowest MDL score among admissible candidates.\n\
-         3. It satisfied workflow-net soundness.\n\
-         4. It reproduced under manifest verification."
-            .to_string()
+        format!(
+            "Structural summary: {} places, {} transitions, {} arcs. \
+             Structural workflow-net: {}. Structural unsoundness score: {:.1}.",
+            self.places.len(),
+            self.transitions.len(),
+            self.arcs.len(),
+            self.is_structural_workflow_net(),
+            self.structural_unsoundness_score(),
+        )
     }
 
     /// Optimized to use direct ID hashing instead of expensive string formatting.
