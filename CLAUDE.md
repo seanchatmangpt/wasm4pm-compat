@@ -227,6 +227,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `ids_typed_identifiers` | (none) | `TypedId` sealed trait (`is_zero`, `raw_value`), `ObjectTypeName<K>` + `EventTypeName<K>` string-backed names, `id_of::<T>(raw)` phantom-typed constructor, `NewFromRaw`, `From`/`Into`/`FromStr` for all 8 id kinds |
 | `temporal_order_shapes` | (none) | `TemporalOrder` (4 variants, Display, Copy, Hash), `TemporalProfile<Trace>` zero-cost shape, `TemporalOrderWitness` + `SojournTimeWitness` markers, `TimeAwareEvidence<T,Order>` wrapper (new/into_inner, distinct types per Order context) |
 | `diagnostic_surface` | (none) | `CompatDiagnostic` (9 named law violations, Display → `[Error]`/`[Info]`, Copy, Hash), `DiagnosticSeverity` (Error/Warning/Info, Display) |
+| `nightly_foundry_surfaces` | (none) | `petri_law` (Marking, PreMatrix enabling, PostMatrix firing), `powl_law` (TypedNode<KIND> 5 variants, OrderEdge), `evidence_law` (EvidenceKind raw/"admitted" via specialization), `token_law` (SIMD enabled_4/8 + fire_4), `families_match_simd` |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — four-module pipeline composition |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |

@@ -610,3 +610,38 @@ EXIT: 0
 
 Priority 1 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
 Priority 2 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 13 — 2026-06-14
+
+**Triple 1: `nightly_foundry` module**
+
+### nightly_foundry_surfaces.rs
+
+- **Doc:** `src/nightly_foundry.rs` — 5 pub items: `petri_law`, `powl_law`, `evidence_law`, `token_law` mods + `families_match_simd` fn
+- **Example:** `examples/nightly_foundry_surfaces.rs`
+  - `petri_law`: Marking<3>::EMPTY total_tokens=0, Marking([1,2,0]).total_tokens()=3, at(1)=Some(2)/at(5)=None, PreMatrix<2,1> enabling (t0 enabled M=[1,0]; blocked M=[0,0]), PostMatrix<2,1> fire (M=[1,0] → M'=[0,1])
+  - `powl_law`: TypedNode::atom(1).is_observable()=true, TypedNode::silent(2).is_observable()=false, TypedNode::partial(0).are_concurrent() (1≺2=false, 1↔3=true, empty=true), Xor::min_branches()=2, Loop id=4
+  - `evidence_law`: u64.kind_label()="raw", Admitted<u64>.kind_label()="admitted", size_of::<Admitted<u64>>()==8 (repr transparent)
+  - `token_law`: transition_enabled_4([2,1,3,0]≥[1,1,2,0])=true, blocked=false, fire_4=[1,0,1,1], transition_enabled_8 all-1=true
+  - `families_match_simd`: all Paper → 0b11111111, mixed → 0b11101101
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+EXIT 0
+EXIT: 0
+```
+(full output preserved in session)
+
+**Covered ✅:** `nightly_foundry` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal) — last remaining gap
+
+### Queued (next iteration)
+
+Priority 1 — `xes` module: XES import path — last gap before bijective coverage is complete
