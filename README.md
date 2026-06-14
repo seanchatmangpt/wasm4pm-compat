@@ -14,6 +14,22 @@ The logical system version, target specification, and documented release standar
 
 ---
 
+## What's New in v26.6.13
+
+This release ships the full witness corpus and five nightly zero-cost innovations, then hardens the crate against nightly churn and closes the gap between *naming* a law and *enforcing* it. The ALIVE gate is green (217 compile-fail + 408 compile-pass receipts) and MIRI reports no undefined behavior across the dependency graph.
+
+*   **271-paper witness corpus.** Every paper in the research library now has a zero-sized witness marker, rendered via `ggen` into seven per-category modules.
+*   **Self-validating bibliography.** The new `witness_corpus` module renders `ALL_WITNESS_KEYS` (436 keys) with a compile-time `const` proof that no two witnesses share a `KEY` — closing a collision hole that SPARQL deduplication alone could not enforce in Rust source. A runtime companion test names any offending key.
+*   **Authority enforcement, not just labeling.** `LinkedOcel` is the first concrete `Admit` impl in `src/`. The crate no longer merely *names* `DanglingEventObjectLink` / `EmptyEventObjectLinks` — it ships a function that *detects* them and refuses through the typed `Raw → Admitted` one-way door.
+*   **Teaching diagnostics.** `#[diagnostic::on_unimplemented]` on the five family-authority traits: a wrong-family witness now reads ``` `PowlPaper` is not a Standard-family authority ``` with the list of witnesses that do qualify, instead of a bare bound error.
+*   **Nightly zero-cost innovations.** `WitnessFamily` derives `ConstParamTy`; `Witness` is a `const trait`; the `witness_law` module adds sealed family-authority gating, a compile-time co-citation string law, `gcd`/`NormedBetween01`, and a `portable_simd` family-batch check.
+*   **TypeScript bindings extracted to a sidecar.** The `ts`/`specta` surface moved to the `wasm4pm-compat-ts` companion crate, restoring the *exactly three public features* and *no runtime dependencies* invariants in the core crate.
+*   **Durability.** The toolchain is pinned to a dated nightly so a const-generics or const-trait syntax flip lands on one known toolchain. A documented in-code finding records why the `generic_const_exprs → min_generic_const_args` migration is **not viable** today: mGCA forbids generic parameters in computed const operations, so the computed-const law kernel (`Between01`, `Metric`, `ConditionCell`) has no stable-floor path, and the two features are mutually exclusive in one crate.
+
+> **In progress:** literal-100% item-level rustdoc. Module-level documentation is complete across all canon modules; remaining public-item docs (compiler-measured via `missing_docs`) are a tracked follow-up.
+
+---
+
 ## Toolchain & Runtime Constraints
 
 This crate provides no Minimum Supported Rust Version (MSRV) guarantees and contains no stable Rust fallback mechanisms. It is designed and implemented exclusively for the nightly compiler toolchain.
@@ -83,6 +99,8 @@ Witnesses are zero-sized empty enums implementing the `Witness` trait (e.g., `Oc
 
 Because witnesses are part of the type signature, `Evidence<T, Admitted, Ocel20>` and `Evidence<T, Admitted, Xes1849>` are incompatible types. This prevents the silent mixing of standards. The library tracks witness validation status monotonically using a Join-Semilattice representation (`WitnessState<W: Witness>` with states `Unknown`, `Satisfied`, `Violated`, and `Contradiction`).
 
+Every witness belongs to a `WitnessFamily` (`Standard`, `Paper`, `ApiGrammar`, `RustLaw`, `InternalBridge`). The `witness_law` module gates types by family at compile time: `StandardWitness<W>` only accepts a `Standard`-family witness, and a wrong-family witness fails with a teaching diagnostic naming the law. The full corpus (271 papers, 436 unique keys) is rendered from ontology and self-validated — the `witness_corpus` module carries a compile-time proof that no two witnesses share a key.
+
 ---
 
 ## Boundary Laws
@@ -139,7 +157,7 @@ There are no per-format features (e.g., no `ocel` or `xes` flags). The entire ca
 
 ## ggen Ecosystem Projection
 
-`ggen` (the Ostar generative pipeline/stewardship compiler) operates as a provision instrument that translates ontologies (e.g., `wasm4pm-compat.ttl` defining the 37 canonical witnesses) and manifests into Rust source definitions, witness registries (`src/witnesses.rs`), and negative verification fixtures. `wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
+`ggen` (the Ostar generative pipeline/stewardship compiler) operates as a provision instrument that translates ontologies (the witness TTLs defining the 271-paper corpus, 436 unique witness keys) and manifests into Rust source definitions, the per-category witness registries (`src/witnesses.rs`, `src/witnesses_*.rs`), the `witness_corpus` uniqueness proof, and negative verification fixtures. `wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
 
 wasm4pm-compat defines the Rust process-evidence court.
 ggen will later project into that court.
