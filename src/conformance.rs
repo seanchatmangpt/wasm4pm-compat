@@ -1,4 +1,6 @@
-//! Conformance verdict shapes — the *structure* of a fitness/precision result.
+//! Conformance verdict shapes — the *structure* of a conformance verdict (a
+//! metric an engine produced), NOT a computed fitness/precision result. This
+//! module holds verdicts; it computes none (see "What this module is NOT" below).
 //!
 //! ## What this module IS
 //!
@@ -102,7 +104,8 @@ impl TokenReplayResult {
 /// previously documented as such). The original code below called
 /// `precision.clamp(0.0, 1.0)` where `precision` came from caller-supplied f64
 /// — passing `f64::NAN` would crash production. We coerce NaN to `lo` because
-/// "no information" is the safest conservative fitness/precision value.
+/// "no information" is the safest conservative metric value (a held verdict, not
+/// a computed fitness/precision result — this module derives no metric).
 fn clamp_finite(x: f64, lo: f64, hi: f64) -> f64 {
     if x.is_nan() || x < lo {
         lo
