@@ -13,6 +13,7 @@
 # Source: wasm4pm-compat.ttl  (SourceModule: {{ moduleName }})
 # Regenerate with: ggen sync --template audit-script.tera
 
+{%- set rustType = rustType | default(value=moduleName) -%}
 set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
@@ -58,7 +59,11 @@ fi
 # -------------------------------------------------------------------------
 # CHECK 4: At least one compile-fail fixture per declared law
 # -------------------------------------------------------------------------
-{% for law in laws %}
+{% set law_list = laws | default(value="") | trim %}
+{% if law_list == "" %}
+echo "INFO  no laws declared for {{ moduleName }} — skipping per-law fixture check"
+{% else %}
+{% for law in law_list | split(pat=",") %}
 FAIL_FIXTURES_{{ loop.index }}=$(find "${REPO_ROOT}/tests/ui/compile_fail" -name "*.rs" \
     -exec grep -l "{{ law }}" {} \; 2>/dev/null | wc -l | tr -d ' ')
 if [[ "${FAIL_FIXTURES_{{ loop.index }}}" -ge 1 ]]; then
@@ -67,8 +72,6 @@ else
     fail "fail-fixture-{{ law }}: no compile-fail fixture found for law {{ law }}"
 fi
 {% endfor %}
-{% if laws | length == 0 %}
-echo "INFO  no laws declared for {{ moduleName }} — skipping per-law fixture check"
 {% endif %}
 
 # -------------------------------------------------------------------------

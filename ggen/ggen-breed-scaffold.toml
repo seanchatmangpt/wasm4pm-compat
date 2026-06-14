@@ -1,0 +1,46 @@
+[project]
+name = "wasm4pm-compat-breed-scaffold"
+version = "26.6.9"
+description = "Scaffold-only ggen manifest — generates stub .rs and fixture .json for NEW breeds only. Never invoke via `ggen sync`; use `just scaffold-breed <name>` which passes --filter."
+
+[ontology]
+source = "ontology/wasm4pm-compat.ttl"
+imports = [
+  "ontology/papers.ttl",
+  "ontology/ggen-substrate.ttl",
+  "ontology/audit-machinery.ttl",
+  "ontology/zod-types.ttl",
+  "ontology-breeds/breed-vocabulary.ttl",
+  "ontology-breeds/paper-pointers.ttl"
+]
+standard_only = false
+
+[generation]
+output_dir = "/Users/sac/wasm4pm-compat"
+
+# ---------------------------------------------------------------------------
+# Rule: breed-stubs
+# Generates one <breed>.rs stub per breed that has NO existing implementation.
+# MUST be invoked with --filter <breed_id> to avoid clobbering hand-authored files.
+# Output dir: crates/wasm4pm-cognition/src/breeds/ — ggen writes <breed_id>.rs.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "breed-stubs"
+query = { file = "queries-breeds/extract-breeds.rq" }
+template = { file = "templates-breeds/breed-stub.rs.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/src/breeds/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: breed-fixtures
+# Generates one <breed>.json fixture per breed that has NO existing fixture.
+# MUST be invoked with --filter <breed_id>.
+# Output dir: crates/wasm4pm-cognition/tests/fixtures/papers/.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "breed-fixtures"
+query = { file = "queries-breeds/extract-paper-pointers.rq" }
+template = { file = "templates-breeds/breed-fixture.json.tera" }
+output_file = "../wasm4pm/crates/wasm4pm-cognition/tests/fixtures/papers/"
+mode = "Overwrite"
+

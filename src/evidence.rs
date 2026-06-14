@@ -111,6 +111,16 @@ pub struct Evidence<T, State: EvidenceState, W> {
     pub state: PhantomData<State>,
     /// Type-level witness/authority (zero-sized).
     pub witness: PhantomData<W>,
+    /// Non-forgeable carrier seal. This private zero-sized field is the
+    /// load-bearing one-way-door mechanism (same idiom as
+    /// [`crate::petri::SeparableWfNet`] `_seal`): it makes the struct-literal
+    /// `Evidence { value, state: PhantomData, witness: PhantomData }` a compile
+    /// error (`E0451`, "field `_seal` is private") from any *external* crate, so
+    /// `Admitted`/`Receipted`/etc. evidence can only be produced by the
+    /// crate-internal constructors below — never forged. Keep it private; do
+    /// NOT replace with `#[non_exhaustive]`, which still permits in-crate and
+    /// does not reproduce the E0451 receipt.
+    _seal: (),
 }
 
 impl<T, W> Evidence<T, Raw, W> {
@@ -134,6 +144,7 @@ impl<T, W> Evidence<T, Raw, W> {
             value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 
@@ -182,6 +193,7 @@ impl<T, W> Evidence<T, Raw, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 
@@ -206,6 +218,7 @@ impl<T, W> Evidence<T, Raw, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 }
@@ -244,6 +257,7 @@ impl<T, W> Evidence<T, crate::state::Parsed, W> {
             value: self.value,
             state: core::marker::PhantomData,
             witness: core::marker::PhantomData,
+            _seal: (),
         }
     }
 }
@@ -261,6 +275,7 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
             value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 
@@ -331,6 +346,7 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
             value: self.value,
             state: core::marker::PhantomData,
             witness: core::marker::PhantomData,
+            _seal: (),
         }
     }
 
@@ -358,6 +374,7 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
             value: self.value,
             state: core::marker::PhantomData,
             witness: core::marker::PhantomData,
+            _seal: (),
         }
     }
 
@@ -383,6 +400,7 @@ impl<T, W> Evidence<T, crate::state::Admitted, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 }
@@ -412,6 +430,7 @@ impl<T, W> Evidence<T, Projected, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 
@@ -439,6 +458,7 @@ impl<T, W> Evidence<T, Projected, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 }
@@ -461,6 +481,7 @@ impl<T, W> Evidence<T, crate::state::Refused, W> {
             value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 
@@ -563,6 +584,7 @@ impl<T, W> Evidence<T, Exportable, W> {
             value: self.value,
             state: PhantomData,
             witness: PhantomData,
+            _seal: (),
         }
     }
 }

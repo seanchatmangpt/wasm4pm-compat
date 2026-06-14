@@ -51,8 +51,22 @@ output_file = "src/witness_corpus.rs"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
-# Rule: compile-fail-fixtures (DISABLED — template references ?witnessA/?witnessB/?rustType
-# that are not bound by the SPARQL query; fixtures in tests/ui/compile_fail/ are hand-authored)
+# Rule: compile-fail-fixtures — PERMANENTLY DISABLED (intentional, reasoned; not an unfixed break)
+#
+# Decision: keep_disabled. Do NOT re-enable or reconcile.
+#
+# 1. Target dir tests/ui/compile_fail/ holds hand-authored, ALIVE-gate-critical trybuild
+#    fixtures (recently rewritten todo!() -> fn-parameter idiom). mode=Overwrite would clobber
+#    that work and destroy the matching .stderr expectation files.
+# 2. Broken provision chain (GGEN-TPL-001): the template consumes witnessA, witnessB,
+#    processFormType, rustType — none produced by the paired SELECT
+#    (?law ?lawName ?errorCode ?description). Even after adding those four vars, the template's
+#    generic Evidence::raw / cross-witness-admission scaffold is a generated approximation that
+#    cannot reproduce each fixture's individually-tuned named-law violation, .stderr file, and
+#    fn-parameter idiom — it would produce fixtures that pass-for-the-wrong-reason and invalidate
+#    the type-law receipts.
+# 3. Trybuild compile-fail fixtures are type-law receipts: authored and reviewed by hand, NOT a
+#    regenerable artifact. Leave disabled permanently.
 # ---------------------------------------------------------------------------
 # [[generation.rules]]
 # name = "compile-fail-fixtures"
@@ -62,23 +76,203 @@ mode = "Overwrite"
 # mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
-# Rule: compile-pass-fixtures
+# Rule: compile-pass-fixtures — PERMANENTLY DISABLED (intentional, reasoned; not an unfixed break)
 # Extracts CompilePassSurface instances and renders trybuild compile-pass
 # fixtures into tests/ui/compile_pass/.
-# ---------------------------------------------------------------------------
-# compile-pass-fixtures, audit-scripts, audit-feature-isolation, audit-no-dto-flattening,
-# audit-no-tools-in-compat, audit-projection-receipts, zod-schemas, open-ontologies-integration:
-# DISABLED — all fail with "Failed to render template" after ontology changed 3 days ago.
-# The SPARQL queries return different bindings than templates expect (pre-existing break).
-# Re-enable after reconciling queries/templates with current ontology.
 #
-# [[generation.rules]]
-# name = "compile-pass-fixtures"
-# ...
-# [[generation.rules]]
-# name = "audit-scripts"
-# ...
-# (and so on for all 7 rules above)
+# Decision: keep_disabled. Do NOT re-enable or reconcile.
+# This rule has NO paired SPARQL query at all — the commented-out block elided
+# the query field as "..." and no extract-compile-pass-*.rq exists in queries/
+# (only extract-compile-fail-laws.rq and construct-pass-through.rq). The template
+# templates/compile-pass-fixture.tera consumes four variables — lawName,
+# processFormType, witnessType, description — and ALL FOUR are unproduced. There
+# is no query to bind them, and the ontology cannot supply them: CompilePassSurface
+# instances in ontology/domain-type-constraints.ttl carry only rdfs:label,
+# compat:fixtureFile, skos:definition, domain:proofGateType, and rdfs:comment —
+# they do NOT carry lawName, processFormType, or witnessType. The load-bearing
+# structural vars (process form type + witness type that the fixture body
+# instantiates) are absent from the data model entirely.
+#
+# Beyond the variable gap, the rule outputs to tests/ui/compile_pass/ with
+# mode=Overwrite. That directory holds 410 hand-authored type-law receipts (the
+# ALIVE gate), each exercising a DISTINCT type-law path with bespoke imports,
+# feature gates, and constructors (e.g. separable_wfnet_marker.rs uses
+# SeparableWfNet/WfNetConst const-generic soundness states, not the template's
+# rigid single-shape `T::admit(Evidence::raw(T::default()))` skeleton). The
+# template's one generic admit-skeleton can reproduce NONE of them; enabling it
+# would clobber 410 valid receipts with broken, non-compiling stubs. These
+# fixtures are intentionally hand-authored law receipts, not regenerable artifacts.
+# Re-enabling would require authoring a new SPARQL SELECT, materializing
+# processFormType/witnessType triples for every surface, AND proving the generic
+# skeleton reproduces each bespoke fixture byte-for-byte — not achievable because
+# the fixtures are deliberately heterogeneous. Leave disabled permanently.
+# ---------------------------------------------------------------------------
+# Rule: audit-scripts — RECONCILED + ENABLED (2026-06-13, gap-closure decision)
+# Renders one bash audit script per SourceModule into audits/ (regenerable,
+# no clobber hazard — distinct from hand-authored tests/ui/ fixtures).
+#
+# Reconciliation (closed the GGEN-TPL-001 provision gap in 3 coordinated edits):
+#   1. queries/extract-source-modules.rq — SELECT now produces ?moduleName
+#      (was ?module IRI), made compat:rustType OPTIONAL (no module carries it),
+#      and added an OPTIONAL satisfiesLaw -> GROUP_CONCAT(?laws) aggregation.
+#   2. templates/audit-script.tera — splits the comma-joined ?laws string;
+#      defaults rustType to moduleName; empty-laws case hits the INFO branch.
+#   3. ontology/wasm4pm-compat.ttl — added compat:moduleName to all 38
+#      SourceModule instances (+ compat:moduleName / compat:satisfiesLaw property
+#      decls); graduation module flagged compat:graduatesToWasm4pm true.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-scripts"
+query = { file = "queries/extract-source-modules.rq" }
+template = { file = "templates/audit-script.tera" }
+output_file = "audits/"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: zod-schemas — KEEP DISABLED (2026-06-13, gap-closure decision)
+# Capability MOVED to the sidecar. NOT a provision-chain break.
+#
+# No missing variables: the SELECT in queries/extract-zod-schemas.rq
+# (typeName, fieldName, fieldType, isOptional, isArray, isEnum, isUnion) is a
+# strict SUPERSET of what templates/zod-schemas.ts.tera consumes (row.typeName,
+# row.fieldName, row.fieldType, row.isArray, row.isOptional). last_type is
+# template-local; loop.first is a Tera built-in. So GGEN-TPL-001 does NOT apply
+# and the original "Failed to render" rationale was never about this pair.
+#
+# The real reason to keep it off is LAYER + AUTHORITY:
+#   - The stated output target (bindings/zod_schemas.ts under the compat crate
+#     root) no longer exists — there is no /Users/sac/wasm4pm-compat/bindings/.
+#   - TS/Zod bindings were relocated to the wasm4pm-compat-ts sidecar, which now
+#     owns wasm4pm-compat-ts/bindings/zod_schemas.ts (+ zod_integration/).
+#   - Re-enabling here would render a DO-NOT-EDIT TS artifact into a wrong/absent
+#     layer root (GGEN-YIELD-001 LAYER_VIOLATION) and create COMPETING_AUTHORITY
+#     (GGEN-YIELD-004) against the sidecar that already authors that file.
+# If zod generation is wanted, port this query+template into the
+# wasm4pm-compat-ts sidecar's ggen manifest — not the compat crate.
+#
+# open-ontologies-integration:
+# DISABLED — query/template are RECONCILED (2026-06-13, gap-closure decision),
+# but the rule remains intentionally disabled for STRUCTURAL reasons, not an
+# unfixed provision-chain break.
+#   Variable gap is EMPTY: the SELECT in integrate-open-ontologies.rq binds
+#   ?standard, ?class, ?compat_class, ?mapping_reason — satisfying every
+#   mapping.* field the template consumes. The only other template variable is
+#   loop.index, a Tera built-in supplied automatically (the "?index" in the old
+#   hazard note is this built-in, not a query binding). BIND/IF parens balanced.
+#   Blocker is structural and NOT a SELECT/template edit:
+#     (1) No committed output_file in ggen.toml for this rule.
+#     (2) The template emits a Rust module carrying a "DO NOT EDIT manually /
+#         auto-generated by ggen" banner destined for src/ (output_dir root) —
+#         a second-class / DO_NOT_EDIT_CASTE source (GGEN-SRC-002 /
+#         GGEN-YIELD-002 SECOND_CLASS), not a regenerable audits/ artifact.
+#         Re-enabling would write a DO-NOT-EDIT-bannered .rs into first-class
+#         src/, violating "RenderedSource is source / no second-class caste".
+#     (3) The query depends on open:*Entity instances and rdfs:labels not
+#         present in any wired ontology import (no open-ontologies TTL in
+#         [ontology].imports), so the SELECT yields zero rows and renders an
+#         empty mapping section regardless.
+#   Re-enable ONLY after: (a) supplying an open-ontologies source ontology in
+#   [ontology].imports, and (b) either retargeting output to a regenerable
+#   audits/ path OR stripping the DO-NOT-EDIT banner and committing a
+#   first-class src/ output_file.
+# (audit-no-tools-in-compat removed from this group — RECONCILED + ENABLED below.)
+# (audit-projection-receipts removed from this group — RECONCILED + ENABLED below.)
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Rule: audit-projection-receipts — RECONCILED + ENABLED (2026-06-13, gap-closure decision)
+# Renders the projection-receipts audit script into the regenerable audits/ dir
+# (no clobber hazard — distinct from hand-authored tests/ui/ fixtures).
+#
+# Reconciliation: NO provision-chain gap exists. The blanket "Failed to render
+# template / queries return different bindings than templates expect" rationale
+# did NOT apply to this rule. templates/audit-projection-receipts.sh.tera is a
+# fully STATIC bash script: grep for `{{` and `{%` returns ZERO matches (exit 1),
+# so it consumes NO Tera variables and has no provision chain to break. It renders
+# deterministically against any query binding set, including the empty case.
+# missing_vars is empty regardless of the paired query, so GGEN-TPL-001 is
+# trivially satisfied. select-audit-specs.rq is the conventional audit-family
+# pairing and supplies far more bindings than the template needs. No SELECT column
+# added, no template variable dropped. Output is the regenerable audits/ location
+# with mode=Overwrite.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-projection-receipts"
+query = { file = "queries/select-audit-specs.rq" }
+template = { file = "templates/audit-projection-receipts.sh.tera" }
+output_file = "audits/audit-projection-receipts.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-no-tools-in-compat — RECONCILED + ENABLED (2026-06-13, gap-closure decision)
+# Renders the no-engine-tools-in-compat audit script into the regenerable audits/
+# dir (no clobber hazard — distinct from hand-authored tests/ui/ fixtures).
+#
+# Reconciliation: NO provision-chain gap exists. The blanket "Failed to render
+# template" rationale was a group statement that did NOT apply to this rule.
+# templates/audit-no-tools-in-compat.sh.tera consumes ZERO Tera variables:
+# grep for `{{`, `{%`, and `{#` all return ZERO matches. Every value the script
+# uses (REPO_ROOT, COMPAT_SRC, COMPAT_GENERATED, ENGINE_NAMES,
+# GRADUATION_BRIDGE_REQUIRED) is a bash runtime `${VAR:=default}` env-var default
+# resolved at script execution time — NOT a provision-time binding. missing_vars
+# is empty regardless of the paired query, so GGEN-TPL-001 is trivially satisfied.
+# select-audit-specs.rq is the correct audit-family query and binds successfully
+# against audit-machinery.ttl. No SELECT column added, no template variable
+# dropped. Output is the regenerable audits/ location with mode=Overwrite; the
+# static DO-NOT-EDIT banner is exempt under audits/ (regenerable, non-source).
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-no-tools-in-compat"
+query = { file = "queries/select-audit-specs.rq" }
+template = { file = "templates/audit-no-tools-in-compat.sh.tera" }
+output_file = "audits/audit-no-tools-in-compat.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-no-dto-flattening — RECONCILED + ENABLED (2026-06-13, gap-closure decision)
+# Renders the no-DTO-flattening audit script into the regenerable audits/ dir
+# (no clobber hazard — distinct from hand-authored tests/ui/ fixtures).
+#
+# Reconciliation: NO provision-chain gap exists. The blanket "queries return
+# different bindings than templates expect" rationale did NOT apply to this rule.
+# templates/audit-no-dto-flattening.sh.tera is a fully STATIC bash script:
+# grep for `{{`, `{%`, and `{#` all return ZERO matches, so it consumes NO query
+# variables. Every `{` is a bash `${VAR}` parameter expansion; the forbidden-pattern
+# and allowed-context lists are hardcoded bash defaults inside the script, not
+# injected from SPARQL. missing_vars is empty regardless of what
+# queries/extract-blocking-audits.rq SELECTs, so GGEN-TPL-001 is trivially
+# satisfied. No SELECT column added, no template variable dropped. Output is the
+# regenerable audits/ location with mode=Overwrite.
+# After enabling, run `chmod +x audits/audit-no-dto-flattening.sh`.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-no-dto-flattening"
+query = { file = "queries/extract-blocking-audits.rq" }
+template = { file = "templates/audit-no-dto-flattening.sh.tera" }
+output_file = "audits/audit-no-dto-flattening.sh"
+mode = "Overwrite"
+
+# ---------------------------------------------------------------------------
+# Rule: audit-feature-isolation — RECONCILED + ENABLED (2026-06-13, gap-closure decision)
+# Renders the feature-isolation audit script into the regenerable audits/ dir
+# (no clobber hazard — distinct from hand-authored tests/ui/ fixtures).
+#
+# Reconciliation: NO provision-chain gap exists. The blanket "queries return
+# different bindings than templates expect" rationale did NOT apply to this rule.
+# templates/audit-feature-isolation.sh.tera is a fully STATIC Tera template:
+# grep for `{{` and `{%` returns ZERO matches, so it consumes NO query variables.
+# missing_vars is empty regardless of the paired query. The paired SELECT
+# select-audit-specs.rq already produces a superset of bindings (all ignored by
+# the template body); it need only return >=1 AuditSpec row for the renderer to
+# fire. No SELECT column added, no template variable dropped. Output is the
+# regenerable audits/ location with mode=Overwrite.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "audit-feature-isolation"
+query = { file = "queries/select-audit-specs.rq" }
+template = { file = "templates/audit-feature-isolation.sh.tera" }
+output_file = "audits/audit-feature-isolation.sh"
+mode = "Overwrite"
 
 # [[generation.rules]]
 # name = "open-ontologies-merged-ontology"
