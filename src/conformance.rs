@@ -18,11 +18,26 @@ use serde::{Deserialize, Serialize};
 
 use std::simd::u32x16;
 
+/// A 16-lane SIMD marking vector — the *shape* of a Petri-net token marking
+/// for branchless state transitions. Structure only: it holds token counts and
+/// applies a caller-supplied input/output mask; it discovers no firing sequence.
 pub struct SimdMarking {
+    /// Token counts, one per place lane.
     pub vector: u32x16,
 }
 
 impl SimdMarking {
+    /// Apply one transition firing: remove `input_mask` tokens, add `output_mask`.
+    ///
+    /// ```
+    /// #![feature(portable_simd)]
+    /// use std::simd::u32x16;
+    /// use wasm4pm_compat::conformance::SimdMarking;
+    /// let mut m = SimdMarking { vector: u32x16::splat(1) };
+    /// m.fire_transitions(u32x16::splat(1), u32x16::splat(2));
+    /// // each lane: (1 - 1) + 2 == 2
+    /// assert_eq!(m.vector, u32x16::splat(2));
+    /// ```
     pub fn fire_transitions(&mut self, input_mask: u32x16, output_mask: u32x16) {
         self.vector = (self.vector - input_mask) + output_mask;
     }
@@ -55,6 +70,18 @@ impl TokenReplayResult {
         }
     }
 
+    /// The structural fitness ratio `(consumed - missing) / (produced + remaining)`,
+    /// NaN-safe and clamped to `[0, 1]`. This is the closed-form token-replay
+    /// fitness formula over counts an engine already produced — it derives no
+    /// alignment and replays no log itself.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::TokenReplayResult;
+    /// // Perfect replay: every produced token consumed, none missing/remaining.
+    /// assert_eq!(TokenReplayResult::calculate_fitness(4, 4, 0, 0), 1.0);
+    /// // All consumed tokens were missing → zero fitness.
+    /// assert_eq!(TokenReplayResult::calculate_fitness(4, 4, 4, 0), 0.0);
+    /// ```
     pub fn calculate_fitness(
         produced: usize,
         consumed: usize,
@@ -116,22 +143,59 @@ impl ConformanceResult {
         }
     }
 
+    /// Attach a precision verdict, NaN-coerced to `0.0` and clamped to `[0, 1]`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::ConformanceResult;
+    /// let r = ConformanceResult::new(1.0, 10, 9, 1).with_precision(0.8);
+    /// assert_eq!(r.precision, Some(0.8));
+    /// // NaN → 0.0 (no information), never panics.
+    /// let r2 = ConformanceResult::new(1.0, 1, 1, 0).with_precision(f64::NAN);
+    /// assert_eq!(r2.precision, Some(0.0));
+    /// ```
     pub fn with_precision(mut self, precision: f64) -> Self {
         // PR #54: f64::clamp panics on NaN; route through clamp_finite.
         self.precision = Some(clamp_finite(precision, 0.0, 1.0));
         self
     }
 
+    /// Attach a generalization verdict, NaN-coerced and clamped to `[0, 1]`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::ConformanceResult;
+    /// let r = ConformanceResult::new(1.0, 10, 9, 1).with_generalization(0.75);
+    /// assert_eq!(r.generalization, Some(0.75));
+    /// // Out-of-range clamps to the upper bound.
+    /// let r2 = ConformanceResult::new(1.0, 1, 1, 0).with_generalization(2.0);
+    /// assert_eq!(r2.generalization, Some(1.0));
+    /// ```
     pub fn with_generalization(mut self, generalization: f64) -> Self {
         self.generalization = Some(clamp_finite(generalization, 0.0, 1.0));
         self
     }
 
+    /// Attach a simplicity verdict, NaN-coerced and clamped to `[0, 1]`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::ConformanceResult;
+    /// let r = ConformanceResult::new(1.0, 10, 9, 1).with_simplicity(0.6);
+    /// assert_eq!(r.simplicity, Some(0.6));
+    /// ```
     pub fn with_simplicity(mut self, simplicity: f64) -> Self {
         self.simplicity = Some(clamp_finite(simplicity, 0.0, 1.0));
         self
     }
 
+    /// The fraction of traces that fit: `fitting_traces / total_traces`, or
+    /// `0.0` when there are no traces (no division by zero).
+    ///
+    /// ```
+    /// use wasm4pm_compat::conformance::ConformanceResult;
+    /// let r = ConformanceResult::new(1.0, 10, 8, 2);
+    /// assert_eq!(r.conformance_rate(), 0.8);
+    /// // Empty log → 0.0, not NaN.
+    /// assert_eq!(ConformanceResult::new(0.0, 0, 0, 0).conformance_rate(), 0.0);
+    /// ```
     pub fn conformance_rate(&self) -> f64 {
         if self.total_traces == 0 {
             0.0
