@@ -311,6 +311,7 @@ cargo run --example <name> --features wasm4pm   # wasm4pm-feature examples
 | `streaming_context` | (none) | `ContextualEvidence::online/offline`, `EventWindow<T,SIZE>` ring-buffer eviction (`push` returns evicted), `StreamingSource<WINDOW_SIZE>`, `TemporalOrderConfusion` |
 | `interop_boundary_grammar` | (none) | `Pm4pyShape` (7 tags), `FilterShape`, `SummaryShape`, `ConformanceTriple`, `ArtifactGrounding`, `InteropRefusal` (5 named laws), `check_filter_shape`, `OcelToXesProjection` + `XesToOcedProjection`, `FilterShapeConst<IS_OC>`, `GraduationCandidate` |
 | `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (6 kinds), `TypedLoopNode/XorNode/AndNode/SeqNode/OrNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
+| `ids_typed_identifiers` | (none) | `TypedId` sealed trait (`is_zero`, `raw_value`, generic dispatch), `ObjectTypeName<K>` + `EventTypeName<K>` string-backed names (from_static/from_owned/Display/Ord), `id_of::<T>(raw)` phantom-typed constructor, `NewFromRaw` sealed companion, `From`/`Into`/`FromStr` round-trips for all 8 integer-backed id kinds |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — the four-module pipeline composition; all handoffs explicit |
 | `c8_adversary_gap_demo` | (none) | Two-strategy divergence proof (LogicPlayer vs GraphPlayer on same stream) |
 | `c8_collider_demo` | (none) | Collider topology mutation: hidden-body manifestation + collision proof emission |

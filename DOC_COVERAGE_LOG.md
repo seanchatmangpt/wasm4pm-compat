@@ -429,3 +429,79 @@ Priority 2 — `temporal` module: temporal ordering vocabulary
 Priority 3 — `diagnostic` module: minimal pub surface
 Priority 4 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
 Priority 5 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal) — unexercised outside ocel_to_xes_projection
+
+---
+
+## Iteration 10 — 2026-06-14
+
+**Triple 1: `ids` module**
+
+### ids_typed_identifiers.rs
+
+- **Doc:** `src/ids.rs` — 5 pub items: `TypedId`, `ObjectTypeName<K>`, `EventTypeName<K>`, `id_of<T>`, `NewFromRaw`
+- **Example:** `examples/ids_typed_identifiers.rs` — TypedId generic dispatch (is_zero, raw_value), id_of for all 8 id kinds (EventId, ObjectId, TraceId, ActivityId, RelationId, CaseId, ObjectTypeId, EventTypeId), Display shapes verified ("EventId(42)" etc.), From<u64>/Into<u64>/FromStr round-trips, ObjectTypeName from_static/from_owned/From<&str>/FromStr/Ord, EventTypeName from_static/from_owned/From<&str>/FromStr, cross-name structural distinction (ObjectTypeName and EventTypeName with same label are distinct types)
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== ids: TypedId sealed trait ==
+  EventId(7) raw_value  : 7
+  EventId(0) is_zero    : true
+
+== id_of: phantom-typed marker constructor ==
+  id_of EventId(42)     : EventId(42)
+  id_of ObjectId(42)    : ObjectId(42)
+  id_of TraceId(3)      : TraceId(3)
+  id_of ActivityId(10)  : ActivityId(10)
+  id_of RelationId(1)   : RelationId(1)
+  id_of CaseId(99)      : CaseId(99)
+  id_of ObjectTypeId(5) : ObjectTypeId(5)
+
+== Display shapes ==
+  EventId(42)  Display  : EventId(42)
+  ObjectId(42) Display  : ObjectId(42)
+  TraceId(3)   Display  : TraceId(3)
+
+== From / Into / FromStr round-trips ==
+  From<u64>: EventId(55) -> u64: 55
+  FromStr: "123" -> EventId: 123
+
+== Cross-kind: EventId<MyLog> != EventId<OtherLog> (structurally) ==
+  EventId<MyLog>(1).raw() == EventId<OtherLog>(1).raw() (same raw, different types)
+
+== ObjectTypeName: string-backed name ==
+  from_static: ObjectTypeName("order")
+  from_owned : ObjectTypeName("item")
+  From<&str> : ObjectTypeName("payment")
+  FromStr    : ObjectTypeName("shipment")
+  "item" < "order": true
+
+== EventTypeName: string-backed name ==
+  from_static: EventTypeName("place_order")
+  from_owned : EventTypeName("ship_item")
+  From<&str> : EventTypeName("confirm_payment")
+  FromStr    : EventTypeName("close_case")
+
+== Cross-name: ObjectTypeName and EventTypeName with same label are distinct types
+  both .as_str() == "order" but types are incomparable
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `ids` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `temporal` (5 pub items) — check src/temporal.rs for actual API
+- `diagnostic` (2 pub items) — check src/diagnostic.rs for actual API
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — import path only partially covered by ocel_to_xes_projection
+
+### Queued (next iterations)
+
+Priority 1 — `temporal` module: temporal ordering vocabulary
+Priority 2 — `diagnostic` module: minimal pub surface
+Priority 3 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 4 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
