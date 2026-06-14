@@ -561,3 +561,52 @@ EXIT: 0
 Priority 1 — `diagnostic` module: minimal pub surface
 Priority 2 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
 Priority 3 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 12 — 2026-06-14
+
+**Triple 1: `diagnostic` module**
+
+### diagnostic_surface.rs
+
+- **Doc:** `src/diagnostic.rs` — 2 pub items: `CompatDiagnostic` (9 variants), `DiagnosticSeverity` (3 levels)
+- **Example:** `examples/diagnostic_surface.rs` — DiagnosticSeverity (Error/Warning/Info Display, Copy, Hash), CompatDiagnostic all 9 variants with Display format verified ("[Error]"/"[Info]" prefix), MigrationRecommended is Info / all 8 others are Error assertion, all 9 variants hash distinctly, Clone round-trip
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== DiagnosticSeverity: three levels ==
+  Error -> "Error"
+  Warning -> "Warning"
+  Info -> "Info"
+  All 3 severity levels hash distinctly
+
+== CompatDiagnostic: 9 named law violations ==
+  MissingWitness
+    -> [Error] missing witness: admitted/projected surface must name its authority
+  MissingRoundTripFixture
+    -> [Error] missing round-trip fixture: round-trip claim requires an import→export→compare fixture
+  ...
+  MigrationRecommended
+    -> [Info] migration recommended: surface has outgrown compat — graduate to wasm4pm
+
+  MigrationRecommended is [Info]; all 8 others are [Error] ✓
+  All 9 variants hash distinctly: 9
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `diagnostic` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+### Queued (next iterations)
+
+Priority 1 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 2 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
