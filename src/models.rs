@@ -39,6 +39,14 @@ pub struct DFGNode {
 }
 
 impl DFGNode {
+    /// Constructs a DFG node binding an activity label to an occurrence count.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::DFGNode;
+    /// let n = DFGNode::new("approve".to_string(), 7);
+    /// assert_eq!(n.activity, "approve");
+    /// assert_eq!(n.frequency, 7);
+    /// ```
     pub fn new(activity: String, frequency: usize) -> Self {
         DFGNode {
             activity,
@@ -56,6 +64,15 @@ pub struct DFGEdge {
 }
 
 impl DFGEdge {
+    /// Constructs a directly-follows edge from `source` to `target` with a count.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::DFGEdge;
+    /// let e = DFGEdge::new("a".to_string(), "b".to_string(), 3);
+    /// assert_eq!(e.source, "a");
+    /// assert_eq!(e.target, "b");
+    /// assert_eq!(e.frequency, 3);
+    /// ```
     pub fn new(source: String, target: String, frequency: usize) -> Self {
         DFGEdge {
             source,
@@ -75,6 +92,14 @@ pub struct DFG {
 }
 
 impl DFG {
+    /// Constructs an empty directly-follows graph (no nodes, edges, or markers).
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::DFG;
+    /// let dfg = DFG::new();
+    /// assert_eq!(dfg.len(), 0);
+    /// assert!(dfg.is_empty());
+    /// ```
     pub fn new() -> Self {
         DFG {
             nodes: Vec::new(),
@@ -84,10 +109,27 @@ impl DFG {
         }
     }
 
+    /// Returns the node count of the graph.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{DFG, DFGNode};
+    /// let mut dfg = DFG::new();
+    /// dfg.nodes.push(DFGNode::new("a".to_string(), 1));
+    /// assert_eq!(dfg.len(), 1);
+    /// ```
     pub fn len(&self) -> usize {
         self.nodes.len()
     }
 
+    /// Returns `true` when the graph has no nodes.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{DFG, DFGNode};
+    /// let mut dfg = DFG::new();
+    /// assert!(dfg.is_empty());
+    /// dfg.nodes.push(DFGNode::new("a".to_string(), 1));
+    /// assert!(!dfg.is_empty());
+    /// ```
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
@@ -161,6 +203,22 @@ pub struct FlatIncidenceMatrix {
 }
 
 impl FlatIncidenceMatrix {
+    /// Reads the incidence value at `(place_idx, transition_idx)` from the flat
+    /// row-major buffer. Negative = consumed, positive = produced.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// let w = net.incidence_matrix();
+    /// assert_eq!(w.get(0, 0), -1); // p1 consumed by t1
+    /// assert_eq!(w.get(1, 0), 1);  // p2 produced by t1
+    /// ```
     pub fn get(&self, place_idx: usize, transition_idx: usize) -> i32 {
         self.data[place_idx * self.transitions_count + transition_idx]
     }
@@ -183,6 +241,22 @@ impl PetriNet {
 
     /// Evaluates if the net is a structurally valid workflow net.
     /// Highly optimized with pre-calculated indices and bitset algebra.
+    ///
+    /// This is a **structural** verdict computed over the net's own shape
+    /// (single source place, single sink place, every transition connected) via
+    /// degree counting. It does **not** replay a log or measure conformance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert!(net.is_structural_workflow_net());
+    /// ```
     pub fn is_structural_workflow_net(&self) -> bool {
         if self.places.is_empty() || self.transitions.is_empty() {
             return false;
@@ -276,6 +350,20 @@ impl PetriNet {
     }
 
     /// Compiles the incidence matrix and node index for maximum performance.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let mut net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// net.compile_incidence();
+    /// assert!(net.cached_incidence.is_some());
+    /// assert!(net.cached_index.is_some());
+    /// ```
     pub fn compile_incidence(&mut self) {
         // Compile Index
         let mut symbols = Vec::with_capacity(self.places.len() + self.transitions.len());
@@ -337,6 +425,20 @@ impl PetriNet {
 
     /// Generates the Incidence Matrix (W) in a flat representation.
     /// Returns the cached matrix if available, otherwise computes it on the fly.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// let w = net.incidence_matrix();
+    /// assert_eq!(w.places_count, 2);
+    /// assert_eq!(w.transitions_count, 1);
+    /// ```
     pub fn incidence_matrix(&self) -> FlatIncidenceMatrix {
         if let Some(ref cached) = self.cached_incidence {
             return cached.clone();
@@ -346,6 +448,22 @@ impl PetriNet {
 
     /// Verifies the structural bounds of the workflow net state equation.
     /// A transition must have at least one input place and one output place.
+    ///
+    /// This is a **structural** verdict derived from the net's own incidence
+    /// matrix (each transition both consumes and produces). It is not a
+    /// log-based replay or conformance measurement.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert!(net.verifies_state_equation_calculus());
+    /// ```
     pub fn verifies_state_equation_calculus(&self) -> bool {
         if !self.is_structural_workflow_net() {
             return false;
@@ -374,6 +492,25 @@ impl PetriNet {
     }
 
     /// Computes a smooth unsoundness score using bitset algebra and FxHash.
+    ///
+    /// The score is a **structural** penalty accumulated over the net's own
+    /// shape — deviations from single-source / single-sink and dangling nodes.
+    /// It measures the model's structure, not its conformance to any event log.
+    /// A clean structural workflow net scores `0.0`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert_eq!(net.structural_unsoundness_score(), 0.0);
+    /// // An empty net is maximally ill-formed.
+    /// assert_eq!(PetriNet::default().structural_unsoundness_score(), 10.0);
+    /// ```
     pub fn structural_unsoundness_score(&self) -> f32 {
         if self.places.is_empty() || self.transitions.is_empty() {
             return 10.0;
@@ -451,10 +588,43 @@ impl PetriNet {
 
     /// Computes the MDL score of the model as: transitions + (arcs * log2(vocabulary_size))
     /// AC 3.1: Ontology size |O*| is treated as the theoretical upper bound for |T|.
+    ///
+    /// This is a **structural** description-length metric over the model's own
+    /// counts (transitions and arcs). It does not score the model against a log.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// // 1 transition, vocab = |T| = 1, log2(1) = 0  =>  1.0
+    /// assert_eq!(net.mdl_score(), 1.0);
+    /// ```
     pub fn mdl_score(&self) -> f64 {
         self.mdl_score_with_ontology(None)
     }
 
+    /// MDL structural metric parameterized by an explicit vocabulary (ontology) size.
+    ///
+    /// Like [`PetriNet::mdl_score`], this is a **structural** measure over the
+    /// model's own transition/arc counts, not a log-conformance score.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// // 1 + 2 arcs * log2(4) = 1 + 2*2 = 5.0
+    /// assert_eq!(net.mdl_score_with_ontology(Some(4)), 5.0);
+    /// ```
     pub fn mdl_score_with_ontology(&self, ontology_size: Option<usize>) -> f64 {
         let t = self.transitions.len() as f64;
         let a = self.arcs.len() as f64;
@@ -465,6 +635,16 @@ impl PetriNet {
         t + (a * vocabulary_size.log2())
     }
 
+    /// Returns a fixed, static selection-rationale string.
+    ///
+    /// Note: the returned text is a hardcoded narrative; it is not derived from
+    /// any analysis of `self` and does not reflect this net's structure.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::PetriNet;
+    /// let s = PetriNet::default().explain();
+    /// assert!(s.contains("This model was selected because"));
+    /// ```
     pub fn explain(&self) -> String {
         "This model was selected because:\n\
          1. It achieved full replay fitness.\n\
@@ -475,6 +655,22 @@ impl PetriNet {
     }
 
     /// Optimized to use direct ID hashing instead of expensive string formatting.
+    ///
+    /// Produces a deterministic **structural** fingerprint over the net's sorted
+    /// place/transition IDs and arcs. It is a digest of the shape, not a quality
+    /// or conformance score; identical structures hash identically.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let mk = || PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert_eq!(mk().canonical_hash(), mk().canonical_hash());
+    /// ```
     pub fn canonical_hash(&self) -> u64 {
         let mut hasher = rustc_hash::FxHasher::default();
         let mut p_ids: Vec<_> = self.places.iter().map(|p| &p.id).collect();
@@ -607,6 +803,19 @@ pub struct DeclareConstraint {
 }
 
 impl DeclareConstraint {
+    /// Constructs a Declare constraint over a type, activity set, and condition.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::DeclareConstraint;
+    /// let c = DeclareConstraint::new(
+    ///     "response".to_string(),
+    ///     vec!["a".to_string(), "b".to_string()],
+    ///     "true".to_string(),
+    /// );
+    /// assert_eq!(c.constraint_type, "response");
+    /// assert_eq!(c.activities.len(), 2);
+    /// assert_eq!(c.condition, "true");
+    /// ```
     pub fn new(constraint_type: String, activities: Vec<String>, condition: String) -> Self {
         DeclareConstraint {
             constraint_type,
@@ -624,6 +833,14 @@ pub struct DeclareModel {
 }
 
 impl DeclareModel {
+    /// Constructs an empty Declare model (no constraints, no activities).
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::DeclareModel;
+    /// let m = DeclareModel::new();
+    /// assert!(m.constraints.is_empty());
+    /// assert!(m.activities.is_empty());
+    /// ```
     pub fn new() -> Self {
         DeclareModel {
             constraints: Vec::new(),
@@ -633,12 +850,28 @@ impl DeclareModel {
 }
 
 impl Place {
+    /// Constructs a place from its identifier.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Place;
+    /// let p = Place::new("p1");
+    /// assert_eq!(p.id, "p1");
+    /// ```
     pub fn new(id: &str) -> Self {
         Place { id: id.to_owned() }
     }
 }
 
 impl Transition {
+    /// Constructs a (visible) transition from an identifier and a label.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Transition;
+    /// let t = Transition::new("t1", "Approve");
+    /// assert_eq!(t.id, "t1");
+    /// assert_eq!(t.label, "Approve");
+    /// assert_eq!(t.is_invisible, None);
+    /// ```
     pub fn new(id: &str, label: &str) -> Self {
         Transition {
             id: id.to_owned(),
@@ -649,6 +882,13 @@ impl Transition {
 }
 
 impl Arc {
+    /// Constructs a place-to-transition arc.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{Arc, ArcDirection};
+    /// let a = Arc::place_to_transition("p1", "t1");
+    /// assert_eq!(a.direction(), ArcDirection::PlaceToTransition);
+    /// ```
     pub fn place_to_transition(from: &str, to: &str) -> Self {
         Arc {
             from: from.to_owned(),
@@ -659,6 +899,13 @@ impl Arc {
         }
     }
 
+    /// Constructs a transition-to-place arc.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{Arc, ArcDirection};
+    /// let a = Arc::transition_to_place("t1", "p2");
+    /// assert_eq!(a.direction(), ArcDirection::TransitionToPlace);
+    /// ```
     pub fn transition_to_place(from: &str, to: &str) -> Self {
         Arc {
             from: from.to_owned(),
@@ -669,12 +916,27 @@ impl Arc {
         }
     }
 
+    /// Annotates this arc with an object type and a variable/read-arc flag.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Arc;
+    /// let a = Arc::place_to_transition("p1", "t1").typed("order", true);
+    /// assert_eq!(a.object_type(), Some("order"));
+    /// assert!(a.is_variable());
+    /// ```
     #[must_use]
     pub fn typed(mut self, object_type: &str, read_arc: bool) -> Self {
         self.object_type = Some((object_type.to_owned(), read_arc));
         self
     }
 
+    /// Returns the directional kind of this arc.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{Arc, ArcDirection};
+    /// assert_eq!(Arc::place_to_transition("p", "t").direction(), ArcDirection::PlaceToTransition);
+    /// assert_eq!(Arc::transition_to_place("t", "p").direction(), ArcDirection::TransitionToPlace);
+    /// ```
     pub fn direction(&self) -> ArcDirection {
         if self.is_place_to_transition {
             ArcDirection::PlaceToTransition
@@ -683,10 +945,24 @@ impl Arc {
         }
     }
 
+    /// Returns the object type annotation, if any.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Arc;
+    /// assert_eq!(Arc::place_to_transition("p", "t").object_type(), None);
+    /// assert_eq!(Arc::place_to_transition("p", "t").typed("item", false).object_type(), Some("item"));
+    /// ```
     pub fn object_type(&self) -> Option<&str> {
         self.object_type.as_ref().map(|(ot, _)| ot.as_str())
     }
 
+    /// Returns `true` when this arc is a variable (read) arc.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Arc;
+    /// assert!(!Arc::place_to_transition("p", "t").is_variable());
+    /// assert!(Arc::place_to_transition("p", "t").typed("item", true).is_variable());
+    /// ```
     pub fn is_variable(&self) -> bool {
         self.object_type
             .as_ref()
@@ -694,11 +970,24 @@ impl Arc {
             .unwrap_or(false)
     }
 
+    /// Sets the arc weight (multiplicity).
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Arc;
+    /// let a = Arc::place_to_transition("p", "t").with_weight(3);
+    /// assert_eq!(a.weight(), 3);
+    /// ```
     pub fn with_weight(mut self, weight: usize) -> Self {
         self.weight = Some(weight);
         self
     }
 
+    /// Returns the arc weight, defaulting to `1` when unset.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::Arc;
+    /// assert_eq!(Arc::place_to_transition("p", "t").weight(), 1);
+    /// ```
     pub fn weight(&self) -> usize {
         self.weight.unwrap_or(1)
     }
@@ -709,6 +998,20 @@ impl PetriNet {
     ///
     /// `initial_marking` is a `crate::petri::Marking` — the token distribution
     /// over place IDs at time zero.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert_eq!(net.places.len(), 2);
+    /// assert_eq!(net.transitions.len(), 1);
+    /// assert_eq!(net.arcs.len(), 2);
+    /// ```
     pub fn new(
         places: impl IntoIterator<Item = Place>,
         transitions: impl IntoIterator<Item = Transition>,
@@ -735,6 +1038,19 @@ impl PetriNet {
 
     /// Validates structural completeness: a net must have at least one place
     /// and one transition. Returns `PetriNetRefusal::EmptyNet` otherwise.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc, PetriNetRefusal};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert!(net.validate().is_ok());
+    /// assert_eq!(PetriNet::default().validate(), Err(PetriNetRefusal::EmptyNet));
+    /// ```
     pub fn validate(&self) -> Result<(), PetriNetRefusal> {
         if self.places.is_empty() || self.transitions.is_empty() {
             return Err(PetriNetRefusal::EmptyNet);
@@ -749,6 +1065,21 @@ impl PetriNet {
     /// Supersedes `is_structural_workflow_net` with a name that distinguishes
     /// structural well-formedness from soundness (which requires behavioural
     /// analysis).
+    ///
+    /// This delegates to [`PetriNet::is_structural_workflow_net`] and is a
+    /// **structural** verdict over the net's shape, not a log-based check.
+    ///
+    /// ```
+    /// use wasm4pm_compat::models::{PetriNet, Place, Transition, Arc};
+    /// use wasm4pm_compat::petri::Marking;
+    /// let net = PetriNet::new(
+    ///     [Place::new("p1"), Place::new("p2")],
+    ///     [Transition::new("t1", "A")],
+    ///     [Arc::place_to_transition("p1", "t1"), Arc::transition_to_place("t1", "p2")],
+    ///     Marking::new([("p1".to_string(), 1)]),
+    /// );
+    /// assert!(net.is_well_formed_workflow_net());
+    /// ```
     pub fn is_well_formed_workflow_net(&self) -> bool {
         self.is_structural_workflow_net()
     }
