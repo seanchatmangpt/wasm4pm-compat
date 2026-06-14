@@ -597,3 +597,29 @@ The module is fully documented and the types are exercised by unit tests. Gradua
 
 Core types: `CausalNet`, `CausalNode`, `InputBinding`, `OutputBinding`.
 Covers Heuristics Miner output (Weijters & Ribeiro 2011).
+
+---
+
+## Cross-product composition example
+
+After per-module coverage, the highest-value witness is an example that **composes
+multiple modules end-to-end**. Per-module examples prove surface completeness;
+cross-product examples prove coherence. A broken import, renamed type, or changed
+method signature makes at least one assertion in the composition example fail.
+
+The pipeline example threads 7 modules into a realistic process-intelligence story:
+
+```text
+OcelLog (ocel)
+  └─► ObjectCentricDfg (dfg)
+        └─► ConformanceTriple + check_filter_shape (interop)
+              └─► PredictionProblem<NextActivity> (prediction)
+                    └─► MultiPerspectiveEvidence<ControlFlow+Time> (multiperspective)
+                          └─► ProcessCube<OcelLog, 2> + CubeSlice (process_cube)
+```
+
+No module does computation — they hold shapes. The example witnesses that the shapes
+fit together. Graduate to `wasm4pm` for: DFG mining, conformance replay/alignment,
+prediction inference, multi-perspective cost weighting, cube sub-log extraction.
+
+Running example: `cargo run --example process_pipeline_composition`
