@@ -490,7 +490,13 @@ Core types: `ProcessTreeNode`, `TreeOperator`. `TypedLoopNode<ARITY>` uses
 
 ### `dfg` — Directly-Follows Graph
 
-Core types: `DfgNode`, `DfgEdge`, `DirectlyFollowsGraph`.
+Core types: `DfgNode`, `DfgEdge`, `DfgWeight`, `Dfg`, `DfgRefusal`, `DfgEdgeFull`,
+`ObjectCentricDfg`. The DFG is the minimal process evidence structure (van der Aalst):
+nodes are activity classes, edges are directly-follows relations with observed counts.
+`Dfg::validate()` checks for dangling edges and empty graphs. `ObjectCentricDfg` holds
+one `Dfg` per object type for OCEL logs. Structure only — graduate to `wasm4pm` to mine.
+
+Running example: `cargo run --example dfg_shape`
 
 ### `declare` — Declare constraint model
 
