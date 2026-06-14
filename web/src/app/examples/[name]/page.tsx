@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
 import { notFound } from "next/navigation";
+import { RunButton } from "@/app/_components/RunButton";
 
 // RSC + static generation.
 // Runs the pre-compiled binary from target/debug/examples/<name> if it exists,
@@ -168,7 +169,10 @@ export default async function ExamplePage({
         </section>
       )}
 
-      <section>
+      {/* Server action: re-run the example binary on demand */}
+      <RunButton name={name} />
+
+      <section className="mt-8">
         <h2 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider mb-2">
           Source ({lines.length} lines)
         </h2>
