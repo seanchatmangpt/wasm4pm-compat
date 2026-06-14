@@ -399,6 +399,33 @@ let chain = ReceiptChainConst::try_new("run-001", [a, b]).unwrap();
 assert_eq!(chain.arity(), 2);
 ```
 
+### Chain-sealing admission (`SealingAdmit` seam, v26.6.14)
+
+The `SealingAdmit` trait is a companion seam *beside* `Admit` — it threads a
+runtime [`RuntimeSeal`] (a recomputed BLAKE3 chain digest) into the verdict
+atomically. The consumer supplies the BLAKE3 fold; `compat` proves shape + chain.
+
+Running example: `cargo run --example sealing_admit_chain`
+
+```rust,no_run
+use wasm4pm_compat::admission::{recompute_and_match, RuntimeSeal, SealedAdmission};
+use wasm4pm_compat::receipt::Digest;
+use wasm4pm_compat::witness::AffidavitReceiptChain;
+
+let claimed = Digest::new("blake3:abc");
+// Consumer supplies the fold; compat proves the match.
+let proof = recompute_and_match("events", &claimed, |_e| Digest::new("blake3:abc")).unwrap();
+let seal = RuntimeSeal::from_verified_chain(claimed, proof);
+let sealed: SealedAdmission<&str, AffidavitReceiptChain> =
+    SealedAdmission::seal("payload", seal);
+// The only bridge to Admitted state for a chain-sealed witness.
+let _ = sealed.into_evidence().into_receipted();
+```
+
+Tampered claim: `recompute_and_match` returns `Err(Refusal<ChainHashMismatch,_>)` —
+a named law violation, not a panic. See `examples/sealing_admit_chain.rs` for the
+full consumer pattern with structural and chain-seal refusals.
+
 ### Sealing admitted evidence as Receipted
 
 ```rust

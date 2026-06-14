@@ -204,6 +204,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `ocel_to_xes_projection` | `formats` (default) | Full OCEL → XES loss covenant: `ProjectionName`, `LossPolicy::AllowWithReport` vs `ForbidLoss`, named `XesExportRefusal` |
 | `strict_boundary_claim` | `strict` | Declare `ProcessBoundary`, run `StrictCheck`, observe `StrictViolation::MissingLossPolicy`, `MissingRefusalPath`, `HiddenProcessMiningGrowth` |
 | `graduation_candidate` | `wasm4pm` | Implement `GraduateToWasm4pm`, produce a grounded vs ungrounded `GraduationCandidate` |
+| `sealing_admit_chain` | (none) | `SealingAdmit` end-to-end: `recompute_and_match` → `ChainProof` → `RuntimeSeal` → `SealedAdmission` → `Admitted` evidence; named refusals for both structural and chain-seal violations |
 
 ## Invariants that must never be violated
 
