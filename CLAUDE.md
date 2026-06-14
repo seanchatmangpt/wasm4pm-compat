@@ -217,6 +217,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `dfg_shape` | (none) | `DfgNode`, `DfgEdge`, `DfgWeight`, `Dfg::validate`, `DfgRefusal` (EmptyGraph + DanglingEdge), `DfgEdgeFull` with duration, `ObjectCentricDfg` per-type container |
 | `streaming_context` | (none) | `EventWindow<T,SIZE>` ring-wrap, `ContextualEvidence` online/offline wrappers, type-alias identity for `OnlineEvidence`/`OfflineEvidence`, `TemporalOrderConfusion` |
 | `process_cube_shape` | (none) | `CubeDimension<NAME>` const-param axis, `CubeDimensionKind` (6 kinds), `CubeSlice`, `CubeCell`, `CubeProjectionWitness`, `ProcessCube`, `CellComparison` |
+| `multiperspective_evidence` | (none) | `ProcessPerspective` (4 kinds), four perspective markers, `MultiPerspectiveEvidence`, `PerspectiveCombination` (2/3/4-way), `ParityComparer::assert_epsilon_close` |
 | `bpmn_process_shape` | (none) | `BpmnTask`, `BpmnGateway` x5, `BpmnProcess::validate`, `BpmnRefusal` x8 named laws, `BpmnLane`, `BpmnPool::validate` |
 | `petri_net_metrics` | (none) | `PetriNet` structural metrics: `is_structural_workflow_net`, `structural_unsoundness_score`, `mdl_score`, `explain` (self-derived), `canonical_hash`, `incidence_matrix` |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |

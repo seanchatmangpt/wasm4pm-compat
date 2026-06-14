@@ -564,6 +564,35 @@ for sub-log extraction, per-cell discovery, and cross-cell conformance compariso
 
 Running example: `cargo run --example process_cube_shape`
 
+### `multiperspective` — multi-perspective process evidence
+
+Core types: `ProcessPerspective`, `ControlFlowPerspective`, `DataPerspective`,
+`ResourcePerspective`, `TimePerspective`, `MultiPerspectiveEvidence<T, Perspectives>`,
+`PerspectiveCombination<A, B>`, `ParityComparer`.
+
+The four perspectives of van der Aalst's process mining framework: control-flow (what
+and in what order), data (attributes and guards), resource (who performs what), time
+(when, how long). Each perspective is a distinct zero-sized type, so substituting one
+for another is a compile error. Combine with `PerspectiveCombination<A, B>`, nestable
+for 3 or 4 perspectives. Structure only — graduate to `wasm4pm` for multi-perspective
+alignment cost computation and balanced conformance checking (Mannhardt et al. 2016).
+
+Running example: `cargo run --example multiperspective_evidence`
+
+### `object_lifecycle` — object lifecycle phase shapes
+
+Core types: `ObjectLifecyclePhase`, `LifecycledObject<T, PHASE>`, `ObjectState<PHASE>`,
+`LifecycleTransition<FROM, TO>`, `ObjectLifecycleWitness`, type aliases
+`CreatedObject<T>` / `ActiveObject<T>` / `ModifiedObject<T>` / `ArchivedObject<T>` /
+`DeletedObject<T>`.
+
+Const-generic typestate for OCEL object lifecycle phases. Each transition method
+(`activate()`, `modify()`, `archive()`, `delete()`) changes the type; illegal
+transitions are compile errors. **OPEN-doc-substrate:** a running example is pending
+due to a nightly `E0391` const-generic cycle in `ConstParamTy` impl specialization.
+The module is fully documented and the types are exercised by unit tests. Graduate to
+`wasm4pm` for lifecycle discovery and conformance checking.
+
 ### `causal_net` — causal net shape
 
 Core types: `CausalNet`, `CausalNode`, `InputBinding`, `OutputBinding`.
