@@ -108,3 +108,37 @@ Priority 5 — Cross-product example: OcelLog → admission → named projection
 
 ### Hard stops
 None this iteration. Disk: not checked (no ENOSPC encountered).
+
+---
+
+## 2026-06-14 — Iteration 3
+
+**Cluster:** `dfg` module (DFG is the most foundational undocumented surface — used as input to all process discovery algorithms)
+
+**Triple:**
+- **Doc:** `src/dfg.rs` rustdoc (already complete with IS/IS-NOT/graduation structure)
+- **Example:** `examples/dfg_shape.rs` — exercises `DfgNode`, `DfgEdge`, `DfgWeight`, `Dfg::validate()`, both `DfgRefusal` named laws (`EmptyGraph`, `DanglingEdge`), `DfgEdgeFull` with/without duration, `ObjectCentricDfg` per-type DFG map
+- **Link:** README.md and CLAUDE.md example table updated
+
+**Run output (real exit code):**
+```
+=== All assertions passed — dfg module is witnessed ===
+  Covered: DfgNode, DfgEdge, DfgWeight, Dfg::validate, DfgRefusal × 2,
+           DfgEdgeFull (with/without duration), ObjectCentricDfg.
+  Witness: validate() called on both valid and invalid graphs; named laws asserted.
+EXIT: 0
+```
+
+**Covered ✅:** `dfg` module — documented-but-unexercised gap CLOSED.
+
+**Gap map update:**
+- `dfg` → COVERED ✅
+- Remaining documented-but-unexercised: `bpmn`, `models`, `streaming`, `process_cube`, `multiperspective`, `workflow`, `object_lifecycle`
+
+### Queued (next iterations)
+
+Priority 1 — `bpmn` module (BpmnProcess/BpmnGateway/BpmnPool + named BpmnRefusal — rich refusal surface)
+Priority 2 — `models` module (PetriNet structural metrics: `explain()`, `structural_unsoundness_score()`)
+Priority 3 — Cross-product example: OcelLog → Dfg (shape) → conformance verdict — the canonical pipeline composition
+Priority 4 — `streaming` module (StreamingConformance, EventWindow)
+Priority 5 — `process_cube` / `multiperspective` (check if these are significant API surfaces or thin wrappers)
