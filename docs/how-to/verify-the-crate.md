@@ -1,87 +1,102 @@
 # How-To: Verifying the Crate and Resolving Test Failures
 
-This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` version `26.6.13` on Mac OS, and details how to resolve common doc-test and UI trybuild mismatches.
+This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` v26.6.13, and details how to resolve common trybuild mismatches.
+
+**Always use `cargo make`.** Direct `cargo` invocations are reserved for running a single test by name. See `Makefile.toml` for the full recipe list.
 
 ---
 
-## 1. Run Standard Formatting and Compilation Checks
-
-To ensure styling and basic compilations are valid, execute the following commands in the root of the repository:
+## 1. Formatting and Compilation
 
 ```bash
-# Check code formatting compliance
-cargo fmt --check
+# Check code formatting
+cargo make fmt
 
-# Validate compilation of all features
-cargo check --all-features
+# Type-check all features
+cargo make check-all
 ```
 
 ---
 
-## 2. Run the Main Unit and Integration Test Suite
-
-Execute the primary test suite which validates the type boundaries, witness lattices, and evidence containers:
+## 2. Unit and Integration Tests
 
 ```bash
-cargo test --all-features --tests
+cargo make test-all
 ```
 
-*Expected output: All 132 tests pass successfully with 0 failures.*
+Expected: 33 integration tests pass, 0 failures.
 
 ---
 
-## 3. Run and Resolve Doc-Test Failures
-
-If you run the doc-test suite:
+## 3. Doc-Tests (explicit opt-in — slow)
 
 ```bash
-cargo test --doc --all-features
+cargo make doc-test
 ```
 
-You might encounter failures in modules like `ocpq`, `petri`, or `xes` due to strict compile-time signature changes. To resolve specific failures:
+Doc-tests are disabled in the default test run because each doctest that touches `generic_const_exprs` or `adt_const_params` types spawns a separate nightly `rustc` invocation; 200+ invocations make the loop take 4+ minutes. Run this explicitly before a release.
 
-### A. Resolve `petri::PetriNetBuilder` or `silent`/`transition` failures
-- Ensure you call builder methods by chaining them immediately or passing ownership rather than trying to call them on a mutable reference receiver.
-- Example: Chain `.place(...)` and `.build()` directly on the builder object by value.
+If you see failures in `ocpq`, `petri`, or `xes`:
 
-### B. Resolve `petri::WfNet::attest_witnessed` private errors
-- Do not call `.attest_witnessed()` directly in external code or doc examples, as it is marked `pub(crate)` to maintain soundness. Wrap verification in the public `WfNet` query interfaces instead.
+- **`petri::PetriNetBuilder` / `silent` / `transition` failures**: Chain builder methods by value; do not call them on a mutable reference receiver.
+- **`petri::WfNet::attest_witnessed` private errors**: This method is `pub(crate)`. Use the public `WfNet` query interfaces instead.
 
 ---
 
-## 4. Execute and Fix UI (Trybuild) Test Failures
+## 4. Type-Law Receipt Gate (ALIVE)
 
-UI tests ensure that invalid code fails to compile exactly as expected. These are located in `tests/ui/compile_fail/`.
-
-Run the UI test suite:
+The ALIVE gate runs 217 compile-fail fixtures and 410 compile-pass fixtures via trybuild:
 
 ```bash
-cargo test --test ui_tests -- --ignored
+cargo make alive
 ```
 
-If you see failures, they usually fall into two categories:
+Compile-fail fixtures use the **function-parameter pattern** — no `todo!()`. A typed parameter provides the value; the type error fires at the call site inside `_test`:
 
-### Case A: Compiler Diagnostic Output Mismatches
-If the compiler's printed diagnostic type names differ slightly from the expected `.stderr` files (for example, printing `wasm4pm_compat::witness::Ocel20` instead of `Ocel20`), you can automatically overwrite the stale expected outputs with the current compiler's output:
+```rust
+fn _test(xes_ev: Evidence<String, Admitted, Xes1849>) {
+    requires_ocel_evidence(xes_ev); // E0308 — proven at compile time
+}
+```
+
+### Resolving snapshot mismatches
+
+If the compiler's printed diagnostic type names drift from the `.stderr` snapshots (e.g. after a nightly update):
 
 ```bash
-# Force trybuild to update expected stderr outputs
+# Regenerate all snapshots from current compiler output
 TRYBUILD=overwrite cargo test --test ui_tests -- --ignored
+
+# Confirm all snapshots match on the second run
+cargo make alive
 ```
 
-### Case B: Target Binary Resolution Errors (`no bin target named trybuild...`)
-If you see errors where cargo cannot map temporary trybuild workspace package binaries, the package cache is out of sync. Clean the workspace and re-run:
+### Resolving target resolution errors
+
+If cargo cannot map trybuild workspace package binaries:
 
 ```bash
-# Clean the build directory to clear the trybuild target cache
+# Last resort — clean the build cache and re-run
 cargo clean
-
-# Re-run UI tests
-cargo test --test ui_tests -- --ignored
+cargo make alive
 ```
 
 ---
 
-## Conclusion
+## 5. Full CI Pipeline
 
-Following these steps ensures that the codebase remains fully compliant with the quality definitions required for release version `26.6.13`.
+```bash
+cargo make ci
+```
+
+Runs check-all, test-all, clippy, fmt, and alive in sequence. Use this before pushing.
+
+---
+
+## 6. Anti-Cheat Gate
+
+```bash
+just anti-cheat-gate
+```
+
+Scans `src/` law modules, `tests/`, and `wasm4pm-compat-lsp/src/` for fabricated evidence patterns. Per-repo suppressions for domain vocabulary live in `anti-llm.toml`.

@@ -16,11 +16,13 @@ These fixtures serve as the formal **type-law receipts** for the migrated.
 
 ## Step 1: Execute the ALIVE Gate
 
-To run the UI test suite, pass the target name `ui_tests` and use the `--ignored` flag:
+The gate currently covers **217 compile-fail** fixtures and **410 compile-pass** fixtures.
 
 ```bash
-cargo test --test ui_tests -- --ignored
+cargo make alive
 ```
+
+This is equivalent to `cargo test --test ui_tests -- --ignored`. Use `cargo make alive` in the dev loop.
 
 ---
 
@@ -51,14 +53,36 @@ If a compile-pass fixture fails to compile, or a compile-fail fixture compiles s
 
 ## Step 3: Add a New Type-Law Receipt
 
-When adding a new type-level boundary check, you must add corresponding pass/fail fixtures:
+When adding a new type-level boundary check, you must add corresponding pass/fail fixtures.
 
-1. Create a passing test under `tests/ui/compile_pass/my_law_pass.rs`.
-2. Create a failing test under `tests/ui/compile_fail/my_law_fail.rs`.
-3. Add the files to `tests/ui_tests.rs`.
-4. Run:
+### Compile-fail fixture pattern
+
+Use the **function-parameter pattern** — do not use `todo!()` to fabricate values. A typed parameter provides the value of the `pub(crate)`-constructed type; the type error fires at the call site:
+
+```rust
+// tests/ui/compile_fail/my_law_fail.rs
+fn _test(ocel_ev: Evidence<String, Admitted, Ocel20>) {
+    requires_xes_evidence(ocel_ev); // E0308 — wrong witness
+}
+```
+
+For private-field non-forgeability fixtures, omit the private field entirely:
+
+```rust
+let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {}; // E0063 + E0451
+```
+
+### Steps
+
+1. Create `tests/ui/compile_pass/my_law_pass.rs` (lawful path compiles).
+2. Create `tests/ui/compile_fail/my_law_fail.rs` (unlawful path using the function-parameter pattern).
+3. Add both files to `tests/ui_tests.rs`.
+4. Generate the `.stderr` snapshot:
    ```bash
    TRYBUILD=overwrite cargo test --test ui_tests -- --ignored
    ```
-   This will generate the required `.stderr` check files for `my_law_fail.rs`.
-5. Verify and commit the generated `.stderr` files as part of the source repository.
+5. Confirm the snapshot matches on a clean run:
+   ```bash
+   cargo make alive
+   ```
+6. Commit both `.rs` and `.stderr` files.
