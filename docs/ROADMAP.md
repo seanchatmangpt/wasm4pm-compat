@@ -1,6 +1,6 @@
 # Roadmap
 
-## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.13)
+## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.14)
 
 Sealed/tagged. 217 compile-fail + 408 compile-pass receipts; 271-paper corpus
 (436 unique witness keys, compile-time uniqueness proof); MIRI clean (no UB);
@@ -15,6 +15,9 @@ Shipped in this milestone:
 - **TS sidecar extraction** (`wasm4pm-compat-ts`) restoring the three-feature / zero-runtime-dep invariants.
 - **Durability pin** + documented `generic_const_exprs`/mGCA finding.
 - **Restored** the `SeparableWfNet` non-forgeability seal lost in a prior refactor.
+- **Affi-dock seam** — `SealingAdmit` trait + `SealedAdmission<T,W>` + `RuntimeSeal`/`ChainProof`/`ChainHashMismatch` + `AffidavitReceiptChain` witness. Lets `affidavit` dock without forking any law; consumer supplies the BLAKE3 fold; compat proves shape-and-chain atomically.
+- **Non-forgeable `Evidence` carrier** — private `_seal: ()` field makes struct-literal construction outside the crate E0451. Proved by a compile-fail fixture.
+- **OPEN-substrate witnesses closed** — 6 consuming behavioral tests: `SealingAdmit` consumer, `CoCitedKey` receipts, `NormedBetween01` type-identity, `families_match_simd` semantics, `FamilyGated` const-param distinction, `PowlComposition<Inner,DEPTH>` depth law.
 
 ## Next follow-ups
 

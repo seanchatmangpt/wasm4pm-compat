@@ -1,6 +1,6 @@
 # Tutorial: Constructing Your First Case-Centric Event Log
 
-This tutorial guides you step-by-step through building, validating, and inspecting your first case-centric event log using `wasm4pm-compat` version `26.6.13`. 
+This tutorial guides you step-by-step through building, validating, and inspecting your first case-centric event log using `wasm4pm-compat` version `26.6.14`. 
 
 ## Learning Objectives
 
@@ -16,7 +16,7 @@ By the end of this tutorial, you will:
 
 Before starting, ensure your system is configured as follows:
 - You are using **nightly Rust** (as required by the crate's type-state bounds).
-- You have added `wasm4pm-compat` version `26.6.13` to your dependencies, with default features enabled.
+- You have added `wasm4pm-compat` version `26.6.14` to your dependencies, with default features enabled.
 
 ---
 
@@ -33,7 +33,7 @@ In your `Cargo.toml`, specify the dependency:
 
 ```toml
 [dependencies]
-wasm4pm-compat = { version = "26.6.13" }
+wasm4pm-compat = { version = "26.6.14" }
 ```
 
 ---

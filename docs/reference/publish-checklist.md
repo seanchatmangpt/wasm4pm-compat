@@ -8,7 +8,7 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Description / Verification Method | Status | Notes / Known Constraints |
 |---|---|---|---|
-| **Crate Version** | Verify root version matches target release version (`26.6.13`). | ✅ | Workspace subcrates and configs are properly aligned to `26.6.13`. |
+| **Crate Version** | Verify root version matches target release version (`26.6.14`). | ✅ | Workspace subcrates and configs are properly aligned to `26.6.14`. |
 | **Repository URL** | Cargo.toml `repository` field must point to `https://github.com/seanchatmangpt/wasm4pm-compat`. |  | Matches actual repository URL. |
 | **Readme Metadata** | Cargo.toml `readme` must point to `README.md`. |  | Configured properly in root manifest. |
 | **License Files** | Verify presence of `LICENSE-MIT` and `LICENSE-APACHE` in the package root. |  | Both files exist in root directory. |
@@ -57,5 +57,5 @@ This document provides a checklist of all verification steps and metadata audits
 
 - Back to [README](../../README.md)
 - [Preparing for a Crates.io Release](../how-to/prepare-crates-io-publish.md)
-- [Verification Report](../reports/v26.6.13-verification-report.md)
+- [Verification Report](../reports/v26.6.14-verification-report.md)
 - [Feature Model](feature-model.md)

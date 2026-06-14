@@ -7,9 +7,9 @@ This guide outlines the step-by-step procedure required to prepare the `wasm4pm-
 ## 1. Context & Manifest Version Alignment
 
 The `wasm4pm-compat` workspace maintains strict version alignment across the root crate and all subcrates:
-- **Root Crate (`wasm4pm-compat`)**: Configured at version `26.6.13` in the root `Cargo.toml`.
-- **Subcrates (`c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`, `c8-adversary`)**: Configured at version `26.6.13`.
-- **Derived Manifests (`ggen-witness.toml`, `ggen/package.toml`)**: Also at version `26.6.13`.
+- **Root Crate (`wasm4pm-compat`)**: Configured at version `26.6.14` in the root `Cargo.toml`.
+- **Subcrates (`c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`, `c8-adversary`)**: Configured at version `26.6.14`.
+- **Derived Manifests (`ggen-witness.toml`, `ggen/package.toml`)**: Also at version `26.6.14`.
 
 When preparing the release, the publisher must ensure all crates are consistently bumped.
 
@@ -84,4 +84,4 @@ Do not execute the final publish command unless you have received clear, written
 
 - Back to [README](../../README.md)
 - [Publish Readiness Checklist](../reference/publish-checklist.md)
-- [Verification Report](../reports/v26.6.13-verification-report.md)
+- [Verification Report](../reports/v26.6.14-verification-report.md)
