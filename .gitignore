@@ -47,3 +47,7 @@ FINAL_*.md
 
 # Anti-cheat OCEL audit telemetry (runtime event log)
 .ggen/ocel/
+
+# Anti-cheat OCEL audit telemetry (runtime-generated, never shipped)
+ocel/anti_llm_cheat_*.json
+ocel/anti_llm_cheat_*.receipt.json
