@@ -1,6 +1,6 @@
 # How-To: Graduating to the wasm4pm Execution Engine
 
-This guide demonstrates how to declare a graduation candidate, implement the `GraduateToWasm4pm` trait, and bridge your process-evidence data from the structure-only migrated to the `wasm4pm` execution engine in version `26.6.13`.
+This guide demonstrates how to declare a graduation candidate, implement the `GraduateToWasm4pm` trait, and bridge your process-evidence data from the structure-only compat layer to the `wasm4pm` execution engine.
 
 ---
 
@@ -23,7 +23,7 @@ wasm4pm-compat = { version = "26.6.13", features = ["wasm4pm"] }
 
 ## Step 2: Implement the GraduateToWasm4pm Trait
 
-You graduate your host structures (e.g. your database schemas or application states carrying event logs) by implementing the `GraduateToWasm4pm` trait.
+Implement the single-method `GraduateToWasm4pm` trait on your host structure. The method `candidate()` returns a `GraduationCandidate` describing what is graduating and why.
 
 ```rust
 use wasm4pm_compat::engine_bridge::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
@@ -32,94 +32,99 @@ use wasm4pm_compat::state::Admitted;
 use wasm4pm_compat::witness::Ocel20;
 use wasm4pm_compat::ocel::OcelLog;
 
-// 1. Declare your application context that holds process evidence
+// 1. Your application context carrying process evidence.
 struct BillingAuditSession {
     session_id: String,
+    evidence_hash: String,
     evidence: Evidence<OcelLog, Admitted, Ocel20>,
 }
 
-// 2. Implement the graduation trait on your context
+// 2. Implement the graduation trait.
 impl GraduateToWasm4pm for BillingAuditSession {
-    fn name(&self) -> String {
-        format!("session-{}", self.session_id)
-    }
-
-    fn reason(&self) -> GraduationReason {
-        // Specify why this data is transitioning to the engine
-        GraduationReason::NeedsDiscovery
-    }
-
-    fn package_candidate(&self) -> Result<GraduationCandidate, String> {
-        // Build the graduation candidate envelope
-        let mut candidate = GraduationCandidate::new(self.name(), self.reason());
-        
-        // Link the admitted evidence reference to the candidate
-        candidate = candidate.with_evidence_ref("ref://billing-session-evidence-01");
-        
-        Ok(candidate)
+    fn candidate(&self) -> GraduationCandidate {
+        GraduationCandidate::new(
+            GraduationReason::NeedsDiscovery,
+            format!("session-{}", self.session_id),
+            self.evidence_hash.clone(),
+        )
     }
 }
 ```
+
+`GraduationCandidate::new` takes three arguments in order:
+1. **`reason: GraduationReason`** — why this evidence needs the engine.
+2. **`subject: impl Into<String>`** — a human-readable name for the subject being graduated.
+3. **`evidence_ref: impl Into<String>`** — a stable reference (e.g. a BLAKE3 hash or URI) to the grounding evidence. Must be non-empty for the candidate to be considered grounded.
 
 ---
 
-## Step 3: Package the Candidate
-
-Construct and inspect the candidate envelope:
+## Step 3: Inspect the Candidate
 
 ```rust
-fn execute_graduation(session: BillingAuditSession) {
-    match session.package_candidate() {
-        Ok(candidate) => {
-            println!("Graduation Candidate Packaged:");
-            println!(" - Name: {}", candidate.name);
-            println!(" - Reason: {:?}", candidate.reason);
-            println!(" - Evidence Reference: {:?}", candidate.evidence_ref);
-            
-            // The candidate envelope is now ready to be handed to the wasm4pm engine intake.
-            // (structure only — wasm4pm will execute judgment after graduation)
-        }
-        Err(e) => {
-            println!("Graduation packaging failed: {}", e);
-        }
-    }
+fn handoff(session: &BillingAuditSession) {
+    let candidate = session.candidate();
+
+    println!("Reason:   {:?} (hard signal: {})", candidate.reason, candidate.reason.is_hard_signal());
+    println!("Subject:  {}", candidate.subject);
+    println!("Evidence: {}", candidate.evidence_ref);
+    println!("Grounded: {}", candidate.is_grounded());
+
+    // Hand the candidate to the wasm4pm engine intake.
+    // (structure only — wasm4pm executes judgment after graduation)
 }
 ```
+
+`candidate.is_grounded()` returns `true` when both `subject` and `evidence_ref` are non-empty. The engine intake should reject ungrounded candidates.
+
+---
+
+## GraduationReason Variants
+
+| Variant | `is_hard_signal()` | When to use |
+|---|:---:|---|
+| `NeedsDiscovery` | yes | No process model exists yet |
+| `NeedsConformanceExecution` | yes | A model exists but fitness is unmeasured |
+| `NeedsBenchmarkGate` | yes | Alignment cost untested against baselines |
+| `NeedsObjectCentricQueryExecution` | yes | OCPQ queries not yet executed against the log |
+| `NeedsReplay` | no | Replay is stale or missing |
+| `RebuildingProcessMiningLocally` | no | Local rebuild required before graduation |
+| `NeedsReceipts` | no | Provenance receipts absent or incomplete |
+
+Hard-signal reasons indicate the evidence cannot proceed without engine action. Non-hard-signal reasons are advisory.
+
+Use `reason.tag()` to get a short string label (e.g. `"needs-discovery"`) for logging or serialization.
 
 ---
 
 ## Complete Example
 
-Here is a full compile-passing snippet demonstrating graduation candidate construction:
-
 ```rust
 use wasm4pm_compat::engine_bridge::{GraduateToWasm4pm, GraduationCandidate, GraduationReason};
 
-struct SimpleCandidate {
-    name: String,
+struct PendingConformance {
+    log_id: String,
+    log_hash: String,
 }
 
-impl GraduateToWasm4pm for SimpleCandidate {
-    fn name(&self) -> String {
-        self.name.clone()
-    }
-
-    fn reason(&self) -> GraduationReason {
-        GraduationReason::NeedsConformanceExecution
-    }
-
-    fn package_candidate(&self) -> Result<GraduationCandidate, String> {
-        let mut candidate = GraduationCandidate::new(self.name(), self.reason());
-        candidate = candidate.with_evidence_ref("ref://simple-evidence");
-        Ok(candidate)
+impl GraduateToWasm4pm for PendingConformance {
+    fn candidate(&self) -> GraduationCandidate {
+        GraduationCandidate::new(
+            GraduationReason::NeedsConformanceExecution,
+            self.log_id.clone(),
+            self.log_hash.clone(),
+        )
     }
 }
 
 fn main() {
-    let host = SimpleCandidate { name: "test-run-001".to_string() };
-    let candidate = host.package_candidate().unwrap();
-    
-    assert_eq!(candidate.name, "test-run-001");
-    println!("Candidate package verified. (structure only — graduates to wasm4pm)");
+    let host = PendingConformance {
+        log_id: "billing-log-2026-06".to_string(),
+        log_hash: "blake3:abc123def456".to_string(),
+    };
+
+    let c = host.candidate();
+    assert_eq!(c.reason, GraduationReason::NeedsConformanceExecution);
+    assert!(c.is_grounded());
+    assert!(c.reason.is_hard_signal());
 }
 ```
