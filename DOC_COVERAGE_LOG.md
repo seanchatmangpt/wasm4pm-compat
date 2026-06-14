@@ -72,13 +72,39 @@ EXIT:0
 
 **Why this example is not doc-laundering:** it asserts `proof.is_ok()`, the tampered proof `.is_err()`, `seal.digest() == &claimed`, `sealed.value == good_payload`, and both named refusal patterns via `matches!`. A broken `recompute_and_match`, `RuntimeSeal`, or `SealingAdmit` impl makes at least one assert fail and the example exits non-zero.
 
+---
+
+## 2026-06-14 — Iteration 2
+
+**Cluster:** `prediction` module (12 pub items, no standalone example)
+
+**Triple:**
+- **Doc:** `src/prediction.rs` rustdoc (already complete with per-fn doctests)
+- **Example:** `examples/prediction_problem_shape.rs` — exercises `PredictionHorizon` × 3, `PredictionTarget` × 6, `PredictionProblem<T>` builder chain, `ComplianceKind` × 3, `PredictionRefusal` × 6 named laws, all phantom witness markers
+- **Link:** README.md and CLAUDE.md example table updated to include this example
+
+**Run output (real exit code):**
+```
+=== All assertions passed — prediction module surface is witnessed ===
+  Documented: PredictionHorizon, PredictionTarget, PredictionProblem<T>,
+              ComplianceKind, PredictionRefusal (6 named laws)
+  Witness: Display strings + field values asserted; breaks on rename or removal.
+EXIT: 0
+```
+
+**Covered ✅:** `prediction` module — documented-but-unexercised gap CLOSED.
+
+**Gap map update:**
+- `prediction` → COVERED ✅ (example runs, all 6 refusal laws asserted)
+- Remaining documented-but-unexercised: `streaming`, `process_cube`, `multiperspective`, `dfg`, `bpmn`, `interop`, `workflow`, `object_lifecycle`, `models`
+
 ### Queued (next iterations)
 
-Priority 1 — prediction module (12 pub items, no examples)
-Priority 2 — dfg module (DirectlyFollowsGraph is a foundation for most discovery algorithms, no example)
-Priority 3 — process_cube slice (8 pub items)
-Priority 4 — c8_* examples added to docs table (exercised-but-undocumented gap)
-Priority 5 — cross-product example: full pipeline from OcelLog → admission → dfg discovery → conformance check
+Priority 1 — `dfg` module (DirectlyFollowsGraph is a foundation for most discovery algorithms, no example)
+Priority 2 — `bpmn` module (BpmnProcess/BpmnGateway/BpmnPool + named BpmnRefusal)
+Priority 3 — `models` module (PetriNet structural metrics: explain(), structural_unsoundness_score())
+Priority 4 — `streaming` module (StreamingConformance, EventWindow)
+Priority 5 — Cross-product example: OcelLog → admission → named projection → receipt chain (the canonical three-module pipeline, no composition example exists)
 
 ### Hard stops
 None this iteration. Disk: not checked (no ENOSPC encountered).
