@@ -1,18 +1,30 @@
 # Roadmap
 
-## Current: `PAPERLAW_CROWN_ALIVE_004`
+## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.13)
 
-Sealed. 37 modules, 196 compile-fail receipts, 406 compile-pass receipts, 98 papers, 4 benchmarks.
+Sealed/tagged. 217 compile-fail + 408 compile-pass receipts; 271-paper corpus
+(436 unique witness keys, compile-time uniqueness proof); MIRI clean (no UB);
+exactly three public features; zero runtime dependencies.
 
-## Next milestone: `PAPERLAW_CROWN_ALIVE_005`
+Shipped in this milestone:
 
-Target surfaces:
+- **271-paper witness corpus** with a self-validating `witness_corpus` (compile-time KEY-uniqueness).
+- **Concrete admission** — `LinkedOcel`, the first `Admit` impl in `src/`, enforcing the named OCEL object-centricity laws through the typed one-way door.
+- **Teaching diagnostics** (`on_unimplemented`) on the family-authority traits.
+- **Nightly innovations** — `ConstParamTy` on `WitnessFamily`, `const trait Witness`, `witness_law` (family gating, co-citation string law, SIMD batch check, `gcd`/`NormedBetween01`).
+- **TS sidecar extraction** (`wasm4pm-compat-ts`) restoring the three-feature / zero-runtime-dep invariants.
+- **Durability pin** + documented `generic_const_exprs`/mGCA finding.
+- **Restored** the `SeparableWfNet` non-forgeability seal lost in a prior refactor.
 
-- **E0391 full resolution** — all object_lifecycle const-param impl blocks refactored to type aliases
-- **Streaming event window law** — `EventWindow<T, SIZE>` with TRYBUILD receipts
-- **Cross-log correlation receipts** — negative fixtures for schema mismatch
-- **Process cube fixtures** — fail fixtures for dimension count mismatch
-- **Temporal profile conformance** — `TemporalProfile` receipts
+## Next follow-ups
+
+- **Literal-100% item-level rustdoc** — module docs complete; ~690 public-item docs (compiler-measured via `missing_docs`, largely serde struct fields) remain.
+- **Kani harness on `LinkedOcel::admit`** — prove the admit fn is total and the refusal branch fires for the malformed class (now unblocked by the concrete impl).
+- **Verus on one witness end-to-end** (e.g. WF-net soundness) — behavioral proof against the source paper.
+- **Wire `cargo make miri` into `ci`** once a baseline of findings is confirmed.
+- **mGCA watch** — re-evaluate the const-law-kernel migration when mGCA's non-min expansion supports computed const arguments.
+- **Streaming event window law** — `EventWindow<T, SIZE>` with TRYBUILD receipts.
+- **Cross-log correlation / process-cube / temporal-profile** negative fixtures.
 
 ## Graduation roadmap (wasm4pm engine)
 

@@ -39,6 +39,13 @@ where
 
 Without `generic_const_exprs`, Rust cannot evaluate mathematical inequalities inside `where` bounds during compilation.
 
+> **Durability note.** The compiler team now treats `generic_const_exprs` as superseded by
+> `min_generic_const_args` (mGCA). This crate **cannot** migrate: mGCA forbids generic
+> parameters in computed const operations (so `BITS <= 8` over a generic `BITS` is not
+> expressible), and mGCA cannot coexist with `generic_const_exprs` in one crate. The crate
+> therefore stays on `generic_const_exprs` behind a pinned dated nightly until mGCA's
+> non-min expansion lands. See `docs/STABILITY.md` for the full finding.
+
 ### 2. `adt_const_params` and `unsized_const_params`
 By default, Rust only supports primitive integers, characters, and booleans as const-generic parameters. These two features expand compile-time parameterization to user-defined structures (Abstract Data Types) and unsized values (such as static strings `&'static str`).
 - Used in `ObjectState<const PHASE: ObjectLifecyclePhase>` to track the object lifecycle enum value at the type level.
