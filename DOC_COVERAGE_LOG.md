@@ -142,3 +142,37 @@ Priority 2 — `models` module (PetriNet structural metrics: `explain()`, `struc
 Priority 3 — Cross-product example: OcelLog → Dfg (shape) → conformance verdict — the canonical pipeline composition
 Priority 4 — `streaming` module (StreamingConformance, EventWindow)
 Priority 5 — `process_cube` / `multiperspective` (check if these are significant API surfaces or thin wrappers)
+
+---
+
+## 2026-06-14 — Iteration 4
+
+**Cluster:** `bpmn` module — richest undocumented refusal surface (8 named laws)
+
+**Triple:**
+- **Doc:** `src/bpmn.rs` rustdoc (complete with IS/IS-NOT/graduation + per-fn doctests)
+- **Example:** `examples/bpmn_process_shape.rs` — exercises `BpmnTask`, `BpmnGateway` ×5, `BpmnEvent` ×4, `BpmnNode` ×3 constructors, `BpmnEdge`, `BpmnProcess::validate()` (valid + 5 named refusals triggered directly), all 8 `BpmnRefusal` Display names, `BpmnLane`, `BpmnPool::validate()`, `LaneNodeNotDeclared`
+- **Link:** README.md and CLAUDE.md example tables updated
+
+**Run output (real exit code):**
+```
+=== All assertions passed — bpmn module is witnessed ===
+  Covered: BpmnTask, BpmnGateway × 5, BpmnEvent × 4, BpmnNode × 3 constructors,
+           BpmnEdge, BpmnProcess::validate, BpmnRefusal × 8 named laws,
+           BpmnLane, BpmnPool::validate, LaneNodeNotDeclared.
+  Witness: validate() returns exact named law per bad input; breaks on any rename.
+EXIT: 0
+```
+
+**Covered ✅:** `bpmn` module — documented-but-unexercised gap CLOSED.
+
+**Gap map update:**
+- `bpmn` → COVERED ✅
+- Remaining documented-but-unexercised: `models`, `streaming`, `process_cube`, `multiperspective`, `workflow`, `object_lifecycle`
+
+### Queued (next iterations)
+
+Priority 1 — `models` module: `PetriNet` structural metrics (`explain()`, `structural_unsoundness_score()`, `is_structural_workflow_net()`) — these are the only structural metrics in the crate that derive from the graph itself
+Priority 2 — Cross-product example: `OcelLog` → `Dfg` (shape) + `ConformanceResult` — compose OCEL admission, DFG construction, and conformance verdict into a single pipeline witness
+Priority 3 — `streaming` module (StreamingConformance, EventWindow)
+Priority 4 — `process_cube` / `multiperspective`
