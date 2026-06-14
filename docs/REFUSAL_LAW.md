@@ -166,3 +166,7 @@ fails to compile. This is the trybuild proof that the law is sealed.
 must offer a refusal path with a specific named reason.* A boundary that can only
 ever say "yes" — or that says "no" with `InvalidInput` — fails this diagnostic and
 is not considered a well-formed compat surface.
+
+---
+
+**See also:** [`WITNESS_IMMUTABILITY.md`](WITNESS_IMMUTABILITY.md) — the companion type-level law: an admitted witness `W` is fixed for the value's lifetime, so a new authority requires a new named admission, never a relabeled value.

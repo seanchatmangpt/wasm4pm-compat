@@ -169,3 +169,5 @@ here becomes a checked obligation there.
 
 Structure first. Execution after. The lattice keeps the boundary honest until
 then.
+
+**See also:** [`WITNESS_IMMUTABILITY.md`](WITNESS_IMMUTABILITY.md) — once admitted under a witness `W`, that `W` is fixed in the type for the value's lifetime; there is no re-admission to a different authority.
