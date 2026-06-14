@@ -37,3 +37,24 @@ fn corpus_is_non_empty() {
         ALL_WITNESS_KEYS.len()
     );
 }
+
+#[test]
+fn affidavit_receipt_chain_key_is_corpus_tracked() {
+    // Durability guard for the hand-authored `AffidavitReceiptChain` witness.
+    //
+    // That witness is declared in `src/witness.rs` (hand-authored) and is NOT in
+    // any ggen TTL, so a future `ggen sync --rule witness-corpus` would silently
+    // DROP its key from ALL_WITNESS_KEYS — quietly weakening the compile-time
+    // uniqueness proof for that key. This test makes that drop a loud CI failure
+    // instead of a silent regression.
+    //
+    // Fix on failure: re-add `"affidavit-receipt-chain"` to the corpus (or add an
+    // AffidavitReceiptChain WitnessMarker to the witness TTL the corpus query
+    // reads), then `ggen sync --rule witness-corpus`.
+    assert!(
+        ALL_WITNESS_KEYS.contains(&"affidavit-receipt-chain"),
+        "the hand-authored AffidavitReceiptChain witness key 'affidavit-receipt-chain' \
+         is missing from ALL_WITNESS_KEYS — a `ggen sync` likely dropped it because the \
+         witness is not in any TTL. Re-add it so the KEY-uniqueness proof still covers it."
+    );
+}

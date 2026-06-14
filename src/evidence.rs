@@ -104,6 +104,12 @@ pub struct RefusedEvidence<T> {
     pub code: u32,
 }
 
+// The private `_seal` field is the non-forgeability mechanism (see its doc
+// below), NOT an accidental near-`#[non_exhaustive]`. `#[non_exhaustive]` would
+// not reproduce the E0451 "field `_seal` is private" receipt the
+// `evidence_admitted_struct_literal_forgery` fixture asserts, and it still
+// permits struct-literal construction within this crate. Keep the private field.
+#[allow(clippy::manual_non_exhaustive)]
 pub struct Evidence<T, State: EvidenceState, W> {
     /// The underlying evidence shape.
     pub value: T,

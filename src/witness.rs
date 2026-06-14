@@ -716,6 +716,25 @@ witness_marker!(
     "Time Perspective (Mannhardt et al. 2016)",
     Some(2016)
 );
+
+witness_marker!(
+    /// Affidavit Receipt Chain — structurally lawful AND BLAKE3-chain-sealed.
+    ///
+    /// Names the authority under which an affidavit `Receipt` is admitted: its
+    /// events are structurally lawful AND its rolling BLAKE3 `chain_hash` was
+    /// recomputed at the admission boundary and matched byte-for-byte. Reuses
+    /// [`WitnessFamily::Paper`] (same family as the receipt-shape witness).
+    /// Distinct from `ReceiptFamily`: this witness asserts the chain was
+    /// *checked*, not merely that the value is receipt-shaped.
+    ///
+    /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`
+    /// for cryptographic replay verification and witness execution.
+    AffidavitReceiptChain,
+    "affidavit-receipt-chain",
+    WitnessFamily::Paper,
+    "Affidavit Receipt Chain Law",
+    None
+);
 /*
  * IMPLEMENTATION: Witness Lattice (Join-Semilattice)
  * Enforces Axiom 2: Monotonic Witness progression.

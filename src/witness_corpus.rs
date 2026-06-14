@@ -24,6 +24,7 @@
 /// Every witness key in the corpus, sorted. One entry per `compat:WitnessMarker`
 /// across all category modules.
 pub const ALL_WITNESS_KEYS: &[&str] = &[
+    "affidavit-receipt-chain",
     "ai-llm/aamodt-plaza-1994-cbr",
     "ai-llm/agent-based-post-irradiation-cell-digital-twin",
     "ai-llm/agent-centric-os-review",

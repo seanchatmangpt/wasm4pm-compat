@@ -239,3 +239,214 @@ pub trait Admit {
         raw: Evidence<Self::Raw, Raw, Self::Witness>,
     ) -> Result<Admission<Self::Admitted, Self::Witness>, Refusal<Self::Reason, Self::Witness>>;
 }
+
+/// The named law a chain recompute can violate: the recomputed BLAKE3 chain
+/// digest did not equal the digest the receipt claims.
+///
+/// A *specific named* reason (never "InvalidInput"). An external `SealingAdmit`
+/// impl MAY instead name its own `Self::Reason`; this type is provided so the
+/// shared [`recompute_and_match`] seam can refuse without forcing the consumer
+/// to define one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChainHashMismatch;
+
+/// Crate-internal sealed proof that a chain digest was recomputed and matched.
+///
+/// The private `_seal` field makes struct-literal construction a compile error
+/// (`E0451`) outside this crate, so a `ChainProof` can only be obtained from
+/// [`recompute_and_match`], which mints it *after* a successful digest
+/// comparison. It is the gate that makes [`RuntimeSeal`] unforgeable while
+/// still being mintable by an external consumer through a verified flow.
+pub struct ChainProof {
+    _seal: (),
+}
+
+/// Recomputes a receipt's chain digest with a consumer-supplied rule and, on a
+/// byte-for-byte match against the claimed digest, mints a [`ChainProof`].
+///
+/// `chain_rule` is supplied **by the consumer** (e.g. affidavit's
+/// genesis-seeded rolling BLAKE3 fold over its `OperationEvent` bytes), so the
+/// chain law stays in the consumer crate and is never copied into this crate.
+/// This is the public seam that lets an *external* `SealingAdmit` impl produce
+/// a [`RuntimeSeal`] without crate-internal access.
+///
+/// Structure-only: it compares digests; it does not cryptographically verify
+/// provenance. Graduate to `wasm4pm` for replay verification.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::admission::recompute_and_match;
+/// use wasm4pm_compat::receipt::Digest;
+///
+/// let claimed = Digest::new("blake3:abc");
+/// // Consumer supplies its own chain rule; here a trivial stub.
+/// let proof = recompute_and_match("events", &claimed, |_e| Digest::new("blake3:abc"));
+/// assert!(proof.is_ok());
+/// let bad = recompute_and_match("events", &claimed, |_e| Digest::new("blake3:zzz"));
+/// assert!(bad.is_err());
+/// ```
+#[inline]
+pub fn recompute_and_match<E, F>(
+    events: E,
+    claimed: &crate::receipt::Digest,
+    chain_rule: F,
+) -> Result<ChainProof, Refusal<ChainHashMismatch, ()>>
+where
+    F: FnOnce(E) -> crate::receipt::Digest,
+{
+    let recomputed = chain_rule(events);
+    if &recomputed == claimed {
+        Ok(ChainProof { _seal: () })
+    } else {
+        Err(Refusal::new(ChainHashMismatch))
+    }
+}
+
+/// A runtime sealing value — a BLAKE3 chain digest locked at admission time.
+///
+/// **Value-level**, not a const-generic: a BLAKE3 hash is runtime data and
+/// cannot appear in a const-generic position. Non-forgeability is the
+/// [`crate::petri::SeparableWfNet`] `_seal` idiom: the inner `hash` field is
+/// private, so a `RuntimeSeal` can only be minted through a verified flow —
+/// either the public [`RuntimeSeal::from_verified_chain`] (which consumes a
+/// [`ChainProof`] minted by [`recompute_and_match`]) or, in-crate, via
+/// [`RuntimeSeal::from_chain`].
+///
+/// Structure-only: it records *that a chain digest was computed and matched*,
+/// not that any cryptographic authority verified it. Graduate to `wasm4pm`.
+#[derive(Clone)]
+pub struct RuntimeSeal {
+    hash: crate::receipt::Digest,
+}
+
+impl RuntimeSeal {
+    /// Mints a seal from a recomputed-and-matched chain digest, gated by a
+    /// [`ChainProof`]. **Public** so an external `SealingAdmit` impl can mint a
+    /// seal through the verified [`recompute_and_match`] flow without
+    /// crate-internal access. Total in `proof`: you cannot call it without a
+    /// `ChainProof`, which only `recompute_and_match` mints.
+    #[inline]
+    pub fn from_verified_chain(hash: crate::receipt::Digest, proof: ChainProof) -> Self {
+        let ChainProof { _seal: () } = proof;
+        RuntimeSeal { hash }
+    }
+
+    /// Crate-internal mint for in-crate admission flows.
+    #[inline]
+    #[allow(dead_code)] // reserved: in-crate SealingAdmit flows not yet in this crate
+    pub(crate) fn from_chain(hash: crate::receipt::Digest) -> Self {
+        RuntimeSeal { hash }
+    }
+
+    /// Borrows the sealed digest (e.g. to compare two seals for determinism).
+    #[inline]
+    pub fn digest(&self) -> &crate::receipt::Digest {
+        &self.hash
+    }
+}
+
+/// A value admitted **with a runtime seal** locked in at the boundary.
+///
+/// Parallel to [`Admission`], but additionally carries a private
+/// [`RuntimeSeal`]. The private `seal` field makes struct-literal construction
+/// a compile error outside this crate (`E0451`). Combined with the private
+/// `_seal` field on [`Evidence`] itself, the only way to reach
+/// [`crate::state::Admitted`] evidence for a chain-sealed witness is via
+/// [`SealedAdmission::into_evidence`], which requires a `SealedAdmission`,
+/// which requires a [`RuntimeSeal`], which requires a [`ChainProof`].
+///
+/// Structure-only; graduate to `wasm4pm` for engine-level verification.
+pub struct SealedAdmission<T, W> {
+    /// The admitted, sealed value.
+    pub value: T,
+    seal: RuntimeSeal,
+    witness: PhantomData<W>,
+}
+
+impl<T, W> SealedAdmission<T, W> {
+    /// Mints a sealed admission. The `seal` obligation cannot be sidestepped:
+    /// no other public constructor exists, and the private fields block
+    /// struct-literal forgery.
+    #[inline]
+    pub fn seal(value: T, seal: RuntimeSeal) -> Self {
+        SealedAdmission {
+            value,
+            seal,
+            witness: PhantomData,
+        }
+    }
+
+    /// Borrows the locked-in seal.
+    #[inline]
+    pub fn seal_ref(&self) -> &RuntimeSeal {
+        &self.seal
+    }
+
+    /// Seals the admission into [`crate::state::Admitted`] evidence — the only
+    /// public bridge from a sealed verdict to carried `Admitted` evidence for a
+    /// chain-sealed witness. Calls the unchanged pub(crate)
+    /// [`Evidence::sealed`] primitive.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::admission::{recompute_and_match, RuntimeSeal, SealedAdmission};
+    /// use wasm4pm_compat::receipt::Digest;
+    /// use wasm4pm_compat::witness::AffidavitReceiptChain;
+    ///
+    /// let claimed = Digest::new("blake3:abc");
+    /// let proof = recompute_and_match("events", &claimed, |_e| Digest::new("blake3:abc")).unwrap();
+    /// let seal = RuntimeSeal::from_verified_chain(claimed, proof);
+    /// let sealed: SealedAdmission<&str, AffidavitReceiptChain> =
+    ///     SealedAdmission::seal("receipt", seal);
+    /// // The seal obligation is total; `Evidence::sealed` stays pub(crate).
+    /// let admitted = sealed.into_evidence();
+    /// let _ = admitted.into_receipted();
+    /// ```
+    #[inline]
+    pub fn into_evidence(self) -> Evidence<T, crate::state::Admitted, W> {
+        Evidence::sealed(self.value)
+    }
+}
+
+impl<T: core::fmt::Debug, W> core::fmt::Debug for SealedAdmission<T, W> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SealedAdmission")
+            .field("value", &self.value)
+            .finish()
+    }
+}
+
+/// The chain-sealing boundary seam — **beside** [`Admit`], never replacing it.
+///
+/// A `SealingAdmit` impl judges raw evidence AND threads a runtime
+/// [`RuntimeSeal`] (a recomputed BLAKE3 chain digest) into the verdict. The
+/// existing [`Admit`] trait, and its trybuild receipts, are untouched. An
+/// external consumer implements it by calling [`recompute_and_match`] with its
+/// own chain rule, then [`RuntimeSeal::from_verified_chain`], then
+/// [`SealedAdmission::seal`].
+///
+/// Structure-only: an impl recomputes and matches the chain digest; it does
+/// not cryptographically verify provenance. Graduate to `wasm4pm` for that.
+pub trait SealingAdmit {
+    /// The raw shape arriving at this boundary.
+    type Raw;
+    /// The sealed shape produced on success.
+    type Sealed;
+    /// The *named* refusal reason produced on failure (never "InvalidInput").
+    type Reason;
+    /// The authority this boundary judges against.
+    type Witness;
+
+    /// Judges `raw`, recomputes its chain digest, and on a match returns a
+    /// [`SealedAdmission`] carrying the locked-in [`RuntimeSeal`]; on any named
+    /// law violation returns a [`Refusal`].
+    #[allow(clippy::type_complexity)]
+    fn admit_sealed(
+        raw: Evidence<Self::Raw, Raw, Self::Witness>,
+    ) -> Result<
+        SealedAdmission<Self::Sealed, Self::Witness>,
+        Refusal<Self::Reason, Self::Witness>,
+    >;
+}

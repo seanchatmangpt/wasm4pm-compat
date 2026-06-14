@@ -23,6 +23,14 @@ note: required by a bound in `Evidence`
    | pub struct Evidence<T, State: EvidenceState, W> {
    |                               ^^^^^^^^^^^^^ required by this bound in `Evidence`
 
+error: cannot construct `Evidence<u32, MyCustomStage, ()>` with struct literal syntax due to private fields
+  --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:14:29
+   |
+14 |     requires_evidence_state(Evidence::<u32, MyCustomStage, ()> {
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: ...and other private field `_seal` that was not provided
+
 error[E0277]: the trait bound `MyCustomStage: EvidenceState` is not satisfied
   --> tests/ui/compile_fail/evidence_state_token_not_evidencestate.rs:14:29
    |
