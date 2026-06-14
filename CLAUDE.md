@@ -225,6 +225,7 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `interop_boundary_grammar` | (none) | `Pm4pyShape` (7 tags), `FilterShape`, `SummaryShape`, `ConformanceTriple`, `ArtifactGrounding`, `InteropRefusal` (5 named laws), `check_filter_shape`, `OcelToXesProjection` + `XesToOcedProjection`, `FilterShapeConst<IS_OC>`, `GraduationCandidate` |
 | `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (6 kinds), `TypedLoopNode/XorNode/AndNode/SeqNode/OrNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
 | `ids_typed_identifiers` | (none) | `TypedId` sealed trait (`is_zero`, `raw_value`), `ObjectTypeName<K>` + `EventTypeName<K>` string-backed names, `id_of::<T>(raw)` phantom-typed constructor, `NewFromRaw`, `From`/`Into`/`FromStr` for all 8 id kinds |
+| `temporal_order_shapes` | (none) | `TemporalOrder` (4 variants, Display, Copy, Hash), `TemporalProfile<Trace>` zero-cost shape, `TemporalOrderWitness` + `SojournTimeWitness` markers, `TimeAwareEvidence<T,Order>` wrapper (new/into_inner, distinct types per Order context) |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — four-module pipeline composition |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |

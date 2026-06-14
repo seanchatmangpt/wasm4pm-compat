@@ -505,3 +505,59 @@ Priority 1 — `temporal` module: temporal ordering vocabulary
 Priority 2 — `diagnostic` module: minimal pub surface
 Priority 3 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
 Priority 4 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 11 — 2026-06-14
+
+**Triple 1: `temporal` module**
+
+### temporal_order_shapes.rs
+
+- **Doc:** `src/temporal.rs` — 5 pub items: `TemporalOrder`, `TemporalProfile<Trace>`, `TemporalOrderWitness`, `SojournTimeWitness`, `TimeAwareEvidence<T,Order>`
+- **Example:** `examples/temporal_order_shapes.rs` — TemporalOrder (4 variants × Display = "before"/"after"/"concurrent"/"unknown", Copy, Hash distinctness), TemporalProfile<MyTrace> (new/default/direct construction all zero-sized), TemporalOrderWitness + SojournTimeWitness (both zero-sized), TimeAwareEvidence (new/inner field/into_inner round-trip for u64 and String, size == size_of::<T>(), distinct types per Order context proven via fn overloading)
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== TemporalOrder: four variants ==
+  Before -> Display: "before"
+  After -> Display: "after"
+  Concurrent -> Display: "concurrent"
+  Unknown -> Display: "unknown"
+  All 4 variants hash distinctly: 4
+
+== TemporalProfile: structural shape marker ==
+  TemporalProfile<MyTrace>::new()     size: 0 bytes
+  TemporalProfile<MyTrace>::default() size: 0 bytes
+
+== TemporalOrderWitness + SojournTimeWitness: zero-cost markers ==
+  TemporalOrderWitness size : 0 bytes
+  SojournTimeWitness   size : 0 bytes
+
+== TimeAwareEvidence: temporal context wrapper ==
+  TimeAwareEvidence<u64, TemporalOrderWitness>::new(42).inner == 42
+  TimeAwareEvidence<String, SojournTimeWitness>::into_inner() == "hello"
+  TimeAwareEvidence<u64,_> size == size_of::<u64>(): 8 bytes
+
+  Order context enforced at type level:
+  TimeAwareEvidence<u64, TemporalOrderWitness> != TimeAwareEvidence<u64, SojournTimeWitness>
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `temporal` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `diagnostic` (2 pub items) — check src/diagnostic.rs for actual API
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+### Queued (next iterations)
+
+Priority 1 — `diagnostic` module: minimal pub surface
+Priority 2 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 3 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
