@@ -1,0 +1,67 @@
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/powl_composition_depth_exceeded.rs:9:12
+  |
+9 |     let _: PowlComposition<[&str; 1], { MAX_POWL_DEPTH + 1 }> = PowlComposition::new(["atom"]);
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `PowlComposition`
+ --> src/powl.rs
+  |
+  | pub struct PowlComposition<Inner, const DEPTH: usize>
+  |            --------------- required by a bound in this struct
+  | where
+  |     Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+  |                                           ^^^^^^ required by this bound in `PowlComposition`
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/powl_composition_depth_exceeded.rs:9:65
+  |
+9 |     let _: PowlComposition<[&str; 1], { MAX_POWL_DEPTH + 1 }> = PowlComposition::new(["atom"]);
+  |                                                                 ^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `PowlComposition`
+ --> src/powl.rs
+  |
+  | pub struct PowlComposition<Inner, const DEPTH: usize>
+  |            --------------- required by a bound in this struct
+  | where
+  |     Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+  |                                           ^^^^^^ required by this bound in `PowlComposition`
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/powl_composition_depth_exceeded.rs:9:65
+  |
+9 |     let _: PowlComposition<[&str; 1], { MAX_POWL_DEPTH + 1 }> = PowlComposition::new(["atom"]);
+  |                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `PowlComposition::<Inner, DEPTH>::new`
+ --> src/powl.rs
+  |
+  |     Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+  |                                           ^^^^^^ required by this bound in `PowlComposition::<Inner, DEPTH>::new`
+...
+  |     pub fn new(inner: Inner) -> Self {
+  |            --- required by a bound in this associated function
+
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/powl_composition_depth_exceeded.rs:9:65
+  |
+9 |     let _: PowlComposition<[&str; 1], { MAX_POWL_DEPTH + 1 }> = PowlComposition::new(["atom"]);
+  |                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `PowlComposition`
+ --> src/powl.rs
+  |
+  | pub struct PowlComposition<Inner, const DEPTH: usize>
+  |            --------------- required by a bound in this struct
+  | where
+  |     Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+  |                                           ^^^^^^ required by this bound in `PowlComposition`

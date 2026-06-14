@@ -421,6 +421,88 @@ where
     }
 }
 
+// ── Composition-depth ceiling (type-law surface) ─────────────────────────────
+
+/// The maximum lawful POWL composition nesting depth.
+///
+/// Paper: Kourani et al. (2026) §3 — the recursive POWL decomposition `P(M⁺, ≺)`
+/// nests operators (partial orders, choices, loops) to a bounded depth; this
+/// constant fixes the **structural ceiling** on that nesting.
+///
+/// ## What this IS
+///
+/// A compile-time ceiling. It is consumed only as a const-generic bound by
+/// [`PowlComposition`]; a composition whose declared `DEPTH` exceeds it does
+/// **not compile**.
+///
+/// ## What this is NOT
+///
+/// **Not** a runtime depth computation. Nothing here traverses a POWL value to
+/// measure how deeply it nests — that measurement graduates to the `wasm4pm`
+/// engine. The caller supplies `DEPTH` as a const parameter; this crate only
+/// certifies, at compile time, that the declared depth is within the ceiling.
+pub const MAX_POWL_DEPTH: usize = 8;
+
+/// A POWL composition whose nesting depth is encoded as a const generic.
+///
+/// `DEPTH` records the declared composition-nesting depth of the wrapped
+/// [`Inner`] shape. The `where` clause refuses, at compile time, any depth that
+/// exceeds [`MAX_POWL_DEPTH`]: `PowlComposition<_, 9>` does **not compile**.
+///
+/// ## Paper
+///
+/// Kourani et al. (2026) §3 — the recursive POWL decomposition nests operators
+/// to a bounded depth; this type makes that bound a compile-time law.
+///
+/// ## What this is NOT
+///
+/// Structure only. It does **not** traverse a POWL value to compute its depth —
+/// `DEPTH` is supplied by the caller, never derived. Depth *measurement* and any
+/// re-nesting / simplification graduate to `wasm4pm`.
+///
+/// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::powl::PowlComposition;
+/// // Depth at the ceiling (8) is lawful:
+/// let _: PowlComposition<[&str; 1], 8> = PowlComposition::new(["atom"]);
+/// ```
+///
+/// ```compile_fail
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
+/// use wasm4pm_compat::powl::PowlComposition;
+/// // Depth 9 exceeds MAX_POWL_DEPTH — compile error.
+/// let _: PowlComposition<[&str; 1], 9> = PowlComposition::new(["atom"]);
+/// ```
+pub struct PowlComposition<Inner, const DEPTH: usize>
+where
+    Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+{
+    /// The wrapped POWL shape at this composition depth, provided by the caller.
+    pub inner: Inner,
+}
+
+impl<Inner, const DEPTH: usize> PowlComposition<Inner, DEPTH>
+where
+    Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
+{
+    /// Constructs a `PowlComposition` — only possible when `DEPTH <= MAX_POWL_DEPTH`.
+    ///
+    /// Does not compute depth; `DEPTH` is the caller's declared const parameter.
+    ///
+    /// ```
+    /// # #![feature(generic_const_exprs)]
+    /// # #![allow(incomplete_features)]
+    /// use wasm4pm_compat::powl::PowlComposition;
+    /// let c: PowlComposition<[&str; 1], 8> = PowlComposition::new(["atom"]);
+    /// assert_eq!(c.inner[0], "atom");
+    /// ```
+    pub fn new(inner: Inner) -> Self {
+        PowlComposition { inner }
+    }
+}
+
 /// A directed precedence edge inside a [`PowlNodeKind::PartialOrder`].
 ///
 /// `from` must complete before `to` may start. This is a *structural* claim of
