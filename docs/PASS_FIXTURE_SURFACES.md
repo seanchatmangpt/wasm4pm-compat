@@ -3,7 +3,7 @@
 Indexes all compile-pass trybuild fixtures in `tests/ui/compile_pass/`, grouped by module.
 Each fixture proves a lawful construction compiles successfully — the open path through the type law.
 
-**Current count:** 406 compile-pass fixtures
+**Current count:** 413 compile-pass fixtures
 **Crown target:** >= 200 (already exceeded)
 
 ---
@@ -28,12 +28,13 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `bpmn_pool_lane` |
 | `bpmn_process_edge_shape` |
 
-### causal (2 fixtures)
+### causal (3 fixtures)
 
 | Fixture |
 |---------|
 | `causal_chain_typed` |
 | `causal_consistency_chain_shapes` |
+| `causal_consistency_verified_law` |
 
 ### compat / diagnostic (12 fixtures)
 
@@ -69,7 +70,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `condition_cell_8` |
 | `law_between01_zero_one` |
 
-### conformance (27 fixtures)
+### conformance (28 fixtures)
 
 | Fixture |
 |---------|
@@ -178,7 +179,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `formats_round_trip_claim_lossy_tolerant` |
 | `formats_round_trip_claim` |
 
-### graduation / interop (23 fixtures)
+### graduation / interop (30 fixtures)
 
 | Fixture |
 |---------|
@@ -213,7 +214,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `interop_xes_to_oced_projection_const` |
 | `interop_xes_to_oced_projection` |
 
-### ids (20 fixtures)
+### ids (23 fixtures)
 
 | Fixture |
 |---------|
@@ -250,7 +251,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `law_export_boundary_has_round_trip_fixture` |
 | `strict_export_boundary_with_fixture` |
 
-### loss (23 fixtures)
+### loss (34 fixtures)
 
 | Fixture |
 |---------|
@@ -319,7 +320,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `oc_declare_refusal_variants` |
 | `oc_declare_synchronized_scope` |
 
-### ocel (21 fixtures)
+### ocel (24 fixtures)
 
 | Fixture |
 |---------|
@@ -348,7 +349,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `ocel_typed_object_construction` |
 | `ocel_typed_object_tag_distinct` |
 
-### ocpq (20 fixtures)
+### ocpq (19 fixtures)
 
 | Fixture |
 |---------|
@@ -372,7 +373,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `ocpq_scoped_query` |
 | `ocpq_typed_relation` |
 
-### petri (24 fixtures)
+### petri (37 fixtures)
 
 | Fixture |
 |---------|
@@ -406,13 +407,15 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `separable_wfnet_marker` |
 | `wfnet_claim_sound_chain` |
 | `wfnet_claimed_state` |
+| `wfnet_attest_witnessed_is_forgeable` |
+| `wfnet_attested_via_const` |
 | `wfnet_construction_and_validate` |
 | `wfnet_query_trait` |
 | `wfnet_unknown_new` |
 | `wfnet_with_soundness_witness` |
 | `wfnet2powl_witness` |
 
-### powl (21 fixtures)
+### powl (23 fixtures)
 
 | Fixture |
 |---------|
@@ -436,6 +439,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `powl_process_tree_projectable` |
 | `powl_refusal_all_variants` |
 | `powl_refused_projection_named_law` |
+| `powl_composition_depth_ok` |
 | `powl_typed_loop_node_arity_2` |
 | `powl_wfnet2powl_witness` |
 
@@ -466,7 +470,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `process_cube_dimension_typed` |
 | `process_cube_shape` |
 
-### process_tree (25 fixtures)
+### process_tree (23 fixtures)
 
 | Fixture |
 |---------|
@@ -494,7 +498,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `process_tree_typed_xor_node` |
 | `process_tree_xor_admit_shape` |
 
-### receipt (22 fixtures)
+### receipt (25 fixtures)
 
 | Fixture |
 |---------|
@@ -547,12 +551,14 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 |---------|
 | `streaming_evidence_context_shapes` |
 
-### witness (17 fixtures)
+### witness (21 fixtures)
 
 | Fixture |
 |---------|
 | `witness_alignment_paper_marker` |
 | `witness_batch_non_interchangeable` |
+| `cocited_distinct_keys` |
+| `family_gated_const_param` |
 | `witness_declare_constraints_marker` |
 | `witness_inductive_miner_marker` |
 | `witness_log_skeleton_marker` |
@@ -568,6 +574,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `witness_wfnet_soundness_metadata` |
 | `witness_witness_family_variants` |
 | `witness_xes1849_marker` |
+| `witness_standard_authority_lawful` |
 | `witness_xes1849_metadata` |
 
 ### workflow / process patterns (2 fixtures)
@@ -577,7 +584,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `workflow_pattern_const_param` |
 | `process_cube_shape` |
 
-### xes (14 fixtures)
+### xes (13 fixtures)
 
 | Fixture |
 |---------|
@@ -621,4 +628,4 @@ A compile-pass fixture that fails to compile is a **defect** — the lawful path
 ## Crown Gate Reference
 
 Gate 3 of PAPERLAW_CROWN_ALIVE_004 requires >= 200 compile-pass fixtures.
-Current count: 406. Gate 3 is satisfied.
+Current count: 413. Gate 3 is satisfied.

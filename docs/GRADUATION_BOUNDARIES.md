@@ -1,5 +1,7 @@
 # Graduation Boundaries
 
+**Last Updated:** 2026-06-14
+
 > Structure-only. Nightly-always. No engines here.
 
 This document is the authoritative list of what **must graduate** to `wasm4pm`
@@ -34,7 +36,7 @@ not run any miner.
 | What stays here (shape) | What graduates (execution) |
 |---|---|
 | `petri::WfNetConst<SOUNDNESS>` — typed WF-net structure | Inductive Miner, Split Miner, Heuristic Miner |
-| `powl::ChoiceGraph`, `powl::PartialOrder` — POWL 2.0 shapes | POWL discovery from OCEL logs |
+| `powl::ChoiceGraph`, `powl::PartialOrder`, `powl::PowlComposition<Inner, DEPTH>` — POWL shapes | POWL discovery from OCEL logs |
 | `process_tree::TypedLoopNode<ARITY>` — process tree structure | Process tree induction |
 | `dfg::DirectlyFollowsGraph` — DFG structure | DFG frequency/time annotation and mining |
 

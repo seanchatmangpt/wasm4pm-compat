@@ -1,8 +1,15 @@
 # NIGHTLY_TYPE_LAW.md
 
+**Last verified: 2026-06-14** — 444 compile-fail receipts, 413 compile-pass receipts, 271 papers indexed, 37+ source modules.
+
 Paper-to-type-invariant-to-fixture crosswalk for `wasm4pm-compat`.
 
 Every row says: **which paper law** → **which type invariant** → **which compile-pass fixture proves it open** → **which compile-fail fixture seals it**.
+
+Nightly features required: `generic_const_exprs`, `adt_const_params`, `const_trait_impl`, `min_specialization`, `portable_simd`.
+Build tool: `cargo make` (never bare `cargo` for project targets).
+Features: `formats` (default), `strict`, `wasm4pm`.
+Engine logic (discovery, conformance, replay) does NOT belong here — it graduates to `wasm4pm`.
 
 ---
 
@@ -110,7 +117,7 @@ Every row says: **which paper law** → **which type invariant** → **which com
 
 | Paper | Type invariant | Pass fixture | Fail fixture |
 |---|---|---|---|
-| Kourani, Park & van der Aalst (2026) Definition 4.1 | `SeparableWfNet<S>` wraps `WfNetConst<S>` with a private seal; only constructible via `declare_separable()`; expresses separability precondition for POWL 2.0 conversion | `separable_wfnet_marker.rs` + `wfnet2powl_witness.rs` | **PARTIAL** — no compile-fail fixture yet; law is expressed structurally by the private seal |
+| Kourani, Park & van der Aalst (2026) Definition 4.1 | `SeparableWfNet<S>` wraps `WfNetConst<S>` with a private seal; only constructible via `declare_separable()`; expresses separability precondition for POWL 2.0 conversion | `separable_wfnet_marker.rs` + `wfnet2powl_witness.rs` | `separable_wfnet_forged.rs` |
 
 ---
 
@@ -120,7 +127,7 @@ Every row says: **which paper law** → **which type invariant** → **which com
 2. Add a type in the appropriate public module that encodes the invariant at the type level.
 3. Write a `compile_pass/` fixture proving the lawful path compiles.
 4. Write a `compile_fail/` fixture proving the unlawful path fails.
-5. Run `cargo test --test ui_tests` — trybuild generates the `.stderr` file.
+5. Run `cargo make alive` — trybuild generates the `.stderr` file.
 6. Verify the `.stderr` file contains the **intended law failure**, not an accidental import error or feature-flag miss.
 7. Add a row to this table.
 

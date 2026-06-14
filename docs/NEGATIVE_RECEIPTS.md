@@ -7,20 +7,23 @@ A compile-fail fixture is a **negative receipt**: it proves that the type system
 a structurally invalid construction. The law is sealed at compile time — no runtime check,
 no assertion, no test assertion.
 
-**Current count:** 196 compile-fail fixtures
+**Current count:** 222 compile-fail fixtures (as of 2026-06-14)
 **Crown target:** >= 160 (already exceeded)
 
 ---
 
 ## Index by Law Family
 
-### Admission / Evidence / State (14 fixtures)
+### Admission / Evidence / State (18 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
 | `admission_raw_state_not_admitted` | Raw evidence cannot be used where Admitted is required — the Admit::admit() path is the only sanctioned transition |
 | `admission_refusal_as_admission` | Refusal<R,W> cannot be passed where Admission<T,W> is required |
+| `admission_wrong_witness_lawful_path` | WitnessDiscrimination — Admission<T, Ocel20> produced via lawful Admit::admit() still enforces witness parameter; cannot be used as Admission<T, Xes1849> |
+| `admission_wrong_witness_ocel_as_xes` | WitnessDiscrimination — Admission<OcelLog, Ocel20> cannot be used as Admission<OcelLog, Xes1849> — different structural laws, incompatible witnesses |
 | `evidence_admitted_as_exportable` | Admitted evidence cannot be passed where Exportable is required — state tokens are non-interchangeable |
+| `evidence_admitted_struct_literal_forgery` | CarrierNonForgeabilityLaw — Evidence<T, Admitted, W> cannot be constructed via struct literal; private `_seal` field prevents forging Admitted evidence |
 | `evidence_double_advance` | Advancing already-admitted evidence is rejected — lifecycle is strictly one-way |
 | `evidence_exportable_as_receipted` | Exportable evidence cannot be passed where Receipted is required |
 | `evidence_parsed_as_admitted` | Parsed evidence cannot be passed where Admitted is required |
@@ -80,11 +83,12 @@ no assertion, no test assertion.
 | `prediction_next_activity_as_drift` | PredictionProblem<NextActivity> cannot be passed where DriftSignal type required |
 | `prediction_outcome_as_remaining_time` | PredictionProblem<OutcomeLabel> cannot be passed where RemainingTime required |
 
-### Correlation / Causal / Streaming (3 fixtures)
+### Correlation / Causal / Streaming (4 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
 | `causal_chain_length_mismatch` | CausalChain chains of different lengths are distinct types |
+| `causal_consistency_proof_forgery` | CausalConsistencyLaw — ConsistencyProof cannot be forged; external code cannot construct ConsistencyProof directly (private `_seal` field) |
 | `causal_net_input_as_output` | InputBinding<A,B> cannot be passed where OutputBinding required |
 | `correlation_schema_mismatch` | Different CorrelationSchemas produce incompatible logs |
 | `streaming_as_offline` | Online streaming evidence cannot be passed where offline evidence required |
@@ -117,15 +121,17 @@ no assertion, no test assertion.
 | `engine_creep_discovery_absent` | Process discovery execution is absent from wasm4pm-compat — engine creep rejected at type boundary |
 | `process_discovery_engine_absent` | ProcessDiscoveryEngine absent — no discovery execution exists in wasm4pm-compat |
 
-### Export Boundary / Formats (5 fixtures)
+### Export Boundary / Formats (7 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
 | `export_boundary_contradicts_witness` | ExportBoundaryConst<true,false> contradicts the boundary covenant |
 | `export_boundary_neither` | ExportBoundaryConst<false, false> satisfies no law |
 | `export_boundary_no_witness` | ExportBoundaryConst<false, true> lacks witness |
+| `format_kind_as_loss_policy` | FormatKind cannot be passed where LossPolicy is required — projection-policy-type-distinctness |
 | `formats_envelope_wrong_witness` | FormatEnvelope<Ocel20> cannot be passed where different witness required |
 | `formats_lossless_as_lossy` | FormatExport cannot be passed where LossyFormatExport is required |
+| `lossy_format_export_required_not_optional` | lossy-export-mandatory-report-type — accept_lossy_* requires LossyFormatExport, not FormatExport |
 
 ### Graduation (4 fixtures)
 
@@ -175,17 +181,23 @@ no assertion, no test assertion.
 | `object_lifecycle_skip_active` | Created object cannot be passed where Active is required — skip rejected |
 | `object_lifecycle_wrong_transition` | Lifecycle wrong transition order rejected |
 
-### Loss / Projection (8 fixtures)
+### Loss / Projection (16 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
 | `allow_named_missing_projection_name` | AllowNamedProjection path without a ProjectionName in the report |
 | `loss_chain_as_loss_report` | LossChain cannot be passed where LossReport is required |
 | `loss_policy_as_projection_name` | LossPolicy cannot be passed where ProjectionName is required |
+| `loss_policy_refuse_with_lossy_export` | projection-policy-consistency — RefuseLoss policy cannot be used with lossy export functions |
 | `loss_project_without_policy` | Lossy transformation that omits LossPolicy is a compile-time defect — Project trait enforces it |
 | `loss_report_is_lossless_bound` | LossReport::is_lossless() only available when Items: IsEmpty |
+| `loss_report_items_type_mismatch` | projection-loss-evidence-fidelity — LossReport<From, To, Items> items type must match expected type |
+| `loss_report_shape_mismatch_from` | projection-shape-fidelity — LossReport<From, To, Items> shape tags must be consistent |
 | `loss_without_report_on_allow_path` | Project impl returns unit on AllowLossWithReport path — LossReport required |
+| `named_loss_category_missing` | projection-loss-category-static — NamedLoss category cannot be dynamically constructed; label must be &'static str |
+| `named_loss_shape_mismatch` | loss-report-from-to-distinct — LossReport<From, To, NamedLoss> cannot be passed where LossReport<To, From, NamedLoss> is expected |
 | `projection_name_bare_str` | Bare &str rejected at accept_lossy boundary — ProjectionName newtype required |
+| `projection_name_string_lifetime` | projection-name-lifetime-binding — ProjectionName requires &'static str, not owned String |
 | `refuse_loss_path_emitting_report` | RefuseLoss path emitting a LossReport instead of a named reason — must be a refusal, not a report |
 
 ### Multi-perspective (1 fixture)
@@ -241,10 +253,19 @@ no assertion, no test assertion.
 | `ocpq_relation_predicate_wrong_type` | TypedRelationPredicate<E2O> wrong type — relation predicate law |
 | `ocpq_scope_open_as_closed` | ObjectScopeConst<{Open}> cannot be passed where ClosedScope required |
 
-### Petri Nets (15 fixtures)
+### Petri Nets (22 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
+| `cocited_self_citation` | CoCitationDistinctnessLaw — CoCitedKey<T, K1, K2> requires K1 != K2; self-citation violates the const string-equality law |
+| `e0425_private_arc_seal_trait` | ArcSealUnaccessibility — Sealed arc trait is in private mod arc_seal; external code cannot impl IsValidArc to forge invalid arcs (E0603) |
+| `e0425_private_node_marker_seal_trait` | NodeMarkerSealUnaccessibility — node_marker_seal module is private; external code cannot impl PlaceSeal to forge node markers (E0603) |
+| `e0425_private_wfnet_seal_constructor` | WfNetSealNonConstructibility — WfNetSeal type is private and has no public constructor |
+| `sealed_arc_seal_inaccessible` | ArcSealPrivacy — arc_seal module is private and inaccessible; sealed arc type-constructors prevent invalid arc forging (E0433) |
+| `sealed_node_marker_seal_inaccessible` | NodeMarkerSealPrivacy — node_marker_seal module is private and inaccessible; sealed marker traits prevent impl-leakage attacks (E0433) |
+| `sealed_wfnet_seal_inaccessible` | WfNetSealPrivacy — wfnet_seal module is private and inaccessible; WfNetSeal type is only constructible inside petri module (E0433) |
+| `wfnet_attest_witnessed_private` | WfNetForgeabilityHole — WfNet::attest_witnessed() is private to prevent forgery; triggers E0624 |
+| `wfnet_soundness_non-forgeable` | WfNetSoundnessNonForgeabilityLaw — WfNetConst<Witnessed> cannot be constructed via struct literal; private `_seal` field of private type wfnet_seal::WfNetSeal blocks soundness forgery |
 | `petri_arc_direction_confusion` | BipartiteArcConst<{PlaceToTransition}> direction cannot be confused with TransitionToPlace |
 | `petri_bipartite_arc_noncopy_weight` | BipartiteArcConst::weight() requires Weight: Copy — BipartiteArcNonCopyWeightLaw |
 | `petri_place_as_transition` | Place cannot be passed where Transition is required — structural law |
@@ -262,10 +283,11 @@ no assertion, no test assertion.
 | `wfnet2powl_precondition_rejected` | WfNet2PowlPreconditionLaw — plain WfNetConst does not satisfy SeparableWfNet precondition (Theorem 4.3) |
 | `wfnet2powl_wrong_source` | WfNet2PowlSourceLaw — bare PetriNet cannot enter WF-net→POWL gate; requires SeparableWfNet (Theorem 4.3) |
 
-### POWL (12 fixtures)
+### POWL (13 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
+| `powl_composition_depth_exceeded` | Kourani et al. (2026) §3 — PowlComposition<_, 9> violates DEPTH <= MAX_POWL_DEPTH (8); composition nesting depth law |
 | `powl_choice_used_as_loop` | PowlChoiceNode cannot be used where PowlLoopNode is required |
 | `powl_exceeds_tree_not_projectable` | ExceedsProcessTree cannot satisfy TreeProjectable |
 | `powl_irreducible_projected` | IrreduciblePowlSilentlyProjected — Irreducible cannot satisfy TreeProjectable |
@@ -277,6 +299,14 @@ no assertion, no test assertion.
 | `powl_process_tree_xor_arity_1` | TypedXorNode<_, 1> violates ARITY >= 2 — ProcessTreeWrongOperatorArity |
 | `powl_refused_projection_as_valid` | RefusedProjectionForwardedAsValid — RefusedProjection cannot satisfy TreeProjectable |
 | `powl_silent_tree_projection` | PowlTreeProjectionLaw — ExceedsProcessTree does not implement TreeProjectable (Kourani 2505.07052 §3) |
+
+### Parallel Workflow / Token Law (3 fixtures)
+
+| Fixture | Named law sealed |
+|---------|-----------------|
+| `complete_cancelled_branch` | Branch B is in Canceled state; complete_b() (which requires Running) is not defined — canceled branch cannot be completed |
+| `join_mismatched_states` | JoinPoint::join_success() on a workflow where Branch B is still Running instead of Completed — mismatched join state rejected |
+| `reuse_consumed_token` | Move semantics — ParallelWorkflow consumed by complete_a() cannot be reused; token consumed by value |
 
 ### Process Cube (1 fixture)
 
@@ -338,15 +368,17 @@ no assertion, no test assertion.
 | `xes_trace_as_log` | XesTrace cannot be passed where XesLog is required |
 | `xes_undeclared_extension_prefix_rejected` | UndeclaredExtensionPrefix — XES extension prefixes must be declared before use |
 
-### Witness Confusion (6 fixtures)
+### Witness Confusion (8 fixtures)
 
 | Fixture | Named law sealed |
 |---------|-----------------|
+| `family_gated_wrong_family` | FamilyGated const-param law — FamilyGated<{Standard}> sentinel cannot satisfy a Paper-gated boundary; WitnessFamily is an adt_const_params const generic |
 | `witness_declare_as_ocpq` | Evidence<T, Admitted, DeclareFamily> cannot be used where OCPQ witness required |
 | `witness_ocel_as_powl` | Evidence<T, Admitted, Ocel20> cannot be used where POWL witness required |
 | `witness_pm4py_as_pmax` | Evidence<T, Admitted, Pm4pyApiGrammar> cannot be used where Pmax witness required |
 | `witness_receipt_as_wasm4pm_bridge` | Evidence<T, Admitted, ReceiptFamily> cannot be used where Wasm4pmBridge witness required |
 | `witness_xes_as_wfnet` | Evidence<T, Admitted, Xes1849> cannot be used where WfNet witness required |
+| `witness_wrong_family_authority` | StandardWitness<W> requires W: StandardAuthority sealed to WitnessFamily::Standard witnesses; Paper-family witness cannot satisfy StandardAuthority |
 | `witness_yawl_as_inductive_miner` | Evidence<T, Admitted, YawlPaper> cannot be used where InductiveMiner witness required |
 
 ---
@@ -356,7 +388,7 @@ no assertion, no test assertion.
 Each fixture above has a corresponding `.stderr` file in `tests/ui/compile_fail/` containing
 the exact expected compiler diagnostic. This parity is enforced by `scripts/audit_trybuild_receipts.sh`.
 
-Current: 196 `.stderr` files. Crown Gate 5 requires `.rs count == .stderr count`.
+Current: 222 `.stderr` files. Crown Gate 5 requires `.rs count == .stderr count`.
 
 ---
 
@@ -377,7 +409,7 @@ like `test_failure_1.rs` or `invalid_construction.rs`.
 ## Crown Gate Status
 
 Gate 4 of PAPERLAW_CROWN_ALIVE_004 requires >= 160 compile-fail fixtures.
-Current count: 196. Gate 4 is satisfied.
+Current count: 222. Gate 4 is satisfied.
 
 Gate 5 requires `.rs count == .stderr count`.
-Both are 196. Gate 5 is satisfied.
+Both are 222. Gate 5 is satisfied.

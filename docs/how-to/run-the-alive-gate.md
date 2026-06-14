@@ -1,6 +1,6 @@
 # How-To: Running the ALIVE Gate (Trybuild Verification)
 
-This guide shows you how to run and manage the ALIVE Gate UI compilation test suite for `wasm4pm-compat` version `26.6.13`. 
+This guide shows you how to run and manage the ALIVE Gate UI compilation test suite for `wasm4pm-compat` version `26.6.14`. 
 
 ---
 
@@ -16,7 +16,7 @@ These fixtures serve as the formal **type-law receipts** for the migrated.
 
 ## Step 1: Execute the ALIVE Gate
 
-The gate currently covers **217 compile-fail** fixtures and **410 compile-pass** fixtures.
+The gate currently covers **222 compile-fail** fixtures and **413 compile-pass** fixtures.
 
 ```bash
 cargo make alive

@@ -1,6 +1,6 @@
 # How-To: Verifying the Crate and Resolving Test Failures
 
-This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` v26.6.13, and details how to resolve common trybuild mismatches.
+This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` v26.6.14, and details how to resolve common trybuild mismatches.
 
 **Always use `cargo make`.** Direct `cargo` invocations are reserved for running a single test by name. See `Makefile.toml` for the full recipe list.
 
@@ -45,7 +45,7 @@ If you see failures in `ocpq`, `petri`, or `xes`:
 
 ## 4. Type-Law Receipt Gate (ALIVE)
 
-The ALIVE gate runs 217 compile-fail fixtures and 410 compile-pass fixtures via trybuild:
+The ALIVE gate runs 220+ compile-fail fixtures and 411+ compile-pass fixtures via trybuild:
 
 ```bash
 cargo make alive

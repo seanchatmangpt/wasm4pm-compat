@@ -3,7 +3,7 @@
 Maps each type-law surface to its source module, compile-pass fixture(s), and compile-fail fixture(s).
 Each row is a complete receipt: law exists in source + pass proves lawful path open + fail proves unlawful path closed.
 
-Last updated: 2026-05-31 (crown sprint additions included)
+Last updated: 2026-06-14 (444 compile-fail, 413 compile-pass; prediction/streaming/causality/causal_net/diagnostic sections added; PowlComposition law added)
 
 ---
 
@@ -97,6 +97,7 @@ Last updated: 2026-05-31 (crown sprint additions included)
 | PowlChoiceNode and PowlLoopNode distinct | `src/powl.rs` | `powl_choice_node_kind_construction` | `powl_choice_used_as_loop` |
 | POWL loop arity == 2 | `src/powl.rs` | `powl_typed_loop_node_arity_2` | `powl_loop_arity_3` |
 | ProcessTreeXorNode arity >= 2 | `src/powl.rs` | `powl_process_tree_projectable` | `powl_process_tree_xor_arity_1` |
+| PowlComposition DEPTH <= MAX_POWL_DEPTH | `src/powl.rs` | `powl_composition_depth_ok` | `powl_composition_depth_exceeded` |
 
 ---
 
@@ -242,3 +243,53 @@ Last updated: 2026-05-31 (crown sprint additions included)
 | Ocel20 not substitutable for POWL | `src/witness.rs` | `witness_ocel20_marker` | `witness_ocel_as_powl` |
 | Xes1849 not substitutable for WfNetSoundnessPaper | `src/witness.rs` | `witness_xes1849_marker` | `witness_xes_as_wfnet` |
 | YawlPaper not substitutable for InductiveMiner | `src/witness.rs` | `witness_wfnet_soundness_marker` | `witness_yawl_as_inductive_miner` |
+
+---
+
+## Prediction
+
+| Law | Source module | Compile-pass fixture | Compile-fail fixture |
+|-----|--------------|---------------------|---------------------|
+| NextActivity target not substitutable for DriftSignal | `src/prediction.rs` | `prediction_next_activity_target` | `prediction_next_activity_as_drift` |
+| OutcomeLabel target not substitutable for RemainingTime | `src/prediction.rs` | `prediction_outcome_label_witness` | `prediction_outcome_as_remaining_time` |
+| PredictionHorizon variants are distinct shapes | `src/prediction.rs` | `prediction_horizon_all_variants`, `prediction_horizon_events`, `prediction_horizon_time_units`, `prediction_horizon_full_case` | — |
+| PredictionProblem carries target and horizon | `src/prediction.rs` | `prediction_problem_shape` | — |
+| PredictionRefusal carries named law | `src/prediction.rs` | `prediction_refusal_display` | — |
+| RiskScore witness binding sealed | `src/prediction.rs` | `prediction_risk_score_witness_binding` | — |
+| ComplianceConstraint is a distinct variant | `src/prediction.rs` | `prediction_compliance_constraint_variant` | — |
+
+---
+
+## Streaming
+
+| Law | Source module | Compile-pass fixture | Compile-fail fixture |
+|-----|--------------|---------------------|---------------------|
+| StreamingSource is not offline evidence | `src/streaming.rs` | `streaming_evidence_context_shapes` | `streaming_as_offline` |
+
+---
+
+## Causality / Causal Net
+
+| Law | Source module | Compile-pass fixture | Compile-fail fixture |
+|-----|--------------|---------------------|---------------------|
+| CausalLink direction is non-interchangeable (From ≠ To) | `src/causality.rs` | `causal_chain_typed`, `causal_consistency_chain_shapes` | `causal_net_input_as_output` |
+| CausalChain length mismatch rejected | `src/causality.rs` | `causal_consistency_verified_law` | `causal_chain_length_mismatch` |
+| CausalConsistencyProof is non-forgeable | `src/causality.rs` | `causal_consistency_verified_law` | `causal_consistency_proof_forgery` |
+
+---
+
+## Diagnostic
+
+| Law | Source module | Compile-pass fixture | Compile-fail fixture |
+|-----|--------------|---------------------|---------------------|
+| DiagnosticShape construction | `src/diagnostic.rs` | `diagnostic_shape_construction` | — |
+| Hidden flattening detected | `src/diagnostic.rs` | `diagnostic_hidden_flattening` | — |
+| Lossy projection without policy flagged | `src/diagnostic.rs` | `diagnostic_lossy_projection_without_policy` | — |
+| Missing receipt shape flagged | `src/diagnostic.rs` | `diagnostic_missing_receipt_shape` | — |
+| Missing refusal path flagged | `src/diagnostic.rs` | `diagnostic_missing_refusal_path` | — |
+| Missing round-trip fixture flagged | `src/diagnostic.rs` | `diagnostic_missing_round_trip_fixture` | — |
+| Missing witness flagged | `src/diagnostic.rs` | `diagnostic_missing_witness` | — |
+| Raw evidence exported flagged | `src/diagnostic.rs` | `diagnostic_raw_evidence_exported` | — |
+| Migration recommended diagnostic | `src/diagnostic.rs` | `diagnostic_migration_recommended` | — |
+| Unreachable primitive diagnostic | `src/diagnostic.rs` | `diagnostic_unreachable_primitive` | — |
+| DiagnosticSeverity variants | `src/diagnostic.rs` | `diagnostic_with_severity` | — |
