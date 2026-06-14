@@ -155,6 +155,14 @@ impl<T, W> Evidence<T, Raw, W> {
     }
 
     /// Alias for [`Self::raw`] — names the entry point as a boundary crossing.
+    ///
+    /// ```
+    /// use wasm4pm_compat::evidence::Evidence;
+    /// use wasm4pm_compat::state::Raw;
+    /// use wasm4pm_compat::witness::Ocel20;
+    /// let ev: Evidence<&str, Raw, Ocel20> = Evidence::from_boundary("ocel-bytes");
+    /// assert_eq!(*ev.inner(), "ocel-bytes");
+    /// ```
     #[inline]
     pub const fn from_boundary(value: T) -> Evidence<T, Raw, W> {
         Self::raw(value)

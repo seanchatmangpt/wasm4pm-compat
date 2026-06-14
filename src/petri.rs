@@ -246,6 +246,21 @@ impl PetriNet {
     pub fn arcs(&self) -> &[Arc] {
         &self.arcs
     }
+    /// The initial marking as a read-only, hash-backed view. Structure only:
+    /// it reads token counts; it fires no transition.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::{PetriNet, Place, Transition, Arc, Marking};
+    /// let net = PetriNet::new(
+    ///     [Place::new("p0"), Place::new("p1")],
+    ///     [Transition::new("t0", "fire")],
+    ///     [Arc::place_to_transition("p0", "t0"), Arc::transition_to_place("t0", "p1")],
+    ///     Marking::new([("p0".to_string(), 1)]),
+    /// );
+    /// let m = net.initial_marking();
+    /// assert_eq!(m.tokens_on("p0"), 1);
+    /// assert_eq!(m.tokens_on("p1"), 0); // unmarked place → 0
+    /// ```
     pub fn initial_marking(&self) -> RuntimeMarking<'_> {
         RuntimeMarking { net: self }
     }
@@ -515,6 +530,12 @@ pub struct CancellationRegion {
 
 impl CancellationRegion {
     /// Construct a cancellation region from an iterator of node ids.
+    ///
+    /// ```
+    /// use wasm4pm_compat::petri::CancellationRegion;
+    /// let region = CancellationRegion::new(["t1", "t2", "c3"]);
+    /// assert_eq!(region.members(), &["t1", "t2", "c3"]);
+    /// ```
     pub fn new<I, S>(members: I) -> Self
     where
         I: IntoIterator<Item = S>,
