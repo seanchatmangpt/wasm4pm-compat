@@ -408,7 +408,7 @@ pub const ALL_WITNESS_KEYS: &[&str] = &[
     "rdf/sigsparql-signals-first-class-kg",
     "rdf/slm-finetuning-shape-property-extraction",
     "rdf/smart-web-services-future",
-    "rdf/sparql-anything-facade-kg-construction",
+    "rdf/sparql-anything-f-acade-kg-construction",
     "rdf/sparql-n3-construct-rule-language",
     "rdf/spider4ssc-text-multi-query-sparql-cypher",
     "rdf/ta-g-t-subjectivity-table-text-rdf",
