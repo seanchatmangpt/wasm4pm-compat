@@ -35,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <a href="/examples" className="hover:text-zinc-100">examples</a>
             <a href="/witnesses" className="hover:text-zinc-100">witnesses</a>
             <a href="/schemas" className="hover:text-zinc-100">zod schemas</a>
+            <a href="/coverage" className="hover:text-zinc-100">coverage</a>
           </nav>
           <span className="ml-auto text-xs text-zinc-600 font-[family-name:var(--font-geist-mono)]">
             all data: live filesystem reads — no fixtures

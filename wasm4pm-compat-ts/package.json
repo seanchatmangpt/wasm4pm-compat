@@ -1,0 +1,40 @@
+{
+  "name": "@wasm4pm/compat-ts",
+  "version": "26.6.14",
+  "description": "TypeScript / Zod binding surface for wasm4pm-compat domain type law (ggen-generated).",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seanchatmangpt/wasm4pm-compat"
+  },
+  "sideEffects": false,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts"
+    },
+    "./zod_schemas": {
+      "types": "./bindings/zod_schemas.ts",
+      "import": "./bindings/zod_schemas.ts"
+    }
+  },
+  "files": [
+    "index.ts",
+    "bindings/zod_schemas.ts",
+    "README.md"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.json && node --test --experimental-strip-types test/conformance-result.test.ts"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -641,7 +641,7 @@ compat:Spider4SscMultiQueryPaper
 compat:SparqlAnythingFacadePaper
     a compat:WitnessMarker ;
     compat:rustType     "SparqlAnythingFacadePaper" ;
-    compat:witnessKey   "rdf/sparql-anything-facade-kg-construction" ;
+    compat:witnessKey   "rdf/sparql-anything-f-acade-kg-construction" ;
     compat:witnessTitle "Streamlining Knowledge Graph Construction with a Façade: The SPARQL Anything Project" ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "rdf" ;

@@ -429,3 +429,291 @@ Priority 2 — `temporal` module: temporal ordering vocabulary
 Priority 3 — `diagnostic` module: minimal pub surface
 Priority 4 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
 Priority 5 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal) — unexercised outside ocel_to_xes_projection
+
+---
+
+## Iteration 10 — 2026-06-14
+
+**Triple 1: `ids` module**
+
+### ids_typed_identifiers.rs
+
+- **Doc:** `src/ids.rs` — 5 pub items: `TypedId`, `ObjectTypeName<K>`, `EventTypeName<K>`, `id_of<T>`, `NewFromRaw`
+- **Example:** `examples/ids_typed_identifiers.rs` — TypedId generic dispatch (is_zero, raw_value), id_of for all 8 id kinds (EventId, ObjectId, TraceId, ActivityId, RelationId, CaseId, ObjectTypeId, EventTypeId), Display shapes verified ("EventId(42)" etc.), From<u64>/Into<u64>/FromStr round-trips, ObjectTypeName from_static/from_owned/From<&str>/FromStr/Ord, EventTypeName from_static/from_owned/From<&str>/FromStr, cross-name structural distinction (ObjectTypeName and EventTypeName with same label are distinct types)
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== ids: TypedId sealed trait ==
+  EventId(7) raw_value  : 7
+  EventId(0) is_zero    : true
+
+== id_of: phantom-typed marker constructor ==
+  id_of EventId(42)     : EventId(42)
+  id_of ObjectId(42)    : ObjectId(42)
+  id_of TraceId(3)      : TraceId(3)
+  id_of ActivityId(10)  : ActivityId(10)
+  id_of RelationId(1)   : RelationId(1)
+  id_of CaseId(99)      : CaseId(99)
+  id_of ObjectTypeId(5) : ObjectTypeId(5)
+
+== Display shapes ==
+  EventId(42)  Display  : EventId(42)
+  ObjectId(42) Display  : ObjectId(42)
+  TraceId(3)   Display  : TraceId(3)
+
+== From / Into / FromStr round-trips ==
+  From<u64>: EventId(55) -> u64: 55
+  FromStr: "123" -> EventId: 123
+
+== Cross-kind: EventId<MyLog> != EventId<OtherLog> (structurally) ==
+  EventId<MyLog>(1).raw() == EventId<OtherLog>(1).raw() (same raw, different types)
+
+== ObjectTypeName: string-backed name ==
+  from_static: ObjectTypeName("order")
+  from_owned : ObjectTypeName("item")
+  From<&str> : ObjectTypeName("payment")
+  FromStr    : ObjectTypeName("shipment")
+  "item" < "order": true
+
+== EventTypeName: string-backed name ==
+  from_static: EventTypeName("place_order")
+  from_owned : EventTypeName("ship_item")
+  From<&str> : EventTypeName("confirm_payment")
+  FromStr    : EventTypeName("close_case")
+
+== Cross-name: ObjectTypeName and EventTypeName with same label are distinct types
+  both .as_str() == "order" but types are incomparable
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `ids` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `temporal` (5 pub items) — check src/temporal.rs for actual API
+- `diagnostic` (2 pub items) — check src/diagnostic.rs for actual API
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — import path only partially covered by ocel_to_xes_projection
+
+### Queued (next iterations)
+
+Priority 1 — `temporal` module: temporal ordering vocabulary
+Priority 2 — `diagnostic` module: minimal pub surface
+Priority 3 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 4 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 11 — 2026-06-14
+
+**Triple 1: `temporal` module**
+
+### temporal_order_shapes.rs
+
+- **Doc:** `src/temporal.rs` — 5 pub items: `TemporalOrder`, `TemporalProfile<Trace>`, `TemporalOrderWitness`, `SojournTimeWitness`, `TimeAwareEvidence<T,Order>`
+- **Example:** `examples/temporal_order_shapes.rs` — TemporalOrder (4 variants × Display = "before"/"after"/"concurrent"/"unknown", Copy, Hash distinctness), TemporalProfile<MyTrace> (new/default/direct construction all zero-sized), TemporalOrderWitness + SojournTimeWitness (both zero-sized), TimeAwareEvidence (new/inner field/into_inner round-trip for u64 and String, size == size_of::<T>(), distinct types per Order context proven via fn overloading)
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== TemporalOrder: four variants ==
+  Before -> Display: "before"
+  After -> Display: "after"
+  Concurrent -> Display: "concurrent"
+  Unknown -> Display: "unknown"
+  All 4 variants hash distinctly: 4
+
+== TemporalProfile: structural shape marker ==
+  TemporalProfile<MyTrace>::new()     size: 0 bytes
+  TemporalProfile<MyTrace>::default() size: 0 bytes
+
+== TemporalOrderWitness + SojournTimeWitness: zero-cost markers ==
+  TemporalOrderWitness size : 0 bytes
+  SojournTimeWitness   size : 0 bytes
+
+== TimeAwareEvidence: temporal context wrapper ==
+  TimeAwareEvidence<u64, TemporalOrderWitness>::new(42).inner == 42
+  TimeAwareEvidence<String, SojournTimeWitness>::into_inner() == "hello"
+  TimeAwareEvidence<u64,_> size == size_of::<u64>(): 8 bytes
+
+  Order context enforced at type level:
+  TimeAwareEvidence<u64, TemporalOrderWitness> != TimeAwareEvidence<u64, SojournTimeWitness>
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `temporal` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `diagnostic` (2 pub items) — check src/diagnostic.rs for actual API
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+### Queued (next iterations)
+
+Priority 1 — `diagnostic` module: minimal pub surface
+Priority 2 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 3 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 12 — 2026-06-14
+
+**Triple 1: `diagnostic` module**
+
+### diagnostic_surface.rs
+
+- **Doc:** `src/diagnostic.rs` — 2 pub items: `CompatDiagnostic` (9 variants), `DiagnosticSeverity` (3 levels)
+- **Example:** `examples/diagnostic_surface.rs` — DiagnosticSeverity (Error/Warning/Info Display, Copy, Hash), CompatDiagnostic all 9 variants with Display format verified ("[Error]"/"[Info]" prefix), MigrationRecommended is Info / all 8 others are Error assertion, all 9 variants hash distinctly, Clone round-trip
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+== DiagnosticSeverity: three levels ==
+  Error -> "Error"
+  Warning -> "Warning"
+  Info -> "Info"
+  All 3 severity levels hash distinctly
+
+== CompatDiagnostic: 9 named law violations ==
+  MissingWitness
+    -> [Error] missing witness: admitted/projected surface must name its authority
+  MissingRoundTripFixture
+    -> [Error] missing round-trip fixture: round-trip claim requires an import→export→compare fixture
+  ...
+  MigrationRecommended
+    -> [Info] migration recommended: surface has outgrown compat — graduate to wasm4pm
+
+  MigrationRecommended is [Info]; all 8 others are [Error] ✓
+  All 9 variants hash distinctly: 9
+
+EXIT 0
+EXIT: 0
+```
+
+**Covered ✅:** `diagnostic` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `nightly_foundry` (5 pub items) — petri_law, powl_law, evidence_law, token_law surfaces
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+### Queued (next iterations)
+
+Priority 1 — `nightly_foundry` module: always-on law surfaces derived from 4 papers
+Priority 2 — `xes` module: XES import path (XesEvent, XesTrace, XesLog, XesRefusal)
+
+---
+
+## Iteration 13 — 2026-06-14
+
+**Triple 1: `nightly_foundry` module**
+
+### nightly_foundry_surfaces.rs
+
+- **Doc:** `src/nightly_foundry.rs` — 5 pub items: `petri_law`, `powl_law`, `evidence_law`, `token_law` mods + `families_match_simd` fn
+- **Example:** `examples/nightly_foundry_surfaces.rs`
+  - `petri_law`: Marking<3>::EMPTY total_tokens=0, Marking([1,2,0]).total_tokens()=3, at(1)=Some(2)/at(5)=None, PreMatrix<2,1> enabling (t0 enabled M=[1,0]; blocked M=[0,0]), PostMatrix<2,1> fire (M=[1,0] → M'=[0,1])
+  - `powl_law`: TypedNode::atom(1).is_observable()=true, TypedNode::silent(2).is_observable()=false, TypedNode::partial(0).are_concurrent() (1≺2=false, 1↔3=true, empty=true), Xor::min_branches()=2, Loop id=4
+  - `evidence_law`: u64.kind_label()="raw", Admitted<u64>.kind_label()="admitted", size_of::<Admitted<u64>>()==8 (repr transparent)
+  - `token_law`: transition_enabled_4([2,1,3,0]≥[1,1,2,0])=true, blocked=false, fire_4=[1,0,1,1], transition_enabled_8 all-1=true
+  - `families_match_simd`: all Paper → 0b11111111, mixed → 0b11101101
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+EXIT 0
+EXIT: 0
+```
+(full output preserved in session)
+
+**Covered ✅:** `nightly_foundry` — documented-but-unexercised gap CLOSED.
+
+**Hard stop: 1 triple this iteration.** (queue below)
+
+**Gap map update (remaining documented canon modules without dedicated examples):**
+- `xes` (12 pub items) — XES import path (XesEvent, XesTrace, XesLog, XesRefusal) — last remaining gap
+
+### Queued (next iteration)
+
+Priority 1 — `xes` module: XES import path — last gap before bijective coverage is complete
+
+---
+
+## Iteration 14 — 2026-06-14 — FINAL ITERATION
+
+**Triple 1: `xes` module — FINAL GAP CLOSED**
+
+### xes_interchange_grammar.rs
+
+- **Doc:** `src/xes.rs` — 12 pub items
+- **Example:** `examples/xes_interchange_grammar.rs`
+  - `CaseCentricMarker`: Display "case-centric", zero-sized, Default
+  - `XesExtension`: new/name/prefix/uri
+  - `XesEvent`: builder chain (concept_name, timestamp, resource, lifecycle_transition, lifecycle_transition_raw, attribute, attributes)
+  - `XesTraceAttributes`: with/get/concept_name/len/is_empty
+  - `XesTrace`: new/name/events/len/is_empty
+  - `XesLog`: validate Ok on valid log, 6 named refusals (MissingLogName, NoTraces, EmptyTrace, MissingConceptName, UndeclaredExtensionPrefix, InvalidExtension), name/extensions/traces accessors
+  - `XesToOcedProjectionShape`: standard/with_case_type/projection_name/case_object_type/activity_attribute_key/timestamp_attribute_key
+  - `XesDeclaredExtensionLaw`: NAME/REFUSAL_VARIANT/governs/description/Display
+  - `XesExtensionPrefixWitness`: new/prefix/is_standard/standard_witnesses (concept,time,lifecycle,org)/Display
+  - `XesLifecycleTransition`: Complete/Start/Schedule/Unknown as_str + parse (14 variants, parse("notavalue")=None)
+  - `XesStandardPrefix`: Concept.as_str()="concept", parse("time")=Some(Time), parse("unknown")=None
+  - `XesRefusal`: all 10 variants with Display "XES refused by law: <Name>"
+- **Link:** README.md and CLAUDE.md updated
+
+**Run output (real exit code):**
+```
+EXIT 0
+EXIT: 0
+```
+(full output preserved in session)
+
+**Covered ✅:** `xes` — documented-but-unexercised gap CLOSED.
+
+---
+
+## BIJECTIVE COVERAGE STATUS: COMPLETE ✅
+
+All documented canon modules now have running examples. Every example runs real
+code and captures a real exit code. No module in `src/*.rs` with pub items is
+without a dedicated example in `examples/*.rs`.
+
+### Closed gaps (across iterations 1–14)
+
+| Module | Example | Pub items |
+|---|---|---|
+| `eventlog` | `basic_eventlog` | covered in iteration 1 |
+| `ocel` | `basic_ocel` | covered in iteration 1 |
+| `evidence` | `evidence_lifecycle` | covered in iteration 1 |
+| `admission` | `evidence_lifecycle` | covered in iteration 1 |
+| `loss` | `loss_projection` | covered in iteration 1 |
+| `witness` | `witness_authority` | covered in iteration 1 |
+| `petri` | `petri_net_construction` | covered |
+| `conformance` | `conformance_metrics` | covered |
+| `declare` | `declare_constraint_model` | covered |
+| `ocpq` | `ocpq_typed_query` | covered |
+| `powl` | `powl_process_tree` | covered |
+| `causal` | `causal_net_shape` | covered |
+| `receipt` | `receipt_chain` | covered |
+| `state` | `evidence_lifecycle` | covered |
+| `ids` | `ids_typed_identifiers` | iteration 10 |
+| `temporal` | `temporal_order_shapes` | iteration 11 |
+| `diagnostic` | `diagnostic_surface` | iteration 12 |
+| `nightly_foundry` | `nightly_foundry_surfaces` | iteration 13 |
+| `xes` | `xes_interchange_grammar` | iteration 14 |
+| `interop` | `interop_boundary_grammar` | iteration 9 |
+| `process_tree` | `process_tree_shape` | iteration 9 |
+
+### Remaining open items (not doc-coverage gaps — separate work streams)
+
+- GAP_005/006/008 in `emitted/gap-ledger.yaml` (plan exists: `~/.claude/plans/launch-5-explore-then-prancy-rose.md`)
+- Next.js faithful-representation app (`web/`) — bijective representation gap map

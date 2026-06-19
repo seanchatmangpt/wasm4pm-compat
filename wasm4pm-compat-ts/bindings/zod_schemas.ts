@@ -269,7 +269,7 @@ export type Event = z.infer<typeof EventSchema>;
 export const EventLogSchema = z.object({
     
   
-  "attributes": z.record(z.string()),
+  "attributes": z.record(z.string(), z.string()),
 
   
   "traces": z.array(z.lazy(() => TraceSchema)),
@@ -782,7 +782,7 @@ export type Transition = z.infer<typeof TransitionSchema>;
 export const XesEventSchema = z.object({
     
   
-  "attributes": z.record(z.string()),
+  "attributes": z.record(z.string(), z.string()),
 
   
     

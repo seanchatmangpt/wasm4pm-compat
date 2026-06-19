@@ -1,0 +1,283 @@
+// Rendered from ggen/templates/wasm4pm-compat.wit.tera (FEATURES = formats+strict+wasm4pm, VERSION = 1.0.0).
+// Type-law boundary between wasm4pm-compat and the wasm4pm engine.
+// Hand-rendered: the .wit.tera template is not wired into any ggen manifest and
+// consumes an unbound `FEATURES` Tera variable, so it cannot be rendered by
+// `ggen sync`. See docs/WIT_RUNTIME.md for provenance and the build recipe.
+
+package wasm4pm:compat@1.0.0;
+
+interface types {
+  type event-id = string;
+  type object-id = string;
+  type trace-id = string;
+  type timestamp-ns = u64;
+  type witness-id = string;
+
+  enum lifecycle-state {
+    raw,
+    parsed,
+    admitted,
+    refused,
+    projected,
+    exportable,
+    receipted,
+  }
+
+  enum witness-family {
+    standard,
+    paper,
+    api-grammar,
+    rust-law,
+    internal-bridge,
+  }
+
+  record event {
+    id: event-id,
+    activity: string,
+    timestamp: timestamp-ns,
+    attributes: list<tuple<string, string>>,
+  }
+
+  record trace {
+    id: trace-id,
+    events: list<event>,
+    attributes: list<tuple<string, string>>,
+  }
+
+  record event-log-metadata {
+    version: string,
+    creator: string,
+    created: timestamp-ns,
+    resource-name: string,
+  }
+
+  record event-log {
+    events: list<event>,
+    traces: list<trace>,
+    metadata: event-log-metadata,
+  }
+
+  record ocel-event {
+    id: event-id,
+    activity: string,
+    timestamp: timestamp-ns,
+    omap: list<object-id>,
+    vmap: list<tuple<string, string>>,
+  }
+
+  record ocel-object {
+    id: object-id,
+    %type: string,
+    ovmap: list<tuple<string, string>>,
+  }
+
+  record event-to-object-link {
+    event-id: event-id,
+    object-id: object-id,
+    qualifier: option<string>,
+  }
+
+  record object-to-object-link {
+    source-id: object-id,
+    target-id: object-id,
+    %type: string,
+  }
+
+  record object-change {
+    timestamp: timestamp-ns,
+    object-id: object-id,
+    change-type: string,
+    values: list<tuple<string, string>>,
+  }
+
+  record ocel-log {
+    events: list<ocel-event>,
+    objects: list<ocel-object>,
+    e2o-links: list<event-to-object-link>,
+    o2o-links: list<object-to-object-link>,
+    object-changes: list<object-change>,
+  }
+
+  record xes-trace {
+    attributes: list<tuple<string, string>>,
+    events: list<event>,
+  }
+
+  record xes-metadata {
+    version: string,
+    producer: string,
+    created: timestamp-ns,
+  }
+
+  record xes-log {
+    traces: list<xes-trace>,
+    metadata: xes-metadata,
+  }
+
+  record loss-item {
+    item-type: string,
+    source-id: option<string>,
+    target-id: option<string>,
+    description: string,
+  }
+
+  record loss-report {
+    from-format: string,
+    to-format: string,
+    items-lost: list<loss-item>,
+    summary: string,
+  }
+
+  record allow-named-projection-policy {
+    name: string,
+  }
+
+  variant loss-policy {
+    refuse-loss,
+    allow-named-projection(allow-named-projection-policy),
+    allow-loss-with-report,
+  }
+
+  record process-boundary {
+    kind: string,
+    name: string,
+    has-witness: bool,
+    has-round-trip: bool,
+  }
+
+  record witness-info {
+    key: string,
+    family: string,
+    title: string,
+    year: option<u16>,
+  }
+
+  record metric {
+    kind: string,
+    numerator: u64,
+    denominator: u64,
+    notes: string,
+  }
+
+  record dangling-event-object-link-reason {
+    event-id: event-id,
+    object-id: object-id,
+    object-type: string,
+  }
+
+  record missing-final-marking-reason {
+    place-id: string,
+    state-id: string,
+  }
+
+  record invalid-petri-structure-reason {
+    violation: string,
+    element-id: string,
+  }
+
+  record circular-dependency-reason {
+    cycle: list<string>,
+  }
+
+  record hidden-process-mining-growth-reason {
+    discovered-elements: u32,
+    boundary-elements: u32,
+  }
+
+  record invalid-loss-policy-reason {
+    transformation: string,
+    policy-required: string,
+  }
+
+  record witness-mismatch-reason {
+    expected: witness-id,
+    found: witness-id,
+  }
+
+  variant refusal-reason {
+    dangling-event-object-link(dangling-event-object-link-reason),
+    missing-final-marking(missing-final-marking-reason),
+    invalid-petri-structure(invalid-petri-structure-reason),
+    circular-dependency(circular-dependency-reason),
+    hidden-process-mining-growth(hidden-process-mining-growth-reason),
+    invalid-loss-policy(invalid-loss-policy-reason),
+    witness-mismatch(witness-mismatch-reason),
+  }
+}
+
+interface admission {
+  use types.{event-log, ocel-log, xes-log, refusal-reason};
+
+  admit-event-log: func(raw: event-log) -> result<event-log, refusal-reason>;
+  admit-ocel-log: func(raw: ocel-log) -> result<ocel-log, refusal-reason>;
+  admit-xes-log: func(raw: xes-log) -> result<xes-log, refusal-reason>;
+}
+
+interface loss {
+  use types.{ocel-log, xes-log, loss-report, loss-policy, refusal-reason};
+
+  record dfg-edge {
+    %from: string,
+    to: string,
+    count: u32,
+  }
+
+  record dfg-model {
+    activities: list<string>,
+    edges: list<dfg-edge>,
+  }
+
+  record project-ocel-to-xes-result {
+    xes-log: xes-log,
+    report: loss-report,
+  }
+
+  record project-xes-to-dfg-result {
+    dfg: dfg-model,
+    report: loss-report,
+  }
+
+  project-ocel-to-xes: func(admitted: ocel-log, policy: loss-policy) -> result<project-ocel-to-xes-result, refusal-reason>;
+  project-xes-to-dfg: func(admitted: xes-log, policy: loss-policy) -> result<project-xes-to-dfg-result, refusal-reason>;
+}
+
+interface strict {
+  use types.{process-boundary};
+
+  variant strict-violation {
+    missing-witness-marker(string),
+    missing-loss-policy(string),
+    missing-round-trip(string),
+    hidden-process-mining-growth(string),
+  }
+
+  check-strict-boundary: func(boundary: process-boundary) -> result<bool, strict-violation>;
+}
+
+interface graduation {
+  use types.{event-log, refusal-reason};
+
+  record graduation-candidate {
+    kind: string,
+    is-grounded: bool,
+    reason: option<string>,
+  }
+
+  graduate-to-wasm4pm: func(admitted: event-log) -> result<graduation-candidate, refusal-reason>;
+}
+
+interface witness-metadata {
+  use types.{witness-id, witness-info};
+
+  get-witness-info: func(key: witness-id) -> option<witness-info>;
+  list-all-witnesses: func() -> list<witness-info>;
+}
+
+world compat-all {
+  export types;
+  export admission;
+  export loss;
+  export strict;
+  export graduation;
+  export witness-metadata;
+}

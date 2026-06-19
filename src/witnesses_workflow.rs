@@ -117,7 +117,7 @@ witness_marker!(
     SAirflowServerlessPaper,
     "workflow/sairflow-serverless-scheduler",
     WitnessFamily::Paper,
-    "sAirflow: Adopting Serverless in a Legacy Workflow Scheduler",
+    "sAirflow: Adopting Serverless in a Traditional Workflow Scheduler",
     None
 );
 

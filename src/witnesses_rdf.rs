@@ -673,7 +673,7 @@ witness_marker!(
 witness_marker!(
     /// SPARQL Anything: façade-based KG construction from heterogeneous data sources via SPARQL.
     SparqlAnythingFacadePaper,
-    "rdf/sparql-anything-facade-kg-construction",
+    "rdf/sparql-anything-f-acade-kg-construction",
     WitnessFamily::Paper,
     "Streamlining Knowledge Graph Construction with a Façade: The SPARQL Anything Project",
     None

@@ -137,7 +137,7 @@ compat:SAirflowServerlessPaper
     a compat:WitnessMarker ;
     compat:rustType     "SAirflowServerlessPaper" ;
     compat:witnessKey   "workflow/sairflow-serverless-scheduler" ;
-    compat:witnessTitle "sAirflow: Adopting Serverless in a Legacy Workflow Scheduler" ;
+    compat:witnessTitle "sAirflow: Adopting Serverless in a Traditional Workflow Scheduler" ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "workflow" ;
     compat:description  "sAirflow: serverless adaptation of Apache Airflow workflow scheduling architecture." .
