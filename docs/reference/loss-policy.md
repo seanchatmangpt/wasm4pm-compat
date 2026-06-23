@@ -1,6 +1,6 @@
 # Reference: Loss Policy & Report Specifications
 
-This document defines the technical specifications for the `LossPolicy` configurations and the resulting `LossReport` shapes in `wasm4pm-compat` version `26.6.14`.
+This document defines the technical specifications for the `LossPolicy` configurations and the resulting `LossReport` shapes in `wasm4pm-compat` version `26.6.23`.
 
 ---
 

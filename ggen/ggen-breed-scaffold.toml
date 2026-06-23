@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-compat-breed-scaffold"
-version = "26.6.9"
+version = "26.6.23"
 description = "Scaffold-only ggen manifest — generates stub .rs and fixture .json for NEW breeds only. Never invoke via `ggen sync`; use `just scaffold-breed <name>` which passes --filter."
 
 [ontology]

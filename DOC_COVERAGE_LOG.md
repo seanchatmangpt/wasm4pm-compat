@@ -54,7 +54,7 @@
 
 ### Triple closed this iteration
 
-**Capability cluster: SealingAdmit chain-sealing seam (v26.6.14)**
+**Capability cluster: SealingAdmit chain-sealing seam (v26.6.23)**
 
 | Part | Status |
 |---|---|

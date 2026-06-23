@@ -1,6 +1,6 @@
 # Roadmap
 
-## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.14)
+## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.23)
 
 Sealed/tagged. 217 compile-fail + 408 compile-pass receipts; 271-paper corpus
 (436 unique witness keys, compile-time uniqueness proof); MIRI clean (no UB);

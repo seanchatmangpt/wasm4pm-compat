@@ -1,6 +1,6 @@
 # Explanation: Decoupling Structure from Execution
 
-This document details the architectural rationale for the "structure-only" design of `wasm4pm-compat` version `26.6.14` and explains how it decouples data shapes from active process-mining engines like `wasm4pm`.
+This document details the architectural rationale for the "structure-only" design of `wasm4pm-compat` version `26.6.23` and explains how it decouples data shapes from active process-mining engines like `wasm4pm`.
 
 ---
 

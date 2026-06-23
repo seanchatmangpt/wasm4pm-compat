@@ -16,7 +16,7 @@ To compile the graduation traits and structures, enable the `wasm4pm` feature fl
 
 ```toml
 [dependencies]
-wasm4pm-compat = { version = "26.6.14", features = ["wasm4pm"] }
+wasm4pm-compat = { version = "26.6.23", features = ["wasm4pm"] }
 ```
 
 ---

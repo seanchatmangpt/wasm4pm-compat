@@ -55,6 +55,6 @@ family gating stays sealed-trait-based in `witness_law`.
 Exactly three public features: `formats`, `strict`, `wasm4pm`. Adding features is a breaking
 change. Removing features is a breaking change. This is a hard invariant, not a guideline.
 
-> **v26.6.14:** a brief fourth feature (`ts`, gating an optional `specta` runtime dependency)
+> **v26.6.23:** a brief fourth feature (`ts`, gating an optional `specta` runtime dependency)
 > was removed and the TypeScript/Zod surface extracted to the `wasm4pm-compat-ts` sidecar
 > crate, restoring both this invariant and the *no runtime dependencies* guarantee.

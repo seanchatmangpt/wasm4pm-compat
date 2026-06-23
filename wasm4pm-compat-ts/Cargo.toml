@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat-ts"
-version = "26.6.13"
+version = "26.6.23"
 edition = "2021"
 description = "TypeScript / Zod binding surface for wasm4pm-compat. Keeps specta and all TS tooling OUT of the structure-only core crate."
 license = "MIT OR Apache-2.0"
