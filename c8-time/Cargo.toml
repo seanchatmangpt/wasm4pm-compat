@@ -1,6 +1,6 @@
 [package]
 name = "c8-time"
-version = "26.6.9"
+version = "26.6.23"
 edition = "2021"
 description = "Vector clock (8 lanes) and monotonic timestamp primitives for market causality."
 license = "MIT OR Apache-2.0"

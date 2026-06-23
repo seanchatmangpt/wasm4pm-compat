@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-compat-witness-yield"
-version = "26.6.9"
+version = "26.6.23"
 description = "Witness-marker first-fruit yield — Day 3 EOD"
 authors = ["Sean Chatman"]
 license = "MIT"

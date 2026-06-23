@@ -1,6 +1,6 @@
 # How-To: Verifying the Crate and Resolving Test Failures
 
-This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` v26.6.14, and details how to resolve common trybuild mismatches.
+This guide provides step-by-step instructions for executing the full validation suite of `wasm4pm-compat` v26.6.23, and details how to resolve common trybuild mismatches.
 
 **Always use `cargo make`.** Direct `cargo` invocations are reserved for running a single test by name. See `Makefile.toml` for the full recipe list.
 

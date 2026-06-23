@@ -399,7 +399,7 @@ let chain = ReceiptChainConst::try_new("run-001", [a, b]).unwrap();
 assert_eq!(chain.arity(), 2);
 ```
 
-### Chain-sealing admission (`SealingAdmit` seam, v26.6.14)
+### Chain-sealing admission (`SealingAdmit` seam, v26.6.23)
 
 The `SealingAdmit` trait is a companion seam *beside* `Admit` — it threads a
 runtime [`RuntimeSeal`] (a recomputed BLAKE3 chain digest) into the verdict

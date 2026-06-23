@@ -5,7 +5,25 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
-## v26.6.13 — 271-paper corpus, durability hardening & authority enforcement (current)
+## v26.6.23 — Workspace unified versioning & documentation alignment (current)
+
+**Status:** ALIVE (CROWN target)
+**Date:** 2026-06-23
+
+### Summary
+
+Unified all workspace crates and configurations to version 26.6.23 for consistent ecosystem versioning and updated all user-facing documentation to reflect the current release. No new features or breaking changes in this release—purely a version synchronization and documentation refresh.
+
+### Changes
+
+- **All crates bumped to 26.6.23**: `wasm4pm-compat`, `wasm4pm-compat-ts`, `wasm4pm-compat-lsp`, `c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`.
+- **All ggen manifests synchronized**: `ggen/ggen.toml`, `ggen-witness.toml`, `ggen/ggen-breed-scaffold.toml`, `ggen/ggen-graduation.toml`, `ggen/ggen-minimal.toml`, `ggen/ggen_zod.toml`, `ggen/package.toml`.
+- **Documentation refresh**: README, QUICK_START, API_TOUR, ROADMAP, STABILITY, and all tutorials/references updated to v26.6.23.
+- **No behavioral changes**: This is a release-coordination update only.
+
+---
+
+## v26.6.13 — 271-paper corpus, durability hardening & authority enforcement
 
 **Status:** ALIVE (CROWN target)
 **Date:** 2026-06-13

@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-zod-gen"
-version = "26.6.9"
+version = "26.6.23"
 description = "Zod generation manifest"
 authors = ["Sean Chatman"]
 license = "MIT"

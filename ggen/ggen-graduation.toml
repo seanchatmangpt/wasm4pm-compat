@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-compat"
-version = "26.6.9"
+version = "26.6.23"
 description = "Post-handcoding substrate framework: type law renders everything"
 authors = ["Sean Chatman"]
 license = "MIT"
