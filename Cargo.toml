@@ -133,10 +133,16 @@ members = [
 ]
 exclude = [
     "target",
+    # C8 modules: independent workspaces with their own [workspace] roots.
+    "c8-time",
+    "c8-receipts",
+    "c8-instruments",
+    "c8-market",
+    "c8-adversary",
     # TS sidecar: own deps (specta) and release cadence — built standalone, not
     # as part of the core workspace.
     "wasm4pm-compat-ts",
-    # LSP: separate tool at its own version (26.6.9); its external `lsp-max`
+    # LSP: separate tool at its own version (26.6.23); its external `lsp-max`
     # dependency currently fails a naive workspace build (E0432). It does not
     # gate the core crate release — build it with `-p wasm4pm-compat-lsp`.
     "wasm4pm-compat-lsp",
