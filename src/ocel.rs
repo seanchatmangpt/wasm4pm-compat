@@ -18,7 +18,9 @@
 //! Structure only. Graduate to `wasm4pm` when an OCEL log must be *executed*.
 
 pub mod flatten;
+pub mod hoeg;
 pub mod intake;
+pub mod scope;
 pub mod validate;
 
 use chrono::{DateTime, FixedOffset};
@@ -807,15 +809,116 @@ impl OcelLog {
         }
         Ok(())
     }
+
+    /// Enforces the structural constraints for dynamic relationships (Gianola et al., 2026).
+    ///
+    /// Specifically checks Assumption 3 (exactly one reference object) and Assumption 5 (Locality Principle).
+    ///
+    /// # Gianola (2026) Example 4: The Locality Principle Violation
+    ///
+    /// If an employee `p2` is already a member of team `t1`, an event creating a new team `t2`
+    /// that includes `p2` forces an implicit deletion of `p2`'s relationship with `t1`. If the reference
+    /// object for the event is `t2` (a team), the implicit deletion of a relationship on `p2` (an employee)
+    /// violates the locality principle.
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{EventObjectLink, Object, OcelEvent, OcelLog, OcelRefusal};
+    ///
+    /// let log = OcelLog::new(
+    ///     [
+    ///         Object::new("t1", "team"),
+    ///         Object::new("t2", "team"),
+    ///         Object::new("p2", "employee")
+    ///     ],
+    ///     [
+    ///         OcelEvent::new("evt1", "create_team"), // Creates t1 with p2
+    ///         OcelEvent::new("evt2", "create_team")  // Creates t2 with p2 (violates locality!)
+    ///     ],
+    ///     [
+    ///         EventObjectLink::new("evt1", "t1"),
+    ///         EventObjectLink::new("evt1", "p2"),
+    ///         EventObjectLink::new("evt2", "t2"),
+    ///         EventObjectLink::new("evt2", "p2")
+    ///     ],
+    ///     [], []
+    /// );
+    ///
+    /// // The reference type for `create_team` is `team`.
+    /// // In evt2, t2 is the reference object. Adding p2 implicitly deletes (t1, p2),
+    /// // modifying relationships of an object other than the reference object!
+    /// let result = log.validate_gianola_2026_locality("team", "employee");
+    /// assert_eq!(result, Err(OcelRefusal::ViolatesLocalityPrinciple));
+    /// ```
+    pub fn validate_gianola_2026_locality(
+        &self,
+        reference_type: &str,
+        child_type: &str,
+    ) -> Result<(), OcelRefusal> {
+        let mut object_types: std::collections::HashMap<&str, &str> =
+            std::collections::HashMap::new();
+        for o in &self.objects {
+            object_types.insert(o.id.as_str(), o.object_type.as_str());
+        }
+
+        let mut child_to_parent: std::collections::HashMap<&str, &str> =
+            std::collections::HashMap::new();
+
+        for ev in &self.events {
+            let mut ref_objs = 0;
+            let mut current_ref = None;
+            let mut associated_children = Vec::new();
+
+            for link in &self.e2o_links {
+                if link.event_id == ev.id {
+                    let o_type = object_types.get(link.object_id.as_str()).unwrap_or(&"");
+                    if *o_type == reference_type {
+                        ref_objs += 1;
+                        current_ref = Some(link.object_id.as_str());
+                    } else if *o_type == child_type {
+                        associated_children.push(link.object_id.as_str());
+                    }
+                }
+            }
+
+            if ref_objs == 0 {
+                return Err(OcelRefusal::MissingReferenceObject);
+            }
+            if ref_objs > 1 {
+                return Err(OcelRefusal::MultipleReferenceObjects);
+            }
+
+            let parent = current_ref.unwrap();
+            for child in associated_children {
+                if let Some(old_parent) = child_to_parent.get(child) {
+                    if *old_parent != parent {
+                        // Implicit deletion detected! Violates Locality Principle.
+                        return Err(OcelRefusal::ViolatesLocalityPrinciple);
+                    }
+                }
+                child_to_parent.insert(child, parent);
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Named refusal variants for OCEL 2.0 log validation laws.
+///
+/// This explicitly incorporates the structural dynamic relationship constraints
+/// established in Gianola et al. (2026) "Detecting Dynamic Relationships in Object-Centric Event Logs".
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OcelRefusal {
     /// An event-to-object link references an object not present in the log.
     DanglingEventObjectLink,
     /// The log has no event-to-object links — violates object-centricity law.
     EmptyEventObjectLinks,
+    /// Violates Gianola (2026) Assumption 3: An event must have at least one reference object.
+    MissingReferenceObject,
+    /// Violates Gianola (2026) Assumption 3: An event has multiple reference objects.
+    MultipleReferenceObjects,
+    /// Violates Gianola (2026) Assumption 5 (Locality Principle):
+    /// An event implicitly modifies relationships of an object other than its reference object.
+    ViolatesLocalityPrinciple,
 }
 
 impl std::fmt::Display for OcelRefusal {
@@ -823,6 +926,9 @@ impl std::fmt::Display for OcelRefusal {
         match self {
             OcelRefusal::DanglingEventObjectLink => write!(f, "DanglingEventObjectLink"),
             OcelRefusal::EmptyEventObjectLinks => write!(f, "EmptyEventObjectLinks"),
+            OcelRefusal::MissingReferenceObject => write!(f, "MissingReferenceObject"),
+            OcelRefusal::MultipleReferenceObjects => write!(f, "MultipleReferenceObjects"),
+            OcelRefusal::ViolatesLocalityPrinciple => write!(f, "ViolatesLocalityPrinciple"),
         }
     }
 }

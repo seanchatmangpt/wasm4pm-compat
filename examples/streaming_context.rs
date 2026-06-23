@@ -64,8 +64,11 @@ fn main() {
     let evicted4 = window.push(40);
     assert_eq!(evicted4, Some(10), "4th push must evict first element 10");
     assert_eq!(window.count, 3, "count stays at window size");
-    println!("  push(40) evicts {} (oldest)  count still {}  ✓",
-        evicted4.unwrap(), window.count);
+    println!(
+        "  push(40) evicts {} (oldest)  count still {}  ✓",
+        evicted4.unwrap(),
+        window.count
+    );
 
     // Default is same as new()
     let w2: EventWindow<u8, 8> = EventWindow::default();
@@ -86,10 +89,14 @@ fn main() {
     };
     assert_eq!(confusion.current_timestamp, 1_700_000_200);
     assert_eq!(confusion.offending_timestamp, 1_700_000_100);
-    assert!(confusion.offending_timestamp < confusion.current_timestamp,
-        "temporal disorder: offending must precede current");
-    println!("  current={}  offending={}  (offending < current = temporal disorder)  ✓",
-        confusion.current_timestamp, confusion.offending_timestamp);
+    assert!(
+        confusion.offending_timestamp < confusion.current_timestamp,
+        "temporal disorder: offending must precede current"
+    );
+    println!(
+        "  current={}  offending={}  (offending < current = temporal disorder)  ✓",
+        confusion.current_timestamp, confusion.offending_timestamp
+    );
 
     println!("\n=== All assertions passed — streaming module is witnessed ===");
     println!("  Covered: OnlineEvidence, OfflineEvidence, ContextualEvidence,");

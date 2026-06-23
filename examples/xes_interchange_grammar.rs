@@ -15,9 +15,9 @@
 //!   - `XesRefusal` — 10 named structural laws + Display
 
 use wasm4pm_compat::xes::{
-    CaseCentricMarker, XesDeclaredExtensionLaw, XesEvent, XesExtension,
-    XesExtensionPrefixWitness, XesLifecycleTransition, XesLog, XesRefusal,
-    XesStandardPrefix, XesTrace, XesTraceAttributes, XesToOcedProjectionShape,
+    CaseCentricMarker, XesDeclaredExtensionLaw, XesEvent, XesExtension, XesExtensionPrefixWitness,
+    XesLifecycleTransition, XesLog, XesRefusal, XesStandardPrefix, XesToOcedProjectionShape,
+    XesTrace, XesTraceAttributes,
 };
 
 fn main() {
@@ -32,7 +32,11 @@ fn main() {
 
     // ── XesExtension ─────────────────────────────────────────────────────────
     println!("\n== XesExtension ==");
-    let ext = XesExtension::new("Concept", "concept", "http://xes-standard.org/concept.xesext");
+    let ext = XesExtension::new(
+        "Concept",
+        "concept",
+        "http://xes-standard.org/concept.xesext",
+    );
     assert_eq!(ext.name(), "Concept");
     assert_eq!(ext.prefix(), "concept");
     assert_eq!(ext.uri(), "http://xes-standard.org/concept.xesext");
@@ -51,7 +55,10 @@ fn main() {
     assert_eq!(ev.concept_name(), Some("place_order"));
     assert_eq!(ev.timestamp(), Some("2026-05-30T10:00:00Z"));
     assert_eq!(ev.resource(), Some("alice"));
-    assert_eq!(ev.lifecycle_transition(), Some(XesLifecycleTransition::Complete));
+    assert_eq!(
+        ev.lifecycle_transition(),
+        Some(XesLifecycleTransition::Complete)
+    );
     assert_eq!(ev.lifecycle_transition_raw(), Some("complete"));
     assert_eq!(ev.attribute("missing"), None);
     assert_eq!(ev.attributes().len(), 4);
@@ -88,7 +95,10 @@ fn main() {
     assert_eq!(trace.events()[0].concept_name(), Some("place_order"));
     println!("  name   : {}", trace.name());
     println!("  len    : {}", trace.len());
-    println!("  events[0].concept_name: {:?}", trace.events()[0].concept_name());
+    println!(
+        "  events[0].concept_name: {:?}",
+        trace.events()[0].concept_name()
+    );
 
     // ── XesLog — valid log ────────────────────────────────────────────────────
     println!("\n== XesLog: validate() ==");
@@ -120,7 +130,15 @@ fn main() {
     println!("\n== XesRefusal: 10 named laws ==");
 
     // MissingLogName
-    let r = XesLog::new("", [], [XesTrace::new("c", [XesEvent::new().with("concept:name","a")])]).validate();
+    let r = XesLog::new(
+        "",
+        [],
+        [XesTrace::new(
+            "c",
+            [XesEvent::new().with("concept:name", "a")],
+        )],
+    )
+    .validate();
     assert_eq!(r, Err(XesRefusal::MissingLogName));
 
     // NoTraces
@@ -136,13 +154,29 @@ fn main() {
     assert_eq!(r, Err(XesRefusal::MissingConceptName));
 
     // UndeclaredExtensionPrefix (using "foo:bar" without declaring "foo")
-    let r = XesLog::new("log", [],
-        [XesTrace::new("c", [XesEvent::new().with("concept:name","a").with("foo:bar","v")])]).validate();
+    let r = XesLog::new(
+        "log",
+        [],
+        [XesTrace::new(
+            "c",
+            [XesEvent::new()
+                .with("concept:name", "a")
+                .with("foo:bar", "v")],
+        )],
+    )
+    .validate();
     assert_eq!(r, Err(XesRefusal::UndeclaredExtensionPrefix));
 
     // InvalidExtension (empty prefix)
-    let r = XesLog::new("log", [XesExtension::new("X","","u")],
-        [XesTrace::new("c", [XesEvent::new().with("concept:name","a")])]).validate();
+    let r = XesLog::new(
+        "log",
+        [XesExtension::new("X", "", "u")],
+        [XesTrace::new(
+            "c",
+            [XesEvent::new().with("concept:name", "a")],
+        )],
+    )
+    .validate();
     assert_eq!(r, Err(XesRefusal::InvalidExtension));
 
     // XesRefusal Display: all start with "XES refused by law: "
@@ -174,19 +208,41 @@ fn main() {
     let custom = XesToOcedProjectionShape::with_case_type("order");
     assert_eq!(custom.case_object_type(), "order");
     println!("  standard projection_name   : {}", shape.projection_name());
-    println!("  standard case_object_type  : {}", shape.case_object_type());
-    println!("  custom case_object_type    : {}", custom.case_object_type());
+    println!(
+        "  standard case_object_type  : {}",
+        shape.case_object_type()
+    );
+    println!(
+        "  custom case_object_type    : {}",
+        custom.case_object_type()
+    );
 
     // ── XesDeclaredExtensionLaw ────────────────────────────────────────────────
     println!("\n== XesDeclaredExtensionLaw ==");
-    assert_eq!(XesDeclaredExtensionLaw::NAME, "xes-declared-extension-prefix-law");
-    assert_eq!(XesDeclaredExtensionLaw::REFUSAL_VARIANT, "UndeclaredExtensionPrefix");
-    assert!(XesDeclaredExtensionLaw::governs(XesRefusal::UndeclaredExtensionPrefix));
-    assert!(!XesDeclaredExtensionLaw::governs(XesRefusal::MissingConceptName));
+    assert_eq!(
+        XesDeclaredExtensionLaw::NAME,
+        "xes-declared-extension-prefix-law"
+    );
+    assert_eq!(
+        XesDeclaredExtensionLaw::REFUSAL_VARIANT,
+        "UndeclaredExtensionPrefix"
+    );
+    assert!(XesDeclaredExtensionLaw::governs(
+        XesRefusal::UndeclaredExtensionPrefix
+    ));
+    assert!(!XesDeclaredExtensionLaw::governs(
+        XesRefusal::MissingConceptName
+    ));
     assert!(!XesDeclaredExtensionLaw::description().is_empty());
-    assert_eq!(format!("{}", XesDeclaredExtensionLaw), "law:xes-declared-extension-prefix-law");
+    assert_eq!(
+        format!("{}", XesDeclaredExtensionLaw),
+        "law:xes-declared-extension-prefix-law"
+    );
     println!("  NAME            : {}", XesDeclaredExtensionLaw::NAME);
-    println!("  governs UndeclaredExtensionPrefix: {}", XesDeclaredExtensionLaw::governs(XesRefusal::UndeclaredExtensionPrefix));
+    println!(
+        "  governs UndeclaredExtensionPrefix: {}",
+        XesDeclaredExtensionLaw::governs(XesRefusal::UndeclaredExtensionPrefix)
+    );
     println!("  Display         : {}", XesDeclaredExtensionLaw);
 
     // ── XesExtensionPrefixWitness ───────────────────────────────────────────
@@ -221,18 +277,39 @@ fn main() {
         assert_eq!(XesLifecycleTransition::parse(expected), Some(*lt));
     }
     assert_eq!(XesLifecycleTransition::parse("notavalue"), None);
-    println!("  Complete.as_str()     : \"{}\"", XesLifecycleTransition::Complete.as_str());
-    println!("  parse(\"start\")        : {:?}", XesLifecycleTransition::parse("start"));
-    println!("  parse(\"notavalue\")    : {:?}", XesLifecycleTransition::parse("notavalue"));
+    println!(
+        "  Complete.as_str()     : \"{}\"",
+        XesLifecycleTransition::Complete.as_str()
+    );
+    println!(
+        "  parse(\"start\")        : {:?}",
+        XesLifecycleTransition::parse("start")
+    );
+    println!(
+        "  parse(\"notavalue\")    : {:?}",
+        XesLifecycleTransition::parse("notavalue")
+    );
 
     // ── XesStandardPrefix ──────────────────────────────────────────────────────
     println!("\n== XesStandardPrefix ==");
     assert_eq!(XesStandardPrefix::Concept.as_str(), "concept");
-    assert_eq!(XesStandardPrefix::parse("time"), Some(XesStandardPrefix::Time));
+    assert_eq!(
+        XesStandardPrefix::parse("time"),
+        Some(XesStandardPrefix::Time)
+    );
     assert_eq!(XesStandardPrefix::parse("unknown"), None);
-    println!("  Concept.as_str() : \"{}\"", XesStandardPrefix::Concept.as_str());
-    println!("  parse(\"time\")    : {:?}", XesStandardPrefix::parse("time"));
-    println!("  parse(\"unknown\") : {:?}", XesStandardPrefix::parse("unknown"));
+    println!(
+        "  Concept.as_str() : \"{}\"",
+        XesStandardPrefix::Concept.as_str()
+    );
+    println!(
+        "  parse(\"time\")    : {:?}",
+        XesStandardPrefix::parse("time")
+    );
+    println!(
+        "  parse(\"unknown\") : {:?}",
+        XesStandardPrefix::parse("unknown")
+    );
 
     println!("\nEXIT 0");
 }

@@ -55,10 +55,8 @@ impl SealingAdmit for BundleAdmitter {
 
     fn admit_sealed(
         raw: Evidence<Self::Raw, Raw, Self::Witness>,
-    ) -> Result<
-        SealedAdmission<Self::Sealed, Self::Witness>,
-        Refusal<Self::Reason, Self::Witness>,
-    > {
+    ) -> Result<SealedAdmission<Self::Sealed, Self::Witness>, Refusal<Self::Reason, Self::Witness>>
+    {
         let bundle = raw.value;
 
         // Structural law: payload must not be empty.
@@ -69,16 +67,16 @@ impl SealingAdmit for BundleAdmitter {
         // Chain law: consumer's BLAKE3 fold recomputed from the payload bytes.
         // The fold stays in this consumer; compat never sees the algorithm.
         let claimed = bundle.chain_hash.clone();
-        let proof = recompute_and_match(
-            bundle.payload.as_bytes(),
-            &claimed,
-            |bytes| {
-                // Simulate the consumer's fold: blake3 hash of the raw bytes.
-                let hash = blake3::hash(bytes);
-                Digest::new(format!("blake3:{}", hash.to_hex()))
-            },
-        )
-        .map_err(|_| Refusal::new(BundleRefusal::ChainMismatch(wasm4pm_compat::admission::ChainHashMismatch)))?;
+        let proof = recompute_and_match(bundle.payload.as_bytes(), &claimed, |bytes| {
+            // Simulate the consumer's fold: blake3 hash of the raw bytes.
+            let hash = blake3::hash(bytes);
+            Digest::new(format!("blake3:{}", hash.to_hex()))
+        })
+        .map_err(|_| {
+            Refusal::new(BundleRefusal::ChainMismatch(
+                wasm4pm_compat::admission::ChainHashMismatch,
+            ))
+        })?;
 
         // Atomically lock the seal into the admission.
         let seal = RuntimeSeal::from_verified_chain(claimed, proof);
@@ -105,11 +103,15 @@ fn main() {
     println!("  ✓ recompute_and_match: matching digest → ChainProof minted");
 
     // Tampered claim: one-byte flip in the declared hash.
-    let tampered = Digest::new("blake3:0000000000000000000000000000000000000000000000000000000000000000");
+    let tampered =
+        Digest::new("blake3:0000000000000000000000000000000000000000000000000000000000000000");
     let bad_proof = recompute_and_match(payload, &tampered, |bytes| {
         Digest::new(format!("blake3:{}", blake3::hash(bytes).to_hex()))
     });
-    assert!(bad_proof.is_err(), "mismatch must produce ChainHashMismatch");
+    assert!(
+        bad_proof.is_err(),
+        "mismatch must produce ChainHashMismatch"
+    );
     println!("  ✓ tampered claim → named ChainHashMismatch refusal (not panic)");
 
     // ── Part 2: RuntimeSeal::from_verified_chain ─────────────────────────────
@@ -176,6 +178,8 @@ fn main() {
     println!("  ✓ wrong chain hash → BundleRefusal::ChainMismatch (named law)");
 
     println!("\n=== All assertions passed — SealingAdmit seam is witnessed ===");
-    println!("  Claims: recompute_and_match + ChainProof + RuntimeSeal + SealingAdmit + SealedAdmission");
+    println!(
+        "  Claims: recompute_and_match + ChainProof + RuntimeSeal + SealingAdmit + SealedAdmission"
+    );
     println!("  Witness: every assertion above; breaks if any claim regresses.");
 }

@@ -46,12 +46,9 @@ fn main() {
     let item_obj1 = OcelObject::new("item-1", "item");
     let item_obj2 = OcelObject::new("item-2", "item");
 
-    let place_event = OcelEvent::new("e1", "place_order")
-        .at_ns(1_700_000_000_000_000_000u64);
-    let pick_event = OcelEvent::new("e2", "pick_item")
-        .at_ns(1_700_000_100_000_000_000u64);
-    let ship_event = OcelEvent::new("e3", "ship_order")
-        .at_ns(1_700_000_200_000_000_000u64);
+    let place_event = OcelEvent::new("e1", "place_order").at_ns(1_700_000_000_000_000_000u64);
+    let pick_event = OcelEvent::new("e2", "pick_item").at_ns(1_700_000_100_000_000_000u64);
+    let ship_event = OcelEvent::new("e3", "ship_order").at_ns(1_700_000_200_000_000_000u64);
 
     // E2O links: each event → object association (law: empty E2O = OcelRefusal)
     let e2o = vec![
@@ -64,15 +61,19 @@ fn main() {
     let log = OcelLog::new(
         [order_obj, item_obj1, item_obj2],
         [place_event, pick_event, ship_event],
-        e2o,          // e2o_links
-        [],           // o2o_links
-        [],           // changes
+        e2o, // e2o_links
+        [],  // o2o_links
+        [],  // changes
     );
 
     let admission = log.validate();
     assert!(admission.is_ok(), "OCEL refused: {:?}", admission);
-    println!("  OcelLog: {} events, {} objects, {} e2o links  validate() → Ok  ✓",
-        log.events().len(), log.objects().len(), log.event_object_links().len());
+    println!(
+        "  OcelLog: {} events, {} objects, {} e2o links  validate() → Ok  ✓",
+        log.events().len(),
+        log.objects().len(),
+        log.event_object_links().len()
+    );
 
     // ── Stage 2: DFG shape assembly from OCEL structure ──────────────────────
     // The consumer builds DFG shapes by reading the OCEL structure.
@@ -85,16 +86,18 @@ fn main() {
         [DfgEdge::new("place_order", "ship_order", 1)],
     );
     assert!(order_dfg.validate().is_ok());
-    println!("  order DFG: {} nodes, {} edges  validate() → Ok  ✓",
-        order_dfg.nodes().len(), order_dfg.edges().len());
-
-    let item_dfg = Dfg::new(
-        [DfgNode::new("pick_item")],
-        [],
+    println!(
+        "  order DFG: {} nodes, {} edges  validate() → Ok  ✓",
+        order_dfg.nodes().len(),
+        order_dfg.edges().len()
     );
+
+    let item_dfg = Dfg::new([DfgNode::new("pick_item")], []);
     assert!(item_dfg.validate().is_ok());
-    println!("  item DFG: {} node, 0 edges  validate() → Ok  ✓",
-        item_dfg.nodes().len());
+    println!(
+        "  item DFG: {} node, 0 edges  validate() → Ok  ✓",
+        item_dfg.nodes().len()
+    );
 
     let oc_dfg = ObjectCentricDfg::new()
         .with_type_dfg("order", order_dfg)
@@ -110,10 +113,10 @@ fn main() {
     println!("\n--- Stage 3: ConformanceResult (held verdict) ---");
 
     let verdict = ConformanceResult::new(
-        0.95,  // fitness from external engine
-        3,     // total_traces (one per unique order object = 1, or per variant = 3)
-        3,     // fitting_traces
-        0,     // deviating_traces
+        0.95, // fitness from external engine
+        3,    // total_traces (one per unique order object = 1, or per variant = 3)
+        3,    // fitting_traces
+        0,    // deviating_traces
     )
     .with_precision(0.88)
     .with_generalization(0.75)
@@ -122,10 +125,12 @@ fn main() {
     assert_eq!(verdict.fitness, 0.95);
     assert_eq!(verdict.precision, Some(0.88));
     assert_eq!(verdict.conformance_rate(), 1.0); // 3/3 fitting
-    println!("  fitness={:.2}  precision={:.2}  conformance_rate={:.2}  ✓",
+    println!(
+        "  fitness={:.2}  precision={:.2}  conformance_rate={:.2}  ✓",
         verdict.fitness,
         verdict.precision.unwrap(),
-        verdict.conformance_rate());
+        verdict.conformance_rate()
+    );
 
     // NaN coercion — never panics
     let nan_v = ConformanceResult::new(0.0, 0, 0, 0).with_precision(f64::NAN);
@@ -155,13 +160,9 @@ fn main() {
     println!("  subject = {subject}");
 
     // Demonstrate try_from_parts refusal law (empty subject → MissingSubject)
-    use wasm4pm_compat::receipt::{ReceiptRefusal};
-    let bad = ReceiptEnvelope::try_from_parts(
-        "",
-        "witness",
-        Digest::new("d"),
-        ReplayHint::new("h"),
-    );
+    use wasm4pm_compat::receipt::ReceiptRefusal;
+    let bad =
+        ReceiptEnvelope::try_from_parts("", "witness", Digest::new("d"), ReplayHint::new("h"));
     assert_eq!(bad, Err(ReceiptRefusal::MissingSubject));
     println!("  empty subject → ReceiptRefusal::MissingSubject  ✓");
 

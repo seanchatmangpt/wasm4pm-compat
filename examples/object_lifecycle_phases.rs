@@ -19,8 +19,8 @@
 //! Doc reference: `src/object_lifecycle.rs`
 
 use wasm4pm_compat::object_lifecycle::{
-    ActiveObject, ArchivedObject, CreatedObject, DeletedObject, LifecycledObject,
-    ModifiedObject, ObjectLifecyclePhase, ObjectLifecycleWitness,
+    ActiveObject, ArchivedObject, CreatedObject, DeletedObject, LifecycledObject, ModifiedObject,
+    ObjectLifecyclePhase, ObjectLifecycleWitness,
 };
 
 fn main() {

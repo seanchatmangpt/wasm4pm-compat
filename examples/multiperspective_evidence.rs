@@ -36,9 +36,9 @@ fn main() {
 
     let perspectives = [
         (ProcessPerspective::ControlFlow, "control-flow"),
-        (ProcessPerspective::Data,        "data"),
-        (ProcessPerspective::Resource,    "resource"),
-        (ProcessPerspective::Time,        "time"),
+        (ProcessPerspective::Data, "data"),
+        (ProcessPerspective::Resource, "resource"),
+        (ProcessPerspective::Time, "time"),
     ];
     for (p, expected) in &perspectives {
         assert_eq!(format!("{p}"), *expected);
@@ -53,9 +53,9 @@ fn main() {
     struct EvidenceSlot<P>(PhantomData<P>);
 
     let _cf: EvidenceSlot<ControlFlowPerspective> = EvidenceSlot(PhantomData);
-    let _dp: EvidenceSlot<DataPerspective>        = EvidenceSlot(PhantomData);
-    let _rp: EvidenceSlot<ResourcePerspective>    = EvidenceSlot(PhantomData);
-    let _tp: EvidenceSlot<TimePerspective>        = EvidenceSlot(PhantomData);
+    let _dp: EvidenceSlot<DataPerspective> = EvidenceSlot(PhantomData);
+    let _rp: EvidenceSlot<ResourcePerspective> = EvidenceSlot(PhantomData);
+    let _tp: EvidenceSlot<TimePerspective> = EvidenceSlot(PhantomData);
     // Each is a different type — the compiler would reject substitution.
     println!("  ✓ ControlFlowPerspective, DataPerspective, ResourcePerspective, TimePerspective");
     println!("    are distinct zero-sized types");
@@ -84,10 +84,7 @@ fn main() {
     println!("  ✓ PerspectiveCombination<ControlFlow, Data>: inner = 100");
 
     // Three perspectives: nest two PerspectiveCombinations.
-    type FlowDataResource = PerspectiveCombination<
-        FlowAndData,
-        ResourcePerspective,
-    >;
+    type FlowDataResource = PerspectiveCombination<FlowAndData, ResourcePerspective>;
     let triple: MultiPerspectiveEvidence<&str, FlowDataResource> =
         MultiPerspectiveEvidence::new("three-perspective evidence");
     assert_eq!(triple.inner, "three-perspective evidence");
@@ -95,8 +92,7 @@ fn main() {
 
     // All four perspectives.
     type AllFour = PerspectiveCombination<FlowDataResource, TimePerspective>;
-    let full: MultiPerspectiveEvidence<bool, AllFour> =
-        MultiPerspectiveEvidence::new(true);
+    let full: MultiPerspectiveEvidence<bool, AllFour> = MultiPerspectiveEvidence::new(true);
     assert!(full.inner);
     println!("  ✓ All four perspectives combined: inner = true");
 

@@ -25,9 +25,7 @@ fn none_match_sets_no_bit() {
 fn mixed_sets_exactly_the_matching_lanes() {
     // Lanes 1 and 4 are Standard; the rest Paper. Matching Paper must clear
     // exactly bits 1 and 4 (to_bitmask: bit i ↔ lane i, LSB = lane 0).
-    let mixed = [
-        Paper, Standard, Paper, Paper, Standard, Paper, Paper, Paper,
-    ];
+    let mixed = [Paper, Standard, Paper, Paper, Standard, Paper, Paper, Paper];
     assert_eq!(families_match_simd(mixed, Paper), 0b1110_1101u8);
     // And the complementary query selects exactly the two Standard lanes.
     assert_eq!(families_match_simd(mixed, Standard), 0b0001_0010u8);

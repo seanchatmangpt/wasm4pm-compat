@@ -77,6 +77,9 @@ strict = []
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
 
+# bcinr_engine: Use the new branchless (CC=1) execution matrix for performance and determinism.
+bcinr_engine = []
+
 # NOTE (otel instrumentation — N/A for this crate): No `otel` feature and no
 # opentelemetry/tracing-opentelemetry dependency is added here. This crate is
 # structure-only compat/format glue — it admits external process-evidence

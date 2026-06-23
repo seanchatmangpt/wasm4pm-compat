@@ -54,14 +54,15 @@ fn main() {
 
     // ── 3. Valid Dfg ─────────────────────────────────────────────────────────
     println!("\n--- Dfg::validate (valid) ---");
-    let dfg = Dfg::new(
-        [register, review, approve],
-        [edge_rr, edge_ra],
-    );
+    let dfg = Dfg::new([register, review, approve], [edge_rr, edge_ra]);
     assert_eq!(dfg.nodes().len(), 3);
     assert_eq!(dfg.edges().len(), 2);
     let result = dfg.validate();
-    assert!(result.is_ok(), "valid DFG should not be refused: {:?}", result);
+    assert!(
+        result.is_ok(),
+        "valid DFG should not be refused: {:?}",
+        result
+    );
     println!(
         "  nodes={}  edges={}  validate() → Ok  ✓",
         dfg.nodes().len(),
@@ -82,12 +83,14 @@ fn main() {
     let dangling_dfg = Dfg::new([n_a], [dangling_edge]);
     let refusal2 = dangling_dfg.validate().unwrap_err();
     assert_eq!(refusal2, DfgRefusal::DanglingEdge);
-    println!("  edge referencing missing node → DfgRefusal::{}  ✓", refusal2);
+    println!(
+        "  edge referencing missing node → DfgRefusal::{}  ✓",
+        refusal2
+    );
 
     // ── 6. DfgEdgeFull — with optional duration ──────────────────────────────
     println!("\n--- DfgEdgeFull (with duration) ---");
-    let full_edge = DfgEdgeFull::new("submit", "validate", 17)
-        .with_duration_ns(1_500_000_000); // 1.5 seconds in nanoseconds
+    let full_edge = DfgEdgeFull::new("submit", "validate", 17).with_duration_ns(1_500_000_000); // 1.5 seconds in nanoseconds
     assert_eq!(full_edge.source(), "submit");
     assert_eq!(full_edge.target(), "validate");
     assert_eq!(full_edge.frequency().0, 17);
@@ -107,8 +110,15 @@ fn main() {
     // ── 7. ObjectCentricDfg — per-type DFG map ───────────────────────────────
     println!("\n--- ObjectCentricDfg ---");
     let order_dfg = Dfg::new(
-        [DfgNode::new("place"), DfgNode::new("pay"), DfgNode::new("ship")],
-        [DfgEdge::new("place", "pay", 100), DfgEdge::new("pay", "ship", 98)],
+        [
+            DfgNode::new("place"),
+            DfgNode::new("pay"),
+            DfgNode::new("ship"),
+        ],
+        [
+            DfgEdge::new("place", "pay", 100),
+            DfgEdge::new("pay", "ship", 98),
+        ],
     );
     let item_dfg = Dfg::new(
         [DfgNode::new("pick"), DfgNode::new("pack")],
@@ -126,7 +136,10 @@ fn main() {
 
     let order_graph = oc_dfg.get("order").expect("order type must exist");
     assert_eq!(order_graph.nodes().len(), 3);
-    println!("  get(\"order\").nodes().len() = {}  ✓", order_graph.nodes().len());
+    println!(
+        "  get(\"order\").nodes().len() = {}  ✓",
+        order_graph.nodes().len()
+    );
     assert!(oc_dfg.get("nonexistent").is_none());
     println!("  get(\"nonexistent\") = None  ✓");
 

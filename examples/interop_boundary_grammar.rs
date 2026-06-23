@@ -21,10 +21,10 @@
 //! Doc reference: `src/interop.rs`
 
 use wasm4pm_compat::interop::{
-    ArtifactGrounding, ConformanceTriple, FilterShape, FilterShapeConst, GraduationCandidate,
-    InteropRefusal, OcelShape, OcelToXesProjection, OcedShape, Pm4pyShape, SummaryShape,
-    XesShape, XesToOcedProjection, assert_filter_oc_compatible, check_filter_shape,
-    graduation_seal,
+    assert_filter_oc_compatible, check_filter_shape, graduation_seal, ArtifactGrounding,
+    ConformanceTriple, FilterShape, FilterShapeConst, GraduationCandidate, InteropRefusal,
+    OcedShape, OcelShape, OcelToXesProjection, Pm4pyShape, SummaryShape, XesShape,
+    XesToOcedProjection,
 };
 use wasm4pm_compat::loss::LossPolicy;
 
@@ -35,18 +35,26 @@ fn main() {
     println!("Part 1: Pm4pyShape tags and is_object_centric");
 
     let shapes = [
-        (Pm4pyShape::EventLog,           "event_log",    false),
-        (Pm4pyShape::ObjectCentricLog,   "ocel",         true),
-        (Pm4pyShape::PetriNet,           "petri_net",    false),
-        (Pm4pyShape::ProcessTree,        "process_tree", false),
-        (Pm4pyShape::Bpmn,               "bpmn",         false),
-        (Pm4pyShape::DirectlyFollowsGraph, "dfg",        false),
-        (Pm4pyShape::Declare,            "declare",      false),
+        (Pm4pyShape::EventLog, "event_log", false),
+        (Pm4pyShape::ObjectCentricLog, "ocel", true),
+        (Pm4pyShape::PetriNet, "petri_net", false),
+        (Pm4pyShape::ProcessTree, "process_tree", false),
+        (Pm4pyShape::Bpmn, "bpmn", false),
+        (Pm4pyShape::DirectlyFollowsGraph, "dfg", false),
+        (Pm4pyShape::Declare, "declare", false),
     ];
     for (shape, expected_tag, expected_oc) in &shapes {
         assert_eq!(shape.tag(), *expected_tag, "tag mismatch for {:?}", shape);
-        assert_eq!(shape.is_object_centric(), *expected_oc, "oc mismatch for {:?}", shape);
-        println!("  ✓ {:?}: tag={}, is_object_centric={}", shape, expected_tag, expected_oc);
+        assert_eq!(
+            shape.is_object_centric(),
+            *expected_oc,
+            "oc mismatch for {:?}",
+            shape
+        );
+        println!(
+            "  ✓ {:?}: tag={}, is_object_centric={}",
+            shape, expected_tag, expected_oc
+        );
     }
 
     // ── Part 2: FilterShape and SummaryShape ───────────────────────────────────
@@ -118,23 +126,41 @@ fn main() {
 
     // FlatClaimOverObjectCentric — OCEL admitted as flat
     let ocel_g = ArtifactGrounding::<()>::new(Pm4pyShape::ObjectCentricLog, "ocel:fixture-1");
-    assert_eq!(ocel_g.admit_flat(), Err(InteropRefusal::FlatClaimOverObjectCentric));
+    assert_eq!(
+        ocel_g.admit_flat(),
+        Err(InteropRefusal::FlatClaimOverObjectCentric)
+    );
     println!("  ✓ ObjectCentricLog via admit_flat() → FlatClaimOverObjectCentric");
 
     // ── Part 5: InteropRefusal — 5 named laws ─────────────────────────────────
     println!("\nPart 5: InteropRefusal named law strings");
 
     let refusals = [
-        (InteropRefusal::UngroundedArtifact,          "UngroundedArtifact"),
-        (InteropRefusal::FlatClaimOverObjectCentric,   "FlatClaimOverObjectCentric"),
-        (InteropRefusal::VacuousConformanceClaim,      "VacuousConformanceClaim"),
-        (InteropRefusal::DimensionShapeMismatch,       "DimensionShapeMismatch"),
-        (InteropRefusal::UnadmittedRawInterpretation,  "UnadmittedRawInterpretation"),
+        (InteropRefusal::UngroundedArtifact, "UngroundedArtifact"),
+        (
+            InteropRefusal::FlatClaimOverObjectCentric,
+            "FlatClaimOverObjectCentric",
+        ),
+        (
+            InteropRefusal::VacuousConformanceClaim,
+            "VacuousConformanceClaim",
+        ),
+        (
+            InteropRefusal::DimensionShapeMismatch,
+            "DimensionShapeMismatch",
+        ),
+        (
+            InteropRefusal::UnadmittedRawInterpretation,
+            "UnadmittedRawInterpretation",
+        ),
     ];
     for (r, expected_law) in &refusals {
         assert_eq!(r.law(), *expected_law, "law() mismatch");
         let displayed = format!("{r}");
-        assert!(displayed.contains(expected_law), "Display must contain law name");
+        assert!(
+            displayed.contains(expected_law),
+            "Display must contain law name"
+        );
         println!("  ✓ {}", expected_law);
     }
 
@@ -154,7 +180,10 @@ fn main() {
 
     let ocel_to_xes = OcelToXesProjection::new("order");
     assert_eq!(ocel_to_xes.case_type(), "order");
-    assert_eq!(ocel_to_xes.projection_name().as_str(), "ocel-flatten-to-xes:by-case-type");
+    assert_eq!(
+        ocel_to_xes.projection_name().as_str(),
+        "ocel-flatten-to-xes:by-case-type"
+    );
     let report = ocel_to_xes.clone().project(LossPolicy::AllowLossWithReport);
     assert!(report.is_ok());
     println!("  ✓ OcelToXesProjection: case_type=order, projection_name correct, project() ok");
@@ -167,7 +196,10 @@ fn main() {
 
     let xes_to_oced = XesToOcedProjection::new("order");
     assert_eq!(xes_to_oced.introduced_object_type(), "order");
-    assert_eq!(xes_to_oced.projection_name().as_str(), "xes-lift-to-oced:by-case-type");
+    assert_eq!(
+        xes_to_oced.projection_name().as_str(),
+        "xes-lift-to-oced:by-case-type"
+    );
     // RefuseLoss must refuse (lifting always has structural loss)
     let refused = xes_to_oced.clone().project(LossPolicy::RefuseLoss);
     assert!(refused.is_err());
@@ -209,7 +241,9 @@ fn main() {
     println!("           FilterShapeConst<IS_OC> + assert_filter_oc_compatible,");
     println!("           GraduationCandidate sealed trait.");
     println!("  Structure only — no PM4Py objects, no discovery, no replay.");
-    println!("  Graduate to wasm4pm for: filter execution, summary tallying, conformance measurement.");
+    println!(
+        "  Graduate to wasm4pm for: filter execution, summary tallying, conformance measurement."
+    );
 }
 
 // Required: Project impl for OcelToXesProjection needs the Project trait in scope.

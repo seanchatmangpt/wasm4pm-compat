@@ -20,9 +20,9 @@
 
 use wasm4pm_compat::law::ProcessTreeOperatorKind;
 use wasm4pm_compat::process_tree::{
-    ProcessTree, ProcessTreeNode, ProcessTreeNodeId, ProcessTreeOperator, ProcessTreeRefusal,
-    TypedAndNode, TypedLoopNode, TypedOrNode, TypedSeqNode, TypedXorNode,
-    operator_maximum_arity, operator_minimum_arity,
+    operator_maximum_arity, operator_minimum_arity, ProcessTree, ProcessTreeNode,
+    ProcessTreeNodeId, ProcessTreeOperator, ProcessTreeRefusal, TypedAndNode, TypedLoopNode,
+    TypedOrNode, TypedSeqNode, TypedXorNode,
 };
 
 fn main() {
@@ -33,17 +33,35 @@ fn main() {
 
     let cases = [
         (ProcessTreeOperatorKind::Sequence, 2, usize::MAX),
-        (ProcessTreeOperatorKind::Xor,      2, usize::MAX),
-        (ProcessTreeOperatorKind::Parallel,  2, usize::MAX),
-        (ProcessTreeOperatorKind::Loop,      2, 2),
-        (ProcessTreeOperatorKind::Silent,    0, 0),
-        (ProcessTreeOperatorKind::Or,        2, usize::MAX),
+        (ProcessTreeOperatorKind::Xor, 2, usize::MAX),
+        (ProcessTreeOperatorKind::Parallel, 2, usize::MAX),
+        (ProcessTreeOperatorKind::Loop, 2, 2),
+        (ProcessTreeOperatorKind::Silent, 0, 0),
+        (ProcessTreeOperatorKind::Or, 2, usize::MAX),
     ];
     for (kind, expected_min, expected_max) in &cases {
-        assert_eq!(operator_minimum_arity(*kind), *expected_min, "min arity {:?}", kind);
-        assert_eq!(operator_maximum_arity(*kind), *expected_max, "max arity {:?}", kind);
-        println!("  ✓ {:?}: min={}, max={}", kind, expected_min,
-            if *expected_max == usize::MAX { "∞".into() } else { expected_max.to_string() });
+        assert_eq!(
+            operator_minimum_arity(*kind),
+            *expected_min,
+            "min arity {:?}",
+            kind
+        );
+        assert_eq!(
+            operator_maximum_arity(*kind),
+            *expected_max,
+            "max arity {:?}",
+            kind
+        );
+        println!(
+            "  ✓ {:?}: min={}, max={}",
+            kind,
+            expected_min,
+            if *expected_max == usize::MAX {
+                "∞".into()
+            } else {
+                expected_max.to_string()
+            }
+        );
     }
 
     // ── Part 2: Typed operator nodes — compile-time arity law ─────────────────
@@ -52,12 +70,18 @@ fn main() {
     // TypedLoopNode: ARITY must == 2 (Leemans do-body + redo-branch)
     let loop_node: TypedLoopNode<[&str; 2], 2> = TypedLoopNode::new(["do-body", "redo-branch"]);
     assert_eq!(loop_node.children, ["do-body", "redo-branch"]);
-    println!("  ✓ TypedLoopNode<ARITY=2>: children={:?}", loop_node.children);
+    println!(
+        "  ✓ TypedLoopNode<ARITY=2>: children={:?}",
+        loop_node.children
+    );
 
     // TypedXorNode: ARITY must >= 2
     let xor_node: TypedXorNode<[&str; 3], 3> = TypedXorNode::new(["approve", "reject", "delegate"]);
     assert_eq!(xor_node.children.len(), 3);
-    println!("  ✓ TypedXorNode<ARITY=3>: {} branches", xor_node.children.len());
+    println!(
+        "  ✓ TypedXorNode<ARITY=3>: {} branches",
+        xor_node.children.len()
+    );
 
     // TypedAndNode: ARITY must >= 2
     let and_node: TypedAndNode<[&str; 2], 2> = TypedAndNode::new(["audit", "notify"]);
@@ -81,7 +105,10 @@ fn main() {
     let id1 = ProcessTreeNodeId(1);
     assert_eq!(id0.0, 0);
     assert!(id0 < id1);
-    assert_eq!(core::mem::size_of::<ProcessTreeNodeId>(), core::mem::size_of::<usize>());
+    assert_eq!(
+        core::mem::size_of::<ProcessTreeNodeId>(),
+        core::mem::size_of::<usize>()
+    );
     println!("  ✓ ProcessTreeNodeId(0) < ProcessTreeNodeId(1)");
     println!("  ✓ size_of::<ProcessTreeNodeId>() == size_of::<usize>() (zero-cost repr)");
 
@@ -92,12 +119,13 @@ fn main() {
     assert!(tree.root.is_none());
     assert_eq!(tree.node_count(), 0);
 
-    tree.nodes.push(ProcessTreeNode::Activity("register".into()));  // id 0
-    tree.nodes.push(ProcessTreeNode::Activity("close".into()));     // id 1
+    tree.nodes
+        .push(ProcessTreeNode::Activity("register".into())); // id 0
+    tree.nodes.push(ProcessTreeNode::Activity("close".into())); // id 1
     tree.nodes.push(ProcessTreeNode::Operator {
         operator: ProcessTreeOperator::Sequence,
         children: vec![ProcessTreeNodeId(0), ProcessTreeNodeId(1)],
-    });                                                              // id 2
+    }); // id 2
     tree.root = Some(ProcessTreeNodeId(2));
 
     assert_eq!(tree.node_count(), 3);
@@ -121,7 +149,10 @@ fn main() {
         children: vec![ProcessTreeNodeId(0), ProcessTreeNodeId(99)], // 99 doesn't exist
     });
     dangling.root = Some(ProcessTreeNodeId(1));
-    assert_eq!(dangling.admit_shape(), Err(ProcessTreeRefusal::DanglingNodeReference));
+    assert_eq!(
+        dangling.admit_shape(),
+        Err(ProcessTreeRefusal::DanglingNodeReference)
+    );
     println!("  ✓ child id 99 out of bounds → DanglingNodeReference");
 
     // TauLeafWithChildren — Silent with children
@@ -132,18 +163,26 @@ fn main() {
         children: vec![ProcessTreeNodeId(0)], // tau can't have children
     });
     tau_bad.root = Some(ProcessTreeNodeId(1));
-    assert_eq!(tau_bad.admit_shape(), Err(ProcessTreeRefusal::TauLeafWithChildren));
+    assert_eq!(
+        tau_bad.admit_shape(),
+        Err(ProcessTreeRefusal::TauLeafWithChildren)
+    );
     println!("  ✓ Silent with children → TauLeafWithChildren");
 
     // BelowMinimumArity — Sequence with 1 child
     let mut below_arity = ProcessTree::new();
-    below_arity.nodes.push(ProcessTreeNode::Activity("a".into()));
+    below_arity
+        .nodes
+        .push(ProcessTreeNode::Activity("a".into()));
     below_arity.nodes.push(ProcessTreeNode::Operator {
         operator: ProcessTreeOperator::Sequence,
         children: vec![ProcessTreeNodeId(0)], // needs >= 2
     });
     below_arity.root = Some(ProcessTreeNodeId(1));
-    assert_eq!(below_arity.admit_shape(), Err(ProcessTreeRefusal::BelowMinimumArity));
+    assert_eq!(
+        below_arity.admit_shape(),
+        Err(ProcessTreeRefusal::BelowMinimumArity)
+    );
     println!("  ✓ Sequence with 1 child → BelowMinimumArity");
 
     // InvalidArity — Loop with 3 children
@@ -153,10 +192,17 @@ fn main() {
     loop_bad.nodes.push(ProcessTreeNode::Activity("c".into()));
     loop_bad.nodes.push(ProcessTreeNode::Operator {
         operator: ProcessTreeOperator::Loop,
-        children: vec![ProcessTreeNodeId(0), ProcessTreeNodeId(1), ProcessTreeNodeId(2)],
+        children: vec![
+            ProcessTreeNodeId(0),
+            ProcessTreeNodeId(1),
+            ProcessTreeNodeId(2),
+        ],
     });
     loop_bad.root = Some(ProcessTreeNodeId(3));
-    assert_eq!(loop_bad.admit_shape(), Err(ProcessTreeRefusal::InvalidArity));
+    assert_eq!(
+        loop_bad.admit_shape(),
+        Err(ProcessTreeRefusal::InvalidArity)
+    );
     println!("  ✓ Loop with 3 children → InvalidArity");
 
     // Display strings contain the law name
@@ -173,7 +219,11 @@ fn main() {
     ];
     for r in refusals {
         let s = format!("{r}");
-        assert!(s.starts_with("process tree refused:"), "Display prefix wrong: {}", s);
+        assert!(
+            s.starts_with("process tree refused:"),
+            "Display prefix wrong: {}",
+            s
+        );
     }
     println!("  ✓ All 9 ProcessTreeRefusal variants have Display");
 

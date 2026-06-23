@@ -445,8 +445,5 @@ pub trait SealingAdmit {
     #[allow(clippy::type_complexity)]
     fn admit_sealed(
         raw: Evidence<Self::Raw, Raw, Self::Witness>,
-    ) -> Result<
-        SealedAdmission<Self::Sealed, Self::Witness>,
-        Refusal<Self::Reason, Self::Witness>,
-    >;
+    ) -> Result<SealedAdmission<Self::Sealed, Self::Witness>, Refusal<Self::Reason, Self::Witness>>;
 }

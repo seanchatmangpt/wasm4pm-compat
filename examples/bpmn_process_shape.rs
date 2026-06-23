@@ -47,13 +47,12 @@ fn main() {
 
     assert_eq!(register.id(), "register");
     assert_eq!(xor.id(), "gw1");
-    println!(
-        "  task id={} kind=BpmnTask  ✓",
-        register.id()
-    );
+    println!("  task id={} kind=BpmnTask  ✓", register.id());
     println!(
         "  gateway id={} (XOR), id={} (AND), id={} (Inclusive)  ✓",
-        xor.id(), and_split.id(), inclusive.id()
+        xor.id(),
+        and_split.id(),
+        inclusive.id()
     );
 
     // BpmnTask::name()
@@ -111,18 +110,12 @@ fn main() {
     println!("  DuplicateNodeId  ✓");
 
     // MissingStartEvent
-    let no_start = BpmnProcess::new(
-        [BpmnNode::event("e", BpmnEvent::End)],
-        [],
-    );
+    let no_start = BpmnProcess::new([BpmnNode::event("e", BpmnEvent::End)], []);
     assert_eq!(no_start.validate(), Err(BpmnRefusal::MissingStartEvent));
     println!("  MissingStartEvent  ✓");
 
     // MissingEndEvent
-    let no_end = BpmnProcess::new(
-        [BpmnNode::event("s", BpmnEvent::Start)],
-        [],
-    );
+    let no_end = BpmnProcess::new([BpmnNode::event("s", BpmnEvent::Start)], []);
     assert_eq!(no_end.validate(), Err(BpmnRefusal::MissingEndEvent));
     println!("  MissingEndEvent  ✓");
 
@@ -181,12 +174,17 @@ fn main() {
     assert!(pool_ok.is_ok(), "valid pool refused: {:?}", pool_ok);
     println!(
         "  BpmnPool id={} name=\"{}\" lanes={}  validate() → Ok  ✓",
-        pool.id(), pool.name(), pool.lanes().len()
+        pool.id(),
+        pool.name(),
+        pool.lanes().len()
     );
 
     // LaneNodeNotDeclared — lane references node not in the process
     let bad_process = BpmnProcess::new(
-        [BpmnNode::event("s", BpmnEvent::Start), BpmnNode::event("e", BpmnEvent::End)],
+        [
+            BpmnNode::event("s", BpmnEvent::Start),
+            BpmnNode::event("e", BpmnEvent::End),
+        ],
         [BpmnEdge::new("s", "e")],
     );
     let ghost_lane = BpmnLane::new("l2", "Ghost", ["undeclared_node"]);
@@ -198,7 +196,11 @@ fn main() {
     let edge = BpmnEdge::new("a", "b");
     assert_eq!(edge.source(), "a");
     assert_eq!(edge.target(), "b");
-    println!("\n  BpmnEdge source={} target={}  ✓", edge.source(), edge.target());
+    println!(
+        "\n  BpmnEdge source={} target={}  ✓",
+        edge.source(),
+        edge.target()
+    );
 
     println!("\n=== All assertions passed — bpmn module is witnessed ===");
     println!("  Covered: BpmnTask, BpmnGateway × 5, BpmnEvent × 4, BpmnNode × 3 constructors,");

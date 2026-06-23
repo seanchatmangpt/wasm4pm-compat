@@ -19,9 +19,8 @@
 //! Doc reference: `src/prediction.rs`, `docs/API_TOUR.md`
 
 use wasm4pm_compat::prediction::{
-    ComplianceKind, ComplianceTarget, DriftSignal, NextActivity, OutcomeLabel,
-    PredictionHorizon, PredictionProblem, PredictionRefusal, PredictionTarget,
-    PrefixTrace, RemainingTime, RiskScore,
+    ComplianceKind, ComplianceTarget, DriftSignal, NextActivity, OutcomeLabel, PredictionHorizon,
+    PredictionProblem, PredictionRefusal, PredictionTarget, PrefixTrace, RemainingTime, RiskScore,
 };
 
 fn main() {
@@ -48,12 +47,15 @@ fn main() {
     println!("\nPart 2: PredictionTarget — all six kinds");
 
     let targets = [
-        (PredictionTarget::NextActivity,          "next-activity"),
-        (PredictionTarget::OutcomeLabel,          "outcome-label"),
-        (PredictionTarget::RemainingTime,         "remaining-time"),
-        (PredictionTarget::DriftSignal,           "drift-signal"),
-        (PredictionTarget::Risk,                  "risk"),
-        (PredictionTarget::ComplianceConstraint,  "compliance-constraint"),
+        (PredictionTarget::NextActivity, "next-activity"),
+        (PredictionTarget::OutcomeLabel, "outcome-label"),
+        (PredictionTarget::RemainingTime, "remaining-time"),
+        (PredictionTarget::DriftSignal, "drift-signal"),
+        (PredictionTarget::Risk, "risk"),
+        (
+            PredictionTarget::ComplianceConstraint,
+            "compliance-constraint",
+        ),
     ];
     for (target, expected) in &targets {
         let displayed = format!("{target}");
@@ -73,7 +75,11 @@ fn main() {
     assert_eq!(p_next.prefix_len(), 2);
     assert_eq!(p_next.horizon, Some(5));
     assert_eq!(p_next.target, PredictionTarget::NextActivity);
-    println!("  ✓ NextActivity: prefix len={}, horizon={:?}", p_next.prefix_len(), p_next.horizon);
+    println!(
+        "  ✓ NextActivity: prefix len={}, horizon={:?}",
+        p_next.prefix_len(),
+        p_next.horizon
+    );
 
     // OutcomeLabel — full-case outcome prediction.
     let p_outcome = PredictionProblem::<OutcomeLabel>::new(
@@ -100,11 +106,8 @@ fn main() {
     println!("  ✓ DriftSignal: target={}", p_drift.target);
 
     // RiskScore — threat probability estimate.
-    let p_risk = PredictionProblem::<RiskScore>::new(
-        vec!["login".into()],
-        PredictionTarget::Risk,
-    )
-    .with_horizon(1);
+    let p_risk = PredictionProblem::<RiskScore>::new(vec!["login".into()], PredictionTarget::Risk)
+        .with_horizon(1);
     assert_eq!(p_risk.horizon, Some(1));
     println!("  ✓ RiskScore: horizon=Some(1)");
 
@@ -129,7 +132,10 @@ fn main() {
 
     assert_eq!(format!("{}", ComplianceKind::Monitoring), "monitoring");
     assert_eq!(format!("{}", ComplianceKind::Audit), "audit");
-    assert_eq!(format!("{}", ComplianceKind::Certification), "certification");
+    assert_eq!(
+        format!("{}", ComplianceKind::Certification),
+        "certification"
+    );
     assert_eq!(ComplianceKind::default(), ComplianceKind::Monitoring);
 
     println!("  ✓ Monitoring / Audit / Certification Display");

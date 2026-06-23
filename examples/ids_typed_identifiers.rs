@@ -17,8 +17,8 @@
 
 use std::str::FromStr;
 use wasm4pm_compat::ids::{
-    ActivityId, CaseId, EventId, EventTypeName, ObjectId, ObjectTypeName, ObjectTypeId,
-    RelationId, TraceId, TypedId, id_of,
+    id_of, ActivityId, CaseId, EventId, EventTypeName, ObjectId, ObjectTypeId, ObjectTypeName,
+    RelationId, TraceId, TypedId,
 };
 
 // Kind markers — phantom types that stamp each id with its origin namespace.
@@ -42,7 +42,10 @@ fn main() {
     }
     assert!(!check_zero(&ev), "generic is_zero via TypedId");
     println!("  EventId(7) raw_value  : {}", ev.raw_value());
-    println!("  EventId(0) is_zero    : {}", EventId::<MyLog>::new(0).is_zero());
+    println!(
+        "  EventId(0) is_zero    : {}",
+        EventId::<MyLog>::new(0).is_zero()
+    );
 
     // ── id_of — phantom-typed constructor ────────────────────────────────────
     println!("\n== id_of: phantom-typed marker constructor ==");
@@ -100,7 +103,11 @@ fn main() {
     let ev_mine: EventId<MyLog> = EventId::new(1);
     let ev_other: EventId<OtherLog> = EventId::new(1);
     // Demonstrate they are distinct: accessing their raw values independently
-    assert_eq!(ev_mine.raw_value(), ev_other.raw_value(), "same raw, different kinds");
+    assert_eq!(
+        ev_mine.raw_value(),
+        ev_other.raw_value(),
+        "same raw, different kinds"
+    );
     println!("  EventId<MyLog>(1).raw() == EventId<OtherLog>(1).raw() (same raw, different types)");
 
     // ── ObjectTypeName — string-backed ───────────────────────────────────────
@@ -120,7 +127,10 @@ fn main() {
     assert_eq!(format!("{ot_static}"), "ObjectTypeName(\"order\")");
 
     // Ord: lexicographic by label
-    assert!(ot_owned < ot_static, "\"item\" < \"order\" lexicographically");
+    assert!(
+        ot_owned < ot_static,
+        "\"item\" < \"order\" lexicographically"
+    );
 
     println!("  from_static: {ot_static}");
     println!("  from_owned : {ot_owned}");
@@ -153,8 +163,14 @@ fn main() {
     // We cannot compare them directly — that's the structural invariant.
     let ot_order: ObjectTypeName<MyLog> = ObjectTypeName::from_static("order");
     let et_order: EventTypeName<MyLog> = EventTypeName::from_static("order");
-    assert_eq!(ot_order.as_str(), et_order.as_str(), "same label, distinct types");
-    println!("\n== Cross-name: ObjectTypeName and EventTypeName with same label are distinct types");
+    assert_eq!(
+        ot_order.as_str(),
+        et_order.as_str(),
+        "same label, distinct types"
+    );
+    println!(
+        "\n== Cross-name: ObjectTypeName and EventTypeName with same label are distinct types"
+    );
     println!("  both .as_str() == \"order\" but types are incomparable");
 
     println!("\nEXIT 0");

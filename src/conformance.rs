@@ -40,8 +40,46 @@ impl SimdMarking {
     /// // each lane: (1 - 1) + 2 == 2
     /// assert_eq!(m.vector, u32x16::splat(2));
     /// ```
+    #[cfg(not(feature = "bcinr_engine"))]
     pub fn fire_transitions(&mut self, input_mask: u32x16, output_mask: u32x16) {
         self.vector = (self.vector - input_mask) + output_mask;
+    }
+
+    #[cfg(feature = "bcinr_engine")]
+    pub fn fire_transitions(&mut self, input_mask: u32x16, output_mask: u32x16) {
+        // Bridge SIMD 16-lane execution into the playground's branchless bitboard.
+        let mut in_u64 = 0u64;
+        let mut out_u64 = 0u64;
+        let mut state_u64 = 0u64;
+
+        let in_array = input_mask.to_array();
+        let out_array = output_mask.to_array();
+        let state_array = self.vector.to_array();
+
+        for i in 0..16 {
+            if in_array[i] > 0 {
+                in_u64 |= 1 << i;
+            }
+            if out_array[i] > 0 {
+                out_u64 |= 1 << i;
+            }
+            if state_array[i] > 0 {
+                state_u64 |= 1 << i;
+            }
+        }
+
+        let missing_tokens = (!state_u64) & in_u64;
+        let diff_non_zero_msb = (missing_tokens | missing_tokens.wrapping_neg()) >> 63;
+        let exec_mask = diff_non_zero_msb.wrapping_sub(1);
+        let new_state_u64 = (state_u64 & !(in_u64 & exec_mask)) | (out_u64 & exec_mask);
+
+        let mut new_state_array = [0u32; 16];
+        for i in 0..16 {
+            let has_token = (new_state_u64 >> i) & 1;
+            new_state_array[i] = has_token as u32;
+        }
+
+        self.vector = u32x16::from_array(new_state_array);
     }
 }
 

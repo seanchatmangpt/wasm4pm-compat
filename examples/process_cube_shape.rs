@@ -24,8 +24,8 @@
 
 use core::marker::PhantomData;
 use wasm4pm_compat::process_cube::{
-    CellComparison, CubeCell, CubeDimension, CubeDimensionKind, CubeProjectionWitness,
-    CubeSlice, ProcessCube,
+    CellComparison, CubeCell, CubeDimension, CubeDimensionKind, CubeProjectionWitness, CubeSlice,
+    ProcessCube,
 };
 
 // Dummy log type used as the phantom parameter.
@@ -38,7 +38,7 @@ fn main() {
     println!("Part 1: CubeDimension<NAME> — const-param axis labels");
 
     let _resource_dim: CubeDimension<"resource"> = CubeDimension;
-    let _time_dim:     CubeDimension<"time">     = CubeDimension;
+    let _time_dim: CubeDimension<"time"> = CubeDimension;
     let _activity_dim: CubeDimension<"activity"> = CubeDimension;
     // CubeDimension<"resource"> and CubeDimension<"time"> are DIFFERENT types.
     // The compiler prevents substituting one for the other.
@@ -48,11 +48,11 @@ fn main() {
     println!("\nPart 2: CubeDimensionKind — six semantic kinds");
 
     let kinds = [
-        (CubeDimensionKind::Activity,      "activity"),
-        (CubeDimensionKind::Resource,      "resource"),
-        (CubeDimensionKind::Time,          "time"),
+        (CubeDimensionKind::Activity, "activity"),
+        (CubeDimensionKind::Resource, "resource"),
+        (CubeDimensionKind::Time, "time"),
         (CubeDimensionKind::DataAttribute, "data-attribute"),
-        (CubeDimensionKind::ObjectType,    "object-type"),
+        (CubeDimensionKind::ObjectType, "object-type"),
         (CubeDimensionKind::CaseAttribute, "case-attribute"),
     ];
     for (kind, expected) in &kinds {
@@ -139,14 +139,17 @@ fn main() {
 
     // Alice's slice at (resource=Alice, time=2024-Q1).
     let alice_resource: CubeSlice<CubeDimension<"resource">, &str> = CubeSlice {
-        dimension: PhantomData, value: "Alice",
+        dimension: PhantomData,
+        value: "Alice",
     };
     let q1_time: CubeSlice<CubeDimension<"time">, &str> = CubeSlice {
-        dimension: PhantomData, value: "2024-Q1",
+        dimension: PhantomData,
+        value: "2024-Q1",
     };
     // Bob's slice at (resource=Bob, time=2024-Q1).
     let bob_resource: CubeSlice<CubeDimension<"resource">, &str> = CubeSlice {
-        dimension: PhantomData, value: "Bob",
+        dimension: PhantomData,
+        value: "Bob",
     };
 
     assert_eq!(alice_resource.value, "Alice");
@@ -167,5 +170,7 @@ fn main() {
     println!("  Covered: CubeDimension<N> (const-param axis), CubeDimensionKind (6 kinds),");
     println!("           CubeSlice, CubeCell, CubeProjectionWitness, ProcessCube,");
     println!("           CellComparison, realistic slice composition.");
-    println!("  Graduate to wasm4pm for: sub-log extraction, cell discovery, cross-cell comparison.");
+    println!(
+        "  Graduate to wasm4pm for: sub-log extraction, cell discovery, cross-cell comparison."
+    );
 }

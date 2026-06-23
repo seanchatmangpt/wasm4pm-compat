@@ -61,9 +61,15 @@ fn main() {
 
     // ── 1. is_structural_workflow_net ────────────────────────────────────────
     println!("--- is_structural_workflow_net ---");
-    assert!(wf.is_structural_workflow_net(), "minimal WF-net should be structural WF-net");
+    assert!(
+        wf.is_structural_workflow_net(),
+        "minimal WF-net should be structural WF-net"
+    );
     println!("  minimal WF-net → true  ✓");
-    assert!(!multi.is_structural_workflow_net(), "multi-source net is not a WF-net");
+    assert!(
+        !multi.is_structural_workflow_net(),
+        "multi-source net is not a WF-net"
+    );
     println!("  multi-source net → false  ✓");
     // Empty net is not a WF-net
     assert!(!PetriNet::default().is_structural_workflow_net());
@@ -75,7 +81,10 @@ fn main() {
     assert_eq!(wf_score, 0.0, "WF-net score should be 0.0, got {wf_score}");
     println!("  minimal WF-net score = {wf_score:.1}  ✓");
     let multi_score = multi.structural_unsoundness_score();
-    assert!(multi_score > 0.0, "multi-source net score should be > 0, got {multi_score}");
+    assert!(
+        multi_score > 0.0,
+        "multi-source net score should be > 0, got {multi_score}"
+    );
     println!("  multi-source net score = {multi_score:.1} (> 0 = defects present)  ✓");
     // Empty net returns 10.0 (sentinel)
     let empty_score = PetriNet::default().structural_unsoundness_score();
@@ -99,15 +108,33 @@ fn main() {
     // ── 4. explain — self-derived, not aspirational ──────────────────────────
     println!("\n--- explain ---");
     let summary = wf.explain();
-    assert!(summary.contains("2 places"), "explain missing place count: {summary}");
-    assert!(summary.contains("1 transitions"), "explain missing transition count: {summary}");
-    assert!(summary.contains("2 arcs"), "explain missing arc count: {summary}");
-    assert!(summary.contains("true"), "explain should report WF-net=true: {summary}");
-    assert!(summary.contains("0.0"), "explain should report unsoundness=0.0: {summary}");
+    assert!(
+        summary.contains("2 places"),
+        "explain missing place count: {summary}"
+    );
+    assert!(
+        summary.contains("1 transitions"),
+        "explain missing transition count: {summary}"
+    );
+    assert!(
+        summary.contains("2 arcs"),
+        "explain missing arc count: {summary}"
+    );
+    assert!(
+        summary.contains("true"),
+        "explain should report WF-net=true: {summary}"
+    );
+    assert!(
+        summary.contains("0.0"),
+        "explain should report unsoundness=0.0: {summary}"
+    );
     println!("  explain() = \"{summary}\"  ✓");
     // Different nets produce different summaries
     let multi_summary = multi.explain();
-    assert_ne!(summary, multi_summary, "structurally distinct nets must differ in explain()");
+    assert_ne!(
+        summary, multi_summary,
+        "structurally distinct nets must differ in explain()"
+    );
     println!("  explain() differs for distinct structures  ✓");
 
     // ── 5. canonical_hash — deterministic fingerprint ────────────────────────
@@ -139,7 +166,8 @@ fn main() {
     assert_eq!(matrix.get(1, 0), 1, "p2 produced by t1: should be +1");
     println!(
         "  matrix[p1,t1]={} (consumed)  matrix[p2,t1]={} (produced)  ✓",
-        matrix.get(0, 0), matrix.get(1, 0)
+        matrix.get(0, 0),
+        matrix.get(1, 0)
     );
 
     // ── 7. validate — PetriNetRefusal ────────────────────────────────────────

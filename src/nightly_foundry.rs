@@ -178,10 +178,7 @@ pub mod petri_law {
             self.weights[t * P + p]
         }
 
-        /// Fire transition `t` on `m`, returning the new marking.
-        ///
-        /// Paper: Murata §2 Rule 2 — `M'[p] = M[p] − W⁻(p,t) + W⁺(t,p)`.
-        /// **Caller must first verify `pre.is_enabled(t, &m)`.**
+        #[cfg(not(feature = "bcinr_engine"))]
         #[inline]
         pub fn fire(&self, t: usize, m: Marking<P>, pre: &PreMatrix<P, T>) -> Marking<P>
         where
@@ -192,6 +189,45 @@ pub mod petri_law {
             while p < P {
                 next.0[p] =
                     next.0[p] - pre.weights[p * T + t] as u32 + self.weights[t * P + p] as u32;
+                p += 1;
+            }
+            next
+        }
+
+        #[cfg(feature = "bcinr_engine")]
+        #[inline]
+        pub fn fire(&self, t: usize, m: Marking<P>, pre: &PreMatrix<P, T>) -> Marking<P>
+        where
+            [(); P * T]: Sized,
+        {
+            let mut in_mask = 0u64;
+            let mut out_mask = 0u64;
+            let mut state_mask = 0u64;
+
+            let mut p = 0;
+            while p < P && p < 64 {
+                if pre.weights[p * T + t] > 0 {
+                    in_mask |= 1 << p;
+                }
+                if self.weights[t * P + p] > 0 {
+                    out_mask |= 1 << p;
+                }
+                if m.0[p] > 0 {
+                    state_mask |= 1 << p;
+                }
+                p += 1;
+            }
+
+            let missing_tokens = (!state_mask) & in_mask;
+            let diff_non_zero_msb = (missing_tokens | missing_tokens.wrapping_neg()) >> 63;
+            let exec_mask = diff_non_zero_msb.wrapping_sub(1);
+            let new_state_mask = (state_mask & !(in_mask & exec_mask)) | (out_mask & exec_mask);
+
+            let mut next = m;
+            p = 0;
+            while p < P && p < 64 {
+                let has_token = (new_state_mask >> p) & 1;
+                next.0[p] = has_token as u32; // Simplified binary marking mapping
                 p += 1;
             }
             next
@@ -211,7 +247,7 @@ pub mod petri_law {
 // ─────────────────────────────────────────────────────────────────────────────
 // Surface 2: Typed POWL nodes  (adt_const_params)
 // Paper: Kourani (arXiv:2505.07052) §3 — POWL recursive grammar:
-//   POWL ::= A | X(M₁,M₂) | L(M₁,M₂) | P(M⁺, ≺) | τ
+//   POWL ::= A | γ(M₁, ..., Mₙ) | P(M⁺, ≺) | τ
 //
 // `adt_const_params` + `ConstParamTy` let an enum variant become a const
 // generic: `TypedNode<{ PowlKind::Atom }>` vs `TypedNode<{ PowlKind::Partial }>`.
@@ -257,10 +293,8 @@ pub mod powl_law {
     pub enum PowlKind {
         /// Atom: single activity node (leaf), observable.
         Atom,
-        /// Exclusive choice (xor): exactly one branch fires.
-        Xor,
-        /// Loop: `do`-body with optional `redo`.
-        Loop,
+        /// Choice Graph: generalizes choice and loops into a unified structure.
+        ChoiceGraph,
         /// Partial order: DAG of children with precedence edges.
         Partial,
         /// Silent step: tau, no observable activity.
@@ -326,23 +360,10 @@ pub mod powl_law {
         }
     }
 
-    // ── Xor ───────────────────────────────────────────────────────────────────
-    impl TypedNode<{ PowlKind::Xor }> {
+    // ── Choice Graph ─────────────────────────────────────────────────────────
+    impl TypedNode<{ PowlKind::ChoiceGraph }> {
         #[inline]
-        pub const fn xor(id: u32) -> Self {
-            Self(id)
-        }
-        /// Minimum branch count for a well-formed choice node (≥ 2).
-        #[inline]
-        pub const fn min_branches() -> usize {
-            2
-        }
-    }
-
-    // ── Loop ──────────────────────────────────────────────────────────────────
-    impl TypedNode<{ PowlKind::Loop }> {
-        #[inline]
-        pub const fn loop_node(id: u32) -> Self {
+        pub const fn choice_graph(id: u32) -> Self {
             Self(id)
         }
     }
@@ -361,8 +382,7 @@ pub mod powl_law {
     impl_id!(PowlKind::Atom);
     impl_id!(PowlKind::Silent);
     impl_id!(PowlKind::Partial);
-    impl_id!(PowlKind::Xor);
-    impl_id!(PowlKind::Loop);
+    impl_id!(PowlKind::ChoiceGraph);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -556,14 +576,6 @@ mod tests {
         }];
         assert!(!p.are_concurrent(&edges, 1, 2)); // 1 ≺ 2: not concurrent
         assert!(p.are_concurrent(&edges, 1, 3)); // no edge: concurrent
-    }
-
-    #[test]
-    fn xor_min_branches_is_two() {
-        assert_eq!(
-            powl_law::TypedNode::<{ powl_law::PowlKind::Xor }>::min_branches(),
-            2
-        );
     }
 
     // evidence_law ────────────────────────────────────────────────────────────

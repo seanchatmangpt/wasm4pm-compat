@@ -32,7 +32,11 @@ fn main() {
     let s2 = s;
     assert_eq!(s, s2, "DiagnosticSeverity is Copy");
     let mut sev_set = std::collections::HashSet::new();
-    sev_set.extend([DiagnosticSeverity::Error, DiagnosticSeverity::Warning, DiagnosticSeverity::Info]);
+    sev_set.extend([
+        DiagnosticSeverity::Error,
+        DiagnosticSeverity::Warning,
+        DiagnosticSeverity::Info,
+    ]);
     assert_eq!(sev_set.len(), 3);
     println!("  All 3 severity levels hash distinctly");
 
@@ -70,7 +74,10 @@ fn main() {
     );
     for d in &diags[..8] {
         let s = format!("{d}");
-        assert!(s.starts_with("[Error]"), "structural law violation must be [Error]: {s}");
+        assert!(
+            s.starts_with("[Error]"),
+            "structural law violation must be [Error]: {s}"
+        );
     }
     println!("\n  MigrationRecommended is [Info]; all 8 others are [Error] ✓");
 

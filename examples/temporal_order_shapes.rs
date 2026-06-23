@@ -64,39 +64,55 @@ fn main() {
         0,
         "TemporalProfile is zero-sized"
     );
-    assert_eq!(
-        std::mem::size_of_val(&prof_default),
-        0
+    assert_eq!(std::mem::size_of_val(&prof_default), 0);
+    assert_eq!(std::mem::size_of_val(&prof_direct), 0);
+    println!(
+        "  TemporalProfile<MyTrace>::new()     size: {} bytes",
+        std::mem::size_of_val(&prof_new)
     );
-    assert_eq!(
-        std::mem::size_of_val(&prof_direct),
-        0
+    println!(
+        "  TemporalProfile<MyTrace>::default() size: {} bytes",
+        std::mem::size_of_val(&prof_default)
     );
-    println!("  TemporalProfile<MyTrace>::new()     size: {} bytes", std::mem::size_of_val(&prof_new));
-    println!("  TemporalProfile<MyTrace>::default() size: {} bytes", std::mem::size_of_val(&prof_default));
 
     // ── TemporalOrderWitness — zero-cost marker ───────────────────────────────
     println!("\n== TemporalOrderWitness + SojournTimeWitness: zero-cost markers ==");
 
     let tow = TemporalOrderWitness;
     let stw = SojournTimeWitness;
-    assert_eq!(std::mem::size_of_val(&tow), 0, "TemporalOrderWitness zero-sized");
-    assert_eq!(std::mem::size_of_val(&stw), 0, "SojournTimeWitness zero-sized");
-    println!("  TemporalOrderWitness size : {} bytes", std::mem::size_of_val(&tow));
-    println!("  SojournTimeWitness   size : {} bytes", std::mem::size_of_val(&stw));
+    assert_eq!(
+        std::mem::size_of_val(&tow),
+        0,
+        "TemporalOrderWitness zero-sized"
+    );
+    assert_eq!(
+        std::mem::size_of_val(&stw),
+        0,
+        "SojournTimeWitness zero-sized"
+    );
+    println!(
+        "  TemporalOrderWitness size : {} bytes",
+        std::mem::size_of_val(&tow)
+    );
+    println!(
+        "  SojournTimeWitness   size : {} bytes",
+        std::mem::size_of_val(&stw)
+    );
 
     // ── TimeAwareEvidence — wraps T with Order context ────────────────────────
     println!("\n== TimeAwareEvidence: temporal context wrapper ==");
 
     // With TemporalOrderWitness
-    let tae_order: TimeAwareEvidence<u64, TemporalOrderWitness> =
-        TimeAwareEvidence::new(42u64);
+    let tae_order: TimeAwareEvidence<u64, TemporalOrderWitness> = TimeAwareEvidence::new(42u64);
     assert_eq!(tae_order.inner, 42u64, "inner field");
 
     // With SojournTimeWitness
     let tae_sojourn: TimeAwareEvidence<String, SojournTimeWitness> =
         TimeAwareEvidence::new(String::from("hello"));
-    assert_eq!(tae_sojourn.inner, "hello", "inner field via SojournTimeWitness");
+    assert_eq!(
+        tae_sojourn.inner, "hello",
+        "inner field via SojournTimeWitness"
+    );
 
     // into_inner recovers value
     let recovered: u64 = tae_order.into_inner();
@@ -115,7 +131,10 @@ fn main() {
 
     println!("  TimeAwareEvidence<u64, TemporalOrderWitness>::new(42).inner == 42");
     println!("  TimeAwareEvidence<String, SojournTimeWitness>::into_inner() == \"hello\"");
-    println!("  TimeAwareEvidence<u64,_> size == size_of::<u64>(): {} bytes", std::mem::size_of::<u64>());
+    println!(
+        "  TimeAwareEvidence<u64,_> size == size_of::<u64>(): {} bytes",
+        std::mem::size_of::<u64>()
+    );
 
     // ── Order context anchors evidence at different stages ────────────────────
     // TimeAwareEvidence<u64, TemporalOrderWitness> and <u64, SojournTimeWitness>

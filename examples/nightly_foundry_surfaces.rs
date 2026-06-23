@@ -54,13 +54,19 @@ fn main() {
     assert!(pre.is_enabled(0, &m_before), "t0 enabled");
     let m_after = post.fire(0, m_before, &pre);
     assert_eq!(m_after, Marking([0u32, 1u32]), "token moved p0 → p1");
-    println!("  PreMatrix: t0 enabled with M=[1,0]: {}", pre.is_enabled(0, &m_before));
+    println!(
+        "  PreMatrix: t0 enabled with M=[1,0]: {}",
+        pre.is_enabled(0, &m_before)
+    );
     println!("  PostMatrix: fire t0 -> M'=[0,1]: {:?}", m_after.0);
 
     // Marking with 0 tokens blocks transition
     let m_empty = Marking([0u32, 0u32]);
     assert!(!pre.is_enabled(0, &m_empty), "t0 blocked on empty marking");
-    println!("  t0 blocked with M=[0,0]: {}", !pre.is_enabled(0, &m_empty));
+    println!(
+        "  t0 blocked with M=[0,0]: {}",
+        !pre.is_enabled(0, &m_empty)
+    );
 
     // ── powl_law: TypedNode<KIND> ─────────────────────────────────────────────
     println!("\n== powl_law: Kourani (arXiv:2505.07052) POWL fragment kinds ==");
@@ -77,14 +83,29 @@ fn main() {
 
     // Partial: concurrency check via OrderEdge
     let partial = TypedNode::partial(0u32);
-    let edges = [OrderEdge { before: 1, after: 2 }];
-    assert!(!partial.are_concurrent(&edges, 1, 2), "1 ≺ 2: not concurrent");
-    assert!(partial.are_concurrent(&edges, 1, 3), "no edge 1↔3: concurrent");
-    assert!(partial.are_concurrent(&[], 5, 6), "no edges: all concurrent");
+    let edges = [OrderEdge {
+        before: 1,
+        after: 2,
+    }];
+    assert!(
+        !partial.are_concurrent(&edges, 1, 2),
+        "1 ≺ 2: not concurrent"
+    );
+    assert!(
+        partial.are_concurrent(&edges, 1, 3),
+        "no edge 1↔3: concurrent"
+    );
+    assert!(
+        partial.are_concurrent(&[], 5, 6),
+        "no edges: all concurrent"
+    );
 
     // Xor: min_branches
     let xor = TypedNode::xor(3u32);
-    assert_eq!(TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches(), 2);
+    assert_eq!(
+        TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches(),
+        2
+    );
     assert_eq!(xor.id(), 3u32);
 
     // Loop node
@@ -93,10 +114,15 @@ fn main() {
 
     println!("  Atom(1).is_observable()  = {}", atom.is_observable());
     println!("  Silent(2).is_observable() = {}", silent.is_observable());
-    println!("  Partial: 1≺2 concurrent? {} | 1↔3 concurrent? {}",
+    println!(
+        "  Partial: 1≺2 concurrent? {} | 1↔3 concurrent? {}",
         partial.are_concurrent(&edges, 1, 2),
-        partial.are_concurrent(&edges, 1, 3));
-    println!("  Xor min_branches = {}", TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches());
+        partial.are_concurrent(&edges, 1, 3)
+    );
+    println!(
+        "  Xor min_branches = {}",
+        TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches()
+    );
     println!("  Loop id = {}", lp.id());
 
     // ── evidence_law: EvidenceKind specialization ─────────────────────────────
@@ -109,36 +135,77 @@ fn main() {
 
     // Admitted<T> → "admitted"
     let admitted = Admitted(42u64);
-    assert_eq!(admitted.kind_label(), "admitted", "Admitted<u64> is admitted");
+    assert_eq!(
+        admitted.kind_label(),
+        "admitted",
+        "Admitted<u64> is admitted"
+    );
     let admitted_str = Admitted("world");
-    assert_eq!(admitted_str.kind_label(), "admitted", "Admitted<&str> is admitted");
+    assert_eq!(
+        admitted_str.kind_label(),
+        "admitted",
+        "Admitted<&str> is admitted"
+    );
 
     // Zero-cost: Admitted is repr(transparent) — same size as T
-    assert_eq!(std::mem::size_of::<Admitted<u64>>(), std::mem::size_of::<u64>());
+    assert_eq!(
+        std::mem::size_of::<Admitted<u64>>(),
+        std::mem::size_of::<u64>()
+    );
 
-    println!("  u64::kind_label()          = \"{}\"", raw_val.kind_label());
-    println!("  Admitted<u64>::kind_label() = \"{}\"", admitted.kind_label());
-    println!("  Admitted<u64> size == u64 size: {} bytes", std::mem::size_of::<u64>());
+    println!(
+        "  u64::kind_label()          = \"{}\"",
+        raw_val.kind_label()
+    );
+    println!(
+        "  Admitted<u64>::kind_label() = \"{}\"",
+        admitted.kind_label()
+    );
+    println!(
+        "  Admitted<u64> size == u64 size: {} bytes",
+        std::mem::size_of::<u64>()
+    );
 
     // ── token_law: SIMD enabling check ────────────────────────────────────────
     println!("\n== token_law: SIMD Murata §2 enabling condition ==");
 
     // transition_enabled_4: all places have enough tokens
-    assert!(token_law::transition_enabled_4([2, 1, 3, 0], [1, 1, 2, 0]), "enabled: all ≥ pre");
-    assert!(!token_law::transition_enabled_4([2, 0, 3, 0], [1, 1, 2, 0]), "blocked: place[1]=0 < 1");
+    assert!(
+        token_law::transition_enabled_4([2, 1, 3, 0], [1, 1, 2, 0]),
+        "enabled: all ≥ pre"
+    );
+    assert!(
+        !token_law::transition_enabled_4([2, 0, 3, 0], [1, 1, 2, 0]),
+        "blocked: place[1]=0 < 1"
+    );
 
     // fire_4: M' = M - pre + post
     let m_fired = token_law::fire_4([2, 1, 3, 0], [1, 1, 2, 0], [0, 0, 0, 1]);
     assert_eq!(m_fired, [1, 0, 1, 1], "M' = M - pre + post");
 
     // transition_enabled_8
-    assert!(token_law::transition_enabled_8([1,1,1,1,1,1,1,1], [1,1,1,1,1,1,1,1]), "8-place enabled");
-    assert!(!token_law::transition_enabled_8([1,1,0,1,1,1,1,1], [1,1,1,1,1,1,1,1]), "8-place blocked");
+    assert!(
+        token_law::transition_enabled_8([1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]),
+        "8-place enabled"
+    );
+    assert!(
+        !token_law::transition_enabled_8([1, 1, 0, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]),
+        "8-place blocked"
+    );
 
-    println!("  transition_enabled_4([2,1,3,0] ≥ [1,1,2,0]): {}", token_law::transition_enabled_4([2,1,3,0],[1,1,2,0]));
-    println!("  transition_enabled_4([2,0,3,0] ≥ [1,1,2,0]): {}", token_law::transition_enabled_4([2,0,3,0],[1,1,2,0]));
+    println!(
+        "  transition_enabled_4([2,1,3,0] ≥ [1,1,2,0]): {}",
+        token_law::transition_enabled_4([2, 1, 3, 0], [1, 1, 2, 0])
+    );
+    println!(
+        "  transition_enabled_4([2,0,3,0] ≥ [1,1,2,0]): {}",
+        token_law::transition_enabled_4([2, 0, 3, 0], [1, 1, 2, 0])
+    );
     println!("  fire_4([2,1,3,0] - [1,1,2,0] + [0,0,0,1]): {:?}", m_fired);
-    println!("  transition_enabled_8 all-1 ≥ all-1: {}", token_law::transition_enabled_8([1;8],[1;8]));
+    println!(
+        "  transition_enabled_8 all-1 ≥ all-1: {}",
+        token_law::transition_enabled_8([1; 8], [1; 8])
+    );
 
     // ── families_match_simd: batch witness family check ───────────────────────
     println!("\n== families_match_simd: SIMD witness family batch check ==");
@@ -150,10 +217,14 @@ fn main() {
 
     // bits 1 and 4 are Standard — should be unset
     let mixed = [
-        WitnessFamily::Paper, WitnessFamily::Standard,
-        WitnessFamily::Paper, WitnessFamily::Paper,
-        WitnessFamily::Standard, WitnessFamily::Paper,
-        WitnessFamily::Paper, WitnessFamily::Paper,
+        WitnessFamily::Paper,
+        WitnessFamily::Standard,
+        WitnessFamily::Paper,
+        WitnessFamily::Paper,
+        WitnessFamily::Standard,
+        WitnessFamily::Paper,
+        WitnessFamily::Paper,
+        WitnessFamily::Paper,
     ];
     let mask2 = families_match_simd(mixed, WitnessFamily::Paper);
     assert_eq!(mask2, 0b1110_1101u8, "mixed: bits 1 and 4 unset");
