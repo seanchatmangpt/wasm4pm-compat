@@ -1094,3 +1094,183 @@ where
         Self::new()
     }
 }
+
+/// A query shape that statically binds object and event types to ensure compile-time check validation.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OcpqQueryMonomorphic<ObjectTypes, EventTypes> {
+    pub query: OcpqQuery,
+    pub _objects: core::marker::PhantomData<ObjectTypes>,
+    pub _events: core::marker::PhantomData<EventTypes>,
+}
+
+impl<ObjectTypes, EventTypes> OcpqQueryMonomorphic<ObjectTypes, EventTypes> {
+    pub fn new(query: OcpqQuery) -> Self {
+        Self {
+            query,
+            _objects: core::marker::PhantomData,
+            _events: core::marker::PhantomData,
+        }
+    }
+}
+
+// ── OCPQ Const-Generics & Similarity ─────────────────────────────────────────
+
+pub const fn const_str_eq(a: &str, b: &str) -> bool {
+    let a_bytes = a.as_bytes();
+    let b_bytes = b.as_bytes();
+    if a_bytes.len() != b_bytes.len() {
+        return false;
+    }
+    let mut i = 0;
+    while i < a_bytes.len() {
+        if a_bytes[i] != b_bytes[i] {
+            return false;
+        }
+        i += 1;
+    }
+    true
+}
+
+pub const fn const_contains(arr: &[&str], target: &str) -> bool {
+    let mut i = 0;
+    while i < arr.len() {
+        if const_str_eq(arr[i], target) {
+            return true;
+        }
+        i += 1;
+    }
+    false
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OcpqQueryBounded<
+    const OBJECT_TYPES: &'static [&'static str],
+    const EVENT_TYPES: &'static [&'static str],
+> {
+    pub query: OcpqQuery,
+}
+
+impl<const OBJECT_TYPES: &'static [&'static str], const EVENT_TYPES: &'static [&'static str]>
+    OcpqQueryBounded<OBJECT_TYPES, EVENT_TYPES>
+{
+    pub fn new(query: OcpqQuery) -> Self {
+        Self { query }
+    }
+
+    pub fn with_object_predicate<const OBJ_TYPE: &'static str>(self) -> Self
+    where
+        crate::law::Require<{ const_contains(OBJECT_TYPES, OBJ_TYPE) }>: crate::law::IsTrue,
+    {
+        self
+    }
+
+    pub fn with_event_predicate<const EV_TYPE: &'static str>(self) -> Self
+    where
+        crate::law::Require<{ const_contains(EVENT_TYPES, EV_TYPE) }>: crate::law::IsTrue,
+    {
+        self
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ConstraintViolation<const OBJ_TYPE: &'static str, const EV_TYPE: &'static str>;
+
+impl<const OBJ_TYPE: &'static str, const EV_TYPE: &'static str>
+    ConstraintViolation<OBJ_TYPE, EV_TYPE>
+{
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+impl<const OBJ_TYPE: &'static str, const EV_TYPE: &'static str> Default
+    for ConstraintViolation<OBJ_TYPE, EV_TYPE>
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SimilarityScore<const NUM: u64, const DEN: u64>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    pub score: crate::law::Between01<NUM, DEN>,
+}
+
+impl<const NUM: u64, const DEN: u64> SimilarityScore<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    pub fn new() -> Self {
+        Self {
+            score: crate::law::Between01::new(),
+        }
+    }
+}
+
+impl<const NUM: u64, const DEN: u64> Default for SimilarityScore<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+pub type NormedSimilarityScore<const N: u64, const D: u64> =
+    SimilarityScore<{ N / crate::law::gcd(N, D) }, { D / crate::law::gcd(N, D) }>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct OcpqResult<const NUM: u64, const DEN: u64>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    pub score: SimilarityScore<NUM, DEN>,
+}
+
+impl<const NUM: u64, const DEN: u64> OcpqResult<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    pub fn new() -> Self {
+        Self {
+            score: SimilarityScore::new(),
+        }
+    }
+}
+
+impl<const NUM: u64, const DEN: u64> Default for OcpqResult<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, core::marker::ConstParamTy)]
+pub enum TemporalOrderingAxiom {
+    Before,
+    After,
+    During,
+    Concurrent,
+    Overlap,
+}
+
+pub struct TypedTemporalPredicate<const AXIOM: TemporalOrderingAxiom> {
+    pub predicate: Predicate,
+}
+
+impl<const AXIOM: TemporalOrderingAxiom> TypedTemporalPredicate<AXIOM> {
+    pub fn new(predicate: Predicate) -> Self {
+        Self { predicate }
+    }
+}

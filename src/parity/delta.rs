@@ -88,3 +88,45 @@ where
         Self::new()
     }
 }
+
+pub struct DriftWitness<
+    const ALPHA_NUM: u64,
+    const ALPHA_DEN: u64,
+    const CHANGE_POINT: usize,
+    W: crate::witness::Witness,
+> where
+    Require<{ ALPHA_DEN > 0 }>: IsTrue,
+    Require<{ ALPHA_NUM <= ALPHA_DEN }>: IsTrue,
+{
+    pub significance: crate::law::Between01<ALPHA_NUM, ALPHA_DEN>,
+    pub change_point: usize,
+    pub _witness: core::marker::PhantomData<W>,
+}
+
+impl<
+        const ALPHA_NUM: u64,
+        const ALPHA_DEN: u64,
+        const CHANGE_POINT: usize,
+        W: crate::witness::Witness,
+    > DriftWitness<ALPHA_NUM, ALPHA_DEN, CHANGE_POINT, W>
+where
+    Require<{ ALPHA_DEN > 0 }>: IsTrue,
+    Require<{ ALPHA_NUM <= ALPHA_DEN }>: IsTrue,
+{
+    pub fn new(change_point: usize) -> Self {
+        Self {
+            significance: crate::law::Between01::new(),
+            change_point,
+            _witness: core::marker::PhantomData,
+        }
+    }
+}
+
+pub fn enforce_prediction_horizon_before_drift<
+    const HORIZON_STEPS: usize,
+    const CHANGE_POINT: usize,
+>()
+where
+    Require<{ HORIZON_STEPS <= CHANGE_POINT }>: IsTrue,
+{
+}

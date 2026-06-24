@@ -12,9 +12,9 @@
 #![allow(dead_code)]
 
 use wasm4pm_compat::powl::{
-    assert_tree_projectable, AcyclicPartialOrder, Choice, Loop, OrderEdge, PartialOrder, Powl,
-    PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal, ProcessTreeProjectable,
-    TypedPowlLoopNode,
+    assert_tree_projectable, AcyclicPartialOrder, ChoiceGraphEdge, ChoiceGraphMarker, OrderEdge,
+    PartialOrder, Powl, PowlChoiceNode, PowlNode, PowlNodeId, PowlNodeKind, PowlRefusal,
+    ProcessTreeProjectable, TypedPowlLoopNode,
 };
 use wasm4pm_compat::process_tree::{
     ProcessTree, ProcessTreeNode, ProcessTreeNodeId, ProcessTreeOperator, TypedAndNode,
@@ -127,10 +127,13 @@ fn demo_powl_choice_construction() {
     assert!(!bad.is_well_formed());
     assert_eq!(bad.validate(), Err(PowlRefusal::InvalidChoice));
 
-    // A PowlNode carrying the Choice witness.
-    let choice_node: PowlNode<Choice> = PowlNode::new(
+    // A PowlNode carrying the ChoiceGraphMarker witness.
+    let choice_node: PowlNode<ChoiceGraphMarker> = PowlNode::new(
         PowlNodeId(2),
-        PowlNodeKind::Choice(vec![PowlNodeId(0), PowlNodeId(1)]),
+        PowlNodeKind::ChoiceGraph {
+            nodes: vec![PowlNodeId(0), PowlNodeId(1)],
+            edges: vec![ChoiceGraphEdge::new(PowlNodeId(0), PowlNodeId(1))],
+        },
     );
     assert_eq!(choice_node.id, PowlNodeId(2));
 
@@ -152,12 +155,12 @@ fn demo_typed_loop_arity() {
         TypedPowlLoopNode::new(["do_body", "redo_branch"]);
     assert_eq!(powl_loop.children[0], "do_body");
 
-    // A PowlNode carrying the Loop witness is structurally distinct.
-    let loop_kind_node: PowlNode<Loop> = PowlNode::new(
+    // A PowlNode carrying the ChoiceGraphMarker witness is structurally distinct.
+    let loop_kind_node: PowlNode<ChoiceGraphMarker> = PowlNode::new(
         PowlNodeId(10),
-        PowlNodeKind::Loop {
-            body: PowlNodeId(8),
-            redo: Some(PowlNodeId(9)),
+        PowlNodeKind::ChoiceGraph {
+            nodes: vec![PowlNodeId(8), PowlNodeId(9)],
+            edges: vec![ChoiceGraphEdge::new(PowlNodeId(8), PowlNodeId(9))],
         },
     );
     assert_eq!(loop_kind_node.id, PowlNodeId(10));

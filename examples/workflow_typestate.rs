@@ -50,7 +50,7 @@ fn main() {
 
     // ── 2. ParallelWorkflow::split — AND-split ────────────────────────────────
     println!("\n--- ParallelWorkflow AND-split ---");
-    let workflow: ParallelWorkflow<TaskA, TaskB, Pending, Pending> = ParallelWorkflow::split();
+    let _workflow: ParallelWorkflow<TaskA, TaskB, Pending, Pending> = ParallelWorkflow::split();
     println!("  ParallelWorkflow::split() → (Pending, Pending)  ✓");
 
     // ── 3. AND-join: both branches complete → join_success ───────────────────

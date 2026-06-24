@@ -1,0 +1,74 @@
+error[E0277]: the trait bound `Assert<false>: IsTrue` is not satisfied
+ --> tests/ui/compile_fail/stochastic_weight_out_of_bounds.rs:5:12
+  |
+5 |     let _: StochasticArcWeight<2, 1> = StochasticArcWeight::new();
+  |            ^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `IsTrue` is not implemented for `Assert<false>`
+  |
+help: the trait `IsTrue` is implemented for `Assert<true>`
+ --> src/law.rs
+  |
+  | impl IsTrue for Assert<true> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `StochasticArcWeight`
+ --> src/petri.rs
+  |
+  | pub struct StochasticArcWeight<const NUM: u64, const DEN: u64>
+  |            ------------------- required by a bound in this struct
+...
+  |     crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+  |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `StochasticArcWeight`
+
+error[E0277]: the trait bound `Assert<wasm4pm_compat::::petri::StochasticArcWeight::{constant#0}>: IsTrue` is not satisfied
+ --> tests/ui/compile_fail/stochastic_weight_out_of_bounds.rs:5:40
+  |
+5 |     let _: StochasticArcWeight<2, 1> = StochasticArcWeight::new();
+  |                                        ^^^^^^^^^^^^^^^^^^^ the trait `IsTrue` is not implemented for `Assert<wasm4pm_compat::::petri::StochasticArcWeight::{constant#0}>`
+  |
+help: the trait `IsTrue` is implemented for `Assert<true>`
+ --> src/law.rs
+  |
+  | impl IsTrue for Assert<true> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `StochasticArcWeight`
+ --> src/petri.rs
+  |
+  | pub struct StochasticArcWeight<const NUM: u64, const DEN: u64>
+  |            ------------------- required by a bound in this struct
+  | where
+  |     crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+  |                                       ^^^^^^^^^^^^^^^^^^ required by this bound in `StochasticArcWeight`
+
+error[E0277]: the trait bound `Assert<wasm4pm_compat::::petri::StochasticArcWeight::{constant#1}>: IsTrue` is not satisfied
+ --> tests/ui/compile_fail/stochastic_weight_out_of_bounds.rs:5:40
+  |
+5 |     let _: StochasticArcWeight<2, 1> = StochasticArcWeight::new();
+  |                                        ^^^^^^^^^^^^^^^^^^^ the trait `IsTrue` is not implemented for `Assert<wasm4pm_compat::::petri::StochasticArcWeight::{constant#1}>`
+  |
+help: the trait `IsTrue` is implemented for `Assert<true>`
+ --> src/law.rs
+  |
+  | impl IsTrue for Assert<true> {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `StochasticArcWeight`
+ --> src/petri.rs
+  |
+  | pub struct StochasticArcWeight<const NUM: u64, const DEN: u64>
+  |            ------------------- required by a bound in this struct
+...
+  |     crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+  |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `StochasticArcWeight`
+
+error[E0599]: the associated function or constant `new` exists for struct `StochasticArcWeight<_, _>`, but its trait bounds were not satisfied
+ --> tests/ui/compile_fail/stochastic_weight_out_of_bounds.rs:5:61
+  |
+5 |     let _: StochasticArcWeight<2, 1> = StochasticArcWeight::new();
+  |                                                             ^^^ associated function or constant cannot be called on `StochasticArcWeight<_, _>` due to unsatisfied trait bounds
+  |
+ ::: src/law.rs
+  |
+  | pub struct Assert<const OK: bool>;
+  | --------------------------------- doesn't satisfy `_: IsTrue`
+  |
+  = note: the following trait bounds were not satisfied:
+          `Assert<wasm4pm_compat::::petri::{impl#33}::{constant#0}>: IsTrue`
+          `Assert<wasm4pm_compat::::petri::{impl#33}::{constant#1}>: IsTrue`

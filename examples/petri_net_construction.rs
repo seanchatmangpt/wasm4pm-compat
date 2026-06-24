@@ -12,7 +12,7 @@
 use wasm4pm_compat::law::SoundnessState;
 use wasm4pm_compat::petri::{
     Arc, Marking, PetriNet, Place, PlaceNodeMarker, PlaceToTransitionArc, Transition,
-    TransitionNodeMarker, TransitionToPlaceArc, WfNet, WfNetConst, WfNetQuery,
+    TransitionNodeMarker, TransitionToPlaceArc, WfNet, WfNetConst,
 };
 
 // ---------------------------------------------------------------------------
@@ -167,7 +167,8 @@ fn demonstrate_wfnet_const() {
     println!("=== WfNetConst<{{SoundnessState}}> non-forgeable typestate ===\n");
 
     // Unknown: the freely-constructible initial state.
-    let unknown: WfNetConst<{ SoundnessState::Unknown }> = WfNetConst::new();
+    let unknown: WfNetConst<{ SoundnessState::Unknown }> =
+        WfNetConst::<{ SoundnessState::Unknown }>::new();
     println!("  WfNetConst::<{{ SoundnessState::Unknown }}>::new()");
     println!("  soundness_state() = {:?}", unknown.soundness_state());
 

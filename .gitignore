@@ -1,4 +1,5 @@
 /target
+/c8-receipts/target
 
 # Claude Code / agent runtime artifacts
 .claude/

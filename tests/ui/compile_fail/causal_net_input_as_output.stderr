@@ -1,15 +1,20 @@
-error[E0308]: mismatched types
-  --> tests/ui/compile_fail/causal_net_input_as_output.rs:16:21
+error[E0423]: expected function, tuple struct or tuple variant, found struct `InputBinding`
+  --> tests/ui/compile_fail/causal_net_input_as_output.rs:14:45
    |
-16 |     requires_output(input);
-   |     --------------- ^^^^^ expected `OutputBinding<TaskA, TaskB>`, found `InputBinding<TaskA, TaskB>`
-   |     |
-   |     arguments to this function are incorrect
+14 |     let input: InputBinding<TaskA, TaskB> = InputBinding(TaskA, TaskB);
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: expected struct `OutputBinding<TaskA, TaskB>`
-              found struct `InputBinding<TaskA, TaskB>`
-note: function defined here
-  --> tests/ui/compile_fail/causal_net_input_as_output.rs:11:4
+  ::: src/causal_net.rs
    |
-11 | fn requires_output(_b: OutputBinding<TaskA, TaskB>) {}
-   |    ^^^^^^^^^^^^^^^ -------------------------------
+   | pub struct InputBinding<A, B> {
+   | ----------------------------- `InputBinding` defined here
+   |
+help: use struct literal syntax instead of calling
+   |
+14 -     let input: InputBinding<TaskA, TaskB> = InputBinding(TaskA, TaskB);
+14 +     let input: InputBinding<TaskA, TaskB> = InputBinding{source: TaskA, target: TaskB};
+   |
+help: you might have meant to use the `new` associated function
+   |
+14 |     let input: InputBinding<TaskA, TaskB> = InputBinding::new(TaskA, TaskB);
+   |                                                         +++++

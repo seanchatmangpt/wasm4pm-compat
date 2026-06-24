@@ -2,4 +2,6 @@ error[E0432]: unresolved import `wasm4pm_compat::petri::arc_seal`
  --> tests/ui/compile_fail/e0425_private_arc_seal_trait.rs:6:5
   |
 6 | use wasm4pm_compat::petri::arc_seal;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `arc_seal` in `petri`
+  |     ^^^^^^^^^^^^^^^^^^^^^^^--------
+  |                            |
+  |                            no `arc_seal` in `petri`

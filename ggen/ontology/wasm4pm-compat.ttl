@@ -724,6 +724,16 @@ compat:TemporalProfileWitness
     compat:witnessFamily compat:Paper ;
     compat:description "Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Rinderle-Ma and Rinderle (2020)." .
 
+compat:AffidavitReceiptChain
+    a compat:WitnessMarker ;
+    rdfs:label "AffidavitReceiptChain" ;
+    compat:rustType "AffidavitReceiptChain" ;
+    compat:sourceFile "src/witness.rs" ;
+    compat:witnessKey "affidavit-receipt-chain" ;
+    compat:witnessTitle "Affidavit Receipt Chain Law" ;
+    compat:witnessFamily compat:Paper ;
+    compat:description "Checked affidavit receipt chain." .
+
 compat:ControlFlowPerspectiveWitness
     a compat:WitnessMarker ;
     rdfs:label "ControlFlowPerspectiveWitness" ;
@@ -1293,7 +1303,7 @@ compat:WorkflowPatternConstParam
     rdfs:label "WorkflowPattern" ;
     compat:rustType "WorkflowPattern" ;
     compat:sourceFile "src/law.rs" ;
-    compat:description "ConstParamTy enum covering 17 of 20 canonical workflow patterns (WP-1 through WP-17). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." .
+    compat:description "ConstParamTy enum covering all 20 canonical workflow patterns (WCP-1 through WCP-20). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." .
 
 # ============================================================================
 # COMPILE-FAIL LAW INSTANCES (from tests/ui/compile_fail/)

@@ -1,4 +1,4 @@
-#![allow(clippy::all, unused_imports, migrated)]
+#![allow(clippy::all, unused_imports)]
 //! Smoke tests for the Process Canon Shape (part A): eventlog, ocel, petri, dfg.
 //!
 //! These tests construct each structural shape and exercise its `validate`
@@ -100,7 +100,6 @@ fn smoke_ocel() {
 }
 
 #[test]
-#[allow(migrated)]
 fn smoke_petri() {
     // A small WF-net: src --t--> snk, marked and with a final marking.
     let net = PetriNet::new(

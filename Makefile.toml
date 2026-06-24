@@ -101,6 +101,11 @@ args = ["build", "--no-default-features", "--features", "wasm4pm"]
 # ggen provision
 # ---------------------------------------------------------------------------
 
+[tasks.ggen-sync]
+description = "Regenerate all artifacts (witnesses, fixtures, audit scripts, docs) from ontology"
+command = "ggen"
+args = ["sync", "--manifest", "ggen/ggen.toml"]
+
 [tasks.ggen-witnesses]
 description = "Render src/witnesses.rs from ontology via ggen (witness-markers rule)"
 cwd = "ggen"

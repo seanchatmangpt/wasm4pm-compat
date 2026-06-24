@@ -18,7 +18,7 @@
 #![feature(const_trait_impl)]
 #![feature(min_specialization)]
 #![feature(portable_simd)]
-#![allow(incomplete_features)]
+#![allow(incomplete_features, unused_features)]
 
 use wasm4pm_compat::nightly_foundry::{
     evidence_law::{Admitted, EvidenceKind},
@@ -100,17 +100,9 @@ fn main() {
         "no edges: all concurrent"
     );
 
-    // Xor: min_branches
-    let xor = TypedNode::xor(3u32);
-    assert_eq!(
-        TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches(),
-        2
-    );
-    assert_eq!(xor.id(), 3u32);
-
-    // Loop node
-    let lp = TypedNode::loop_node(4u32);
-    assert_eq!(lp.id(), 4u32);
+    // ChoiceGraph: id
+    let cg = TypedNode::choice_graph(3u32);
+    assert_eq!(cg.id(), 3u32);
 
     println!("  Atom(1).is_observable()  = {}", atom.is_observable());
     println!("  Silent(2).is_observable() = {}", silent.is_observable());
@@ -119,11 +111,7 @@ fn main() {
         partial.are_concurrent(&edges, 1, 2),
         partial.are_concurrent(&edges, 1, 3)
     );
-    println!(
-        "  Xor min_branches = {}",
-        TypedNode::<{ wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor }>::min_branches()
-    );
-    println!("  Loop id = {}", lp.id());
+    println!("  ChoiceGraph id = {}", cg.id());
 
     // ── evidence_law: EvidenceKind specialization ─────────────────────────────
     println!("\n== evidence_law: EvidenceKind blanket + specialized impl ==");

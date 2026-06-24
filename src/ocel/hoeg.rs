@@ -73,14 +73,14 @@ impl HoegGraph {
         let mut node_types = std::collections::HashSet::new();
         let event_nt = NodeType("event".to_string());
         node_types.insert(event_nt.clone());
-        
+
         let mut object_indices = HashMap::new();
         let mut event_indices = HashMap::new();
 
         let mut event_features = Vec::new();
         for (i, ev) in log.events().iter().enumerate() {
             event_indices.insert(ev.id().to_string(), i);
-            event_features.push(ev.attributes().len() as f32); 
+            event_features.push(ev.attributes().len() as f32);
         }
 
         let mut obj_features: HashMap<NodeType, Vec<f32>> = HashMap::new();
@@ -92,8 +92,11 @@ impl HoegGraph {
             let count = type_counts.entry(nt.clone()).or_insert(0);
             object_indices.insert(obj.id().to_string(), (nt.clone(), *count));
             *count += 1;
-            
-            obj_features.entry(nt).or_default().push(obj.attributes().len() as f32);
+
+            obj_features
+                .entry(nt)
+                .or_default()
+                .push(obj.attributes().len() as f32);
         }
 
         let mut edge_types = std::collections::HashSet::new();
@@ -102,7 +105,7 @@ impl HoegGraph {
         for link in log.event_object_links() {
             if let (Some(&ev_idx), Some((nt, obj_idx))) = (
                 event_indices.get(link.event_id()),
-                object_indices.get(link.object_id())
+                object_indices.get(link.object_id()),
             ) {
                 let et = EdgeType {
                     subject: event_nt.clone(),
@@ -110,14 +113,18 @@ impl HoegGraph {
                     object: nt.clone(),
                 };
                 edge_types.insert(et.clone());
-                adjacency_matrices.entry(et).or_insert(AdjacencyMatrix { edges: Vec::new() }).edges.push((ev_idx, *obj_idx));
+                adjacency_matrices
+                    .entry(et)
+                    .or_insert(AdjacencyMatrix { edges: Vec::new() })
+                    .edges
+                    .push((ev_idx, *obj_idx));
             }
         }
 
         for link in log.object_object_links() {
             if let (Some((nt_from, from_idx)), Some((nt_to, to_idx))) = (
                 object_indices.get(link.source_id()),
-                object_indices.get(link.target_id())
+                object_indices.get(link.target_id()),
             ) {
                 let et = EdgeType {
                     subject: nt_from.clone(),
@@ -125,18 +132,31 @@ impl HoegGraph {
                     object: nt_to.clone(),
                 };
                 edge_types.insert(et.clone());
-                adjacency_matrices.entry(et).or_insert(AdjacencyMatrix { edges: Vec::new() }).edges.push((*from_idx, *to_idx));
+                adjacency_matrices
+                    .entry(et)
+                    .or_insert(AdjacencyMatrix { edges: Vec::new() })
+                    .edges
+                    .push((*from_idx, *to_idx));
             }
         }
 
         let mut feature_matrices = HashMap::new();
-        feature_matrices.insert(event_nt, FeatureMatrix {
-            dimensions: 1,
-            data: event_features,
-        });
+        feature_matrices.insert(
+            event_nt,
+            FeatureMatrix {
+                dimensions: 1,
+                data: event_features,
+            },
+        );
 
         for (nt, data) in obj_features {
-            feature_matrices.insert(nt, FeatureMatrix { dimensions: 1, data });
+            feature_matrices.insert(
+                nt,
+                FeatureMatrix {
+                    dimensions: 1,
+                    data,
+                },
+            );
         }
 
         Self {

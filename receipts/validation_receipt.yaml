@@ -1,33 +1,27 @@
----
-receipt_id: validation-cross-project-1780377329
-agent: AGENT_9_VALIDATION
-timestamp: 2026-06-02T05:14:31Z
-project_root: /Users/sac/wasm4pm-compat
-
-validation_summary:
-  total_checks: 10
-  passed:       10
-  failed:        0
-  warnings:        0
-
-checks:
-  - name: no_live_trading
-    status: pass
-  - name: no_runtime_llm
-    status: pass
-  - name: public_ip_boundary
-    status: pass
-  - name: workspace_integrity
-    status: pass
-  - name: forbid_unsafe
-    status: pass
-  - name: feature_model
-    status: pass
-  - name: doctest_disabled
-    status: pass
-  - name: nightly_toolchain
-    status: pass
-  - name: nightly_features
-    status: pass
-  - name: dependency_scope
-    status: pass
+validation_receipt:
+  timestamp_ns: "1782279206832944000"
+  validation_stage: "ALIVE"
+  criteria:
+    workspace_exists: true
+    crates_count: 8
+    format_check: "PASS"
+    clippy_check: "PASS"
+    all_tests_pass: true
+    examples_compile: true
+    examples_run: true
+    construct8_delta_max_8: true
+    need9_tested: true
+    planck_cell_to_delta: true
+    vector_clock_8_works: true
+    event_horizon_works: true
+    collider_works: true
+    adversary_gap_demo_runs: true
+    receipts_verify: true
+    benchmark_receipt_exists: true
+    impl_receipt_exists: true
+    no_live_trading: true
+    no_runtime_llms: true
+    docs_complete: true
+  status: "ALIVE"
+  confidence_level: "100%"
+  sign_off_by: "AGENT_5"

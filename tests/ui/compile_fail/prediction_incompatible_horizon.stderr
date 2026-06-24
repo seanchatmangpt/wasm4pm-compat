@@ -1,0 +1,8 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/prediction_incompatible_horizon.rs:10:5
+   |
+10 |     enforce_admissible_horizon::<NextActivity, { PredictionHorizonConst::FullCase }>();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`

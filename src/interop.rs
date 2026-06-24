@@ -731,3 +731,134 @@ impl crate::loss::Project for XesToOcedProjection {
         ))
     }
 }
+
+/// Shape marker for the Relational database side of an extraction projection.
+///
+/// Use as `From` or `To` in `LossReport` and `Project` implementations.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum RelationalShape {}
+
+/// A descriptor for a Relational → OCEL extraction projection.
+///
+/// Under Ghahfarokhi et al. (2021), extracting an OCEL from relational tables relies on join conditions
+/// that can introduce data loss (e.g., non-joined rows dropped).
+/// This descriptor names the projection and tracks the source tables and join logic.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ExtractionProjection {
+    source_tables: Vec<String>,
+    join_logic: String,
+}
+
+impl ExtractionProjection {
+    pub const PROJECTION_NAME: crate::loss::ProjectionName =
+        crate::loss::ProjectionName("relational-extract-to-ocel");
+
+    pub fn new(source_tables: Vec<String>, join_logic: impl Into<String>) -> Self {
+        ExtractionProjection {
+            source_tables,
+            join_logic: join_logic.into(),
+        }
+    }
+
+    pub fn source_tables(&self) -> &[String] {
+        &self.source_tables
+    }
+
+    pub fn join_logic(&self) -> &str {
+        &self.join_logic
+    }
+
+    pub fn projection_name(&self) -> crate::loss::ProjectionName {
+        Self::PROJECTION_NAME
+    }
+}
+
+impl crate::loss::Project for ExtractionProjection {
+    type From = RelationalShape;
+    type To = OcelShape;
+    type Lost = Vec<String>; // Identifies dropped rows/columns/tables
+    type Reason = crate::ocel::OcelRefusal;
+
+    fn project(
+        self,
+        policy: crate::loss::LossPolicy,
+    ) -> Result<crate::loss::LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
+        if policy == crate::loss::LossPolicy::RefuseLoss {
+            // A strict policy turns any structural extraction loss into an admission error
+            return Err(crate::ocel::OcelRefusal::EmptyEventObjectLinks);
+        }
+        Ok(crate::loss::LossReport::new(
+            self.projection_name(),
+            policy,
+            Vec::new(),
+        ))
+    }
+}
+
+/// A descriptor for an OCEL → Relational materialization projection.
+///
+/// Materializing relational tables from an OCEL log is also lossy (e.g., dropping E2O/O2O links
+/// that cannot be represented in a specific normalized target schema).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MaterializationProjection {
+    target_tables: Vec<String>,
+}
+
+impl MaterializationProjection {
+    pub const PROJECTION_NAME: crate::loss::ProjectionName =
+        crate::loss::ProjectionName("ocel-materialize-to-relational");
+
+    pub fn new(target_tables: Vec<String>) -> Self {
+        MaterializationProjection { target_tables }
+    }
+
+    pub fn target_tables(&self) -> &[String] {
+        &self.target_tables
+    }
+
+    pub fn projection_name(&self) -> crate::loss::ProjectionName {
+        Self::PROJECTION_NAME
+    }
+}
+
+impl crate::loss::Project for MaterializationProjection {
+    type From = OcelShape;
+    type To = RelationalShape;
+    type Lost = Vec<String>;
+    type Reason = crate::ocel::OcelRefusal;
+
+    fn project(
+        self,
+        policy: crate::loss::LossPolicy,
+    ) -> Result<crate::loss::LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
+        if policy == crate::loss::LossPolicy::RefuseLoss {
+            return Err(crate::ocel::OcelRefusal::EmptyEventObjectLinks);
+        }
+        Ok(crate::loss::LossReport::new(
+            self.projection_name(),
+            policy,
+            Vec::new(),
+        ))
+    }
+}
+
+/// Shape marker for the SPARQL-queryable Object Graph.
+///
+/// In Latif et al. (2025), XES logs are lifted to OCED models, which are
+/// materialized as queryable RDF graphs.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OcedGraphShape {}
+
+/// A query shape representing a SPARQL query over process evidence.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OcedSparqlQuery {
+    pub query_text: String,
+}
+
+impl OcedSparqlQuery {
+    pub fn new(query: impl Into<String>) -> Self {
+        OcedSparqlQuery {
+            query_text: query.into(),
+        }
+    }
+}

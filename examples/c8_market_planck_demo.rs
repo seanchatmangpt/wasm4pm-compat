@@ -1,3 +1,4 @@
+#![allow(clippy::inconsistent_digit_grouping)]
 //! Example: MarketPlanck cell state transitions with receipts.
 //!
 //! Demonstrates synthetic market ticks flowing through a PlanckCell,

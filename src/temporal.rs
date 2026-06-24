@@ -85,62 +85,6 @@ impl core::fmt::Display for TemporalOrder {
     }
 }
 
-/// A temporal profile for a trace — structural shape (not computed).
-///
-/// ## What this is
-///
-/// The structural shape of a temporal profile for a trace. `Trace` is the
-/// type parameter naming the kind of trace this profile is derived from. The
-/// profile itself is a collection of pairwise temporal ordering relations
-/// between events in the trace — the shape that a temporal profile engine
-/// produces and that a temporal conformance checker consumes.
-///
-/// ## What this is not
-///
-/// Not the profile derivation algorithm. Computing pairwise temporal relations
-/// from timestamps, handling repeated activities, or computing average sojourn
-/// times all graduate to `wasm4pm`.
-///
-/// ## Graduate to `wasm4pm`
-///
-/// Profile derivation, temporal conformance checking, and profile comparison
-/// all graduate to `wasm4pm`.
-///
-/// # Examples
-///
-/// ```ignore
-/// use wasm4pm_compat::temporal::TemporalProfile;
-/// use core::marker::PhantomData;
-/// struct MyTrace;
-/// let profile: TemporalProfile<MyTrace> = TemporalProfile { trace: PhantomData };
-/// ```
-pub struct TemporalProfile<Trace> {
-    /// Phantom binding to the trace type this profile was derived from.
-    pub trace: PhantomData<Trace>,
-}
-
-impl<Trace> TemporalProfile<Trace> {
-    /// Construct a new `TemporalProfile` shape marker.
-    ///
-    /// # Examples
-    ///
-    /// ```ignore
-    /// use wasm4pm_compat::temporal::TemporalProfile;
-    /// struct MyTrace;
-    /// let profile: TemporalProfile<MyTrace> = TemporalProfile::new();
-    /// ```
-    #[inline]
-    pub fn new() -> Self {
-        Self { trace: PhantomData }
-    }
-}
-
-impl<Trace> Default for TemporalProfile<Trace> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Witness that temporal ordering has been established for this evidence.
 ///
 /// ## What this is
@@ -254,5 +198,139 @@ impl<T, Order> TimeAwareEvidence<T, Order> {
     #[inline]
     pub fn into_inner(self) -> T {
         self.inner
+    }
+}
+
+pub trait TimeUnit {
+    const UNIT_NAME: &'static str;
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Seconds;
+impl TimeUnit for Seconds {
+    const UNIT_NAME: &'static str = "seconds";
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Milliseconds;
+impl TimeUnit for Milliseconds {
+    const UNIT_NAME: &'static str = "milliseconds";
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct Nanoseconds;
+impl TimeUnit for Nanoseconds {
+    const UNIT_NAME: &'static str = "nanoseconds";
+}
+
+/// A duration / time distance between two activities.
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct TimeDelta<Unit = Seconds>(pub f64, pub PhantomData<Unit>);
+
+impl<Unit> TimeDelta<Unit> {
+    pub fn new(val: f64) -> Self {
+        Self(val, PhantomData)
+    }
+}
+
+impl<Unit> Default for TimeDelta<Unit> {
+    fn default() -> Self {
+        Self(0.0, PhantomData)
+    }
+}
+
+/// A deviation score in standard deviations from the temporal profile mean.
+///
+/// Grounded in Stertz et al. (2020), conformance checking computes a Z-score
+/// representing the time distance deviation.
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct ZScore(pub f64);
+
+pub struct ZScoreConst<const NUM: u64, const DEN: u64>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+{
+    _private: (),
+}
+
+impl<const NUM: u64, const DEN: u64> ZScoreConst<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+{
+    pub fn new() -> Self {
+        Self { _private: () }
+    }
+
+    pub fn to_f64(&self) -> f64 {
+        NUM as f64 / DEN as f64
+    }
+}
+
+impl<const NUM: u64, const DEN: u64> Default for ZScoreConst<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct ActivityPair<A, B> {
+    pub _a: PhantomData<A>,
+    pub _b: PhantomData<B>,
+}
+
+impl<A, B> ActivityPair<A, B> {
+    pub fn new() -> Self {
+        Self {
+            _a: PhantomData,
+            _b: PhantomData,
+        }
+    }
+}
+
+/// A temporal profile for a trace — structural shape (not computed).
+///
+/// ## What this is
+///
+/// The structural shape of a temporal profile for a trace. `Trace` is the
+/// type parameter naming the kind of trace this profile is derived from. The
+/// profile itself is a collection of pairwise temporal ordering relations
+/// between events in the trace — the shape that a temporal profile engine
+/// produces and that a temporal conformance checker consumes.
+///
+/// ## What this is not
+///
+/// Not the profile derivation algorithm. Computing pairwise temporal relations
+/// from timestamps, handling repeated activities, or computing average sojourn
+/// times all graduate to `wasm4pm`.
+///
+/// ## Graduate to `wasm4pm`
+///
+/// Profile derivation, temporal conformance checking, and profile comparison
+/// all graduate to `wasm4pm`.
+///
+/// # Examples
+///
+/// ```ignore
+/// use wasm4pm_compat::temporal::{TemporalProfile, TimeDelta, Seconds, ActivityPair};
+/// let pair = ActivityPair::<String, String>::new();
+/// let profile = TemporalProfile::new(
+///     TimeDelta::<Seconds>::new(1.0),
+///     TimeDelta::<Seconds>::new(0.5),
+///     pair,
+/// );
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Default)]
+pub struct TemporalProfile<Pair, Unit = Seconds> {
+    pub avg: TimeDelta<Unit>,
+    pub std: TimeDelta<Unit>,
+    pub pair: Pair,
+}
+
+impl<Pair, Unit> TemporalProfile<Pair, Unit> {
+    pub fn new(avg: TimeDelta<Unit>, std: TimeDelta<Unit>, pair: Pair) -> Self {
+        Self { avg, std, pair }
     }
 }

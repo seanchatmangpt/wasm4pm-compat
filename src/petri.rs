@@ -418,8 +418,11 @@ pub struct SeparableWfNetMarker;
 // `wfnet_to_powl_nonseparable` type-law receipt asserts, and it permits
 // struct-literal construction within this crate. Keep the private field.
 #[allow(clippy::manual_non_exhaustive)]
-pub struct SeparableWfNet<const S: SoundnessState> {
-    pub net: WfNetConst<S>,
+pub struct SeparableWfNet<
+    const S: SoundnessState,
+    const FC: FreeChoiceMarker = { FreeChoiceMarker::General },
+> {
+    pub net: WfNetConst<S, FC>,
     /// Non-forgeable seal: this private field prevents constructing a
     /// separability claim via struct-literal syntax outside
     /// [`SeparableWfNet::declare_separable`] (Kourani, Park & van der Aalst
@@ -428,9 +431,19 @@ pub struct SeparableWfNet<const S: SoundnessState> {
     _seal: (),
 }
 
-impl<const S: SoundnessState> SeparableWfNet<S> {
-    pub fn declare_separable(net: WfNetConst<S>) -> Self {
+impl<const S: SoundnessState, const FC: FreeChoiceMarker> SeparableWfNet<S, FC> {
+    pub fn declare_separable(net: WfNetConst<S, FC>) -> Self {
         SeparableWfNet { net, _seal: () }
+    }
+
+    pub fn into_powl(
+        self,
+        context_label: impl Into<String>,
+    ) -> (crate::powl::Powl, crate::powl::WfNet2PowlWitness) {
+        (
+            crate::powl::Powl::new(),
+            crate::powl::WfNet2PowlWitness::new_internal(context_label),
+        )
     }
 }
 
@@ -450,28 +463,61 @@ impl SoundnessProof {
     }
 }
 
-/// A workflow net whose soundness state is embedded as a const generic parameter.
+/// The subclass marker for Free-Choice Petri Nets vs. General Workflow Nets.
+///
+/// Under Free-Choice nets (Desel 1995), soundness is decidable in polynomial time,
+/// whereas general WF-nets require PSPACE-complete complexity.
+#[derive(core::marker::ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
+pub enum FreeChoiceMarker {
+    /// The net is structurally free-choice, enabling the polynomial-time soundness checking path.
+    FreeChoice,
+    /// The net is general, requiring the PSPACE-complete soundness checking path.
+    General,
+}
+
+/// A workflow net whose soundness state and free-choice classification are embedded as const generic parameters.
 ///
 /// `SoundnessState::Unknown` is freely constructible.
 /// `SoundnessState::Claimed` is reachable via `.claim_sound()`.
 /// `SoundnessState::Witnessed` requires a `SoundnessProof` token — non-forgeable.
-pub struct WfNetConst<const SOUNDNESS: SoundnessState> {
+///
+/// The `FC` const-generic parameter allows distinguishing free-choice nets from general ones at the type level.
+pub struct WfNetConst<
+    const SOUNDNESS: SoundnessState,
+    const FC: FreeChoiceMarker = { FreeChoiceMarker::General },
+> {
     _seal: (),
 }
 
-impl WfNetConst<{ SoundnessState::Unknown }> {
+impl WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::General }> {
     pub fn new() -> Self {
         WfNetConst { _seal: () }
     }
 
     /// Advance: Unknown → Claimed (type-level re-tag, zero cost).
     #[must_use]
-    pub fn claim_sound(self) -> WfNetConst<{ SoundnessState::Claimed }> {
+    pub fn claim_sound(
+        self,
+    ) -> WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::General }> {
         WfNetConst { _seal: () }
     }
 }
 
-impl WfNetConst<{ SoundnessState::Claimed }> {
+impl WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::FreeChoice }> {
+    pub fn new() -> Self {
+        WfNetConst { _seal: () }
+    }
+
+    /// Advance: Unknown → Claimed (type-level re-tag, zero cost).
+    #[must_use]
+    pub fn claim_sound(
+        self,
+    ) -> WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::FreeChoice }> {
+        WfNetConst { _seal: () }
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::General }> {
     /// Advance: Claimed → Witnessed, guarded by a `SoundnessProof` token.
     ///
     /// `SoundnessProof` is only constructible inside the petri module, making
@@ -480,18 +526,72 @@ impl WfNetConst<{ SoundnessState::Claimed }> {
     pub fn witness_soundness(
         self,
         _proof: SoundnessProof,
-    ) -> WfNetConst<{ SoundnessState::Witnessed }> {
+    ) -> WfNetConst<{ SoundnessState::Witnessed }, { FreeChoiceMarker::General }> {
         WfNetConst { _seal: () }
     }
 }
 
-impl<const S: SoundnessState> WfNetConst<S> {
-    pub fn soundness_state(&self) -> SoundnessState {
-        S
+impl WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::FreeChoice }> {
+    /// Advance: Claimed → Witnessed, guarded by a `SoundnessProof` token.
+    ///
+    /// `SoundnessProof` is only constructible inside the petri module, making
+    /// this transition non-forgeable from external code.
+    #[must_use]
+    pub fn witness_soundness(
+        self,
+        _proof: SoundnessProof,
+    ) -> WfNetConst<{ SoundnessState::Witnessed }, { FreeChoiceMarker::FreeChoice }> {
+        WfNetConst { _seal: () }
     }
 }
 
-impl Default for WfNetConst<{ SoundnessState::Unknown }> {
+impl<const S: SoundnessState, const FC: FreeChoiceMarker> WfNetConst<S, FC> {
+    pub fn soundness_state(&self) -> SoundnessState {
+        S
+    }
+
+    pub fn free_choice_state(&self) -> FreeChoiceMarker {
+        FC
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::General }> {
+    /// Declare the net as Free-Choice after structural verification (re-tags at type level).
+    #[must_use]
+    pub fn into_free_choice(
+        self,
+    ) -> WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::FreeChoice }> {
+        WfNetConst { _seal: () }
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::General }> {
+    /// Declare the net as Free-Choice after structural verification (re-tags at type level).
+    #[must_use]
+    pub fn into_free_choice(
+        self,
+    ) -> WfNetConst<{ SoundnessState::Claimed }, { FreeChoiceMarker::FreeChoice }> {
+        WfNetConst { _seal: () }
+    }
+}
+
+impl WfNetConst<{ SoundnessState::Witnessed }, { FreeChoiceMarker::General }> {
+    /// Declare the net as Free-Choice after structural verification (re-tags at type level).
+    #[must_use]
+    pub fn into_free_choice(
+        self,
+    ) -> WfNetConst<{ SoundnessState::Witnessed }, { FreeChoiceMarker::FreeChoice }> {
+        WfNetConst { _seal: () }
+    }
+}
+
+impl Default for WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::General }> {
+    fn default() -> Self {
+        WfNetConst { _seal: () }
+    }
+}
+
+impl Default for WfNetConst<{ SoundnessState::Unknown }, { FreeChoiceMarker::FreeChoice }> {
     fn default() -> Self {
         WfNetConst { _seal: () }
     }
@@ -503,11 +603,241 @@ impl Default for WfNetConst<{ SoundnessState::Unknown }> {
 pub trait WfNetQuery {
     /// The soundness state of this WF-net as a runtime value.
     fn soundness_state(&self) -> SoundnessState;
+    /// The free-choice classification of this WF-net.
+    fn free_choice_state(&self) -> FreeChoiceMarker;
 }
 
-impl<const S: SoundnessState> WfNetQuery for WfNetConst<S> {
+impl<const S: SoundnessState, const FC: FreeChoiceMarker> WfNetQuery for WfNetConst<S, FC> {
     fn soundness_state(&self) -> SoundnessState {
         S
+    }
+    fn free_choice_state(&self) -> FreeChoiceMarker {
+        FC
+    }
+}
+
+// =============================================================================
+// Stochastic Petri Nets
+// =============================================================================
+
+/// A stochastic weight representing a probability value `NUM / DEN` in `[0, 1]`.
+///
+/// Encodes the Leemans (2019) stochastic choice constraint: out-of-bounds weights
+/// (e.g. numerator > denominator, or denominator == 0) are rejected at compile time.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct StochasticArcWeight<const NUM: u64, const DEN: u64>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    _inner: crate::law::Between01<NUM, DEN>,
+}
+
+impl<const NUM: u64, const DEN: u64> StochasticArcWeight<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    /// Construct a new compile-time stochastic weight.
+    pub const fn new() -> Self {
+        Self {
+            _inner: crate::law::Between01::new(),
+        }
+    }
+
+    /// Returns the numerator of the weight.
+    pub const fn num(&self) -> u64 {
+        NUM
+    }
+
+    /// Returns the denominator of the weight.
+    pub const fn den(&self) -> u64 {
+        DEN
+    }
+}
+
+impl<const NUM: u64, const DEN: u64> Default for StochasticArcWeight<NUM, DEN>
+where
+    crate::law::Require<{ DEN > 0 }>: crate::law::IsTrue,
+    crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+/// Unit-struct marker representing an immediate transition.
+/// Fired instantly when enabled; conflicts are resolved using relative probability weights.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct ImmediateTransition;
+
+/// Unit-struct marker representing a timed transition.
+/// Fired stochastically after a delay determined by its firing rate.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct TimedTransition;
+
+mod private {
+    pub trait Sealed {}
+    impl Sealed for super::ImmediateTransition {}
+    impl Sealed for super::TimedTransition {}
+}
+
+/// Trait implemented by valid stochastic transition kind markers.
+///
+/// This trait is sealed to prevent users from implementing it for arbitrary types.
+pub trait IsStochasticTransitionKind: private::Sealed + Default + Copy {}
+
+impl IsStochasticTransitionKind for ImmediateTransition {}
+impl IsStochasticTransitionKind for TimedTransition {}
+
+/// A transition in a stochastic Petri net, type-stamped with its structural kind.
+///
+/// This is a zero-cost wrapper around a transition identifier.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StochasticTransition<KIND: IsStochasticTransitionKind> {
+    pub id: String,
+    _kind: PhantomData<KIND>,
+}
+
+impl<KIND: IsStochasticTransitionKind> StochasticTransition<KIND> {
+    /// Construct a new typed stochastic transition.
+    pub fn new(id: &str) -> Self {
+        Self {
+            id: id.to_string(),
+            _kind: PhantomData,
+        }
+    }
+
+    /// The transition's identifier.
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+}
+
+// =============================================================================
+// Petri Net Unfoldings
+// =============================================================================
+
+/// A Condition in a branching process / occurrence net, corresponding to a place instance.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Condition {
+    /// Unique identifier of this condition in the unfolding.
+    pub id: String,
+    /// Reference to the place ID in the original net.
+    pub place_id: String,
+}
+
+impl Condition {
+    pub fn new(id: impl Into<String>, place_id: impl Into<String>) -> Self {
+        Condition {
+            id: id.into(),
+            place_id: place_id.into(),
+        }
+    }
+}
+
+/// An Event in a branching process / occurrence net, corresponding to a transition firing.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Event {
+    /// Unique identifier of this event in the unfolding.
+    pub id: String,
+    /// Reference to the transition ID in the original net.
+    pub transition_id: String,
+}
+
+impl Event {
+    pub fn new(id: impl Into<String>, transition_id: impl Into<String>) -> Self {
+        Event {
+            id: id.into(),
+            transition_id: transition_id.into(),
+        }
+    }
+}
+
+/// A Branching Process (occurrence net) of a Petri net.
+///
+/// Under Murata 1989, the branching process is acyclic, and every condition
+/// has at most one incoming event. The type parameter `Net` binds the branching
+/// process to the original Petri net type, enforcing type safety.
+#[derive(Debug, Clone, PartialEq)]
+pub struct BranchingProcess<Net = PetriNet> {
+    pub conditions: Vec<Condition>,
+    pub events: Vec<Event>,
+    pub arcs: Vec<Arc>,
+    _marker: std::marker::PhantomData<Net>,
+}
+
+impl<Net> BranchingProcess<Net> {
+    pub fn new(conditions: Vec<Condition>, events: Vec<Event>, arcs: Vec<Arc>) -> Self {
+        BranchingProcess {
+            conditions,
+            events,
+            arcs,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    pub fn conditions(&self) -> &[Condition] {
+        &self.conditions
+    }
+
+    pub fn events(&self) -> &[Event] {
+        &self.events
+    }
+
+    pub fn arcs(&self) -> &[Arc] {
+        &self.arcs
+    }
+}
+
+impl<Net> Default for BranchingProcess<Net> {
+    fn default() -> Self {
+        BranchingProcess {
+            conditions: Vec::new(),
+            events: Vec::new(),
+            arcs: Vec::new(),
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+/// An Unfolding Prefix of a branching process.
+///
+/// Under Murata 1989 and McMillan 1992, the unfolding prefix is a finite complete prefix
+/// containing cut-off event designations that truncates infinite execution sequences.
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnfoldingPrefix<Net = PetriNet> {
+    pub process: BranchingProcess<Net>,
+    pub cutoff_events: Vec<String>,
+}
+
+impl<Net> UnfoldingPrefix<Net> {
+    pub fn new(process: BranchingProcess<Net>, cutoff_events: Vec<String>) -> Self {
+        UnfoldingPrefix {
+            process,
+            cutoff_events,
+        }
+    }
+
+    pub fn process(&self) -> &BranchingProcess<Net> {
+        &self.process
+    }
+
+    pub fn cutoff_events(&self) -> &[String] {
+        &self.cutoff_events
+    }
+
+    pub fn is_cutoff(&self, event_id: &str) -> bool {
+        self.cutoff_events.iter().any(|id| id == event_id)
+    }
+}
+
+impl<Net> Default for UnfoldingPrefix<Net> {
+    fn default() -> Self {
+        UnfoldingPrefix {
+            process: BranchingProcess::default(),
+            cutoff_events: Vec::new(),
+        }
     }
 }
 

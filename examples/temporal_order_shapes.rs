@@ -14,11 +14,11 @@
 //!   - TemporalProfile::new() == TemporalProfile::default() (structurally identical)
 //!   - TimeAwareEvidence::into_inner() recovers the original value exactly
 
-use core::marker::PhantomData;
 use wasm4pm_compat::temporal::{
     SojournTimeWitness, TemporalOrder, TemporalOrderWitness, TemporalProfile, TimeAwareEvidence,
 };
 
+#[derive(Default, Clone, Copy)]
 struct MyTrace;
 
 fn main() {
@@ -54,18 +54,21 @@ fn main() {
     // ── TemporalProfile — structural shape marker ────────────────────────────
     println!("\n== TemporalProfile: structural shape marker ==");
 
-    let prof_new: TemporalProfile<MyTrace> = TemporalProfile::new();
+    let pair = MyTrace;
+    let avg = wasm4pm_compat::temporal::TimeDelta::new(1.0);
+    let std = wasm4pm_compat::temporal::TimeDelta::new(0.5);
+    let prof_new: TemporalProfile<MyTrace> = TemporalProfile::new(avg, std, pair);
     let prof_default: TemporalProfile<MyTrace> = TemporalProfile::default();
-    let prof_direct: TemporalProfile<MyTrace> = TemporalProfile { trace: PhantomData };
+    let prof_direct: TemporalProfile<MyTrace> = TemporalProfile { avg, std, pair };
 
-    // All three construction paths produce the same zero-size value
+    // All three construction paths produce the same size value (16 bytes for two f64s)
     assert_eq!(
         std::mem::size_of_val(&prof_new),
-        0,
-        "TemporalProfile is zero-sized"
+        16,
+        "TemporalProfile is 16 bytes"
     );
-    assert_eq!(std::mem::size_of_val(&prof_default), 0);
-    assert_eq!(std::mem::size_of_val(&prof_direct), 0);
+    assert_eq!(std::mem::size_of_val(&prof_default), 16);
+    assert_eq!(std::mem::size_of_val(&prof_direct), 16);
     println!(
         "  TemporalProfile<MyTrace>::new()     size: {} bytes",
         std::mem::size_of_val(&prof_new)

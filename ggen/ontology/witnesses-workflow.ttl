@@ -207,3 +207,14 @@ compat:YawlYetAnotherWorkflowLanguagePaper
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "workflow" ;
     compat:description  "YAWL original paper — van der Aalst & ter Hofstede (2004): YAWL semantics and expressiveness." .
+
+compat:ProcessQueryWitness
+    a compat:WitnessMarker ;
+    compat:rustType     "ProcessQueryWitness" ;
+    compat:witnessKey   "workflow/process-querying-witness-2017" ;
+    compat:witnessTitle "Process Querying Methods" ;
+    compat:witnessYear  2017 ;
+    compat:witnessFamily compat:Paper ;
+    compat:paperCategory "workflow" ;
+    compat:description  "Process Querying Methods — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework." .
+

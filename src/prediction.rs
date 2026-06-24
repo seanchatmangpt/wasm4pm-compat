@@ -365,3 +365,102 @@ impl core::fmt::Display for PredictionRefusal {
         write!(f, "prediction problem refused: {law}")
     }
 }
+
+// ── Prediction Horizon & Drift Const-Generics ────────────────────────────────
+
+#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash, core::marker::ConstParamTy)]
+pub enum PredictionHorizonConst {
+    FullCase,
+    Events(usize),
+    TimeUnits(u64),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PredictionProblemConst<
+    T,
+    const H: PredictionHorizonConst = { PredictionHorizonConst::FullCase },
+    const PREFIX_LEN: usize = 0,
+> {
+    pub prefix: Vec<String>,
+    pub target: PredictionTarget,
+    pub witness: PhantomData<T>,
+}
+
+impl<T, const H: PredictionHorizonConst, const PREFIX_LEN: usize>
+    PredictionProblemConst<T, H, PREFIX_LEN>
+{
+    pub fn new(prefix: Vec<String>, target: PredictionTarget) -> Self {
+        Self {
+            prefix,
+            target,
+            witness: PhantomData,
+        }
+    }
+
+    pub fn prefix_len(&self) -> usize {
+        PREFIX_LEN
+    }
+}
+
+pub const fn is_events_horizon(h: PredictionHorizonConst) -> bool {
+    matches!(h, PredictionHorizonConst::Events(_))
+}
+
+pub const fn is_full_case_horizon(h: PredictionHorizonConst) -> bool {
+    matches!(h, PredictionHorizonConst::FullCase)
+}
+
+pub const fn is_full_case_or_time_units_horizon(h: PredictionHorizonConst) -> bool {
+    matches!(
+        h,
+        PredictionHorizonConst::FullCase | PredictionHorizonConst::TimeUnits(_)
+    )
+}
+
+pub trait AdmissibleHorizonConst<const H: PredictionHorizonConst> {}
+
+// NextActivity admissible under PredictionHorizonConst::Events(N)
+impl<const H: PredictionHorizonConst> AdmissibleHorizonConst<H> for NextActivity where
+    crate::law::Assert<{ is_events_horizon(H) }>: crate::law::IsTrue
+{
+}
+
+// OutcomeLabel admissible under PredictionHorizonConst::FullCase
+impl<const H: PredictionHorizonConst> AdmissibleHorizonConst<H> for OutcomeLabel where
+    crate::law::Assert<{ is_full_case_horizon(H) }>: crate::law::IsTrue
+{
+}
+
+// RemainingTime admissible under PredictionHorizonConst::FullCase and PredictionHorizonConst::TimeUnits(SECS)
+impl<const H: PredictionHorizonConst> AdmissibleHorizonConst<H> for RemainingTime where
+    crate::law::Assert<{ is_full_case_or_time_units_horizon(H) }>: crate::law::IsTrue
+{
+}
+
+// RiskScore and ComplianceTarget admissible under all three horizon kinds
+impl<const H: PredictionHorizonConst> AdmissibleHorizonConst<H> for RiskScore {}
+
+impl<const H: PredictionHorizonConst> AdmissibleHorizonConst<H> for ComplianceTarget {}
+
+pub fn enforce_admissible_horizon<T, const H: PredictionHorizonConst>()
+where
+    T: AdmissibleHorizonConst<H>,
+{
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct ComplianceConstraintWitness<W> {
+    pub constraint_name: &'static str,
+    pub _witness: PhantomData<W>,
+}
+
+impl<W> ComplianceConstraintWitness<W> {
+    pub fn new(constraint_name: &'static str) -> Self {
+        Self {
+            constraint_name,
+            _witness: PhantomData,
+        }
+    }
+}
+
+pub type ComplianceScore<const NUM: u64, const DEN: u64> = crate::law::Between01<NUM, DEN>;

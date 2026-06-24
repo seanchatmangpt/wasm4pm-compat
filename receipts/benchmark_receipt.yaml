@@ -1,5 +1,5 @@
 benchmark_receipt:
-  timestamp_ns: "1780374441466490000"
+  timestamp_ns: "1782279206828080000"
   crate: "c8-receipts"
   tests_executed: "27"
   tests_passed: "27"

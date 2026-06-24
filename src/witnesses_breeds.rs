@@ -65,7 +65,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Sussman, Gerald Jay. \\
+    /// Sussman, Gerald Jay. \
     AutoinstinctLearningPaper,
     "cognition/autoinstinct-learning",
     WitnessFamily::Paper,
@@ -74,7 +74,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Boden, M. A. (1977). Artificial Intelligence and Natural Man. New York: Basic Books. Chapter 6: \\
+    /// Boden, M. A. (1977). Artificial Intelligence and Natural Man. New York: Basic Books. Chapter 6: \
     AutoinstinctNeurosisPaper,
     "cognition/autoinstinct-neurosis",
     WitnessFamily::Paper,
@@ -272,7 +272,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// A. Newell and H. A. Simon, \\
+    /// A. Newell and H. A. Simon, \
     GpsPaper,
     "cognition/gps",
     WitnessFamily::Paper,

@@ -33,7 +33,7 @@ fn chain_digest(events: &[&[u8]]) -> Digest {
 /// recompute, match against the consumer-claimed digest, then seal.
 fn seal_over(events: &[&[u8]]) -> RuntimeSeal {
     let claimed = chain_digest(events);
-    let proof = recompute_and_match(events, &claimed, |e| chain_digest(e))
+    let proof = recompute_and_match(events, &claimed, chain_digest)
         .expect("self-consistent claimed digest must match");
     RuntimeSeal::from_verified_chain(claimed, proof)
 }
@@ -76,7 +76,7 @@ fn tampered_claim_refuses_by_name() {
     // A claimed digest that disagrees with the recomputed chain digest.
     let lying_claim = Digest::new("blake3:tampered");
 
-    match recompute_and_match(events, &lying_claim, |e| chain_digest(e)) {
+    match recompute_and_match(events, &lying_claim, chain_digest) {
         Ok(_) => panic!("a disagreeing claimed digest must be refused"),
         // The refusal is named, not a catch-all.
         Err(refusal) => assert_eq!(refusal.reason, ChainHashMismatch),

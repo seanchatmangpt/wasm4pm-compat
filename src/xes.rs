@@ -247,6 +247,83 @@ impl XesEvent {
     pub fn attributes(&self) -> &[(String, String)] {
         &self.attributes
     }
+
+    /// Retrieve all attributes in this event belonging to a specific namespace.
+    pub fn extension_attributes<N: XesExtensionNamespace>(
+        &self,
+    ) -> impl Iterator<Item = (&str, &str)> {
+        self.attributes
+            .iter()
+            .filter(|(k, _)| N::contains_key(k))
+            .map(|(k, v)| (k.as_str(), v.as_str()))
+    }
+
+    /// Check if this event contains any attributes belonging to a specific namespace.
+    pub fn has_extension<N: XesExtensionNamespace>(&self) -> bool {
+        self.attributes.iter().any(|(k, _)| N::contains_key(k))
+    }
+
+    /// Retrieve the value of a specific attribute within the namespace by its local name.
+    pub fn get_extension_attribute<N: XesExtensionNamespace>(
+        &self,
+        local_name: &str,
+    ) -> Option<&str> {
+        let full_key = format!("{}:{}", N::PREFIX, local_name);
+        self.attribute(&full_key)
+    }
+}
+
+/// A trait representing a typed XES extension namespace.
+///
+/// Following van der Aalst (2011), each perspective acts as a first-class namespace.
+/// This trait maps perspective markers to their prefix keys for typed event queries.
+pub trait XesExtensionNamespace {
+    /// The canonical prefix of the namespace (e.g., `"org"`, `"data"`, `"concept"`).
+    const PREFIX: &'static str;
+
+    /// Checks if a fully qualified namespaced key (e.g. `prefix:local`) belongs to this namespace.
+    fn contains_key(key: &str) -> bool {
+        if let Some(colon_idx) = key.find(':') {
+            &key[..colon_idx] == Self::PREFIX
+        } else {
+            false
+        }
+    }
+}
+
+// Binds ControlFlowPerspective to the standard "concept" prefix.
+impl XesExtensionNamespace for crate::multiperspective::ControlFlowPerspective {
+    const PREFIX: &'static str = "concept";
+}
+
+// Binds TimePerspective to the standard "time" prefix.
+impl XesExtensionNamespace for crate::multiperspective::TimePerspective {
+    const PREFIX: &'static str = "time";
+}
+
+// Binds ResourcePerspective to the standard "org" prefix.
+impl XesExtensionNamespace for crate::multiperspective::ResourcePerspective {
+    const PREFIX: &'static str = "org";
+}
+
+// Binds DataPerspective to the "data" prefix or any custom non-standard prefix.
+impl XesExtensionNamespace for crate::multiperspective::DataPerspective {
+    const PREFIX: &'static str = "data";
+
+    /// Custom attributes that do not belong to standard namespaces are considered data.
+    fn contains_key(key: &str) -> bool {
+        if let Some(colon_idx) = key.find(':') {
+            let prefix = &key[..colon_idx];
+            prefix == "data"
+                || (prefix != "concept"
+                    && prefix != "time"
+                    && prefix != "org"
+                    && prefix != "lifecycle")
+        } else {
+            // A prefix-less attribute is also classified as a data attribute.
+            true
+        }
+    }
 }
 
 /// Trace-level attributes in a XES log (attributes on the `<trace>` element).

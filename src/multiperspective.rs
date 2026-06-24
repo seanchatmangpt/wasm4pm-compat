@@ -260,3 +260,168 @@ impl ParityComparer {
         );
     }
 }
+
+use crate::law::{Between01, IsTrue, Require};
+
+/// A perspective weight represented as a type-level fraction in `[0, 1]`.
+///
+/// Enforces at compile time that the weight is a valid rational number in `[0, 1]`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct PerspectiveWeight<const NUM: u64, const DEN: u64>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    _inner: Between01<NUM, DEN>,
+}
+
+impl<const NUM: u64, const DEN: u64> Default for PerspectiveWeight<NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<const NUM: u64, const DEN: u64> PerspectiveWeight<NUM, DEN>
+where
+    Require<{ DEN > 0 }>: IsTrue,
+    Require<{ NUM <= DEN }>: IsTrue,
+{
+    /// Construct a new perspective weight.
+    pub const fn new() -> Self {
+        Self {
+            _inner: Between01::new(),
+        }
+    }
+
+    /// Retrieve the weight numerator.
+    pub const fn num(&self) -> u64 {
+        NUM
+    }
+
+    /// Retrieve the weight denominator.
+    pub const fn den(&self) -> u64 {
+        DEN
+    }
+
+    /// Convert the type-level fraction to a runtime `f64` value.
+    pub fn to_f64(&self) -> f64 {
+        NUM as f64 / DEN as f64
+    }
+}
+
+/// A configuration of weights for the four process mining perspectives.
+///
+/// Enforces at compile time that:
+/// 1. Each weight is individually in `[0, 1]`.
+/// 2. The sum of all four weights is <= 1.0.
+pub struct MultiPerspectiveWeightConfig<
+    const CF_N: u64,
+    const CF_D: u64, // Control-Flow Weight
+    const D_N: u64,
+    const D_D: u64, // Data Weight
+    const R_N: u64,
+    const R_D: u64, // Resource Weight
+    const T_N: u64,
+    const T_D: u64, // Time Weight
+> where
+    Require<{ CF_D > 0 }>: IsTrue,
+    Require<{ CF_N <= CF_D }>: IsTrue,
+    Require<{ D_D > 0 }>: IsTrue,
+    Require<{ D_N <= D_D }>: IsTrue,
+    Require<{ R_D > 0 }>: IsTrue,
+    Require<{ R_N <= R_D }>: IsTrue,
+    Require<{ T_D > 0 }>: IsTrue,
+    Require<{ T_N <= T_D }>: IsTrue,
+    // exact rational addition: CF_N/CF_D + D_N/D_D + R_N/R_D + T_N/T_D <= 1
+    Require<
+        {
+            (CF_N * D_D * R_D * T_D)
+                + (D_N * CF_D * R_D * T_D)
+                + (R_N * CF_D * D_D * T_D)
+                + (T_N * CF_D * D_D * R_D)
+                <= (CF_D * D_D * R_D * T_D)
+        },
+    >: IsTrue,
+{
+    pub cf: PerspectiveWeight<CF_N, CF_D>,
+    pub data: PerspectiveWeight<D_N, D_D>,
+    pub resource: PerspectiveWeight<R_N, R_D>,
+    pub time: PerspectiveWeight<T_N, T_D>,
+}
+
+impl<
+        const CF_N: u64,
+        const CF_D: u64,
+        const D_N: u64,
+        const D_D: u64,
+        const R_N: u64,
+        const R_D: u64,
+        const T_N: u64,
+        const T_D: u64,
+    > MultiPerspectiveWeightConfig<CF_N, CF_D, D_N, D_D, R_N, R_D, T_N, T_D>
+where
+    Require<{ CF_D > 0 }>: IsTrue,
+    Require<{ CF_N <= CF_D }>: IsTrue,
+    Require<{ D_D > 0 }>: IsTrue,
+    Require<{ D_N <= D_D }>: IsTrue,
+    Require<{ R_D > 0 }>: IsTrue,
+    Require<{ R_N <= R_D }>: IsTrue,
+    Require<{ T_D > 0 }>: IsTrue,
+    Require<{ T_N <= T_D }>: IsTrue,
+    Require<
+        {
+            (CF_N * D_D * R_D * T_D)
+                + (D_N * CF_D * R_D * T_D)
+                + (R_N * CF_D * D_D * T_D)
+                + (T_N * CF_D * D_D * R_D)
+                <= (CF_D * D_D * R_D * T_D)
+        },
+    >: IsTrue,
+{
+    pub const fn new() -> Self {
+        Self {
+            cf: PerspectiveWeight::new(),
+            data: PerspectiveWeight::new(),
+            resource: PerspectiveWeight::new(),
+            time: PerspectiveWeight::new(),
+        }
+    }
+}
+
+impl<
+        const CF_N: u64,
+        const CF_D: u64,
+        const D_N: u64,
+        const D_D: u64,
+        const R_N: u64,
+        const R_D: u64,
+        const T_N: u64,
+        const T_D: u64,
+    > Default for MultiPerspectiveWeightConfig<CF_N, CF_D, D_N, D_D, R_N, R_D, T_N, T_D>
+where
+    Require<{ CF_D > 0 }>: IsTrue,
+    Require<{ CF_N <= CF_D }>: IsTrue,
+    Require<{ D_D > 0 }>: IsTrue,
+    Require<{ D_N <= D_D }>: IsTrue,
+    Require<{ R_D > 0 }>: IsTrue,
+    Require<{ R_N <= R_D }>: IsTrue,
+    Require<{ T_D > 0 }>: IsTrue,
+    Require<{ T_N <= T_D }>: IsTrue,
+    Require<
+        {
+            (CF_N * D_D * R_D * T_D)
+                + (D_N * CF_D * R_D * T_D)
+                + (R_N * CF_D * D_D * T_D)
+                + (T_N * CF_D * D_D * R_D)
+                <= (CF_D * D_D * R_D * T_D)
+        },
+    >: IsTrue,
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}

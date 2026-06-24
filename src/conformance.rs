@@ -74,9 +74,9 @@ impl SimdMarking {
         let new_state_u64 = (state_u64 & !(in_u64 & exec_mask)) | (out_u64 & exec_mask);
 
         let mut new_state_array = [0u32; 16];
-        for i in 0..16 {
+        for (i, val) in new_state_array.iter_mut().enumerate() {
             let has_token = (new_state_u64 >> i) & 1;
-            new_state_array[i] = has_token as u32;
+            *val = has_token as u32;
         }
 
         self.vector = u32x16::from_array(new_state_array);

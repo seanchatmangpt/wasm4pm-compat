@@ -1,0 +1,14 @@
+error: cannot construct `WfNet2PowlWitness` with struct literal syntax due to private fields
+  --> tests/ui/compile_fail/wfnet2powl_forged_witness.rs:14:19
+   |
+14 |     let _forged = WfNet2PowlWitness {
+   |                   ^^^^^^^^^^^^^^^^^
+   |
+   = note: ...and other private field `_seal` that was not provided
+help: you might have meant to use the `new_internal` associated function
+   |
+14 -     let _forged = WfNet2PowlWitness {
+15 -         context: "forged-context".to_string(),
+16 -     };
+14 +     let _forged = WfNet2PowlWitness::new_internal(_);
+   |

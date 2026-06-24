@@ -155,7 +155,7 @@ pub struct Transition {
     pub is_invisible: Option<bool>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Arc {
     pub from: String,
     pub to: String,

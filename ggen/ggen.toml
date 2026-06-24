@@ -125,7 +125,7 @@ mode = "Overwrite"
 name = "audit-scripts"
 query = { file = "queries/extract-source-modules.rq" }
 template = { file = "templates/audit-script.tera" }
-output_file = "audits/"
+output_file = "audits/{{ moduleName }}.sh"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------

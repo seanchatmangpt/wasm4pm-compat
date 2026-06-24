@@ -1,4 +1,4 @@
-#![allow(clippy::all, migrated)]
+#![allow(clippy::all)]
 //! Example: CausalNet structural shapes — Heuristics Miner output
 //!
 //! Demonstrates the structural shapes produced by the Heuristics Miner algorithm
@@ -66,35 +66,38 @@ fn demonstrate_dependency_measure() {
     println!("=== DependencyMeasure — causal arc weight ===\n");
 
     // Strong causal dependency: RegisterOrder → CheckStock (dm ≈ 0.90).
-    let dm_reg_check = DependencyMeasure(0.90);
-    println!("  RegisterOrder → CheckStock : dm = {:.2}", dm_reg_check.0);
+    let dm_reg_check = DependencyMeasure::<9, 10>::new();
+    println!(
+        "  RegisterOrder → CheckStock : dm = {:.2}",
+        dm_reg_check.as_f64()
+    );
 
     // Moderate dependency: CheckStock → ApproveOrder (dm ≈ 0.75).
-    let dm_check_approve = DependencyMeasure(0.75);
+    let dm_check_approve = DependencyMeasure::<3, 4>::new();
     println!(
         "  CheckStock → ApproveOrder  : dm = {:.2}",
-        dm_check_approve.0
+        dm_check_approve.as_f64()
     );
 
     // Weak dependency: CheckStock → ShipOrder (dm ≈ 0.42 — below threshold).
-    let dm_check_ship = DependencyMeasure(0.42);
+    let dm_check_ship = DependencyMeasure::<42, 100>::new();
     println!(
         "  CheckStock → ShipOrder     : dm = {:.2}  (below threshold — arc may be pruned)",
-        dm_check_ship.0
+        dm_check_ship.as_f64()
     );
 
     // Certain dependency: ApproveOrder → ShipOrder (dm ≈ 0.98).
-    let dm_approve_ship = DependencyMeasure(0.98);
+    let dm_approve_ship = DependencyMeasure::<98, 100>::new();
     println!(
         "  ApproveOrder → ShipOrder   : dm = {:.2}",
-        dm_approve_ship.0
+        dm_approve_ship.as_f64()
     );
 
     // ShipOrder → ArchiveCase (dm ≈ 0.95).
-    let dm_ship_archive = DependencyMeasure(0.95);
+    let dm_ship_archive = DependencyMeasure::<95, 100>::new();
     println!(
         "  ShipOrder → ArchiveCase    : dm = {:.2}",
-        dm_ship_archive.0
+        dm_ship_archive.as_f64()
     );
 
     println!();
@@ -122,14 +125,14 @@ fn demonstrate_bindings() {
 
     // InputBinding: CheckStock requires RegisterOrder to have fired first.
     let ib_reg_check: InputBinding<RegisterOrder, CheckStock> =
-        InputBinding(RegisterOrder, CheckStock);
+        InputBinding::new(RegisterOrder, CheckStock);
     println!("  InputBinding<RegisterOrder, CheckStock>");
     println!("    → CheckStock requires RegisterOrder predecessor");
     let _ = ib_reg_check;
 
     // InputBinding: ApproveOrder requires CheckStock predecessor.
     let ib_check_approve: InputBinding<CheckStock, ApproveOrder> =
-        InputBinding(CheckStock, ApproveOrder);
+        InputBinding::new(CheckStock, ApproveOrder);
     println!("  InputBinding<CheckStock, ApproveOrder>");
     println!("    → ApproveOrder requires CheckStock predecessor");
     let _ = ib_check_approve;
@@ -138,14 +141,14 @@ fn demonstrate_bindings() {
 
     // OutputBinding: RegisterOrder activates CheckStock.
     let ob_reg_check: OutputBinding<RegisterOrder, CheckStock> =
-        OutputBinding(RegisterOrder, CheckStock);
+        OutputBinding::new(RegisterOrder, CheckStock);
     println!("  OutputBinding<RegisterOrder, CheckStock>");
     println!("    → RegisterOrder activates CheckStock successor");
     let _ = ob_reg_check;
 
     // OutputBinding: ApproveOrder activates ShipOrder.
     let ob_approve_ship: OutputBinding<ApproveOrder, ShipOrder> =
-        OutputBinding(ApproveOrder, ShipOrder);
+        OutputBinding::new(ApproveOrder, ShipOrder);
     println!("  OutputBinding<ApproveOrder, ShipOrder>");
     println!("    → ApproveOrder activates ShipOrder successor");
     let _ = ob_approve_ship;

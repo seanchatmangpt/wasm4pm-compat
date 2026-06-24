@@ -54,6 +54,7 @@ fn main() {
     println!("\n✓ Adversary gap demo complete");
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 struct ProcessModel {
     nodes: Vec<String>,

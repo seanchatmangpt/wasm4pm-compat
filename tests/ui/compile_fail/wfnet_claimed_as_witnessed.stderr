@@ -6,8 +6,8 @@ error[E0308]: mismatched types
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Witnessed>`
-              found struct `WfNetConst<Claimed>`
+   = note: expected struct `WfNetConst<wasm4pm_compat::law::SoundnessState::Witnessed, General>`
+              found struct `WfNetConst<Claimed, General>`
 note: function defined here
   --> tests/ui/compile_fail/wfnet_claimed_as_witnessed.rs:7:4
    |

@@ -446,6 +446,7 @@ pub const ALL_WITNESS_KEYS: &[&str] = &[
     "workflow/pm4py-software-impacts-2023",
     "workflow/pmax-agentic-process-mining-2026",
     "workflow/process-mining-healthcare-2022",
+    "workflow/process-querying-witness-2017",
     "workflow/real-life-bpmn-edition-4",
     "workflow/sairflow-serverless-scheduler",
     "workflow/stochastic-conformance-2020",

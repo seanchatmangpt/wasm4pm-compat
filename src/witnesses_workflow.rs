@@ -104,6 +104,15 @@ witness_marker!(
 );
 
 witness_marker!(
+    /// Process Querying Methods — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework.
+    ProcessQueryWitness,
+    "workflow/process-querying-witness-2017",
+    WitnessFamily::Paper,
+    "Process Querying Methods",
+    Some(2017)
+);
+
+witness_marker!(
     /// Real-Life BPMN 4th ed. — Freund & Rücker: practical BPMN guide with real-world examples.
     RealLifeBpmn4Paper,
     "workflow/real-life-bpmn-edition-4",

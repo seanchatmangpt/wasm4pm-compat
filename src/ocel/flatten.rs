@@ -80,3 +80,101 @@ pub fn flatten(ocel: &OCEL, object_type: &str) -> Result<FlatLog, String> {
         cases,
     })
 }
+
+// ── ELKG & Perspective Traversal ─────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct Triple {
+    pub subject: String,
+    pub predicate: String,
+    pub object: String,
+}
+
+impl Triple {
+    pub fn new<S: Into<String>, P: Into<String>, O: Into<String>>(
+        subject: S,
+        predicate: P,
+        object: O,
+    ) -> Self {
+        Self {
+            subject: subject.into(),
+            predicate: predicate.into(),
+            object: object.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
+pub struct EventLogKnowledgeGraph {
+    pub triples: Vec<Triple>,
+}
+
+impl EventLogKnowledgeGraph {
+    pub fn new() -> Self {
+        Self {
+            triples: Vec::new(),
+        }
+    }
+
+    pub fn add_triple(&mut self, triple: Triple) {
+        self.triples.push(triple);
+    }
+
+    pub fn flatten_perspective(&self, perspective: &PerspectivePath) -> Result<FlatLog, String> {
+        Ok(FlatLog {
+            object_type: if let Some(step) = perspective.steps.first() {
+                step.target_type.clone()
+            } else {
+                "unknown".to_string()
+            },
+            cases: Vec::new(),
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct PerspectiveStep {
+    pub relationship: String,
+    pub target_type: String,
+}
+
+impl PerspectiveStep {
+    pub fn new<R: Into<String>, T: Into<String>>(relationship: R, target_type: T) -> Self {
+        Self {
+            relationship: relationship.into(),
+            target_type: target_type.into(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize, serde::Deserialize, Default)]
+pub struct PerspectivePath {
+    pub steps: Vec<PerspectiveStep>,
+}
+
+impl PerspectivePath {
+    pub fn new() -> Self {
+        Self { steps: Vec::new() }
+    }
+
+    pub fn then(mut self, step: PerspectiveStep) -> Self {
+        self.steps.push(step);
+        self
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
+pub enum TraceConstraint {
+    Existence,
+    Absence,
+    Exactly1,
+    Init,
+    RespondedExistence,
+    CoExistence,
+    Response,
+    Precedence,
+    Succession,
+    AlternateResponse,
+    AlternatePrecedence,
+    AlternateSuccession,
+}

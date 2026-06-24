@@ -2204,9 +2204,9 @@ domain:WorkflowPatternConstraint
     rdfs:label "WorkflowPattern" ;
     compat:rustType "WorkflowPattern" ;
     compat:sourceFile "src/law.rs" ;
-    skos:definition "ConstParamTy enum covering 17 of 20 canonical workflow patterns (WP-1 through WP-17). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." ;
+    skos:definition "ConstParamTy enum covering all 20 canonical workflow patterns (WCP-1 through WCP-20). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." ;
     rdfs:comment "A const-generic type family where each workflow pattern variant produces a different, incompatible type. Prevents pattern-kind confusion at the type level." ;
-    domain:coverageCount 17 ;
+    domain:coverageCount 20 ;
     domain:coverageOf "Workflow Patterns: The Definitive Guide (Russell, van der Aalst and ter Hofstede, 2016)" .
 
 domain:WorkflowPatternWrongKindLaw
@@ -2892,8 +2892,8 @@ paper:WorkflowPatterns2016
     paper:canonFamily "WORKFLOW_PATTERNS_BPMN" ;
     compat:coverageStatus "COVERED_BY_TYPE" ;
     compat:coveringModule "src/law.rs" ;
-    compat:description "17 of 20 canonical control-flow workflow patterns reified as WorkflowPattern ConstParamTy enum. WorkflowPatternsPaper witness. Compile-fail fixture for wrong-kind pattern." ;
-    paper:missingWork "3 remaining patterns (WCP-14, WCP-15, WCP-18) not yet named; data/resource/exception patterns out of scope." .
+    compat:description "All 20 canonical control-flow workflow patterns reified as WorkflowPattern ConstParamTy enum. WorkflowPatternsPaper witness. Compile-fail fixture for wrong-kind pattern." ;
+    paper:missingWork "data/resource/exception patterns out of scope." .
 
 paper:SeparableWfNet2026
     a compat:PaperCoverage ;
@@ -4897,7 +4897,7 @@ compat:WorkflowPatternConstParam
     rdfs:label "WorkflowPattern" ;
     compat:rustType "WorkflowPattern" ;
     compat:sourceFile "src/law.rs" ;
-    compat:description "ConstParamTy enum covering 17 of 20 canonical workflow patterns (WP-1 through WP-17). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." .
+    compat:description "ConstParamTy enum covering all 20 canonical workflow patterns (WCP-1 through WCP-20). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." .
 
 # ============================================================================
 # COMPILE-FAIL LAW INSTANCES (from tests/ui/compile_fail/)

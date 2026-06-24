@@ -140,9 +140,9 @@ domain:WorkflowPatternConstraint
     rdfs:label "WorkflowPattern" ;
     compat:rustType "WorkflowPattern" ;
     compat:sourceFile "src/law.rs" ;
-    skos:definition "ConstParamTy enum covering 17 of 20 canonical workflow patterns (WP-1 through WP-17). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." ;
+    skos:definition "ConstParamTy enum covering all 20 canonical workflow patterns (WCP-1 through WCP-20). PatternNet<{WorkflowPattern::ParallelSplit}> is a distinct type from PatternNet<{WorkflowPattern::ExclusiveChoice}>." ;
     rdfs:comment "A const-generic type family where each workflow pattern variant produces a different, incompatible type. Prevents pattern-kind confusion at the type level." ;
-    domain:coverageCount 17 ;
+    domain:coverageCount 20 ;
     domain:coverageOf "Workflow Patterns: The Definitive Guide (Russell, van der Aalst and ter Hofstede, 2016)" .
 
 domain:WorkflowPatternWrongKindLaw

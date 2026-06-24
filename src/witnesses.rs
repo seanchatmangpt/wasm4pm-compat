@@ -9,6 +9,15 @@
 use crate::witness::WitnessFamily;
 
 witness_marker!(
+    /// Checked affidavit receipt chain.
+    AffidavitReceiptChain,
+    "affidavit-receipt-chain",
+    WitnessFamily::Paper,
+    "Affidavit Receipt Chain Law",
+    None
+);
+
+witness_marker!(
     /// Aggregation view witness — process cube projection to the aggregated (statistical/summary) perspective: summary metrics or aggregate results over a cell.
     AggregationView,
     "process-cube-aggregation-view",

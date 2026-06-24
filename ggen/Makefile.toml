@@ -18,7 +18,7 @@ args = ["validate", "ggen/ggen.toml"]
 [tasks.ggen-sync]
 description = "Regenerate all artifacts (witnesses, fixtures, audit scripts, docs) from ontology"
 command = "ggen"
-args = ["sync", "--config", "ggen/ggen.toml"]
+args = ["sync", "--manifest", "ggen/ggen.toml"]
 
 # ---------------------------------------------------------------------------
 # ggen-dry-run: preview what would be generated without writing files
@@ -26,7 +26,7 @@ args = ["sync", "--config", "ggen/ggen.toml"]
 [tasks.ggen-dry-run]
 description = "Preview ggen-sync output without writing any files"
 command = "ggen"
-args = ["sync", "--dry-run", "--config", "ggen/ggen.toml"]
+args = ["sync", "--dry-run", "--manifest", "ggen/ggen.toml"]
 
 # ---------------------------------------------------------------------------
 # ggen-add-witness: interactive witness-marker template generator

@@ -59,8 +59,8 @@ fn main() {
     assert_eq!(m.inner, "mutated");
     println!("  ModifiedObject<String>.inner = \"{}\"  ✓", m.inner);
 
-    let ar: ArchivedObject<f64> = LifecycledObject::new(3.14);
-    assert!((ar.inner - 3.14).abs() < f64::EPSILON);
+    let ar: ArchivedObject<f64> = LifecycledObject::new(3.15);
+    assert!((ar.inner - 3.15).abs() < f64::EPSILON);
     println!("  ArchivedObject<f64>.inner = {}  ✓", ar.inner);
 
     let d: DeletedObject<bool> = LifecycledObject::new(true);

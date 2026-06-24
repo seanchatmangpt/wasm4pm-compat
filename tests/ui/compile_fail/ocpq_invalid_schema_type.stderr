@@ -1,0 +1,16 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/ocpq_invalid_schema_type.rs:11:21
+   |
+11 |     let _ = bounded.with_object_predicate::<"payment">();
+   |                     ^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `OcpqQueryBounded::<OBJECT_TYPES, EVENT_TYPES>::with_object_predicate`
+  --> src/ocpq.rs
+   |
+   |     pub fn with_object_predicate<const OBJ_TYPE: &'static str>(self) -> Self
+   |            --------------------- required by a bound in this associated function
+   |     where
+   |         crate::law::Require<{ const_contains(OBJECT_TYPES, OBJ_TYPE) }>: crate::law::IsTrue,
+   |                                                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `OcpqQueryBounded::<OBJECT_TYPES, EVENT_TYPES>::with_object_predicate`

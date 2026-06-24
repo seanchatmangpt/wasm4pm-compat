@@ -9,7 +9,7 @@ help: the trait `wasm4pm_compat::interop::graduation_seal::Sealed` is not implem
    |
 22 | struct BypassAttempt;
    | ^^^^^^^^^^^^^^^^^^^^
-note: required by a bound in `GraduationCandidate`
+note: required by a bound in `wasm4pm_compat::interop::GraduationCandidate`
   --> src/interop.rs
    |
    | pub trait GraduationCandidate: graduation_seal::Sealed {}

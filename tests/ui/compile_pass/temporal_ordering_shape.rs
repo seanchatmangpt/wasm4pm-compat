@@ -35,10 +35,17 @@ fn main() {
     assert_ne!(TemporalOrder::Before, TemporalOrder::After);
     assert_eq!(TemporalOrder::Concurrent, TemporalOrder::Concurrent);
 
-    // TemporalProfile — structure-only wrapper over a trace type
-    let profile: TemporalProfile<MyTrace> = TemporalProfile::new();
-    let _default_profile: TemporalProfile<MyTrace> = TemporalProfile::default();
-    let _ = profile.trace;
+    // TemporalProfile — parameterized by ActivityPair and Unit
+    use wasm4pm_compat::temporal::{ActivityPair, Seconds, TimeDelta};
+    let pair = ActivityPair::<String, String>::new();
+    let profile = TemporalProfile::new(
+        TimeDelta::<Seconds>::new(1.5),
+        TimeDelta::<Seconds>::new(0.2),
+        pair,
+    );
+    let _ = profile.avg;
+    let _ = profile.std;
+    let _ = profile.pair;
 
     // TemporalOrderWitness — zero-cost marker
     let _ordering_witness = TemporalOrderWitness;

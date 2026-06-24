@@ -5,11 +5,11 @@
 
 extern crate alloc;
 
-use crate::ocel::{Object, OcelLog, OcelAttributeValue, EventObjectLink, ObjectObjectLink};
-use alloc::string::ToString;
-use alloc::string::String;
-use alloc::vec::Vec;
+use crate::ocel::{EventObjectLink, Object, ObjectObjectLink, OcelAttributeValue, OcelLog};
 use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::string::ToString;
+use alloc::vec::Vec;
 
 /// Operator for the Enrichment Language filter items (Definition 4).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -30,14 +30,14 @@ impl Operator {
                 if let (Ok(a), Ok(t)) = (attr_str.parse::<f64>(), target_val.parse::<f64>()) {
                     a < t
                 } else {
-                    attr_str < target_val.to_string()
+                    attr_str.as_str() < target_val
                 }
             }
             Operator::GreaterThan => {
                 if let (Ok(a), Ok(t)) = (attr_str.parse::<f64>(), target_val.parse::<f64>()) {
                     a > t
                 } else {
-                    attr_str > target_val.to_string()
+                    attr_str.as_str() > target_val
                 }
             }
         }
@@ -87,12 +87,16 @@ pub struct Statement {
 
 impl Statement {
     pub fn matches_event(&self, event: &crate::ocel::OcelEvent) -> bool {
-        if self.items.is_empty() { return true; }
+        if self.items.is_empty() {
+            return true;
+        }
         self.items.iter().any(|item| item.matches_event(event))
     }
-    
+
     pub fn matches_object(&self, object: &Object) -> bool {
-        if self.items.is_empty() { return true; }
+        if self.items.is_empty() {
+            return true;
+        }
         self.items.iter().any(|item| item.matches_object(object))
     }
 }
@@ -181,14 +185,16 @@ impl PocelLog {
         // Establish links for included events
         for ev in base.events() {
             if ruleset.allows_event(ev) {
-                e2o_links.push(EventObjectLink::new(ev.id(), process_id).qualified("process_scope"));
+                e2o_links
+                    .push(EventObjectLink::new(ev.id(), process_id).qualified("process_scope"));
             }
         }
 
         // Establish links for included objects
         for obj in base.objects() {
             if ruleset.allows_object(obj) {
-                o2o_links.push(ObjectObjectLink::new(obj.id(), process_id).qualified("process_scope"));
+                o2o_links
+                    .push(ObjectObjectLink::new(obj.id(), process_id).qualified("process_scope"));
             }
         }
 

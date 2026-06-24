@@ -2,4 +2,6 @@ error[E0432]: unresolved import `wasm4pm_compat::petri::node_marker_seal`
  --> tests/ui/compile_fail/sealed_node_marker_seal_inaccessible.rs:4:5
   |
 4 | use wasm4pm_compat::petri::node_marker_seal;
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ no `node_marker_seal` in `petri`
+  |     ^^^^^^^^^^^^^^^^^^^^^^^----------------
+  |                            |
+  |                            no `node_marker_seal` in `petri`

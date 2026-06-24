@@ -24,7 +24,7 @@ fn main() {
     parallel_split_only(ps);
     exclusive_choice_only(ec);
 
-    // All 17 pattern variants are constructible.
+    // All 20 pattern variants are constructible.
     let _: PatternNet<{ WorkflowPattern::Sequence }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::Synchronization }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::SimpleMerge }> = PatternNet;
@@ -36,8 +36,11 @@ fn main() {
     let _: PatternNet<{ WorkflowPattern::ImplicitTermination }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::MultipleInstancesWithoutSync }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::MultipleInstancesWithDesignTimeKnowledge }> = PatternNet;
+    let _: PatternNet<{ WorkflowPattern::MultipleInstancesWithRunTimeKnowledge }> = PatternNet;
+    let _: PatternNet<{ WorkflowPattern::MultipleInstancesWithDynamicRunTimeKnowledge }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::DeferredChoice }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::InterleavedParallelRouting }> = PatternNet;
+    let _: PatternNet<{ WorkflowPattern::Milestone }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::CancelActivity }> = PatternNet;
     let _: PatternNet<{ WorkflowPattern::CancelCase }> = PatternNet;
 }

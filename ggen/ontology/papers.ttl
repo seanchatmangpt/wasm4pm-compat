@@ -157,8 +157,8 @@ paper:WorkflowPatterns2016
     paper:canonFamily "WORKFLOW_PATTERNS_BPMN" ;
     compat:coverageStatus "COVERED_BY_TYPE" ;
     compat:coveringModule "src/law.rs" ;
-    compat:description "17 of 20 canonical control-flow workflow patterns reified as WorkflowPattern ConstParamTy enum. WorkflowPatternsPaper witness. Compile-fail fixture for wrong-kind pattern." ;
-    paper:missingWork "3 remaining patterns (WCP-14, WCP-15, WCP-18) not yet named; data/resource/exception patterns out of scope." .
+    compat:description "All 20 canonical control-flow workflow patterns reified as WorkflowPattern ConstParamTy enum. WorkflowPatternsPaper witness. Compile-fail fixture for wrong-kind pattern." ;
+    paper:missingWork "data/resource/exception patterns out of scope." .
 
 paper:SeparableWfNet2026
     a compat:PaperCoverage ;
@@ -436,6 +436,33 @@ paper:SchusterOcpa2023
     compat:graduationReason "NeedsDiscovery" ;
     compat:description "OCPA Python library for object-centric process analysis. OCEL structural shapes in this crate; OC-DFG discovery, OC-Petri net discovery, and process cube analysis graduate to wasm4pm." .
 
+paper:ProcessTraceKgN32024
+    a compat:PaperCoverage ;
+    rdfs:label "ProcessTraceKgN32024" ;
+    paper:ledgerIndex 83 ;
+    paper:title "Process Trace Querying using Knowledge Graphs and Notation3" ;
+    paper:year 2024 ;
+    paper:authors "Van Woensel" ;
+    paper:canonFamily "OCPQ_QUERYING" ;
+    compat:coverageStatus "PARTIAL_WITH_REASON" ;
+    compat:coveringModule "src/witnesses_rdf.rs" ;
+    compat:description "Process trace querying via knowledge graphs using Notation3 reasoning rules. ProcessTraceKgN3Paper witness exists, but Event Log Knowledge Graph, perspective path, and trace querying constraints are not yet fully reified as zero-cost types." ;
+    paper:missingWork "EventLogKnowledgeGraph representation; OCEL2 O2O perspective flattening paths; 12 trace constraints (occurrence and sequential)." .
+
+paper:TaskSuccessProbabilityStatusDriven
+    a compat:PaperCoverage ;
+    rdfs:label "TaskSuccessProbabilityStatusDriven" ;
+    paper:ledgerIndex 84 ;
+    paper:title "Closed-Form and Boundary Expressions for Task-Success Probability in Status-Driven Systems" ;
+    paper:year 2025 ;
+    paper:authors "Qi, Liu, Wang, Dong, Yu" ;
+    paper:canonFamily "PREDICTION_DRIFT" ;
+    compat:coverageStatus "PARTIAL_WITH_REASON" ;
+    compat:coveringModule "src/witnesses_domain.rs" ;
+    compat:description "Closed-form and boundary task success probability expressions in status-driven BEAM systems. ClosedFormTaskSuccessBeamPaper witness exists, but structures for status-driven systems and success probability metric bounds are missing." ;
+    paper:missingWork "Zero-cost structures for status-driven systems (active transition constraints, state sets, status types) and task success probability metrics." .
+
 # ============================================================================
 # END OF PAPER COVERAGE ONTOLOGY
 # ============================================================================
+

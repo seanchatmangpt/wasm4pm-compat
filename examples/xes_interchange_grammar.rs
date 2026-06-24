@@ -25,7 +25,7 @@ fn main() {
     println!("== CaseCentricMarker ==");
     let m = CaseCentricMarker;
     assert_eq!(format!("{m}"), "case-centric");
-    assert_eq!(m, CaseCentricMarker::default());
+    assert_eq!(m, CaseCentricMarker);
     assert_eq!(std::mem::size_of_val(&m), 0);
     println!("  Display     : \"{}\"", m);
     println!("  size_of     : {} bytes", std::mem::size_of_val(&m));

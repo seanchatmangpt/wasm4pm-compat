@@ -155,6 +155,7 @@ where
 /// use wasm4pm_compat::law::Between01;
 /// let _: Between01<2, 1> = Between01::new();  // 2/1 > 1: compile error
 /// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Between01<const NUM: u64, const DEN: u64>
 where
     // DEVELOPER NOTE — if this bound fails you will see:
@@ -698,7 +699,7 @@ pub enum WorkflowPattern {
     MultiMerge,
     /// WCP-9: Structured Discriminator — fire after the first branch, cancel rest.
     StructuredDiscriminator,
-    // Structural patterns (WCP-10 … WCP-13)
+    // Structural patterns (WCP-10 … WCP-15)
     /// WCP-10: Arbitrary Cycles — loops without block-structured nesting.
     ArbitraryCycles,
     /// WCP-11: Implicit Termination — case ends when no work remains.
@@ -707,11 +708,17 @@ pub enum WorkflowPattern {
     MultipleInstancesWithoutSync,
     /// WCP-13: Multiple Instances with a Priori Design-Time Knowledge.
     MultipleInstancesWithDesignTimeKnowledge,
-    // State-based patterns (WCP-16 … WCP-17)
+    /// WCP-14: Multiple Instances with a Priori Run-Time Knowledge — the number of instances is known at run-time before creation.
+    MultipleInstancesWithRunTimeKnowledge,
+    /// WCP-15: Multiple Instances with a Priori Dynamic Run-Time Knowledge — the number of instances is determined dynamically during execution.
+    MultipleInstancesWithDynamicRunTimeKnowledge,
+    // State-based patterns (WCP-16 … WCP-18)
     /// WCP-16: Deferred Choice — choice resolved by external event, not modeller.
     DeferredChoice,
     /// WCP-17: Interleaved Parallel Routing — activities execute in any order but not concurrently.
     InterleavedParallelRouting,
+    /// WCP-18: Milestone — an activity is enabled only if a specific milestone is active in another branch.
+    Milestone,
     // Cancellation and force completion (WCP-19 … WCP-20)
     /// WCP-19: Cancel Activity — withdraw a running activity.
     CancelActivity,

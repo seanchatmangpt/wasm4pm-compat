@@ -1,15 +1,11 @@
-error[E0308]: mismatched types
-  --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:12:18
+error[E0599]: no variant, associated function, or constant named `Xor` found for enum `PowlKind` in the current scope
+ --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:7:46
+  |
+7 | fn requires_xor(_node: TypedNode<{ PowlKind::Xor }>) {}
+  |                                              ^^^ variant, associated function, or constant not found in `PowlKind`
+
+error[E0599]: no variant, associated function, or constant named `Loop` found for enum `PowlKind` in the current scope
+  --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:10:38
    |
-12 |     requires_xor(lp);
-   |     ------------ ^^ expected `wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor`, found `wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Loop`
-   |     |
-   |     arguments to this function are incorrect
-   |
-   = note: expected struct `TypedNode<wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor>`
-              found struct `TypedNode<wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Loop>`
-note: function defined here
-  --> tests/ui/compile_fail/nightly_powl_loop_as_xor.rs:7:4
-   |
- 7 | fn requires_xor(_node: TypedNode<{ PowlKind::Xor }>) {}
-   |    ^^^^^^^^^^^^ -----------------------------------
+10 |     let lp = TypedNode::<{ PowlKind::Loop }>::loop_node(5);
+   |                                      ^^^^ variant, associated function, or constant not found in `PowlKind`

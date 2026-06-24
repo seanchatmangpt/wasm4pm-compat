@@ -1,0 +1,22 @@
+error[E0308]: mismatched types
+ --> tests/ui/compile_fail/ocpq_similarity_out_of_bounds.rs:8:13
+  |
+8 |     let _ = SimilarityScore::<2, 1>::new();
+  |             ^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+  |
+  = note: expected constant `false`
+             found constant `true`
+note: required by a bound in `SimilarityScore`
+ --> src/ocpq.rs
+  |
+  | pub struct SimilarityScore<const NUM: u64, const DEN: u64>
+  |            --------------- required by a bound in this struct
+...
+  |     crate::law::Require<{ NUM <= DEN }>: crate::law::IsTrue,
+  |                                          ^^^^^^^^^^^^^^^^^^ required by this bound in `SimilarityScore`
+
+error[E0599]: no associated function or constant named `new` found for struct `SimilarityScore<2, 1>` in the current scope
+ --> tests/ui/compile_fail/ocpq_similarity_out_of_bounds.rs:8:38
+  |
+8 |     let _ = SimilarityScore::<2, 1>::new();
+  |                                      ^^^ associated function or constant cannot be called on `SimilarityScore<2, 1>` due to unsatisfied trait bounds

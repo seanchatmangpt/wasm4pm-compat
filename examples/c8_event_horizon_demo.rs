@@ -63,6 +63,7 @@ impl LiquidityState {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Clone, Copy, Debug)]
 struct LiquidityShock {
     event_type: &'static str,

@@ -2,11 +2,11 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:33:33
    |
 33 |     let _w = wfnet_to_powl_gate(net);
-   |              ------------------ ^^^ expected `SeparableWfNet<_>`, found `PetriNet`
+   |              ------------------ ^^^ expected `SeparableWfNet<_, General>`, found `PetriNet`
    |              |
    |              arguments to this function are incorrect
    |
-   = note: expected struct `SeparableWfNet<_>`
+   = note: expected struct `SeparableWfNet<_, General>`
               found struct `wasm4pm_compat::PetriNet`
 note: function defined here
   --> tests/ui/compile_fail/wfnet2powl_wrong_source.rs:21:4

@@ -2,12 +2,12 @@ error[E0308]: mismatched types
   --> tests/ui/compile_fail/separable_wfnet_rejected.rs:33:20
    |
 33 |     only_separable(&plain);
-   |     -------------- ^^^^^^ expected `&SeparableWfNet<_>`, found `&WfNetConst<SoundnessState::Unknown>`
+   |     -------------- ^^^^^^ expected `&SeparableWfNet<_, General>`, found `&...`
    |     |
    |     arguments to this function are incorrect
    |
-   = note: expected reference `&SeparableWfNet<_>`
-              found reference `&WfNetConst<wasm4pm_compat::law::SoundnessState::Unknown>`
+   = note: expected reference `&SeparableWfNet<_, General>`
+              found reference `&WfNetConst<wasm4pm_compat::law::SoundnessState::Unknown, General>`
 note: function defined here
   --> tests/ui/compile_fail/separable_wfnet_rejected.rs:26:4
    |

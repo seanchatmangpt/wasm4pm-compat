@@ -30,6 +30,7 @@ impl Admit for OcelAdmitter {
 }
 
 /// 2. Actuation (α)
+///
 /// Stubs the execution phase in wasm4pm
 struct ActuationEngine;
 impl ActuationEngine {
@@ -39,6 +40,7 @@ impl ActuationEngine {
 }
 
 /// 3. Receipt (ρ)
+///
 /// Cryptographically bound Receipt object connecting compat and wasm4pm
 struct ReceiptGenerator;
 impl ReceiptGenerator {

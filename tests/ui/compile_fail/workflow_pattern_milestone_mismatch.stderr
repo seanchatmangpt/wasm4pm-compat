@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/workflow_pattern_milestone_mismatch.rs:21:19
+   |
+21 |     sequence_only(milestone);
+   |     ------------- ^^^^^^^^^ expected `wasm4pm_compat::law::WorkflowPattern::Sequence`, found `Milestone`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `PatternNet<wasm4pm_compat::law::WorkflowPattern::Sequence>`
+              found struct `PatternNet<Milestone>`
+note: function defined here
+  --> tests/ui/compile_fail/workflow_pattern_milestone_mismatch.rs:16:4
+   |
+16 | fn sequence_only(_: PatternNet<{ WorkflowPattern::Sequence }>) {}
+   |    ^^^^^^^^^^^^^ --------------------------------------------

@@ -1,4 +1,4 @@
-error: cannot construct `WfNetConst<_>` with struct literal syntax due to private fields
+error: cannot construct `WfNetConst<_, _>` with struct literal syntax due to private fields
   --> tests/ui/compile_fail/wfnet_soundness_non-forgeable.rs:21:62
    |
 21 |     let _forged: WfNetConst<{ SoundnessState::Witnessed }> = WfNetConst {};
