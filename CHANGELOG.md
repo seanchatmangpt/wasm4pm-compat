@@ -5,7 +5,44 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
-## v26.6.23 — Workspace unified versioning & documentation alignment (current)
+## v26.6.26 — nightly-2026-06-22 toolchain upgrade (current)
+
+**Status:** ALIVE (CROWN target)
+**Date:** 2026-06-24
+
+### Summary
+
+Toolchain forward-pinned from nightly-2026-05-04 to nightly-2026-06-22 to align
+with the ggen workspace. Fixed a `const_trait_impl` regression that broke all
+`witness_marker!` invocations on the newer compiler.
+
+### Root Cause
+
+Between nightly-2026-05-04 and nightly-2026-06-22, the `const_trait_impl`
+feature changed its name-resolution path for qualified `impl const module::Trait`
+syntax, producing "expected a trait, found type" on every `witness_marker!`
+expansion (~550 invocations). Since `Witness` only carries associated *constants*
+(not `const fn` methods), `const trait` was never necessary — associated constants
+are implicitly const. Reverted `pub const trait Witness` → `pub trait Witness` and
+`impl const $crate::witness::Witness` → `impl $crate::witness::Witness` in the
+macro. Zero behavioural change; the fix is purely syntactic.
+
+### Changes
+
+- `rust-toolchain.toml`: pin updated to `nightly-2026-06-22`.
+- `src/witness.rs`: `pub const trait Witness` → `pub trait Witness`; macro arm
+  `impl const $crate::witness::Witness` → `impl $crate::witness::Witness`.
+
+### Verification
+
+- All 200+ unit/integration tests pass on nightly-2026-06-22.
+- ALIVE gate (compile-fail + compile-pass trybuild fixtures) green.
+- clippy (deny warnings, all features) clean.
+- `cargo fmt --check` clean.
+
+---
+
+## v26.6.23 — Workspace unified versioning & documentation alignment
 
 **Status:** ALIVE (CROWN target)
 **Date:** 2026-06-23

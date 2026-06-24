@@ -6,5 +6,8 @@
 # generic params in const operations, so there is no stable-floor migration path
 # yet. Watch mGCA's non-min expansion before re-evaluating.
 # Validated: type-law receipts (ALIVE gate) green on 2026-05-04.
-channel = "nightly-2026-05-04"
+# Updated 2026-06-24: const_trait_impl regression between -05-04 and -06-22 broke
+# `impl const path::Trait` resolution. Witness trait reverted to plain trait (no
+# const fn methods; associated constants are implicitly const). Pinned forward.
+channel = "nightly-2026-06-22"
 components = ["rustfmt", "clippy", "rust-src"]

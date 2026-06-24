@@ -73,7 +73,7 @@ pub enum WitnessFamily {
 /// assert_eq!(Ocel20::YEAR, Some(2023));
 /// assert_eq!(Ocel20::FAMILY, WitnessFamily::Standard);
 /// ```
-pub const trait Witness {
+pub trait Witness {
     /// A stable, lowercase, machine-facing key (e.g. `"ocel-2.0"`).
     const KEY: &'static str;
     /// The family this witness belongs to.
@@ -105,7 +105,7 @@ macro_rules! witness_marker {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $name {}
 
-        impl const $crate::witness::Witness for $name {
+        impl $crate::witness::Witness for $name {
             const KEY: &'static str = $key;
             const FAMILY: $crate::witness::WitnessFamily = $family;
             const TITLE: &'static str = $title;
