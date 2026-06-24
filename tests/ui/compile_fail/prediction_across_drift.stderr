@@ -9,8 +9,8 @@ error[E0308]: mismatched types
 note: required by a bound in `enforce_prediction_horizon_before_drift`
  --> src/parity/delta.rs
   |
-  | pub fn enforce_prediction_horizon_before_drift<const HORIZON_STEPS: usize, const CHANGE_POINT: usize>()
+  | pub fn enforce_prediction_horizon_before_drift<
   |        --------------------------------------- required by a bound in this function
-  | where
+...
   |     Require<{ HORIZON_STEPS <= CHANGE_POINT }>: IsTrue,
   |                                                 ^^^^^^ required by this bound in `enforce_prediction_horizon_before_drift`
