@@ -104,6 +104,7 @@
 
 use crate::law::{IsTrue, Require};
 use core::marker::PhantomData;
+use serde::{Deserialize, Serialize};
 
 // ── Witness markers: which POWL fragment a node is ──────────────────────────
 
@@ -253,7 +254,8 @@ pub fn assert_tree_projectable<P: TreeProjectable>(_marker: P) -> bool {
 ///
 /// `#[repr(transparent)]` over `usize`: structural, comparable, and free.
 #[repr(transparent)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct PowlNodeId(pub usize);
 
 // ── Core shapes ─────────────────────────────────────────────────────────────
@@ -267,8 +269,12 @@ pub struct PowlNodeId(pub usize);
 /// choice-graph operator (Kourani et al., 2026), which replaces the flat
 /// `Choice` and `Loop` operators with a directed-graph structure capable of
 /// expressing non-block-structured decisions and cycles.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PowlNodeKind {
+    /// Unique Start boundary node.
+    Start,
+    /// Unique End boundary node.
+    End,
     /// A single activity leaf. Carries the activity label.
     Atom(String),
     /// A silent (tau) step.
@@ -300,7 +306,8 @@ pub enum PowlNodeKind {
 /// [`PartialOrder`]) recording the structural family of the node at the type
 /// level. It represents the node's *shape* and does **not** confer any
 /// execution capability.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(bound = "")]
 pub struct PowlNode<W = ()> {
     /// The node's identifier within its model.
     pub id: PowlNodeId,
@@ -352,7 +359,7 @@ impl<W> PowlNode<W> {
 /// assert_eq!(c.branch_count(), 2);
 /// assert!(c.is_well_formed());
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PowlChoiceNode {
     /// The branch node ids (must contain ≥ 2 to be well-formed).
     pub branches: Vec<PowlNodeId>,
@@ -571,7 +578,7 @@ where
 /// sequential precedence inside a partial order; a [`ChoiceGraphEdge`] expresses
 /// a directed transition inside a POWL 2.0 choice graph. They are not
 /// interchangeable.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct OrderEdge {
     /// The predecessor node id.
     pub from: PowlNodeId,
@@ -616,7 +623,7 @@ impl OrderEdge {
 /// assert_eq!(e.from, PowlNodeId(0));
 /// assert_eq!(e.to, PowlNodeId(1));
 /// ```
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct ChoiceGraphEdge {
     /// The source node id in the choice graph.
     pub from: PowlNodeId,
@@ -798,13 +805,311 @@ impl Powl {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+enum TaggedPowlJson {
+    Activity {
+        #[serde(default = "default_one")]
+        min_freq: u32,
+        #[serde(default = "default_some_one")]
+        max_freq: Option<u32>,
+        #[serde(default)]
+        label: Option<String>,
+        #[serde(default)]
+        organization: Option<String>,
+        #[serde(default)]
+        role: Option<String>,
+    },
+    PartialOrder {
+        #[serde(default = "default_one")]
+        min_freq: u32,
+        #[serde(default = "default_some_one")]
+        max_freq: Option<u32>,
+        nodes: Vec<TaggedPowlJson>,
+        #[serde(default)]
+        edges: Vec<(usize, usize)>,
+    },
+    ChoiceGraph {
+        #[serde(default = "default_one")]
+        min_freq: u32,
+        #[serde(default = "default_some_one")]
+        max_freq: Option<u32>,
+        nodes: Vec<TaggedPowlJson>,
+        #[serde(default)]
+        edges: Vec<(usize, usize)>,
+        #[serde(default)]
+        start_nodes: Vec<usize>,
+        #[serde(default)]
+        end_nodes: Vec<usize>,
+    },
+}
+
+fn default_one() -> u32 {
+    1
+}
+
+fn default_some_one() -> Option<u32> {
+    Some(1)
+}
+
+fn to_tagged_json(node_id: PowlNodeId, powl: &Powl) -> TaggedPowlJson {
+    let node = powl.nodes.iter().find(|n| n.id == node_id).unwrap();
+    match &node.kind {
+        PowlNodeKind::Start => TaggedPowlJson::Activity {
+            min_freq: 1,
+            max_freq: Some(1),
+            label: Some("START".to_string()),
+            organization: None,
+            role: None,
+        },
+        PowlNodeKind::End => TaggedPowlJson::Activity {
+            min_freq: 1,
+            max_freq: Some(1),
+            label: Some("END".to_string()),
+            organization: None,
+            role: None,
+        },
+        PowlNodeKind::Atom(label) => TaggedPowlJson::Activity {
+            min_freq: 1,
+            max_freq: Some(1),
+            label: Some(label.clone()),
+            organization: None,
+            role: None,
+        },
+        PowlNodeKind::Silent => TaggedPowlJson::Activity {
+            min_freq: 1,
+            max_freq: Some(1),
+            label: None,
+            organization: None,
+            role: None,
+        },
+        PowlNodeKind::PartialOrder(children) => {
+            let json_nodes: Vec<TaggedPowlJson> =
+                children.iter().map(|&c| to_tagged_json(c, powl)).collect();
+            let mut json_edges = Vec::new();
+            for edge in &powl.edges {
+                if let (Some(u_idx), Some(v_idx)) = (
+                    children.iter().position(|&c| c == edge.from),
+                    children.iter().position(|&c| c == edge.to),
+                ) {
+                    json_edges.push((u_idx, v_idx));
+                }
+            }
+            TaggedPowlJson::PartialOrder {
+                min_freq: 1,
+                max_freq: Some(1),
+                nodes: json_nodes,
+                edges: json_edges,
+            }
+        }
+        PowlNodeKind::ChoiceGraph {
+            nodes: cg_nodes,
+            edges: cg_edges,
+        } => {
+            if cg_nodes.len() < 2 {
+                return TaggedPowlJson::ChoiceGraph {
+                    min_freq: 1,
+                    max_freq: Some(1),
+                    nodes: Vec::new(),
+                    edges: Vec::new(),
+                    start_nodes: Vec::new(),
+                    end_nodes: Vec::new(),
+                };
+            }
+            let user_nodes = &cg_nodes[1..cg_nodes.len() - 1];
+            let json_nodes: Vec<TaggedPowlJson> = user_nodes
+                .iter()
+                .map(|&n| to_tagged_json(n, powl))
+                .collect();
+
+            let mut json_edges = Vec::new();
+            for edge in cg_edges {
+                if let (Some(u_idx), Some(v_idx)) = (
+                    user_nodes.iter().position(|&n| n == edge.from),
+                    user_nodes.iter().position(|&n| n == edge.to),
+                ) {
+                    json_edges.push((u_idx, v_idx));
+                }
+            }
+
+            let mut start_nodes = Vec::new();
+            let mut end_nodes = Vec::new();
+            for edge in cg_edges {
+                if edge.from == cg_nodes[0] {
+                    if let Some(idx) = user_nodes.iter().position(|&n| n == edge.to) {
+                        if !start_nodes.contains(&idx) {
+                            start_nodes.push(idx);
+                        }
+                    }
+                }
+                if edge.to == cg_nodes[cg_nodes.len() - 1] {
+                    if let Some(idx) = user_nodes.iter().position(|&n| n == edge.from) {
+                        if !end_nodes.contains(&idx) {
+                            end_nodes.push(idx);
+                        }
+                    }
+                }
+            }
+
+            let has_empty_path = cg_edges
+                .iter()
+                .any(|e| e.from == cg_nodes[0] && e.to == cg_nodes[cg_nodes.len() - 1]);
+            let min_freq = if has_empty_path { 0 } else { 1 };
+
+            TaggedPowlJson::ChoiceGraph {
+                min_freq,
+                max_freq: Some(1),
+                nodes: json_nodes,
+                edges: json_edges,
+                start_nodes,
+                end_nodes,
+            }
+        }
+    }
+}
+
+fn flatten_json_node(
+    json: &TaggedPowlJson,
+    powl: &mut Powl,
+    id_counter: &mut usize,
+) -> Result<PowlNodeId, String> {
+    match json {
+        TaggedPowlJson::Activity { label, .. } => {
+            let id = PowlNodeId(*id_counter);
+            *id_counter += 1;
+            let kind = match label {
+                Some(l) => {
+                    if l == "START" {
+                        PowlNodeKind::Start
+                    } else if l == "END" {
+                        PowlNodeKind::End
+                    } else {
+                        PowlNodeKind::Atom(l.clone())
+                    }
+                }
+                None => PowlNodeKind::Silent,
+            };
+            let node = PowlNode::new(id, kind);
+            powl.nodes.push(node);
+            Ok(id)
+        }
+        TaggedPowlJson::PartialOrder { nodes, edges, .. } => {
+            let mut children = Vec::new();
+            for child_json in nodes {
+                let child_id = flatten_json_node(child_json, powl, id_counter)?;
+                children.push(child_id);
+            }
+            for &(u_idx, v_idx) in edges {
+                if u_idx < children.len() && v_idx < children.len() {
+                    powl.edges
+                        .push(OrderEdge::new(children[u_idx], children[v_idx]));
+                }
+            }
+            let id = PowlNodeId(*id_counter);
+            *id_counter += 1;
+            let kind = PowlNodeKind::PartialOrder(children);
+            let node = PowlNode::new(id, kind);
+            powl.nodes.push(node);
+            Ok(id)
+        }
+        TaggedPowlJson::ChoiceGraph {
+            nodes,
+            edges,
+            start_nodes,
+            end_nodes,
+            min_freq,
+            ..
+        } => {
+            let mut user_nodes = Vec::new();
+            for child_json in nodes {
+                let child_id = flatten_json_node(child_json, powl, id_counter)?;
+                user_nodes.push(child_id);
+            }
+
+            let start_id = PowlNodeId(*id_counter);
+            *id_counter += 1;
+            powl.nodes
+                .push(PowlNode::new(start_id, PowlNodeKind::Start));
+
+            let end_id = PowlNodeId(*id_counter);
+            *id_counter += 1;
+            powl.nodes.push(PowlNode::new(end_id, PowlNodeKind::End));
+
+            let mut cg_nodes = vec![start_id];
+            cg_nodes.extend(user_nodes.iter().copied());
+            cg_nodes.push(end_id);
+
+            let mut cg_edges = Vec::new();
+            for &(u_idx, v_idx) in edges {
+                if u_idx < user_nodes.len() && v_idx < user_nodes.len() {
+                    cg_edges.push(ChoiceGraphEdge::new(user_nodes[u_idx], user_nodes[v_idx]));
+                }
+            }
+            for &to_idx in start_nodes {
+                if to_idx < user_nodes.len() {
+                    cg_edges.push(ChoiceGraphEdge::new(start_id, user_nodes[to_idx]));
+                }
+            }
+            for &from_idx in end_nodes {
+                if from_idx < user_nodes.len() {
+                    cg_edges.push(ChoiceGraphEdge::new(user_nodes[from_idx], end_id));
+                }
+            }
+            if *min_freq == 0 {
+                cg_edges.push(ChoiceGraphEdge::new(start_id, end_id));
+            }
+
+            let id = PowlNodeId(*id_counter);
+            *id_counter += 1;
+            let kind = PowlNodeKind::ChoiceGraph {
+                nodes: cg_nodes,
+                edges: cg_edges,
+            };
+            let node = PowlNode::new(id, kind);
+            powl.nodes.push(node);
+            Ok(id)
+        }
+    }
+}
+
+impl Serialize for Powl {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if let Some(root_id) = self.root {
+            let json = to_tagged_json(root_id, self);
+            json.serialize(serializer)
+        } else {
+            serializer.serialize_none()
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Powl {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let opt_json = Option::<TaggedPowlJson>::deserialize(deserializer)?;
+        let mut powl = Powl::new();
+        if let Some(json) = opt_json {
+            let mut id_counter = 0;
+            let root_id = flatten_json_node(&json, &mut powl, &mut id_counter)
+                .map_err(serde::de::Error::custom)?;
+            powl.root = Some(root_id);
+        }
+        Ok(powl)
+    }
+}
+
 // ── First-class refusal surface ─────────────────────────────────────────────
 
 /// First-class refusal law for POWL shapes.
 ///
 /// Every variant names a **specific** structural law — never a bare
 /// "InvalidInput". A refusal is a *verdict about shape*, not a runtime error.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum PowlRefusal {
     /// A partial order contained a cycle — precedence must be acyclic.
@@ -885,7 +1190,7 @@ impl core::fmt::Display for PowlRefusal {
 /// - `Activity` is an inline activity label.
 /// - `SubModel` references a sub-model by arena index (`u32`), matching the
 ///   `SubModel(u32)` variant in wasm4pm-types.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StandaloneChoiceGraphNode {
     /// Unique start marker — no incoming edges.
     Start,
@@ -924,27 +1229,20 @@ pub type ChoiceGraphNode = StandaloneChoiceGraphNode;
 /// ```
 /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
 ///
-/// let cg = ChoiceGraph {
-///     nodes: vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
-///     edges: vec![(0, 1)],
-///     start_idx: 0,
-///     end_idx: 1,
-/// };
+/// let cg = ChoiceGraph::new(
+///     vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
+///     vec![(0, 1)],
+/// ).unwrap();
 /// assert!(cg.has_empty_path());
 /// assert_eq!(cg.successors(0), vec![1]);
 /// assert_eq!(cg.predecessors(1), vec![0]);
 /// ```
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ChoiceGraph {
-    /// The node list. `nodes[start_idx]` is the unique start; `nodes[end_idx]`
-    /// is the unique end.
-    pub nodes: Vec<StandaloneChoiceGraphNode>,
-    /// Directed edges as `(from_index, to_index)` pairs into `nodes`.
-    pub edges: Vec<(usize, usize)>,
-    /// Index of the unique start node in `nodes`.
-    pub start_idx: usize,
-    /// Index of the unique end node in `nodes`.
-    pub end_idx: usize,
+    nodes: Vec<StandaloneChoiceGraphNode>,
+    edges: Vec<(usize, usize)>,
+    start_idx: usize,
+    end_idx: usize,
 }
 
 impl ChoiceGraph {
@@ -959,39 +1257,212 @@ impl ChoiceGraph {
     /// let cg = ChoiceGraph::new(
     ///     vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
     ///     vec![(0, 1)],
-    /// );
-    /// assert_eq!(cg.start_idx, 0);
-    /// assert_eq!(cg.end_idx, 1);
+    /// ).unwrap();
+    /// assert_eq!(cg.start_idx(), 0);
+    /// assert_eq!(cg.end_idx(), 1);
     /// ```
-    pub fn new(nodes: Vec<StandaloneChoiceGraphNode>, edges: Vec<(usize, usize)>) -> Self {
-        let end_idx = nodes.len().saturating_sub(1);
-        ChoiceGraph {
+    pub fn new(
+        nodes: Vec<StandaloneChoiceGraphNode>,
+        edges: Vec<(usize, usize)>,
+    ) -> Result<Self, crate::choice_graph::ChoiceGraphError> {
+        let mut start_idx: Option<usize> = None;
+        let mut end_idx: Option<usize> = None;
+        for (i, n) in nodes.iter().enumerate() {
+            match n {
+                StandaloneChoiceGraphNode::Start => {
+                    if start_idx.is_some() {
+                        return Err(crate::choice_graph::ChoiceGraphError::MultipleStarts);
+                    }
+                    start_idx = Some(i);
+                }
+                StandaloneChoiceGraphNode::End => {
+                    if end_idx.is_some() {
+                        return Err(crate::choice_graph::ChoiceGraphError::MultipleEnds);
+                    }
+                    end_idx = Some(i);
+                }
+                _ => {}
+            }
+        }
+        let start_idx = start_idx.ok_or(crate::choice_graph::ChoiceGraphError::NoStart)?;
+        let end_idx = end_idx.ok_or(crate::choice_graph::ChoiceGraphError::NoEnd)?;
+
+        let n = nodes.len();
+        for &(a, b) in &edges {
+            if a >= n || b >= n {
+                return Err(crate::choice_graph::ChoiceGraphError::EdgeOutOfBounds);
+            }
+        }
+
+        for &(a, b) in &edges {
+            if b == start_idx {
+                return Err(crate::choice_graph::ChoiceGraphError::StartHasIncoming);
+            }
+            if a == end_idx {
+                return Err(crate::choice_graph::ChoiceGraphError::EndHasOutgoing);
+            }
+        }
+
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            adj[a].push(b);
+        }
+        let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            radj[b].push(a);
+        }
+        let reach_from_start = bfs_reach_local(&adj, start_idx, n);
+        let reach_to_end = bfs_reach_local(&radj, end_idx, n);
+        for i in 0..n {
+            if !(reach_from_start[i] && reach_to_end[i]) {
+                return Err(crate::choice_graph::ChoiceGraphError::NodeNotOnStartEndPath);
+            }
+        }
+
+        Ok(ChoiceGraph {
             nodes,
             edges,
-            start_idx: 0,
+            start_idx,
             end_idx,
+        })
+    }
+
+    /// Construct directly with explicit start and end indices.
+    /// Connected path constraint is guaranteed at construction time.
+    pub fn new_raw(
+        nodes: Vec<StandaloneChoiceGraphNode>,
+        edges: Vec<(usize, usize)>,
+        start_idx: usize,
+        end_idx: usize,
+    ) -> Result<Self, crate::choice_graph::ChoiceGraphError> {
+        let n = nodes.len();
+        if start_idx >= n || end_idx >= n {
+            return Err(crate::choice_graph::ChoiceGraphError::EdgeOutOfBounds);
         }
+        for &(a, b) in &edges {
+            if a >= n || b >= n {
+                return Err(crate::choice_graph::ChoiceGraphError::EdgeOutOfBounds);
+            }
+        }
+
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            adj[a].push(b);
+        }
+        let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            radj[b].push(a);
+        }
+        let reach_from_start = bfs_reach_local(&adj, start_idx, n);
+        let reach_to_end = bfs_reach_local(&radj, end_idx, n);
+        for i in 0..n {
+            if !(reach_from_start[i] && reach_to_end[i]) {
+                return Err(crate::choice_graph::ChoiceGraphError::NodeNotOnStartEndPath);
+            }
+        }
+
+        Ok(ChoiceGraph {
+            nodes,
+            edges,
+            start_idx,
+            end_idx,
+        })
+    }
+
+    pub fn nodes(&self) -> &[StandaloneChoiceGraphNode] {
+        &self.nodes
+    }
+
+    pub fn edges(&self) -> &[(usize, usize)] {
+        &self.edges
+    }
+
+    pub fn start_idx(&self) -> usize {
+        self.start_idx
+    }
+
+    pub fn end_idx(&self) -> usize {
+        self.end_idx
+    }
+
+    // Mutable setters that preserve the connected path invariants:
+    pub fn set_nodes(
+        &mut self,
+        nodes: Vec<StandaloneChoiceGraphNode>,
+    ) -> Result<(), crate::choice_graph::ChoiceGraphError> {
+        let old = std::mem::replace(&mut self.nodes, nodes);
+        if let Err(e) = self.validate_connected_path() {
+            self.nodes = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_edges(
+        &mut self,
+        edges: Vec<(usize, usize)>,
+    ) -> Result<(), crate::choice_graph::ChoiceGraphError> {
+        let old = std::mem::replace(&mut self.edges, edges);
+        if let Err(e) = self.validate_connected_path() {
+            self.edges = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_start_idx(
+        &mut self,
+        start_idx: usize,
+    ) -> Result<(), crate::choice_graph::ChoiceGraphError> {
+        let old = self.start_idx;
+        self.start_idx = start_idx;
+        if let Err(e) = self.validate_connected_path() {
+            self.start_idx = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_end_idx(
+        &mut self,
+        end_idx: usize,
+    ) -> Result<(), crate::choice_graph::ChoiceGraphError> {
+        let old = self.end_idx;
+        self.end_idx = end_idx;
+        if let Err(e) = self.validate_connected_path() {
+            self.end_idx = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    fn validate_connected_path(&self) -> Result<(), crate::choice_graph::ChoiceGraphError> {
+        let n = self.nodes.len();
+        if self.start_idx >= n || self.end_idx >= n {
+            return Err(crate::choice_graph::ChoiceGraphError::EdgeOutOfBounds);
+        }
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &self.edges {
+            if a >= n || b >= n {
+                return Err(crate::choice_graph::ChoiceGraphError::EdgeOutOfBounds);
+            }
+            adj[a].push(b);
+        }
+        let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &self.edges {
+            radj[b].push(a);
+        }
+        let reach_from_start = bfs_reach_local(&adj, self.start_idx, n);
+        let reach_to_end = bfs_reach_local(&radj, self.end_idx, n);
+        for i in 0..n {
+            if !(reach_from_start[i] && reach_to_end[i]) {
+                return Err(crate::choice_graph::ChoiceGraphError::NodeNotOnStartEndPath);
+            }
+        }
+        Ok(())
     }
 
     /// Collect the indices of all direct successors of `node_idx`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
-    /// let cg = ChoiceGraph {
-    ///     nodes: vec![
-    ///         StandaloneChoiceGraphNode::Start,
-    ///         StandaloneChoiceGraphNode::Activity("a".into()),
-    ///         StandaloneChoiceGraphNode::End,
-    ///     ],
-    ///     edges: vec![(0, 1), (1, 2)],
-    ///     start_idx: 0,
-    ///     end_idx: 2,
-    /// };
-    /// assert_eq!(cg.successors(0), vec![1]);
-    /// assert_eq!(cg.successors(1), vec![2]);
-    /// ```
     pub fn successors(&self, node_idx: usize) -> Vec<usize> {
         self.edges
             .iter()
@@ -1000,23 +1471,6 @@ impl ChoiceGraph {
     }
 
     /// Collect the indices of all direct predecessors of `node_idx`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
-    /// let cg = ChoiceGraph {
-    ///     nodes: vec![
-    ///         StandaloneChoiceGraphNode::Start,
-    ///         StandaloneChoiceGraphNode::Activity("a".into()),
-    ///         StandaloneChoiceGraphNode::End,
-    ///     ],
-    ///     edges: vec![(0, 1), (1, 2)],
-    ///     start_idx: 0,
-    ///     end_idx: 2,
-    /// };
-    /// assert_eq!(cg.predecessors(2), vec![1]);
-    /// ```
     pub fn predecessors(&self, node_idx: usize) -> Vec<usize> {
         self.edges
             .iter()
@@ -1026,24 +1480,29 @@ impl ChoiceGraph {
 
     /// Returns `true` iff there is a direct edge from `start_idx` to `end_idx`
     /// (the empty path — a choice that can be skipped entirely).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use wasm4pm_compat::powl::{ChoiceGraph, StandaloneChoiceGraphNode};
-    /// let cg = ChoiceGraph {
-    ///     nodes: vec![StandaloneChoiceGraphNode::Start, StandaloneChoiceGraphNode::End],
-    ///     edges: vec![(0, 1)],
-    ///     start_idx: 0,
-    ///     end_idx: 1,
-    /// };
-    /// assert!(cg.has_empty_path());
-    /// ```
     pub fn has_empty_path(&self) -> bool {
         self.edges
             .iter()
             .any(|&(a, b)| a == self.start_idx && b == self.end_idx)
     }
+}
+
+fn bfs_reach_local(adj: &[Vec<usize>], src: usize, n: usize) -> Vec<bool> {
+    let mut seen = vec![false; n];
+    if src >= n {
+        return seen;
+    }
+    let mut q: Vec<usize> = vec![src];
+    seen[src] = true;
+    while let Some(v) = q.pop() {
+        for &w in &adj[v] {
+            if !seen[w] {
+                seen[w] = true;
+                q.push(w);
+            }
+        }
+    }
+    seen
 }
 
 // ── RefusedProjection marker ──────────────────────────────────────────────────
@@ -1069,7 +1528,7 @@ impl ChoiceGraph {
 /// assert_eq!(r.reason(), &PowlRefusal::IrreducibleProjection);
 /// assert_eq!(format!("{}", r), "POWL refused: IrreducibleProjection");
 /// ```
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RefusedProjection {
     reason: PowlRefusal,
 }
@@ -1137,7 +1596,7 @@ impl core::fmt::Display for RefusedProjection {
 ///
 /// Variants beyond the original four (Sequence, XorChoice, Parallel, Loop) add
 /// StrictPartialOrder, ChoiceGraph, Silent, and Activity.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Powl8Op {
     /// Strict sequential composition.
     Sequence,
@@ -1151,6 +1610,7 @@ pub enum Powl8Op {
     StrictPartialOrder,
     /// Non-block-structured choice over a directed acyclic graph of sub-models.
     ChoiceGraph,
+
     /// Silent (tau) step — no observable activity.
     Silent,
     /// Leaf atom naming a single activity.
@@ -1244,6 +1704,26 @@ mod tests {
         ));
         assert_eq!(p.validate(), Err(PowlRefusal::ChoiceGraphDisconnected));
     }
+
+    #[test]
+    fn test_powl_validate_choice_graph_with_unreachable_node() {
+        let mut p = Powl::new();
+        let start = PowlNodeId(0);
+        let x1 = PowlNodeId(1);
+        let x2 = PowlNodeId(2); // isolated unreachable node
+        let end = PowlNodeId(3);
+        p.nodes.push(PowlNode::new(
+            PowlNodeId(10),
+            PowlNodeKind::ChoiceGraph {
+                nodes: vec![start, x1, x2, end],
+                edges: vec![
+                    ChoiceGraphEdge::new(start, x1),
+                    ChoiceGraphEdge::new(x1, end),
+                ],
+            },
+        ));
+        assert_eq!(p.validate(), Err(PowlRefusal::ChoiceGraphDisconnected));
+    }
 }
 
 // ── PowlBuilder ──────────────────────────────────────────────────────────────
@@ -1295,6 +1775,22 @@ impl PowlBuilder {
         self.powl
             .nodes
             .push(PowlNode::new(id, PowlNodeKind::Silent));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add a Start boundary node.
+    pub fn start_node(mut self, label: &str) -> Self {
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl.nodes.push(PowlNode::new(id, PowlNodeKind::Start));
+        self.label_map.insert(label.to_string(), id);
+        self
+    }
+
+    /// Add an End boundary node.
+    pub fn end_node(mut self, label: &str) -> Self {
+        let id = PowlNodeId(self.powl.nodes.len());
+        self.powl.nodes.push(PowlNode::new(id, PowlNodeKind::End));
         self.label_map.insert(label.to_string(), id);
         self
     }

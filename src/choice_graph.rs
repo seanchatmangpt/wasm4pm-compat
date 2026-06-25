@@ -27,10 +27,10 @@ pub enum ChoiceGraphNode {
 /// Validated Choice Graph (paper Definition 1).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ChoiceGraph {
-    pub nodes: Vec<ChoiceGraphNode>,
-    pub edges: Vec<(usize, usize)>,
-    pub start_idx: usize,
-    pub end_idx: usize,
+    nodes: Vec<ChoiceGraphNode>,
+    edges: Vec<(usize, usize)>,
+    start_idx: usize,
+    end_idx: usize,
 }
 
 /// Validation errors raised by `ChoiceGraph::new`.
@@ -115,40 +115,14 @@ impl ChoiceGraph {
             }
         }
 
-        // 4. Acyclicity (DFS with white/grey/black).
+        // 4. Acyclicity: REMOVED/Relaxed to model cyclic loops
+
+        // 5. Every node on some Start→End path.
+        // Reachable from Start (forward) ∩ reachable to End (backward).
         let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
         for &(a, b) in &edges {
             adj[a].push(b);
         }
-        // 0 = unvisited, 1 = on stack, 2 = done.
-        let mut color = vec![0u8; n];
-        for s in 0..n {
-            if color[s] != 0 {
-                continue;
-            }
-            let mut stack: Vec<(usize, usize)> = vec![(s, 0)];
-            color[s] = 1;
-            while let Some(&(v, i)) = stack.last() {
-                if i < adj[v].len() {
-                    let w = adj[v][i];
-                    stack.last_mut().unwrap().1 += 1;
-                    match color[w] {
-                        0 => {
-                            color[w] = 1;
-                            stack.push((w, 0));
-                        }
-                        1 => return Err(ChoiceGraphError::Cyclic),
-                        _ => {}
-                    }
-                } else {
-                    color[v] = 2;
-                    stack.pop();
-                }
-            }
-        }
-
-        // 5. Every node on some Start→End path.
-        // Reachable from Start (forward) ∩ reachable to End (backward).
         let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
         for &(a, b) in &edges {
             radj[b].push(a);
@@ -167,6 +141,129 @@ impl ChoiceGraph {
             start_idx,
             end_idx,
         })
+    }
+
+    /// Construct directly with explicit start and end indices.
+    /// Connected path constraint is guaranteed at construction time.
+    pub fn new_raw(
+        nodes: Vec<ChoiceGraphNode>,
+        edges: Vec<(usize, usize)>,
+        start_idx: usize,
+        end_idx: usize,
+    ) -> Result<Self, ChoiceGraphError> {
+        let n = nodes.len();
+        if start_idx >= n || end_idx >= n {
+            return Err(ChoiceGraphError::EdgeOutOfBounds);
+        }
+        for &(a, b) in &edges {
+            if a >= n || b >= n {
+                return Err(ChoiceGraphError::EdgeOutOfBounds);
+            }
+        }
+
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            adj[a].push(b);
+        }
+        let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &edges {
+            radj[b].push(a);
+        }
+        let reach_from_start = bfs_reach(&adj, start_idx, n);
+        let reach_to_end = bfs_reach(&radj, end_idx, n);
+        for i in 0..n {
+            if !(reach_from_start[i] && reach_to_end[i]) {
+                return Err(ChoiceGraphError::NodeNotOnStartEndPath);
+            }
+        }
+
+        Ok(ChoiceGraph {
+            nodes,
+            edges,
+            start_idx,
+            end_idx,
+        })
+    }
+
+    pub fn nodes(&self) -> &[ChoiceGraphNode] {
+        &self.nodes
+    }
+
+    pub fn edges(&self) -> &[(usize, usize)] {
+        &self.edges
+    }
+
+    pub fn start_idx(&self) -> usize {
+        self.start_idx
+    }
+
+    pub fn end_idx(&self) -> usize {
+        self.end_idx
+    }
+
+    // Mutable setters that preserve the connected path invariants:
+    pub fn set_nodes(&mut self, nodes: Vec<ChoiceGraphNode>) -> Result<(), ChoiceGraphError> {
+        let old = std::mem::replace(&mut self.nodes, nodes);
+        if let Err(e) = self.validate_connected_path() {
+            self.nodes = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_edges(&mut self, edges: Vec<(usize, usize)>) -> Result<(), ChoiceGraphError> {
+        let old = std::mem::replace(&mut self.edges, edges);
+        if let Err(e) = self.validate_connected_path() {
+            self.edges = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_start_idx(&mut self, start_idx: usize) -> Result<(), ChoiceGraphError> {
+        let old = self.start_idx;
+        self.start_idx = start_idx;
+        if let Err(e) = self.validate_connected_path() {
+            self.start_idx = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    pub fn set_end_idx(&mut self, end_idx: usize) -> Result<(), ChoiceGraphError> {
+        let old = self.end_idx;
+        self.end_idx = end_idx;
+        if let Err(e) = self.validate_connected_path() {
+            self.end_idx = old;
+            return Err(e);
+        }
+        Ok(())
+    }
+
+    fn validate_connected_path(&self) -> Result<(), ChoiceGraphError> {
+        let n = self.nodes.len();
+        if self.start_idx >= n || self.end_idx >= n {
+            return Err(ChoiceGraphError::EdgeOutOfBounds);
+        }
+        let mut adj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &self.edges {
+            if a >= n || b >= n {
+                return Err(ChoiceGraphError::EdgeOutOfBounds);
+            }
+            adj[a].push(b);
+        }
+        let mut radj: Vec<Vec<usize>> = vec![Vec::new(); n];
+        for &(a, b) in &self.edges {
+            radj[b].push(a);
+        }
+        let reach_from_start = bfs_reach(&adj, self.start_idx, n);
+        let reach_to_end = bfs_reach(&radj, self.end_idx, n);
+        for i in 0..n {
+            if !(reach_from_start[i] && reach_to_end[i]) {
+                return Err(ChoiceGraphError::NodeNotOnStartEndPath);
+            }
+        }
+        Ok(())
     }
 
     pub fn successors(&self, node_idx: usize) -> Vec<usize> {
@@ -302,5 +399,44 @@ mod tests {
         .unwrap();
         assert_eq!(cg.successors(0), vec![1]);
         assert_eq!(cg.predecessors(2), vec![1]);
+    }
+
+    #[test]
+    fn test_choice_graph_cyclic_loop_permitted() {
+        // In POWL 2.0, cycles are explicitly permitted and should not raise `ChoiceGraphError::Cyclic`.
+        let cg = ChoiceGraph::new(
+            vec![
+                ChoiceGraphNode::Start,
+                ChoiceGraphNode::Activity("a".into()),
+                ChoiceGraphNode::Activity("b".into()),
+                ChoiceGraphNode::End,
+            ],
+            vec![
+                (0, 1),
+                (1, 2),
+                (2, 1), // Cycle: 1 -> 2 -> 1
+                (1, 3),
+            ],
+        );
+        assert!(
+            cg.is_ok(),
+            "Cyclic loop should be permitted in POWL 2.0 ChoiceGraph"
+        );
+    }
+
+    #[test]
+    fn test_choice_graph_unreachable_node_isolated() {
+        // Isolated node (index 2) cannot reach End and is unreachable from Start.
+        let err = ChoiceGraph::new(
+            vec![
+                ChoiceGraphNode::Start,
+                ChoiceGraphNode::Activity("a".into()),
+                ChoiceGraphNode::Activity("unreachable".into()),
+                ChoiceGraphNode::End,
+            ],
+            vec![(0, 1), (1, 3)],
+        )
+        .unwrap_err();
+        assert_eq!(err, ChoiceGraphError::NodeNotOnStartEndPath);
     }
 }

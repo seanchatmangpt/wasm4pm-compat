@@ -1,5 +1,15 @@
-error[E0599]: no variant, associated function, or constant named `Xor` found for enum `PowlKind` in the current scope
- --> tests/ui/compile_fail/nightly_powl_xor_as_partial.rs:9:39
-  |
-9 |     let xor = TypedNode::<{ PowlKind::Xor }>::xor(2);
-  |                                       ^^^ variant, associated function, or constant not found in `PowlKind`
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/nightly_powl_xor_as_partial.rs:11:22
+   |
+11 |     requires_partial(xor);
+   |     ---------------- ^^^ expected `Partial`, found `wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `TypedNode<Partial>`
+              found struct `TypedNode<wasm4pm_compat::nightly_foundry::powl_law::PowlKind::Xor>`
+note: function defined here
+  --> tests/ui/compile_fail/nightly_powl_xor_as_partial.rs:6:4
+   |
+ 6 | fn requires_partial(_node: TypedNode<{ PowlKind::Partial }>) {}
+   |    ^^^^^^^^^^^^^^^^ ---------------------------------------

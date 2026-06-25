@@ -291,14 +291,12 @@ pub mod powl_law {
     /// Paper: Kourani (2505.07052) §3.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, ConstParamTy)]
     pub enum PowlKind {
-        /// Atom: single activity node (leaf), observable.
         Atom,
-        /// Choice Graph: generalizes choice and loops into a unified structure.
         ChoiceGraph,
-        /// Partial order: DAG of children with precedence edges.
         Partial,
-        /// Silent step: tau, no observable activity.
         Silent,
+        Xor,
+        Loop,
     }
 
     /// A POWL node with its fragment kind encoded at the type level.
@@ -368,6 +366,20 @@ pub mod powl_law {
         }
     }
 
+    impl TypedNode<{ PowlKind::Xor }> {
+        #[inline]
+        pub const fn xor(id: u32) -> Self {
+            Self(id)
+        }
+    }
+
+    impl TypedNode<{ PowlKind::Loop }> {
+        #[inline]
+        pub const fn loop_node(id: u32) -> Self {
+            Self(id)
+        }
+    }
+
     // ── Universal id accessor (macro avoids repeated `where` complexity) ──────
     macro_rules! impl_id {
         ($kind:expr) => {
@@ -383,6 +395,8 @@ pub mod powl_law {
     impl_id!(PowlKind::Silent);
     impl_id!(PowlKind::Partial);
     impl_id!(PowlKind::ChoiceGraph);
+    impl_id!(PowlKind::Xor);
+    impl_id!(PowlKind::Loop);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

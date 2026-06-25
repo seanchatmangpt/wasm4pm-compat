@@ -31,7 +31,11 @@ pub fn discover_ocel_dfg(ocel: &OCEL) -> DFG {
 
     // Count activity occurrences.
     for event in &ocel.events {
-        if let Some(node) = dfg.nodes.iter_mut().find(|n| n.activity == event.event_type) {
+        if let Some(node) = dfg
+            .nodes
+            .iter_mut()
+            .find(|n| n.activity == event.event_type)
+        {
             node.frequency += 1;
         }
     }
@@ -63,7 +67,8 @@ pub fn discover_ocel_dfg(ocel: &OCEL) -> DFG {
 
     // Materialise edges (BTreeMap iterates in sorted key order — no extra sort).
     for ((from, to), frequency) in &edge_map {
-        dfg.edges.push(DFGEdge::new(from.to_string(), to.to_string(), *frequency));
+        dfg.edges
+            .push(DFGEdge::new(from.to_string(), to.to_string(), *frequency));
     }
 
     // Start / end activity sets.
@@ -116,7 +121,12 @@ pub fn dfg_fitness(observed: &DFG, normative_arcs: &[(String, String)]) -> f64 {
     }
     let present = normative_arcs
         .iter()
-        .filter(|(src, tgt)| observed.edges.iter().any(|e| e.source == *src && e.target == *tgt))
+        .filter(|(src, tgt)| {
+            observed
+                .edges
+                .iter()
+                .any(|e| e.source == *src && e.target == *tgt)
+        })
         .count();
     present as f64 / normative_arcs.len() as f64
 }
