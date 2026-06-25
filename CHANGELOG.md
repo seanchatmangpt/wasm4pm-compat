@@ -5,7 +5,7 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
-## v26.6.26 — nightly-2026-06-22 toolchain upgrade (current)
+## v26.6.15 — verification and types complete
 
 **Status:** ALIVE (CROWN target)
 **Date:** 2026-06-24
