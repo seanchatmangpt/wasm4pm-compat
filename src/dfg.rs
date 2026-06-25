@@ -14,7 +14,7 @@
 use std::collections::BTreeMap;
 
 pub use crate::models::{DFGEdge, DFGNode, DFG};
-use crate::ocel::{OCELEvent, OCEL};
+use crate::ocel::OCEL;
 
 /// Discover a Directly-Follows Graph from an OCEL 2.0 log.
 ///

@@ -43,7 +43,6 @@ pub enum ChoiceGraphError {
     StartHasIncoming,
     EndHasOutgoing,
     EdgeOutOfBounds,
-    Cyclic,
     NodeNotOnStartEndPath,
 }
 
@@ -57,7 +56,6 @@ impl core::fmt::Display for ChoiceGraphError {
             ChoiceGraphError::StartHasIncoming => "Start node has incoming edges",
             ChoiceGraphError::EndHasOutgoing => "End node has outgoing edges",
             ChoiceGraphError::EdgeOutOfBounds => "edge endpoint out of bounds",
-            ChoiceGraphError::Cyclic => "graph is cyclic",
             ChoiceGraphError::NodeNotOnStartEndPath => "node not on any Start→End path",
         };
         f.write_str(s)

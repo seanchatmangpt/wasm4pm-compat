@@ -61,7 +61,6 @@ pub enum PetriRefusal {
     UnboundedNet,
     ObjectTypeNotPreserved,
     InvalidVariableArc,
-    SoundnessNotWitnessed,
     InvalidCancellationRegion,
     InvalidInstanceBounds,
 }
@@ -76,7 +75,6 @@ impl fmt::Display for PetriRefusal {
             PetriRefusal::UnboundedNet => "UnboundedNet",
             PetriRefusal::ObjectTypeNotPreserved => "ObjectTypeNotPreserved",
             PetriRefusal::InvalidVariableArc => "InvalidVariableArc",
-            PetriRefusal::SoundnessNotWitnessed => "SoundnessNotWitnessed",
             PetriRefusal::InvalidCancellationRegion => "InvalidCancellationRegion",
             PetriRefusal::InvalidInstanceBounds => "InvalidInstanceBounds",
         };

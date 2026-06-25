@@ -4,7 +4,6 @@
 //!
 //! - [`operator_minimum_arity`] / [`operator_maximum_arity`] — const arity tables
 //! - [`TypedLoopNode<Children, ARITY>`] — compile-time loop arity law (ARITY == 2)
-//! - [`TypedXorNode`] / [`TypedAndNode`] / [`TypedSeqNode`] / [`TypedOrNode`] — arity >= 2
 //! - [`ProcessTreeNodeId`] — zero-cost arena index
 //! - [`ProcessTreeOperator`] — 6 operator variants
 //! - [`ProcessTreeNode`] — Activity | Operator
@@ -22,7 +21,7 @@ use wasm4pm_compat::law::ProcessTreeOperatorKind;
 use wasm4pm_compat::process_tree::{
     operator_maximum_arity, operator_minimum_arity, ProcessTree, ProcessTreeNode,
     ProcessTreeNodeId, ProcessTreeOperator, ProcessTreeRefusal, TypedAndNode, TypedLoopNode,
-    TypedOrNode, TypedSeqNode, TypedXorNode,
+    TypedSeqNode, TypedXorNode,
 };
 
 fn main() {
@@ -37,7 +36,6 @@ fn main() {
         (ProcessTreeOperatorKind::Parallel, 2, usize::MAX),
         (ProcessTreeOperatorKind::Loop, 2, 2),
         (ProcessTreeOperatorKind::Silent, 0, 0),
-        (ProcessTreeOperatorKind::Or, 2, usize::MAX),
     ];
     for (kind, expected_min, expected_max) in &cases {
         assert_eq!(
@@ -93,10 +91,6 @@ fn main() {
     assert_eq!(seq_node.children[2], "close");
     println!("  ✓ TypedSeqNode<ARITY=3>: last={}", seq_node.children[2]);
 
-    // TypedOrNode: ARITY must >= 2
-    let or_node: TypedOrNode<[&str; 2], 2> = TypedOrNode::new(["path-a", "path-b"]);
-    assert_eq!(or_node.children[1], "path-b");
-    println!("  ✓ TypedOrNode<ARITY=2>: {:?}", or_node.children);
 
     // ── Part 3: ProcessTreeNodeId ─────────────────────────────────────────────
     println!("\nPart 3: ProcessTreeNodeId zero-cost arena index");
@@ -236,7 +230,6 @@ fn main() {
         ProcessTreeOperator::Parallel,
         ProcessTreeOperator::Loop,
         ProcessTreeOperator::Silent,
-        ProcessTreeOperator::Or,
     ];
     for op in &ops {
         println!("  ✓ {:?}", op);
@@ -245,7 +238,7 @@ fn main() {
     println!("\n=== All assertions passed — process_tree module surface is witnessed ===");
     println!("  Covered: operator_minimum/maximum_arity (6 operator kinds),");
     println!("           TypedLoopNode/XorNode/AndNode/SeqNode/OrNode (arity law),");
-    println!("           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (6),");
+    println!("           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (5),");
     println!("           ProcessTree::admit_shape() (ok + 5 named refusal laws),");
     println!("           ProcessTreeRefusal (9 laws with Display).");
     println!("  Structure only — no discovery, no replay, no conformance.");

@@ -654,8 +654,6 @@ pub enum ProcessTreeOperatorKind {
     Loop,
     /// Silent leaf (tau) — observable-activity-free step.
     Silent,
-    /// Inclusive OR — one or more branches chosen (non-deterministic).
-    Or,
 }
 
 /// A named control-flow workflow pattern from Russell, van der Aalst & ter Hofstede

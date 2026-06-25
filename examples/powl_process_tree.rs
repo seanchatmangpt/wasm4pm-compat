@@ -176,7 +176,7 @@ fn demo_typed_loop_arity() {
 
 // ── ProcessOperator: Xor, And, Seq ───────────────────────────────────────────
 
-/// Process tree operator nodes use const-generic typed wrappers enforcing arity
+/// In a real architecture, you compose `TypedAndNode`, `TypedSeqNode`, etc.
 /// at compile time, and `ProcessTreeOperator` as the structural label.
 fn demo_process_tree_operators() {
     // XOR: exclusive choice — at least 2 branches.

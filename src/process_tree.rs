@@ -58,7 +58,6 @@ pub const fn operator_minimum_arity(kind: ProcessTreeOperatorKind) -> usize {
         ProcessTreeOperatorKind::Parallel => 2,
         ProcessTreeOperatorKind::Loop => 2,
         ProcessTreeOperatorKind::Silent => 0,
-        ProcessTreeOperatorKind::Or => 2,
     }
 }
 
@@ -88,7 +87,6 @@ pub const fn operator_maximum_arity(kind: ProcessTreeOperatorKind) -> usize {
         ProcessTreeOperatorKind::Parallel => usize::MAX,
         ProcessTreeOperatorKind::Loop => 2,
         ProcessTreeOperatorKind::Silent => 0,
-        ProcessTreeOperatorKind::Or => usize::MAX,
     }
 }
 
@@ -305,58 +303,6 @@ where
     }
 }
 
-// ── OR operator node (type-law surface) ──────────────────────────────────────
-
-/// An inclusive-OR operator node with arity encoded as a const generic
-/// parameter.
-///
-/// OR requires **at least 2** children — an inclusive choice between one
-/// thing is trivially degenerate. `TypedOrNode<_, 1>` does **not compile**.
-///
-/// ## What this is NOT
-///
-/// Structure only. Does not execute, replay, or discover. Graduate to `wasm4pm`.
-///
-/// ```
-/// # #![feature(generic_const_exprs)]
-/// # #![allow(incomplete_features)]
-/// use wasm4pm_compat::process_tree::TypedOrNode;
-/// let _: TypedOrNode<[&str; 2], 2> = TypedOrNode::new(["some", "other"]);
-/// ```
-///
-/// ```compile_fail
-/// # #![feature(generic_const_exprs)]
-/// # #![allow(incomplete_features)]
-/// use wasm4pm_compat::process_tree::TypedOrNode;
-/// // OR with arity 1 is degenerate — compile error.
-/// let _: TypedOrNode<[&str; 1], 1> = TypedOrNode::new(["only"]);
-/// ```
-pub struct TypedOrNode<Children, const ARITY: usize>
-where
-    Require<{ ARITY >= 2 }>: IsTrue,
-{
-    /// The inclusive-OR branches.
-    pub children: Children,
-}
-
-impl<Children, const ARITY: usize> TypedOrNode<Children, ARITY>
-where
-    Require<{ ARITY >= 2 }>: IsTrue,
-{
-    /// Constructs a `TypedOrNode` — only possible when `ARITY >= 2`.
-    ///
-    /// ```
-    /// # #![feature(generic_const_exprs)]
-    /// # #![allow(incomplete_features)]
-    /// use wasm4pm_compat::process_tree::TypedOrNode;
-    /// let node: TypedOrNode<[&str; 2], 2> = TypedOrNode::new(["branch_a", "branch_b"]);
-    /// assert_eq!(node.children[0], "branch_a");
-    /// ```
-    pub fn new(children: Children) -> Self {
-        TypedOrNode { children }
-    }
-}
-
 // ── Identifier and operator types ────────────────────────────────────────────
 
 /// Zero-cost identifier for a [`ProcessTreeNode`].
@@ -382,12 +328,6 @@ pub enum ProcessTreeOperator {
     Loop,
     /// Silent leaf (tau) — observable-activity-free step.
     Silent,
-    /// Inclusive OR: one or more branches chosen non-deterministically (`o`).
-    ///
-    /// Not part of the original Leemans (2013) inductive miner base set, but
-    /// present in extended process-tree formalisms. Structure-only label; the
-    /// semantics are interpreted only by the `wasm4pm` engine on graduation.
-    Or,
 }
 
 /// A single node of a process tree: either an operator with children, or an
@@ -516,8 +456,7 @@ impl ProcessTree {
                         }
                         ProcessTreeOperator::Sequence
                         | ProcessTreeOperator::Xor
-                        | ProcessTreeOperator::Parallel
-                        | ProcessTreeOperator::Or => {
+                        | ProcessTreeOperator::Parallel => {
                             if children.len() < 2 {
                                 return Err(ProcessTreeRefusal::BelowMinimumArity);
                             }
