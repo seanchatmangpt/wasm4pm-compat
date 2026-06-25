@@ -461,6 +461,7 @@ impl PowlChoiceNode {
 /// use wasm4pm_compat::powl::TypedPowlLoopNode;
 /// let _: TypedPowlLoopNode<(), 3> = TypedPowlLoopNode::new(());  // arity 3: compile error
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TypedPowlLoopNode<Children, const ARITY: usize>
 where
     Require<{ ARITY == 2 }>: IsTrue,
@@ -541,6 +542,7 @@ pub const MAX_POWL_DEPTH: usize = 8;
 /// // Depth 9 exceeds MAX_POWL_DEPTH — compile error.
 /// let _: PowlComposition<[&str; 1], 9> = PowlComposition::new(["atom"]);
 /// ```
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PowlComposition<Inner, const DEPTH: usize>
 where
     Require<{ DEPTH <= MAX_POWL_DEPTH }>: IsTrue,
@@ -1970,5 +1972,56 @@ mod builder_tests {
         // Total Nodes: 5 Atoms + 1 Partial Order + 2 Choice Graph logic structures = 8
         assert_eq!(powl.node_count(), 8);
         assert!(powl.validate().is_ok());
+    }
+}
+
+// ── POWL 2.0 Python Interop Types ────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct LeafNode {
+    pub id: String,
+    pub label: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ComplexModel {
+    pub nodes: Vec<String>,
+}
+
+#[allow(non_camel_case_types)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct oc_powl {
+    pub model: ComplexModel,
+}
+
+#[cfg(test)]
+mod serde_tests {
+    use super::*;
+
+    #[test]
+    fn test_serde_powl_node_kind() {
+        let kind = PowlNodeKind::ChoiceGraph {
+            nodes: vec![PowlNodeId(1), PowlNodeId(2)],
+            edges: vec![ChoiceGraphEdge::new(PowlNodeId(1), PowlNodeId(2))],
+        };
+        let serialized = serde_json::to_string(&kind).unwrap();
+        let deserialized: PowlNodeKind = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(kind, deserialized);
+    }
+
+    #[test]
+    fn test_serde_powl_loop_node() {
+        let node: TypedPowlLoopNode<[PowlNodeId; 2], 2> = TypedPowlLoopNode::new([PowlNodeId(1), PowlNodeId(2)]);
+        let serialized = serde_json::to_string(&node).unwrap();
+        let deserialized: TypedPowlLoopNode<[PowlNodeId; 2], 2> = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(node.children, deserialized.children);
+    }
+
+    #[test]
+    fn test_serde_powl_composition() {
+        let comp: PowlComposition<PowlNodeId, 8> = PowlComposition::new(PowlNodeId(42));
+        let serialized = serde_json::to_string(&comp).unwrap();
+        let deserialized: PowlComposition<PowlNodeId, 8> = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(comp.inner, deserialized.inner);
     }
 }
