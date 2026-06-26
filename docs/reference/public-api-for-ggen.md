@@ -85,7 +85,7 @@ Supports the Partially Ordered Workflow Language (POWL) shape as a first-class m
 ### 12. `wasm4pm_compat::process_tree`
 Defines block-structured process tree models.
 - **Key Structs**: `ProcessTree` (root of the tree), `ProcessTreeNode` (operator node or activity leaf).
-- **Key Enums**: `ProcessTreeOperator` (Sequence, Xor, Parallel, Loop, Silent, Or).
+- **Key Enums**: `ProcessTreeOperator` (Sequence, Xor, Parallel, Loop, Silent).
 - **Helper Functions**: `operator_minimum_arity`, `operator_maximum_arity`.
 
 ### 13. `wasm4pm_compat::declare`

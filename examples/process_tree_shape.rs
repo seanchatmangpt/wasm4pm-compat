@@ -5,7 +5,7 @@
 //! - [`operator_minimum_arity`] / [`operator_maximum_arity`] — const arity tables
 //! - [`TypedLoopNode<Children, ARITY>`] — compile-time loop arity law (ARITY == 2)
 //! - [`ProcessTreeNodeId`] — zero-cost arena index
-//! - [`ProcessTreeOperator`] — 6 operator variants
+//! - [`ProcessTreeOperator`] — 5 operator variants
 //! - [`ProcessTreeNode`] — Activity | Operator
 //! - [`ProcessTree`] — arena + root + `admit_shape()`
 //! - [`ProcessTreeRefusal`] — 9 named structural laws
@@ -221,8 +221,8 @@ fn main() {
     }
     println!("  ✓ All 9 ProcessTreeRefusal variants have Display");
 
-    // ── Part 6: ProcessTreeOperator — 6 variants ──────────────────────────────
-    println!("\nPart 6: ProcessTreeOperator 6 variants");
+    // ── Part 6: ProcessTreeOperator — 5 variants ──────────────────────────────
+    println!("\nPart 6: ProcessTreeOperator 5 variants");
 
     let ops = [
         ProcessTreeOperator::Sequence,
