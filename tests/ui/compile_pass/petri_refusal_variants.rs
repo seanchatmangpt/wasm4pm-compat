@@ -12,7 +12,6 @@ fn main() {
         PetriRefusal::UnboundedNet,
         PetriRefusal::ObjectTypeNotPreserved,
         PetriRefusal::InvalidVariableArc,
-        PetriRefusal::SoundnessNotWitnessed,
         PetriRefusal::InvalidCancellationRegion,
         PetriRefusal::InvalidInstanceBounds,
     ];
