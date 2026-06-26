@@ -397,15 +397,15 @@ EXIT:0
 ### process_tree_shape.rs
 
 - **Doc:** `src/process_tree.rs` — 12 pub items
-- **Example:** `examples/process_tree_shape.rs` — operator_minimum/maximum_arity (6 kinds, const fn), TypedLoopNode<ARITY=2>/TypedXorNode<3>/TypedAndNode/TypedSeqNode/TypedOrNode (arity law compile-time), ProcessTreeNodeId zero-cost + ordered, ProcessTree::admit_shape() (valid Sequence(a,b)), 5 named refusals (MissingRoot, DanglingNodeReference, TauLeafWithChildren, BelowMinimumArity, InvalidArity), all 9 Display strings asserted, ProcessTreeOperator×6
+- **Example:** `examples/process_tree_shape.rs` — operator_minimum/maximum_arity (5 kinds, const fn), TypedLoopNode<ARITY=2>/TypedXorNode<3>/TypedAndNode/TypedSeqNode (arity law compile-time), ProcessTreeNodeId zero-cost + ordered, ProcessTree::admit_shape() (valid Sequence(a,b)), 5 named refusals (MissingRoot, DanglingNodeReference, TauLeafWithChildren, BelowMinimumArity, InvalidArity), all 9 Display strings asserted, ProcessTreeOperator×5
 - **Link:** README.md and CLAUDE.md updated
 
 **Run output (real exit code):**
 ```
 === All assertions passed — process_tree module surface is witnessed ===
-  Covered: operator_minimum/maximum_arity (6 operator kinds),
-           TypedLoopNode/XorNode/AndNode/SeqNode/OrNode (arity law),
-           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (6),
+  Covered: operator_minimum/maximum_arity (5 operator kinds),
+           TypedLoopNode/XorNode/AndNode/SeqNode (arity law),
+           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (5),
            ProcessTree::admit_shape() (ok + 5 named refusal laws),
            ProcessTreeRefusal (9 laws with Display).
 EXIT:0
