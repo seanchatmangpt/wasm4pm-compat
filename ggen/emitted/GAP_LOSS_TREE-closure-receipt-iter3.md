@@ -35,11 +35,11 @@ All six closure items are present, executable, and integrated:
 - **Total loss type-law receipts: 44**
 
 **Process Tree Domain:**
-- Compile-fail fixtures: 20 + 6 POWL-to-tree projection failures (26 total)
-- Compile-pass fixtures: 23 + 2 POWL-to-tree projections (25 total)
-- **Total tree type-law receipts: 51**
+- Compile-fail fixtures: 18 + 6 POWL-to-tree projection failures (24 total)
+- Compile-pass fixtures: 20 + 2 POWL-to-tree projections (22 total)
+- **Total tree type-law receipts: 46**
 
-**Overall type-law coverage: 95 compile-time proofs (44 loss + 51 tree)**
+**Overall type-law coverage: 90 compile-time proofs (44 loss + 46 tree)**
 
 ---
 
@@ -172,12 +172,12 @@ $ bash scripts/audit/audit_projection_loss.sh
 compat:ProcessTree
     a rdfs:Class ;
     rdfs:label "ProcessTree" ;
-    rdfs:comment "Block-structured process tree: sequence, xor, parallel, loop, or, silent over activity leaves." .
+    rdfs:comment "Block-structured process tree: sequence, xor, parallel, loop, silent over activity leaves." .
 
 compat:ProcessTreeOperator
     a rdfs:Class ;
     rdfs:label "ProcessTreeOperator" ;
-    rdfs:comment "Enumerated operators: Sequence, Xor, Parallel, Loop (arity 2), Silent, Or." .
+    rdfs:comment "Enumerated operators: Sequence, Xor, Parallel, Loop (arity 2), Silent." .
 
 compat:TypedLoopNode
     a rdfs:Class ;
@@ -185,13 +185,12 @@ compat:TypedLoopNode
     rdfs:comment "A loop node with arity enforced as const generic parameter — exactly 2 children (do + redo)." .
 ```
 
-**Six operator variants defined:**
+**Five operator variants defined:**
 - `ProcessTreeOperator_Sequence` — min arity 2
 - `ProcessTreeOperator_Xor` — min arity 2
 - `ProcessTreeOperator_Parallel` — min arity 2
 - `ProcessTreeOperator_Loop` — exact arity 2 (Leemans 2013)
 - `ProcessTreeOperator_Silent` — arity 0 (tau/leaf)
-- `ProcessTreeOperator_Or` — min arity 2
 
 **Covenant:** Arity is a compile-time law (no runtime violations). Loop is exactly 2. All others are bounded below by 2 (except Silent at 0).
 
@@ -205,7 +204,7 @@ compat:TypedLoopNode
 **Size:** 289 lines  
 **Content:**
 
-Nine primary node shapes:
+Eight primary node shapes:
 
 #### Shape 1: `ProcessTreeOperator_LoopShape`
 - Target: `compat:ProcessTreeOperator_Loop` node
@@ -231,11 +230,6 @@ Nine primary node shapes:
 - Target: `compat:ProcessTreeOperator_Parallel` node
 - Constraint: `hasChild` minCount 2
 - Rationale: concurrency of one is trivial
-
-#### Shape 6: `ProcessTreeOperator_OrShape`
-- Target: `compat:ProcessTreeOperator_Or` node
-- Constraint: `hasChild` minCount 2
-- Rationale: inclusive choice of one is trivial
 
 #### Shape 7: `TreeProjectableShape`
 - Target: `compat:TreeProjectable` class
@@ -266,11 +260,11 @@ Nine primary node shapes:
 
 1. **TypedLoopNode constraint** — arity == 2 enforced at compile-time
 2. **Operator arity functions** — min/max arity bounds defined
-3. **ProcessTreeOperator enum** — all six variants present (Sequence, Xor, Parallel, Loop, Silent, Or)
+3. **ProcessTreeOperator enum** — all five variants present (Sequence, Xor, Parallel, Loop, Silent)
 4. **SHACL shapes file** — ggen/shapes/process-tree.shacl.ttl present + key shapes verified
 5. **ProcessTree ontology** — registered in wasm4pm-compat.ttl
-6. **Compile-fail fixtures** — 20+ type-law receipts with .stderr files
-7. **Compile-pass fixtures** — 23+ lawful paths compiling
+6. **Compile-fail fixtures** — 18+ type-law receipts with .stderr files
+7. **Compile-pass fixtures** — 20+ lawful paths compiling
 8. **TreeProjectable sealed trait** — present and sealed in src/powl.rs
 9. **ProcessTreeRefusal reasons** — all six variants enumerated
 
@@ -295,7 +289,6 @@ Gate 3: ProcessTreeOperator enum variants...
   ✓ Parallel operator found
   ✓ Loop operator found
   ✓ Silent operator found
-  ✓ Or operator found
 
 Gate 4: SHACL shapes for process tree operators...
   ✓ ggen/shapes/process-tree.shacl.ttl present
@@ -312,12 +305,12 @@ Gate 6: Type-law receipts (compile-fail fixtures)...
   ✓ process_tree_loop_arity_1.rs (with .stderr receipt)
   ✓ process_tree_loop_arity_3.rs (with .stderr receipt)
   ✓ process_tree_xor_arity_1.rs (with .stderr receipt)
-  ✓ [and 17 more...]
+  ✓ [and 15 more...]
 
 Gate 7: Type-law receipts (compile-pass fixtures)...
   ✓ process_tree_loop_arity_2.rs
   ✓ process_tree_operator_arity_constants.rs
-  ✓ [and 21 more...]
+  ✓ [and 18 more...]
 
 Gate 8: TreeProjectable sealed trait...
   ✓ TreeProjectable sealed trait found
@@ -398,9 +391,9 @@ Gate 9: ProcessTreeRefusal named reasons...
 
 ### Process Tree Domain
 
-**Compile-Fail Fixtures (20 tree-specific + 6 POWL-to-tree = 26 total):**
+**Compile-Fail Fixtures (18 tree-specific + 6 POWL-to-tree = 24 total):**
 
-**Tree-specific (20):**
+**Tree-specific (18):**
 1. `process_tree_loop_arity_1.rs` — Loop with 1 child (too few)
 2. `process_tree_loop_arity_3.rs` — Loop with 3 children (too many)
 3. `process_tree_bad_loop_arity.rs` — Invalid loop arity
@@ -408,19 +401,17 @@ Gate 9: ProcessTreeRefusal named reasons...
 5. `process_tree_bad_xor_arity.rs` — Invalid xor arity
 6. `process_tree_seq_arity_1.rs` — Sequence with 1 child
 7. `process_tree_bad_seq_arity.rs` — Invalid sequence arity
-8. `process_tree_or_arity_1.rs` — Or with 1 child
-9. `process_tree_bad_or_arity.rs` — Invalid or arity
-10. `process_tree_and_arity_1.rs` — Parallel with 1 child
-11. `process_tree_bad_and_arity.rs` — Invalid parallel arity
-12. `process_tree_refusal_missing_root.rs` — Missing root
-13. `process_tree_refusal_invalid_arity_loop.rs` — Invalid arity refusal
-14. `process_tree_refusal_below_min_arity.rs` — Below minimum arity
-15. `process_tree_refusal_all_variants.rs` — All refusal types
-16. `process_tree_operator_node_shape.rs` — Node shape
-17. `process_tree_operator_variants_all.rs` — All variants
-18. `process_tree_admit_shape.rs` — Admit shape
-19. `process_tree_node_id_ordering.rs` — ID ordering
-20. (1 additional variant-specific fixture)
+8. `process_tree_and_arity_1.rs` — Parallel with 1 child
+9. `process_tree_bad_and_arity.rs` — Invalid parallel arity
+10. `process_tree_refusal_missing_root.rs` — Missing root
+11. `process_tree_refusal_invalid_arity_loop.rs` — Invalid arity refusal
+12. `process_tree_refusal_below_min_arity.rs` — Below minimum arity
+13. `process_tree_refusal_all_variants.rs` — All refusal types
+14. `process_tree_operator_node_shape.rs` — Node shape
+15. `process_tree_operator_variants_all.rs` — All variants
+16. `process_tree_admit_shape.rs` — Admit shape
+17. `process_tree_node_id_ordering.rs` — ID ordering
+18. (1 additional variant-specific fixture)
 
 **POWL-to-tree projection failures (6):**
 1. `powl_process_tree_xor_arity_1.rs` — POWL Xor with arity 1 projects to tree
@@ -428,42 +419,39 @@ Gate 9: ProcessTreeRefusal named reasons...
 3. `powl_silent_tree_projection.rs` — Silent projection from POWL
 4. (3 more POWL-projection variant tests)
 
-**All 26 have .stderr type-law receipts.**
+**All 24 have .stderr type-law receipts.**
 
-**Compile-Pass Fixtures (23 tree-specific + 2 POWL-to-tree = 25 total):**
+**Compile-Pass Fixtures (20 tree-specific + 2 POWL-to-tree = 22 total):**
 
-**Tree-specific (23):**
+**Tree-specific (20):**
 1. `process_tree_loop_arity_2.rs` — Loop with 2 children (lawful)
 2. `process_tree_operator_arity_constants.rs` — Min/max arity functions
 3. `process_tree_admit_shape.rs` — Admit trait (proper shape)
 4. `process_tree_seq_admit_shape.rs` — Sequence admit
 5. `process_tree_xor_admit_shape.rs` — Xor admit
-6. `process_tree_or_admit_shape.rs` — Or admit
-7. `process_tree_and_admit_shape.rs` — Parallel admit
-8. `process_tree_loop_admit_shape.rs` — Loop admit
-9. `process_tree_typed_seq_node.rs` — Typed sequence
-10. `process_tree_typed_seq_nary.rs` — Typed sequence n-ary
-11. `process_tree_typed_xor_node.rs` — Typed xor
-12. `process_tree_typed_xor_nary.rs` — Typed xor n-ary
-13. `process_tree_typed_or_node.rs` — Typed or
-14. `process_tree_typed_or_nary.rs` — Typed or n-ary
-15. `process_tree_typed_and_node.rs` — Typed parallel
-16. `process_tree_typed_and_nary.rs` — Typed parallel n-ary
-17. `process_tree_operator_node_shape.rs` — Operator node
-18. `process_tree_operator_variants_all.rs` — All variants
-19. `process_tree_refusal_all_variants.rs` — All refusals
-20. `process_tree_refusal_missing_root.rs` — Refusal path
-21. `process_tree_refusal_invalid_arity_loop.rs` — Invalid arity refusal
-22. `process_tree_refusal_below_min_arity.rs` — Below min refusal
-23. `process_tree_node_id_ordering.rs` — Node ID ordering
+6. `process_tree_and_admit_shape.rs` — Parallel admit
+7. `process_tree_loop_admit_shape.rs` — Loop admit
+8. `process_tree_typed_seq_node.rs` — Typed sequence
+9. `process_tree_typed_seq_nary.rs` — Typed sequence n-ary
+10. `process_tree_typed_xor_node.rs` — Typed xor
+11. `process_tree_typed_xor_nary.rs` — Typed xor n-ary
+12. `process_tree_typed_and_node.rs` — Typed parallel
+13. `process_tree_typed_and_nary.rs` — Typed parallel n-ary
+14. `process_tree_operator_node_shape.rs` — Operator node
+15. `process_tree_operator_variants_all.rs` — All variants
+16. `process_tree_refusal_all_variants.rs` — All refusals
+17. `process_tree_refusal_missing_root.rs` — Refusal path
+18. `process_tree_refusal_invalid_arity_loop.rs` — Invalid arity refusal
+19. `process_tree_refusal_below_min_arity.rs` — Below min refusal
+20. `process_tree_node_id_ordering.rs` — Node ID ordering
 
 **POWL-to-tree projections (2):**
 1. `powl_process_tree_projectable.rs` — Lawful POWL→Tree projection
 2. `powl_exceeds_process_tree_marker.rs` — Exceeds marker (compile-pass)
 
-**All 25 compile successfully.**
+**All 22 compile successfully.**
 
-**Process tree total: 26 fail + 25 pass = 51 type-law receipts**
+**Process tree total: 24 fail + 22 pass = 46 type-law receipts**
 
 ---
 
@@ -481,11 +469,11 @@ Gate 9: ProcessTreeRefusal named reasons...
 | Tree law ontology | ✓ CLOSED | wasm4pm-compat.ttl (1500 lines) | — |
 | SHACL tree shapes | ✓ CLOSED | process-tree.shacl.ttl (289 lines) | — |
 | audit_process_tree.sh | ✓ CLOSED | scripts/audit/ (230 lines, PASS) | — |
-| Tree compile-fail receipts | ✓ CLOSED | tests/ui/compile_fail/process_tree_*.rs (26 fixtures) | 26 |
-| Tree compile-pass receipts | ✓ CLOSED | tests/ui/compile_pass/process_tree_*.rs (25 fixtures) | 25 |
+| Tree compile-fail receipts | ✓ CLOSED | tests/ui/compile_fail/process_tree_*.rs (24 fixtures) | 24 |
+| Tree compile-pass receipts | ✓ CLOSED | tests/ui/compile_pass/process_tree_*.rs (22 fixtures) | 22 |
 | **Audit Integration** | | | |
 | Crown audit gate | ✓ CLOSED | scripts/audit/audit_crown_gate_all.sh (auto-discovery) | — |
-| Type-law receipt chain | ✓ CLOSED | trybuild + .stderr files (95 total) | 95 |
+| Type-law receipt chain | ✓ CLOSED | trybuild + .stderr files (90 total) | 90 |
 
 ---
 
@@ -515,8 +503,8 @@ Gate 9: ProcessTreeRefusal named reasons...
 - **Operator bounds:** Loop exact (2,2); all others min-bounded by 2 (except Silent at 0)
 - **TreeProjectable sealing:** Sealed trait in src/powl.rs — only lawful POWL→Tree projections implement it
 - **Named refusals:** `ProcessTreeRefusal` enum with 6 specific reasons (not bare strings)
-- **SHACL validation:** 9 shapes enforce arity constraints on all operators, block structure preservation, and named refusals
-- **Type-law proofs:** 26 compile-fail fixtures (20 tree + 6 POWL) prove arity violations; 25 compile-pass fixtures prove lawful configurations
+- **SHACL validation:** 8 shapes enforce arity constraints on all operators, block structure preservation, and named refusals
+- **Type-law proofs:** 24 compile-fail fixtures (18 tree + 6 POWL) prove arity violations; 22 compile-pass fixtures prove lawful configurations
 
 ---
 
@@ -556,7 +544,7 @@ done
    - RDF property declarations
 
 2. **`/Users/sac/wasm4pm-compat/ggen/shapes/process-tree.shacl.ttl`** (289 lines)
-   - 9 node shapes (6 operators + TreeProjectable + ProcessTreeRefusal + TypedLoopNode)
+   - 8 node shapes (5 operators + TreeProjectable + ProcessTreeRefusal + TypedLoopNode)
    - Arity constraints on all operators
    - SPARQL constraint for block structure preservation
    - ProcessTreeRefusal reason instances
@@ -573,7 +561,7 @@ done
 - `src/powl.rs` — TreeProjectable sealed trait
 - `scripts/audit/audit_projection_loss.sh` — Loss audit
 - 44 loss type-law receipt fixtures (tests/ui/)
-- 51 tree type-law receipt fixtures (tests/ui/)
+- 46 tree type-law receipt fixtures (tests/ui/)
 
 ---
 
@@ -601,7 +589,7 @@ This is **NOT a closure blocker** because:
 4. ✓ Tree law ontology — PRESENT (wasm4pm-compat.ttl)
 5. ✓ SHACL process-tree shapes — PRESENT (289 lines)
 6. ✓ audit_process_tree.sh — PRESENT & PASSING (230 lines, exit 0, warnings non-blocking)
-7. ✓ Type-law receipts (compile-fail/pass) — PRESENT (95 total: 44 loss + 51 tree)
+7. ✓ Type-law receipts (compile-fail/pass) — PRESENT (90 total: 44 loss + 46 tree)
 8. ✓ Crown audit integration — PRESENT (auto-discovery, all gates pass)
 
 **Sealing Gate: PASSED ✓**
@@ -631,14 +619,14 @@ GAP_LOSS:
 
 GAP_PROCESS_TREE:
   - Tree law ontology (RDF): CLOSED (wasm4pm-compat.ttl)
-  - SHACL process-tree.shacl.ttl: CLOSED (289 lines, 9 shapes)
+  - SHACL process-tree.shacl.ttl: CLOSED (289 lines, 8 shapes)
   - audit_process_tree.sh: CLOSED (230 lines, 9 gates, PASS)
-  - Tree compile-fail/pass receipts: CLOSED (26 fail + 25 pass = 51 total)
+  - Tree compile-fail/pass receipts: CLOSED (24 fail + 22 pass = 46 total)
 
   Covenant: arity is compile-time law (TypedLoopNode<2>, operator bounds),
   TreeProjectable is only lawful projection (sealed trait), refusals are named.
 
-Type-law coverage: 95 compile-time proofs (44 loss + 51 tree).
+Type-law coverage: 90 compile-time proofs (44 loss + 46 tree).
 Audit chain: 24 domain audits integrated into crown_gate_all.sh, all passing.
 
 Iteration 3: Full verification and closure assertion.
