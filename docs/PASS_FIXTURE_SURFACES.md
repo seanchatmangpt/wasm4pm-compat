@@ -415,7 +415,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `wfnet_with_soundness_witness` |
 | `wfnet2powl_witness` |
 
-### powl (23 fixtures)
+### powl (20 fixtures)
 
 | Fixture |
 |---------|
@@ -426,13 +426,13 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `powl_choice_graph_edge_vs_order_edge` |
 | `powl_choice_graph` |
 | `powl_choice_node_invalid_refuses` |
-| `powl_choice_node_kind_construction` |
+
 | `powl_choice_node_well_formed` |
-| `powl_choice_node_with_node_kind` |
+
 | `powl_exceeds_process_tree_marker` |
 | `powl_irreducible_marker` |
 | `powl_loop_missing_do_body_refusal` |
-| `powl_loop_node_kind_construction` |
+
 | `powl_model_node_count` |
 | `powl_node_id_ordering` |
 | `powl_partial_order_node_construction` |
@@ -470,7 +470,7 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `process_cube_dimension_typed` |
 | `process_cube_shape` |
 
-### process_tree (23 fixtures)
+### process_tree (20 fixtures)
 
 | Fixture |
 |---------|
@@ -482,7 +482,6 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `process_tree_operator_arity_constants` |
 | `process_tree_operator_node_shape` |
 | `process_tree_operator_variants_all` |
-| `process_tree_or_admit_shape` |
 | `process_tree_refusal_all_variants` |
 | `process_tree_refusal_below_min_arity` |
 | `process_tree_refusal_invalid_arity_loop` |
@@ -490,8 +489,6 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `process_tree_seq_admit_shape` |
 | `process_tree_typed_and_nary` |
 | `process_tree_typed_and_node` |
-| `process_tree_typed_or_nary` |
-| `process_tree_typed_or_node` |
 | `process_tree_typed_seq_nary` |
 | `process_tree_typed_seq_node` |
 | `process_tree_typed_xor_nary` |
@@ -577,12 +574,11 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `witness_standard_authority_lawful` |
 | `witness_xes1849_metadata` |
 
-### workflow / process patterns (2 fixtures)
+### workflow / process patterns (1 fixture)
 
 | Fixture |
 |---------|
 | `workflow_pattern_const_param` |
-| `process_cube_shape` |
 
 ### xes (13 fixtures)
 
@@ -601,6 +597,20 @@ Each fixture proves a lawful construction compiles successfully — the open pat
 | `xes_to_oced_named_projection` |
 | `xes_trace_attributes_type` |
 | `xes_trace_attributes` |
+
+### new fixtures (9)
+
+| Fixture |
+|---------|
+| `causal_net_shapes` |
+| `free_choice_unfolding_shapes` |
+| `ocel_extraction_projection` |
+| `perspective_weights_sum` |
+| `prediction_horizon_drift_pass` |
+| `stochastic_petri_shapes` |
+| `temporal_zscore_pass` |
+| `wfnet2powl_gate_lawful` |
+| `xes_typed_extension` |
 
 ### yawl (2 fixtures)
 
