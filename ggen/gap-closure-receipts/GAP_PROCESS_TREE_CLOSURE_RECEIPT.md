@@ -9,13 +9,13 @@ closed_date: 2026-06-02
 
 ## Summary
 
-`GAP_PROCESS_TREE` is closed by the manufacture of `src/process_tree.rs`, which encodes process tree operator arity constraints directly in the type system via `TypedLoopNode<ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` and the corresponding `TypedXorNode`, `TypedAndNode`, `TypedSeqNode`, and `TypedOrNode` variants with their respective minimum-arity bounds. The type-law constraint prevents construction of structurally illegal process tree nodes at compile time, with no runtime check required. This law is verified by trybuild compile-fail and compile-pass receipts in `tests/ui/`.
+`GAP_PROCESS_TREE` is closed by the manufacture of `src/process_tree.rs`, which encodes process tree operator arity constraints directly in the type system via `TypedLoopNode<ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` and the corresponding `TypedXorNode`, `TypedAndNode`, and `TypedSeqNode` variants with their respective minimum-arity bounds. The type-law constraint prevents construction of structurally illegal process tree nodes at compile time, with no runtime check required. This law is verified by trybuild compile-fail and compile-pass receipts in `tests/ui/`.
 
 ## Evidence
 
 Files created or modified to close this gap:
 
-- `src/process_tree.rs` — defines `TypedLoopNode<Children, const ARITY: usize>` with `Require<{ ARITY == 2 }>: IsTrue` where-bound; also defines `TypedXorNode`, `TypedAndNode`, `TypedSeqNode`, `TypedOrNode` with `Require<{ ARITY >= 2 }>: IsTrue` bounds; exports `ProcessTreeOperatorKind` variants and arity constants
+- `src/process_tree.rs` — defines `TypedLoopNode<Children, const ARITY: usize>` with `Require<{ ARITY == 2 }>: IsTrue` where-bound; also defines `TypedXorNode`, `TypedAndNode`, `TypedSeqNode` with `Require<{ ARITY >= 2 }>: IsTrue` bounds; exports `ProcessTreeOperatorKind` variants and arity constants
 - `src/law.rs` — provides `Require<const B: bool>`, `IsTrue`, `Assert` machinery that backs all const-generic law bounds in `process_tree.rs`
 
 Compile-fail receipts (each must fail for the named law):
@@ -35,7 +35,6 @@ Compile-pass receipts (each must compile successfully, proving the lawful path i
 - `tests/ui/compile_pass/process_tree_loop_admit_shape.rs`
 - `tests/ui/compile_pass/process_tree_and_admit_shape.rs`
 - `tests/ui/compile_pass/process_tree_seq_admit_shape.rs`
-- `tests/ui/compile_pass/process_tree_or_admit_shape.rs`
 - `tests/ui/compile_pass/process_tree_admit_shape.rs`
 - `tests/ui/compile_pass/process_tree_operator_arity_constants.rs`
 - `tests/ui/compile_pass/process_tree_operator_variants_all.rs`
