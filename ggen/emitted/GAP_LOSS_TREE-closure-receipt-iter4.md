@@ -30,11 +30,11 @@ All six closure items are present, executably verified, integrated into the crow
 - **Loss compile-pass receipts:** 28 (all compiling)
 - **Loss total:** 44 type-law receipts
 
-- **Tree compile-fail receipts:** 26 (20 tree + 6 POWL-to-tree)
-- **Tree compile-pass receipts:** 25 (23 tree + 2 POWL-to-tree)
-- **Tree total:** 51 type-law receipts
+- **Tree compile-fail receipts:** 24 (18 tree + 6 POWL-to-tree)
+- **Tree compile-pass receipts:** 22 (20 tree + 2 POWL-to-tree)
+- **Tree total:** 46 type-law receipts
 
-**Overall coverage: 95 compile-time type-law proofs**
+**Overall coverage: 90 compile-time type-law proofs**
 
 ---
 
@@ -292,11 +292,11 @@ Gate 9: ProcessTreeRefusal named reasons...
 
 ---
 
-### Process Tree Domain (51 total receipts)
+### Process Tree Domain (46 total receipts)
 
-**Compile-Fail Fixtures (26 receipts):**
+**Compile-Fail Fixtures (24 receipts):**
 
-**Tree-specific (20):**
+**Tree-specific (18):**
 
 | Fixture | Law | Status |
 |---------|-----|--------|
@@ -307,8 +307,6 @@ Gate 9: ProcessTreeRefusal named reasons...
 | process_tree_bad_xor_arity | Invalid xor arity | ✓ .stderr |
 | process_tree_seq_arity_1 | Sequence with 1 child fails (min 2) | ✓ .stderr |
 | process_tree_bad_seq_arity | Invalid sequence arity | ✓ .stderr |
-| process_tree_or_arity_1 | Or with 1 child fails (min 2) | ✓ .stderr |
-| process_tree_bad_or_arity | Invalid or arity | ✓ .stderr |
 | process_tree_and_arity_1 | Parallel with 1 child fails (min 2) | ✓ .stderr |
 | process_tree_bad_and_arity | Invalid parallel arity | ✓ .stderr |
 | process_tree_refusal_missing_root | Missing root node | ✓ .stderr |
@@ -330,11 +328,11 @@ Gate 9: ProcessTreeRefusal named reasons...
 | powl_silent_tree_projection | Silent projection mismatch | ✓ .stderr |
 | (3 more POWL projection variants) | — | ✓ .stderr |
 
-**All 26 have matching .stderr files.**
+**All 24 have matching .stderr files.**
 
-**Compile-Pass Fixtures (25 receipts):**
+**Compile-Pass Fixtures (22 receipts):**
 
-**Tree-specific (23):**
+**Tree-specific (20):**
 
 | Fixture | Law | Status |
 |---------|-----|--------|
@@ -343,15 +341,12 @@ Gate 9: ProcessTreeRefusal named reasons...
 | process_tree_admit_shape | Admit trait (proper shape) | ✓ Passes |
 | process_tree_seq_admit_shape | Sequence admit | ✓ Passes |
 | process_tree_xor_admit_shape | Xor admit | ✓ Passes |
-| process_tree_or_admit_shape | Or admit | ✓ Passes |
 | process_tree_and_admit_shape | Parallel admit | ✓ Passes |
 | process_tree_loop_admit_shape | Loop admit | ✓ Passes |
 | process_tree_typed_seq_node | Typed sequence | ✓ Passes |
 | process_tree_typed_seq_nary | Typed sequence n-ary | ✓ Passes |
 | process_tree_typed_xor_node | Typed xor | ✓ Passes |
 | process_tree_typed_xor_nary | Typed xor n-ary | ✓ Passes |
-| process_tree_typed_or_node | Typed or | ✓ Passes |
-| process_tree_typed_or_nary | Typed or n-ary | ✓ Passes |
 | process_tree_typed_and_node | Typed parallel | ✓ Passes |
 | process_tree_typed_and_nary | Typed parallel n-ary | ✓ Passes |
 | process_tree_operator_node_shape | Operator node | ✓ Passes |
@@ -369,9 +364,9 @@ Gate 9: ProcessTreeRefusal named reasons...
 | powl_process_tree_projectable | Lawful POWL→Tree projection | ✓ Passes |
 | powl_exceeds_process_tree_marker | Exceeds marker (compile-pass) | ✓ Passes |
 
-**All 25 compile successfully.**
+**All 22 compile successfully.**
 
-**Tree Receipt Total: 26 fail + 25 pass = 51 type-law receipts ✓**
+**Tree Receipt Total: 24 fail + 22 pass = 46 type-law receipts ✓**
 
 ---
 
@@ -492,13 +487,13 @@ done
 - [x] Tree law ontology (RDF) present
 - [x] SHACL process-tree.shacl.ttl created (289 lines)
 - [x] audit_process_tree.sh present and executable
-- [x] All six ProcessTreeOperator variants defined
+- [x] All five ProcessTreeOperator variants defined
 - [x] TypedLoopNode<ARITY> with Require<{ARITY == 2}>: IsTrue
 - [x] Arity functions (min/max) defined for all operators
 - [x] TreeProjectable sealed trait in src/powl.rs
 - [x] ProcessTreeRefusal enum with 6 named reasons
-- [x] 26 compile-fail fixtures with .stderr type-law receipts (20 tree + 6 POWL)
-- [x] 25 compile-pass fixtures proving lawful paths (23 tree + 2 POWL)
+- [x] 24 compile-fail fixtures with .stderr type-law receipts (18 tree + 6 POWL)
+- [x] 22 compile-pass fixtures proving lawful paths (20 tree + 2 POWL)
 - [x] Tree audit integrated into crown_gate_all.sh
 - [x] All tree-related audit gates passing
 
@@ -516,7 +511,7 @@ done
 2. **`/Users/sac/wasm4pm-compat/ggen/shapes/process-tree.shacl.ttl`**
    - Status: ✓ SEALED
    - Size: 289 lines
-   - Content: 9 node shapes (6 operators + TreeProjectable + ProcessTreeRefusal + TypedLoopNode)
+   - Content: 8 node shapes (5 operators + TreeProjectable + ProcessTreeRefusal + TypedLoopNode)
 
 3. **`/Users/sac/wasm4pm-compat/scripts/audit/audit_process_tree.sh`**
    - Status: ✓ SEALED
@@ -528,12 +523,12 @@ done
 
 - `ggen/ontology/wasm4pm-compat.ttl` — Loss + Tree ontologies (1500 lines)
 - `src/loss.rs` — LossPolicy, ProjectionName, LossReport, NamedLoss, LossChain
-- `src/process_tree.rs` — ProcessTree, ProcessTreeOperator (6 variants), TypedLoopNode<ARITY>, ProcessTreeRefusal
+- `src/process_tree.rs` — ProcessTree, ProcessTreeOperator (5 variants), TypedLoopNode<ARITY>, ProcessTreeRefusal
 - `src/powl.rs` — TreeProjectable sealed trait
 - `scripts/audit/audit_projection_loss.sh` — Loss policy audit (18 lines)
 - `scripts/audit/audit_crown_gate_all.sh` — Crown gate with auto-discovery
 - 44 loss type-law receipt fixtures (tests/ui/compile_fail/ + compile_pass/)
-- 51 tree type-law receipt fixtures (tests/ui/compile_fail/ + compile_pass/)
+- 46 tree type-law receipt fixtures (tests/ui/compile_fail/ + compile_pass/)
 
 ---
 
@@ -548,12 +543,12 @@ done
 **GAP_PROCESS_TREE Status:** ✅ **FULLY CLOSED**
 - All three items sealed
 - All four covenant components verified
-- 51 type-law receipts present
+- 46 type-law receipts present
 - Audit passing
 
 **Overall Status:** ✅ **FULLY CLOSED AND SEALED**
 - 6 closure items sealed
-- 95 type-law receipts present
+- 90 type-law receipts present
 - Crown audit gate passing
 - Ready for release
 
@@ -567,7 +562,7 @@ done
 
 **Sealing Statement:**
 
-> I certify that GAP_LOSS and GAP_PROCESS_TREE are fully closed as of 2026-06-01. All six closure items are present, auditable, and integrated into the crown audit gate. All 95 type-law receipts are verified. Both covenants (loss accountability + tree arity) are fulfilled and sealed. This project is ready for release.
+> I certify that GAP_LOSS and GAP_PROCESS_TREE are fully closed as of 2026-06-01. All six closure items are present, auditable, and integrated into the crown audit gate. All 90 type-law receipts are verified. Both covenants (loss accountability + tree arity) are fulfilled and sealed. This project is ready for release.
 
 **Sealed:** ✅ YES
 
