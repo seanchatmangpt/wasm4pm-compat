@@ -272,7 +272,7 @@ Total commits analyzed: 411
 - `efaec94` type-law: expand powl smoke tests for arity and loop-body refusal laws
 - `e758fa6` type-law: expand law ProcessTreeOperatorKind ConstParamTy enum
 - `1eddde4` type-law: expand process_tree TypedXorNode, TypedAndNode, TypedSeqNode
-- `e9addf3` type-law: expand process_tree TypedOrNode arity-gated operator
+- `e9addf3` type-law: expand process_tree arity-gated operator
 - `702bfe5` type-law: expand process_tree operator_minimum_arity and operator_maximum_arity
 - `dbb9edf` type-law: expand declare DeclareTemplate — full template set with extended unary/binary/chain/negative variants
 - `390b98d` type-law: expand declare — smoke tests for extended templates and OcDeclareConstraint
