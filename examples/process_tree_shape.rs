@@ -236,8 +236,8 @@ fn main() {
     }
 
     println!("\n=== All assertions passed — process_tree module surface is witnessed ===");
-    println!("  Covered: operator_minimum/maximum_arity (6 operator kinds),");
-    println!("           TypedLoopNode/XorNode/AndNode/SeqNode/OrNode (arity law),");
+    println!("  Covered: operator_minimum/maximum_arity (5 operator kinds),");
+    println!("           TypedLoopNode/XorNode/AndNode/SeqNode (arity law),");
     println!("           ProcessTreeNodeId (zero-cost, ordered), ProcessTreeOperator (5),");
     println!("           ProcessTree::admit_shape() (ok + 5 named refusal laws),");
     println!("           ProcessTreeRefusal (9 laws with Display).");

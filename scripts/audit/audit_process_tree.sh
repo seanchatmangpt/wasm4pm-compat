@@ -47,13 +47,13 @@ else
     echo "  ⚠ WARNING: Arity maximum function not found (may be named differently)"
 fi
 
-# Gate 3: ProcessTreeOperator enum has all six variants
+# Gate 3: ProcessTreeOperator enum has all five variants
 echo ""
 echo "Gate 3: ProcessTreeOperator enum variants..."
-REQUIRED_VARIANTS=("Sequence" "Xor" "Parallel" "Loop" "Silent" "Or")
+REQUIRED_VARIANTS=("Sequence" "Xor" "Parallel" "Loop" "Silent")
 MISSING_VARIANTS=0
 for variant in "${REQUIRED_VARIANTS[@]}"; do
-    if grep -q "$variant" src/process_tree.rs; then
+    if grep -q -w "$variant" src/process_tree.rs; then
         echo "  ✓ $variant operator found"
     else
         echo "  ✗ $variant operator MISSING"
@@ -123,7 +123,6 @@ TREE_FAIL_FIXTURES=(
     "process_tree_silent_with_child"
     "process_tree_xor_arity_1"
     "process_tree_seq_arity_1"
-    "process_tree_or_arity_1"
     "process_tree_and_arity_1"
     "powl_process_tree_xor_arity_1"
 )

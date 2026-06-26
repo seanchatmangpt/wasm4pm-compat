@@ -1,5 +1,5 @@
 // COMPILE-PASS: operator_minimum_arity and operator_maximum_arity are
-// compile-observable constant functions covering all six operator kinds.
+// compile-observable constant functions covering all five operator kinds.
 //
 // Law: the arity law for each operator is encoded in these const functions;
 // calling them proves the law is statically observable without execution.

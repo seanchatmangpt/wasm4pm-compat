@@ -1,7 +1,7 @@
-// COMPILE-PASS: ProcessTreeOperator closed set — all six variants are reachable.
+// COMPILE-PASS: ProcessTreeOperator closed set — all five variants are reachable.
 //
 // Law: the ProcessTreeOperator enum is the closed set of block-structured
-// process-tree operators. This fixture proves all six variants construct and
+// process-tree operators. This fixture proves all five variants construct and
 // can be matched exhaustively (no hidden arms).
 use wasm4pm_compat::process_tree::ProcessTreeOperator;
 
