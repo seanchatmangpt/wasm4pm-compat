@@ -7,7 +7,7 @@ A compile-fail fixture is a **negative receipt**: it proves that the type system
 a structurally invalid construction. The law is sealed at compile time — no runtime check,
 no assertion, no test assertion.
 
-**Current count:** 222 compile-fail fixtures (as of 2026-06-14)
+**Current count:** 221 compile-fail fixtures (as of 2026-06-25)
 **Crown target:** >= 160 (already exceeded)
 
 ---
@@ -325,7 +325,6 @@ no assertion, no test assertion.
 | `process_tree_bad_xor_arity` | ProcessTreeXorArityLaw — exclusive choice over single branch is degenerate (Leemans 2013) |
 | `process_tree_loop_arity_1` | TypedLoopNode<_,1> violates ARITY == 2 |
 | `process_tree_loop_arity_3` | TypedLoopNode<_,3> violates ARITY == 2 |
-| `process_tree_or_arity_1` | TypedOrNode<_,1> violates ARITY >= 2 |
 | `process_tree_seq_arity_1` | TypedSeqNode<_,1> violates ARITY >= 2 |
 | `process_tree_xor_arity_1` | TypedXorNode<_,1> violates ARITY >= 2 |
 
@@ -388,7 +387,7 @@ no assertion, no test assertion.
 Each fixture above has a corresponding `.stderr` file in `tests/ui/compile_fail/` containing
 the exact expected compiler diagnostic. This parity is enforced by `scripts/audit_trybuild_receipts.sh`.
 
-Current: 222 `.stderr` files. Crown Gate 5 requires `.rs count == .stderr count`.
+Current: 221 `.stderr` files. Crown Gate 5 requires `.rs count == .stderr count`.
 
 ---
 
@@ -409,7 +408,7 @@ like `test_failure_1.rs` or `invalid_construction.rs`.
 ## Crown Gate Status
 
 Gate 4 of PAPERLAW_CROWN_ALIVE_004 requires >= 160 compile-fail fixtures.
-Current count: 222. Gate 4 is satisfied.
+Current count: 221. Gate 4 is satisfied.
 
 Gate 5 requires `.rs count == .stderr count`.
-Both are 222. Gate 5 is satisfied.
+Both are 221. Gate 5 is satisfied.
