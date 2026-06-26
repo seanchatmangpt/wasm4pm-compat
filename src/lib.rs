@@ -190,6 +190,10 @@ pub mod multiperspective;
 pub mod object_lifecycle;
 /// Object-centric event log (OCEL) shape.
 pub mod ocel;
+/// PDDL8 canonical types — bounded STRIPS planning algebra for the BRCE stack.
+/// Parser lives in `bcinr-pddl` (opt-in dep); these types are the cross-crate
+/// representation shared by bcinr-pddl, wasm4pm-cognition, and lsp-max.
+pub mod pddl;
 /// Object-centric process query (OCPQ) shape.
 pub mod ocpq;
 /// Petri net shape.
