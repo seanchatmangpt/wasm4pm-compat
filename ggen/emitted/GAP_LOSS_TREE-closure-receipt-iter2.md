@@ -115,14 +115,14 @@ GAP_LOSS and GAP_PROCESS_TREE closure is **NOW COMPLETE**. All six surface items
 |------|-----------|--------|
 | Process tree RDF ontology | ggen/ontology/wasm4pm-compat.ttl | ✓ CLOSED |
 | ProcessTree type definition | src/process_tree.rs | ✓ CLOSED |
-| ProcessTreeOperator enum | src/process_tree.rs (6 variants) | ✓ CLOSED |
+| ProcessTreeOperator enum | src/process_tree.rs (5 variants) | ✓ CLOSED |
 | TypedLoopNode<ARITY> const generic | src/process_tree.rs | ✓ CLOSED |
 | TreeProjectable sealed trait | src/powl.rs + src/process_tree.rs | ✓ CLOSED |
 | ProcessTreeRefusal enum | src/process_tree.rs | ✓ CLOSED |
-| Tree compile-fail fixtures | tests/ui/compile_fail/process_tree_*.rs (10+) | ✓ CLOSED |
-| Tree compile-pass fixtures | tests/ui/compile_pass/process_tree_*.rs (15+) | ✓ CLOSED |
+| Tree compile-fail fixtures | tests/ui/compile_fail/process_tree_*.rs (9+) | ✓ CLOSED |
+| Tree compile-pass fixtures | tests/ui/compile_pass/process_tree_*.rs (12+) | ✓ CLOSED |
 
-**Tree fixture count:** 10 compile-fail + 15 compile-pass = 25 type-law receipts  
+**Tree fixture count:** 9 compile-fail + 12 compile-pass = 21 type-law receipts  
 **Examples:**
 - `process_tree_loop_arity_1.rs` — loop with 1 child fails (compile-fail)
 - `process_tree_loop_arity_3.rs` — loop with 3 children fails (compile-fail)
@@ -361,7 +361,7 @@ Gate 9: ProcessTreeRefusal named reasons...
 
 ---
 
-### Process Tree Domain (10 compile-fail + 15 compile-pass = 25 total)
+### Process Tree Domain (9 compile-fail + 12 compile-pass = 21 total)
 
 **Compile-Fail Receipts:**
 
@@ -371,7 +371,6 @@ Gate 9: ProcessTreeRefusal named reasons...
 | process_tree_loop_arity_3 | Arity = 2 only | Loop with 3 children fails |
 | process_tree_xor_arity_1 | Min arity = 2 | Xor with 1 child fails |
 | process_tree_seq_arity_1 | Min arity = 2 | Sequence with 1 child fails |
-| process_tree_or_arity_1 | Min arity = 2 | Or with 1 child fails |
 | process_tree_and_arity_1 | Min arity = 2 | Parallel with 1 child fails |
 | powl_process_tree_xor_arity_1 | POWL→Tree projection | Xor arity violation in projection |
 | powl_exceeds_tree_not_projectable | TreeProjectable constraint | POWL exceeds tree expressiveness |
@@ -459,7 +458,7 @@ The covenant states: **Arity is a compile-time law, TreeProjectable is the only 
 
 5. ✓ **All compile-fail/pass fixtures present with .stderr receipts**
    - Loss: 14 compile-fail + 30 compile-pass
-   - Tree: 10 compile-fail + 15 compile-pass
+   - Tree: 9 compile-fail + 12 compile-pass
    - All compile-fail fixtures have matching .stderr files (type-law receipts)
 
 6. ✓ **audit_crown_gate_all.sh integrates both audits**
@@ -489,7 +488,7 @@ GAP_PROCESS_TREE (Process Tree Type Laws):
   - Tree law ontology (RDF): CLOSED (wasm4pm-compat.ttl)
   - SHACL process-tree.shacl.ttl: CREATED (350 lines, 9 shapes)
   - audit_process_tree.sh: CREATED (230 lines, 9 gates)
-  - Tree type-law receipts: CLOSED (10 compile-fail + 15 compile-pass = 25 total)
+  - Tree type-law receipts: CLOSED (9 compile-fail + 12 compile-pass = 21 total)
 
   Covenant fulfilled: arity is compile-time law (TypedLoopNode<2>, operator bounds),
   TreeProjectable is only lawful projection (sealed trait), refusals are named
