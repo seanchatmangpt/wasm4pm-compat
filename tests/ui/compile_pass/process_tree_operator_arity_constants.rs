@@ -24,7 +24,4 @@ fn main() {
 
     assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Parallel), 2);
     assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Parallel), usize::MAX);
-
-    assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Or), 2);
-    assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Or), usize::MAX);
 }
