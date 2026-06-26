@@ -94,7 +94,7 @@ Last updated: 2026-06-14 (444 compile-fail, 413 compile-pass; prediction/streami
 | RefusedProjection not TreeProjectable | `src/powl.rs` | `powl_refused_projection_named_law` | `powl_refused_projection_as_valid` |
 | PartialOrder requires acyclicity | `src/powl.rs` | `powl_acyclic_partial_order_witness` | `powl_partial_order_not_acyclic` |
 | OrderEdge and ChoiceGraphEdge distinct | `src/powl.rs` | `powl_choice_graph_edge_vs_order_edge` | `powl_order_edge_as_choice_edge`, `powl_order_edge_choice_confusion` |
-| PowlChoiceNode and PowlLoopNode distinct | `src/powl.rs` | `powl_choice_node_kind_construction` | `powl_choice_used_as_loop` |
+
 | POWL loop arity == 2 | `src/powl.rs` | `powl_typed_loop_node_arity_2` | `powl_loop_arity_3` |
 | ProcessTreeXorNode arity >= 2 | `src/powl.rs` | `powl_process_tree_projectable` | `powl_process_tree_xor_arity_1` |
 | PowlComposition DEPTH <= MAX_POWL_DEPTH | `src/powl.rs` | `powl_composition_depth_ok` | `powl_composition_depth_exceeded` |
@@ -108,7 +108,6 @@ Last updated: 2026-06-14 (444 compile-fail, 413 compile-pass; prediction/streami
 | AND arity >= 2 | `src/process_tree.rs` | `process_tree_typed_and_node` | `process_tree_and_arity_1`, `process_tree_bad_and_arity` |
 | SEQ arity >= 2 | `src/process_tree.rs` | `process_tree_typed_seq_node` | `process_tree_seq_arity_1`, `process_tree_bad_seq_arity` |
 | XOR arity >= 2 | `src/process_tree.rs` | `process_tree_typed_xor_node` | `process_tree_xor_arity_1`, `process_tree_bad_xor_arity` |
-| OR arity >= 2 | `src/process_tree.rs` | `process_tree_typed_or_node` | `process_tree_or_arity_1` |
 | LOOP arity == 2 exactly | `src/process_tree.rs` | `process_tree_loop_arity_2` | `process_tree_loop_arity_1`, `process_tree_loop_arity_3`, `process_tree_bad_loop_arity` |
 
 ---
