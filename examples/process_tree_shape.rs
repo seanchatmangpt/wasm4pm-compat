@@ -91,7 +91,6 @@ fn main() {
     assert_eq!(seq_node.children[2], "close");
     println!("  ✓ TypedSeqNode<ARITY=3>: last={}", seq_node.children[2]);
 
-
     // ── Part 3: ProcessTreeNodeId ─────────────────────────────────────────────
     println!("\nPart 3: ProcessTreeNodeId zero-cost arena index");
 

@@ -2011,9 +2011,11 @@ mod serde_tests {
 
     #[test]
     fn test_serde_powl_loop_node() {
-        let node: TypedPowlLoopNode<[PowlNodeId; 2], 2> = TypedPowlLoopNode::new([PowlNodeId(1), PowlNodeId(2)]);
+        let node: TypedPowlLoopNode<[PowlNodeId; 2], 2> =
+            TypedPowlLoopNode::new([PowlNodeId(1), PowlNodeId(2)]);
         let serialized = serde_json::to_string(&node).unwrap();
-        let deserialized: TypedPowlLoopNode<[PowlNodeId; 2], 2> = serde_json::from_str(&serialized).unwrap();
+        let deserialized: TypedPowlLoopNode<[PowlNodeId; 2], 2> =
+            serde_json::from_str(&serialized).unwrap();
         assert_eq!(node.children, deserialized.children);
     }
 
@@ -2021,7 +2023,8 @@ mod serde_tests {
     fn test_serde_powl_composition() {
         let comp: PowlComposition<PowlNodeId, 8> = PowlComposition::new(PowlNodeId(42));
         let serialized = serde_json::to_string(&comp).unwrap();
-        let deserialized: PowlComposition<PowlNodeId, 8> = serde_json::from_str(&serialized).unwrap();
+        let deserialized: PowlComposition<PowlNodeId, 8> =
+            serde_json::from_str(&serialized).unwrap();
         assert_eq!(comp.inner, deserialized.inner);
     }
 }
