@@ -12,7 +12,6 @@ fn operator_name(op: ProcessTreeOperator) -> &'static str {
         ProcessTreeOperator::Parallel => "Parallel",
         ProcessTreeOperator::Loop     => "Loop",
         ProcessTreeOperator::Silent   => "Silent",
-        ProcessTreeOperator::Or       => "Or",
     }
 }
 
@@ -22,5 +21,4 @@ fn main() {
     assert_eq!(operator_name(ProcessTreeOperator::Parallel), "Parallel");
     assert_eq!(operator_name(ProcessTreeOperator::Loop),     "Loop");
     assert_eq!(operator_name(ProcessTreeOperator::Silent),   "Silent");
-    assert_eq!(operator_name(ProcessTreeOperator::Or),       "Or");
 }
