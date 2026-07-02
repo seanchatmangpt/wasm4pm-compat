@@ -2,6 +2,8 @@
 name = "wasm4pm-compat-lsp"
 version = "26.6.23"
 edition = "2021"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
 description = "Static analysis rules and checks for wasm4pm-compat boundary admission and loss policy compliance"
 publish = false
 

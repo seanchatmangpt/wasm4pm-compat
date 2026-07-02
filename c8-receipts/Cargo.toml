@@ -2,6 +2,7 @@
 name = "c8-receipts"
 version = "26.6.23"
 edition = "2021"
+repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
 description = "Receipt, proof, and integrity sealing for Construct8 market physics"
 license = "MIT OR Apache-2.0"
 
