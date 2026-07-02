@@ -170,6 +170,8 @@ pub mod conformance;
 pub mod correlation;
 /// Declare constraint shape.
 pub mod declare;
+/// DfCM: Design-for-Combinatorial-Maximality Matrix (Vision 2030 §7).
+pub mod dfcm;
 /// Directly-follows graph (DFG) shape.
 pub mod dfg;
 /// Diagnostic shapes for explaining admission and refusal.
@@ -315,6 +317,7 @@ pub use crate::workflow::{
     Running,
 };
 pub use crate::xes::XesLog;
+pub use dfcm::{DfCmAxis, DfCmCell, DfCmFailure, DfCmMatrix, DfCmReport, Standing};
 pub mod hash;
 
 pub mod choice_graph;

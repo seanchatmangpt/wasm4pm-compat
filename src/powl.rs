@@ -9,7 +9,7 @@
 //! for the modeling of non-block-structured decisions and cycles, provided the
 //! underlying Workflow Net is strictly separable.
 //!
-//! **Architectural Law**: Legacy POWL 1.0 logic (Xor, Loop blocks) is strictly
+//! **Architectural Law**: Prior POWL 1.0 logic (Xor, Loop blocks) is strictly
 //! prohibited and structurally rejected from this codebase.
 //!
 //! ## Formal Executable Doctests
