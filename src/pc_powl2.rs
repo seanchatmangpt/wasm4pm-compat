@@ -127,9 +127,7 @@ pub enum CycleWitness {
     /// The graph is claimed to be acyclic.
     Acyclic,
     /// All finite prefixes preserve the invariant; termination is not claimed.
-    Invariant {
-        invariant: AssertionRef,
-    },
+    Invariant { invariant: AssertionRef },
     /// Finite-prefix safety plus a natural-number variant for total correctness.
     Variant {
         invariant: AssertionRef,
@@ -297,11 +295,7 @@ impl ProofTerm {
                 }
                 Ok(())
             }
-            Self::ChoiceGraph {
-                nodes,
-                cycle,
-                ..
-            } => {
+            Self::ChoiceGraph { nodes, cycle, .. } => {
                 if nodes.is_empty() {
                     return Err(PcpRefusal::MissingChildProofs { node: self.node() });
                 }
@@ -462,9 +456,7 @@ impl ExecutionSelection {
             Self::PartialOrder { children, .. } => {
                 1 + children.iter().map(Self::depth).max().unwrap_or(0)
             }
-            Self::ChoicePath { path, .. } => {
-                1 + path.iter().map(Self::depth).max().unwrap_or(0)
-            }
+            Self::ChoicePath { path, .. } => 1 + path.iter().map(Self::depth).max().unwrap_or(0),
         }
     }
 }
@@ -520,64 +512,154 @@ pub struct ExecutionReceiptShape {
 #[serde(tag = "law", rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum PcpRefusal {
-    UnsupportedSchema { found: String },
-    UnsupportedVersion { found: String },
+    UnsupportedSchema {
+        found: String,
+    },
+    UnsupportedVersion {
+        found: String,
+    },
     MissingSubject,
-    MissingDigest { role: String },
+    MissingDigest {
+        role: String,
+    },
     InvalidBounds,
-    ModelMalformed { reason: String },
+    ModelMalformed {
+        reason: String,
+    },
     MissingModelRoot,
-    ProofNodeMismatch { expected: PowlNodeId, actual: PowlNodeId },
-    ProofDepthExceeded { actual: usize, maximum: usize },
-    SelectionDepthExceeded { actual: usize, maximum: usize },
-    MissingAssertion { role: String, node: PowlNodeId },
-    MissingChildProofs { node: PowlNodeId },
-    DuplicateCanonicalNode { node: PowlNodeId },
+    ProofNodeMismatch {
+        expected: PowlNodeId,
+        actual: PowlNodeId,
+    },
+    ProofDepthExceeded {
+        actual: usize,
+        maximum: usize,
+    },
+    SelectionDepthExceeded {
+        actual: usize,
+        maximum: usize,
+    },
+    MissingAssertion {
+        role: String,
+        node: PowlNodeId,
+    },
+    MissingChildProofs {
+        node: PowlNodeId,
+    },
+    DuplicateCanonicalNode {
+        node: PowlNodeId,
+    },
     CanonicalCoverageMismatch {
         node: PowlNodeId,
         canonical: usize,
         children: usize,
     },
-    InvalidCommutationWitness { left: PowlNodeId, right: PowlNodeId },
-    DuplicateGraphContract { node: PowlNodeId },
-    MissingCycleInvariant { node: PowlNodeId },
-    MissingCycleVariant { node: PowlNodeId },
+    InvalidCommutationWitness {
+        left: PowlNodeId,
+        right: PowlNodeId,
+    },
+    DuplicateGraphContract {
+        node: PowlNodeId,
+    },
+    MissingCycleInvariant {
+        node: PowlNodeId,
+    },
+    MissingCycleVariant {
+        node: PowlNodeId,
+    },
     DomainStateSpaceEmpty,
-    DomainStateBoundExceeded { actual: usize, maximum: usize },
+    DomainStateBoundExceeded {
+        actual: usize,
+        maximum: usize,
+    },
     DomainDigestMismatch,
     ModelDigestMismatch,
     ProofDigestMismatch,
-    UnknownNode { node: PowlNodeId },
-    RuleDoesNotMatchNode { node: PowlNodeId },
-    AssertionRefused { assertion: String },
-    ActionRefused { node: PowlNodeId, reason: String },
-    AtomicContractFailed { node: PowlNodeId },
-    ConsequencePreconditionFailed { node: PowlNodeId },
-    ConsequencePostconditionFailed { node: PowlNodeId },
-    CanonicalOrderInvalid { node: PowlNodeId },
-    CanonicalContractFailed { node: PowlNodeId },
-    MissingCommutationWitness { left: PowlNodeId, right: PowlNodeId },
-    IndependentActionsDoNotCommute { left: PowlNodeId, right: PowlNodeId },
-    GraphContractCoverageMismatch { node: PowlNodeId },
-    GraphEdgeContractMissing { from: PowlNodeId, to: PowlNodeId },
-    GraphEdgeBridgeFailed { from: PowlNodeId, to: PowlNodeId },
-    ChoiceGraphCycleContradictsAcyclicWitness { node: PowlNodeId },
-    CycleInvariantFailed { node: PowlNodeId },
-    CycleTerminationUnproved { node: PowlNodeId },
-    CycleVariantDidNotDecrease { from: PowlNodeId, to: PowlNodeId },
-    SelectionNotAdmitted { node: PowlNodeId },
-    TraceStepBoundExceeded { actual: usize, maximum: usize },
-    ChoiceVisitBoundExceeded { actual: usize, maximum: usize },
+    UnknownNode {
+        node: PowlNodeId,
+    },
+    RuleDoesNotMatchNode {
+        node: PowlNodeId,
+    },
+    AssertionRefused {
+        assertion: String,
+    },
+    ActionRefused {
+        node: PowlNodeId,
+        reason: String,
+    },
+    AtomicContractFailed {
+        node: PowlNodeId,
+    },
+    ConsequencePreconditionFailed {
+        node: PowlNodeId,
+    },
+    ConsequencePostconditionFailed {
+        node: PowlNodeId,
+    },
+    CanonicalOrderInvalid {
+        node: PowlNodeId,
+    },
+    CanonicalContractFailed {
+        node: PowlNodeId,
+    },
+    MissingCommutationWitness {
+        left: PowlNodeId,
+        right: PowlNodeId,
+    },
+    IndependentActionsDoNotCommute {
+        left: PowlNodeId,
+        right: PowlNodeId,
+    },
+    GraphContractCoverageMismatch {
+        node: PowlNodeId,
+    },
+    GraphEdgeContractMissing {
+        from: PowlNodeId,
+        to: PowlNodeId,
+    },
+    GraphEdgeBridgeFailed {
+        from: PowlNodeId,
+        to: PowlNodeId,
+    },
+    ChoiceGraphCycleContradictsAcyclicWitness {
+        node: PowlNodeId,
+    },
+    CycleInvariantFailed {
+        node: PowlNodeId,
+    },
+    CycleTerminationUnproved {
+        node: PowlNodeId,
+    },
+    CycleVariantDidNotDecrease {
+        from: PowlNodeId,
+        to: PowlNodeId,
+    },
+    SelectionNotAdmitted {
+        node: PowlNodeId,
+    },
+    TraceStepBoundExceeded {
+        actual: usize,
+        maximum: usize,
+    },
+    ChoiceVisitBoundExceeded {
+        actual: usize,
+        maximum: usize,
+    },
     AuthorizationMissing,
     AuthorizationExpired,
     AuthorizationAlreadyConsumed,
     AuthorizationDigestMismatch,
     AuthorizationSubjectMismatch,
-    AuthorizationNodeDenied { node: PowlNodeId },
+    AuthorizationNodeDenied {
+        node: PowlNodeId,
+    },
     ChallengeNonceMissing,
     InitialEvidenceMissing,
     FinalGoalNotObserved,
-    ReceiptSerializationFailed { reason: String },
+    ReceiptSerializationFailed {
+        reason: String,
+    },
     ReceiptDigestMismatch,
     ReplayStateMismatch,
     ReplayTraceMismatch,
