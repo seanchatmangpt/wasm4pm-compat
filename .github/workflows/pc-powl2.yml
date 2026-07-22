@@ -1,0 +1,33 @@
+name: PC-POWL2 Wire
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/pc_powl2.rs"
+      - "src/prelude.rs"
+      - ".github/workflows/pc-powl2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pc-powl2-wire-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  wire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly-2026-06-22
+        with:
+          components: rustfmt, clippy
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Compile and test PC-POWL2 contracts
+        run: cargo test --all-features pc_powl2
+      - name: Clippy
+        run: cargo clippy --all-features --tests -- -D warnings
