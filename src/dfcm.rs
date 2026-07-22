@@ -9,20 +9,17 @@ use serde::{Deserialize, Serialize};
 // ── Standing ─────────────────────────────────────────────────────────────────
 
 /// Verdict for a single DfCM cell.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Copy, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
 pub enum Standing {
+    #[default]
     Unknown,
     Refused,
     Admitted,
     Planned,
     Executed,
     Impossible,
-}
-
-impl Default for Standing {
-    fn default() -> Self {
-        Standing::Unknown
-    }
 }
 
 // ── DfCmAxis ─────────────────────────────────────────────────────────────────

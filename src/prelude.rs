@@ -13,6 +13,16 @@
 //! Every path re-exported here is contractually stable — sibling modules are
 //! guaranteed to expose exactly these items.
 
+#[path = "pc_powl2.rs"]
+pub mod pc_powl2;
+
+pub use pc_powl2::{
+    AssertionRef, AuthorizationEnvelope, CertificateClaim, CertifiedPowl, CommutationWitness,
+    CycleWitness, EdgeContract, ExecutionReceiptShape, ExecutionSelection, GraphNodeProof,
+    ObservedStep, PcpRefusal, ProofTerm, VariantRef, VerificationBounds, PC_POWL2_SCHEMA,
+    PC_POWL2_VERSION,
+};
+
 pub use crate::witness::{Witness, WitnessFamily};
 
 pub use crate::state::{Admitted, Exportable, Parsed, Projected, Raw, Receipted, Refused};
