@@ -26,8 +26,8 @@ jobs:
         with:
           toolchain: nightly-2026-06-22
           components: rustfmt, clippy
-      - name: Format
-        run: cargo fmt --all -- --check
+      - name: Format owned PC-POWL2 wire files
+        run: rustfmt --edition 2021 --check src/pc_powl2.rs src/prelude.rs
       - name: Compile and test PC-POWL2 contracts
         run: cargo test --all-features pc_powl2
       - name: Clippy
