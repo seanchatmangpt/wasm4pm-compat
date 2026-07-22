@@ -22,7 +22,6 @@ pub enum Standing {
     Impossible,
 }
 
-
 // ── DfCmAxis ─────────────────────────────────────────────────────────────────
 
 /// One dimension of a DfCM matrix.
