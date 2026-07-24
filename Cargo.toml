@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.6.29"
+version = "26.7.24"
 edition = "2021"
 description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
@@ -99,7 +99,9 @@ bcinr_engine = []
 # sidecar depends on this crate and owns all specta/zod surface.
 
 [dependencies]
-quick-xml = "0.36.0"
+# >=0.41 closes RUSTSEC-2026-0194 and RUSTSEC-2026-0195. Keep this direct
+# dependency on the fixed line; downstream audit waivers are not permitted.
+quick-xml = "0.41"
 
 blake3 = "1.8.5"
 chrono = { version = "0.4.45", features = ["serde"] }
@@ -132,24 +134,22 @@ harness = false
 
 [workspace]
 members = [
-    ".",
+  ".",
 ]
 exclude = [
-    "target",
-    # C8 modules: independent workspaces with their own [workspace] roots.
-    "c8-time",
-    "c8-receipts",
-    "c8-instruments",
-    "c8-market",
-    "c8-adversary",
-    # TS sidecar: own deps (specta) and release cadence — built standalone, not
-    # as part of the core workspace.
-    "wasm4pm-compat-ts",
-    # LSP: separate tool at its own version (26.6.23); its external `lsp-max`
-    # dependency currently fails a naive workspace build (E0432). It does not
-    # gate the core crate release — build it with `-p wasm4pm-compat-lsp`.
-    "wasm4pm-compat-lsp",
+  "target",
+  # C8 modules: independent workspaces with their own [workspace] roots.
+  "c8-time",
+  "c8-receipts",
+  "c8-instruments",
+  "c8-market",
+  "c8-adversary",
+  # TS sidecar: own deps (specta) and release cadence — built standalone, not
+  # as part of the core workspace.
+  "wasm4pm-compat-ts",
+  # LSP: separate tool at its own version (26.6.23); its external `lsp-max`
+  # dependency currently fails a naive workspace build (E0432). It does not
+  # gate the core crate release — build it with -p wasm4pm-compat-lsp.
+  "wasm4pm-compat-lsp",
 ]
 resolver = "2"
-
-
