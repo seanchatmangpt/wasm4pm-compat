@@ -9,4 +9,4 @@
 
 pub mod conformance_counts;
 
-pub use conformance_counts::{ExactRatio, ReplayCountRefusal, ReplayCounts};
+pub use conformance_counts::{ExactFitness, ExactRatio, ReplayCountRefusal, ReplayCounts};
