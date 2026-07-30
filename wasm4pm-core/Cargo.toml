@@ -1,0 +1,16 @@
+[package]
+name = "wasm4pm-core"
+version = "26.7.29"
+edition = "2021"
+description = "Stable, extraction-shaped process-intelligence kernel for wasm4pm correspondence proofs."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]
