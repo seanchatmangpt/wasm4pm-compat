@@ -1,0 +1,108 @@
+name: wasm4pm ProcInt D1
+
+on:
+  push:
+    branches:
+      - agent/wasm4pm-procint-d1
+  pull_request:
+    branches: [main]
+    paths:
+      - "wasm4pm-core/**"
+      - "verify/**"
+      - "Cargo.toml"
+      - ".github/workflows/wasm4pm-procint-d1.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wasm4pm-procint-d1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust-kernel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Format stable kernel
+        run: cargo +stable fmt --manifest-path wasm4pm-core/Cargo.toml -- --check
+      - name: Compile stable kernel
+        run: cargo +stable check -p wasm4pm-core --all-targets
+      - name: Test stable kernel
+        run: cargo +stable test -p wasm4pm-core --all-targets
+      - name: Clippy stable kernel
+        run: cargo +stable clippy -p wasm4pm-core --all-targets -- -D warnings
+
+  lean-correspondence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan
+        run: |
+          curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Resolve Lean dependencies
+        working-directory: verify/lean
+        run: lake update
+      - name: Kernel admission
+        working-directory: verify/lean
+        run: lake build
+      - name: Axiom audit
+        working-directory: verify/lean
+        run: |
+          lake env lean Wasm4pmVerify/AxiomAudit.lean | tee axiom-audit.txt
+          if grep -q "sorryAx" axiom-audit.txt; then
+            echo "SORRY_AXIOM_REFUSED" >&2
+            exit 65
+          fi
+      - name: Derive honest standing
+        run: |
+          cat > /tmp/evidence.json <<'JSON'
+          {
+            "declared": true,
+            "lean_build": true,
+            "sorry_ax": false,
+            "aeneas_extracted": false,
+            "source_hash_matches": false,
+            "claimed_status": "STATED"
+          }
+          JSON
+          status="$(python3 verify/scripts/derive_status.py /tmp/evidence.json)"
+          test "$status" = "STATED"
+          echo "D1_STATUS=$status" >> "$GITHUB_ENV"
+      - name: Refuse illegal promotion
+        run: |
+          cat > /tmp/poisoned.json <<'JSON'
+          {
+            "declared": true,
+            "lean_build": true,
+            "sorry_ax": false,
+            "aeneas_extracted": false,
+            "source_hash_matches": false,
+            "claimed_status": "PROVEN"
+          }
+          JSON
+          if python3 verify/scripts/derive_status.py /tmp/poisoned.json 2>/tmp/refusal.txt; then
+            echo "POISONED_STATUS_ACCEPTED" >&2
+            exit 66
+          fi
+          grep -q "STATED_PROMOTED_TO_PROVEN" /tmp/refusal.txt
+      - name: Emit receipt
+        run: |
+          python3 verify/scripts/write_receipt.py \
+            --status "$D1_STATUS" \
+            --lean-build \
+            --output verify/receipts/pipeline.json
+          cat verify/receipts/pipeline.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wasm4pm-procint-d1-receipt
+          path: |
+            verify/receipts/pipeline.json
+            verify/lean/axiom-audit.txt
