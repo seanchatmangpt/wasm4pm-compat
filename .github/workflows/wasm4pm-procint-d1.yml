@@ -106,9 +106,14 @@ jobs:
             exit 66
           fi
           grep -q "STATED_PROMOTED_TO_PROVEN" /tmp/refusal.txt
+      - name: Install receipt hasher
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y b3sum
       - name: Emit receipt
         run: |
           python3 verify/scripts/write_receipt.py \
+            --source-commit "${{ github.event.pull_request.head.sha || github.sha }}" \
             --status "$D1_STATUS" \
             --lean-build \
             --output verify/receipts/pipeline.json
