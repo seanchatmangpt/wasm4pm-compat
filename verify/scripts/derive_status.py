@@ -20,7 +20,7 @@ def derive_status(evidence: dict[str, Any]) -> str:
     if not evidence.get("lean_build", False):
         return "DECLARED"
     if evidence.get("sorry_ax", True):
-        return "STATED"
+        return "BUILD_BROKEN"
     if not evidence.get("aeneas_extracted", False):
         return "STATED"
     if not evidence.get("source_hash_matches", False):
