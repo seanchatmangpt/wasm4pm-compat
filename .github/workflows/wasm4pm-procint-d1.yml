@@ -38,6 +38,17 @@ jobs:
       - name: Clippy stable kernel
         run: cargo +stable clippy -p wasm4pm-core --all-targets -- -D warnings
 
+  facade-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-06-22
+      - name: Compile nightly facade with stable core member
+        run: cargo +nightly-2026-06-22 check -p wasm4pm-compat --all-features
+
   lean-correspondence:
     runs-on: ubuntu-latest
     timeout-minutes: 60
