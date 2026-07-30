@@ -1,9 +1,15 @@
--- MATERIALIZED projection from the mfact verif catalog.
--- Candidate Lean: admitted only by `lake build`.
+
+-- RENDERED by `ggen sync` from the mfact verification catalog.
+-- Candidate Lean: admitted only by `lake build`. Do not edit by hand.
+-- Rust target: wasm4pm_core::conformance_counts::ReplayCounts::exact_fitness
+-- Rust source: wasm4pm-core/src/conformance_counts.rs @ bec4087ad8a91d314e07d03b04303a215a4722a3
+-- Implementation function: exactFitness
+-- Proof pattern: ReplayCountsExactFitness
 import ProcInt.Conformance.TokenReplay
 import Wasm4pmVerify.Abs
 
 namespace Wasm4pmVerify.Corr
+
 
 /-- The generated D1 implementation image and ProcInt use the same exact fitness law. -/
 theorem token_replay_counts_corr
@@ -33,5 +39,6 @@ theorem token_replay_counts_perfect
   apply ProcInt.fitness_perfect
   · exact hm
   · exact hr
+
 
 end Wasm4pmVerify.Corr
