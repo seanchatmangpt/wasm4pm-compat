@@ -33,7 +33,7 @@ pub struct ExactRatio {
 }
 
 impl ExactRatio {
-    pub const fn new(numerator: u128, denominator: u128) -> Self {
+    const fn new(numerator: u128, denominator: u128) -> Self {
         Self {
             numerator,
             denominator,
@@ -57,7 +57,7 @@ pub struct ExactFitness {
 }
 
 impl ExactFitness {
-    pub const fn new(consumed_component: ExactRatio, produced_component: ExactRatio) -> Self {
+    const fn new(consumed_component: ExactRatio, produced_component: ExactRatio) -> Self {
         Self {
             consumed_component,
             produced_component,
