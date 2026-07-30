@@ -131,11 +131,11 @@ impl ReplayCounts {
                 Ok(ExactRatio::new(numerator, denominator))
             }
             (c, p) => {
-                let product =
-                    c.checked_mul(p)
-                        .ok_or(ReplayCountRefusal::ArithmeticOverflow {
-                            operation: "consumed * produced",
-                        })?;
+                let product = c
+                    .checked_mul(p)
+                    .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+                        operation: "consumed * produced",
+                    })?;
                 let denominator = checked_twice(product, "2 * consumed * produced")?;
                 let missing_term =
                     missing
