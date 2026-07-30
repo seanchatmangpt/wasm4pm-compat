@@ -4,19 +4,26 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
+import subprocess
 from pathlib import Path
 
 
 def digest(path: Path) -> str:
-    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+    result = subprocess.run(
+        ["b3sum", str(path)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return "blake3:" + result.stdout.split()[0]
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[2])
+    parser.add_argument("--source-commit", required=True)
     parser.add_argument("--status", required=True)
     parser.add_argument("--lean-build", action="store_true")
     parser.add_argument("--aeneas-extracted", action="store_true")
@@ -32,7 +39,8 @@ def main() -> int:
     ]
     receipt = {
         "schema": "urn:wasm4pm:procint:d1-receipt:v1",
-        "source_commit": os.environ.get("GITHUB_SHA", "UNKNOWN"),
+        "source_commit": args.source_commit,
+        "workflow_commit": os.environ.get("GITHUB_SHA", "UNKNOWN"),
         "status": args.status,
         "claim_ceiling": "PROVEN" if args.aeneas_extracted else "STATED",
         "evidence": {
