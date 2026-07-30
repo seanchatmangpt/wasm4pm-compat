@@ -12,9 +12,23 @@ structure ReplayCounts where
   missing : ℕ
   remaining : ℕ
 
-/-- Exact semantic image of the Rust D1 fitness operation. -/
+/-- Exact semantic value of one half of the token-replay fitness law. -/
+def fitnessComponent (total deviation : ℕ) : ℚ :=
+  (1 - (deviation : ℚ) / (total : ℚ)) / 2
+
+/-- Exact semantic image of `wasm4pm_core::ExactFitness`. -/
+structure ExactFitness where
+  consumedComponent : ℚ
+  producedComponent : ℚ
+
+/-- Lean-facing image of `ReplayCounts::exact_fitness`. -/
+def exactFitness (counts : ReplayCounts) : ExactFitness :=
+  { consumedComponent := fitnessComponent counts.consumed counts.missing
+    producedComponent := fitnessComponent counts.produced counts.remaining }
+
+/-- The exact fitness value represented by the two components. -/
 def fitness (counts : ReplayCounts) : ℚ :=
-  (1 - (counts.missing : ℚ) / (counts.consumed : ℚ)) / 2 +
-    (1 - (counts.remaining : ℚ) / (counts.produced : ℚ)) / 2
+  let exact := exactFitness counts
+  exact.consumedComponent + exact.producedComponent
 
 end Wasm4pmVerify.Generated
