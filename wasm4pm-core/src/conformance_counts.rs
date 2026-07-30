@@ -49,18 +49,16 @@ impl ExactRatio {
     }
 
     pub fn equivalent_to(self, other: Self) -> Result<bool, ReplayCountRefusal> {
-        let left = self
-            .numerator
-            .checked_mul(other.denominator)
-            .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+        let left = self.numerator.checked_mul(other.denominator).ok_or(
+            ReplayCountRefusal::ArithmeticOverflow {
                 operation: "ratio cross multiplication (left)",
-            })?;
-        let right = other
-            .numerator
-            .checked_mul(self.denominator)
-            .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+            },
+        )?;
+        let right = other.numerator.checked_mul(self.denominator).ok_or(
+            ReplayCountRefusal::ArithmeticOverflow {
                 operation: "ratio cross multiplication (right)",
-            })?;
+            },
+        )?;
         Ok(left == right)
     }
 }
@@ -73,10 +71,7 @@ impl ReplayCounts {
         remaining: u64,
     ) -> Result<Self, ReplayCountRefusal> {
         if missing > consumed {
-            return Err(ReplayCountRefusal::MissingExceedsConsumed {
-                missing,
-                consumed,
-            });
+            return Err(ReplayCountRefusal::MissingExceedsConsumed { missing, consumed });
         }
         if remaining > produced {
             return Err(ReplayCountRefusal::RemainingExceedsProduced {
@@ -136,22 +131,24 @@ impl ReplayCounts {
                 Ok(ExactRatio::new(numerator, denominator))
             }
             (c, p) => {
-                let product = c.checked_mul(p).ok_or(
-                    ReplayCountRefusal::ArithmeticOverflow {
-                        operation: "consumed * produced",
-                    },
-                )?;
+                let product =
+                    c.checked_mul(p)
+                        .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+                            operation: "consumed * produced",
+                        })?;
                 let denominator = checked_twice(product, "2 * consumed * produced")?;
-                let missing_term = missing.checked_mul(p).ok_or(
-                    ReplayCountRefusal::ArithmeticOverflow {
-                        operation: "missing * produced",
-                    },
-                )?;
-                let remaining_term = remaining.checked_mul(c).ok_or(
-                    ReplayCountRefusal::ArithmeticOverflow {
-                        operation: "remaining * consumed",
-                    },
-                )?;
+                let missing_term =
+                    missing
+                        .checked_mul(p)
+                        .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+                            operation: "missing * produced",
+                        })?;
+                let remaining_term =
+                    remaining
+                        .checked_mul(c)
+                        .ok_or(ReplayCountRefusal::ArithmeticOverflow {
+                            operation: "remaining * consumed",
+                        })?;
                 let numerator = denominator
                     .checked_sub(missing_term)
                     .and_then(|value| value.checked_sub(remaining_term))
