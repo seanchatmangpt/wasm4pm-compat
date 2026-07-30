@@ -1,0 +1,16 @@
+name = "wasm4pm-verify"
+version = "26.7.29"
+defaultTargets = ["Wasm4pmVerify"]
+
+[[require]]
+name = "procint"
+git = "https://github.com/seanchatmangpt/mfact.git"
+rev = "e9e985d3dbfee9ee06dbb4fcb3a93cfde37d3fc0"
+subDir = "procint"
+
+[[lean_lib]]
+name = "Wasm4pmVerify"
+
+[[lean_lib]]
+name = "Wasm4pmVerifyAudit"
+roots = ["Wasm4pmVerify.AxiomAudit"]
