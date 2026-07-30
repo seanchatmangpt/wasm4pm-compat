@@ -127,10 +127,7 @@ const fn fitness_component(total: u64, deviation: u64) -> ExactRatio {
         // Lean's rational division is total: `0 / 0 = 0`, so this half is 1/2.
         ExactRatio::new(1, 2)
     } else {
-        ExactRatio::new(
-            (total - deviation) as u128,
-            (total as u128) * 2,
-        )
+        ExactRatio::new((total - deviation) as u128, (total as u128) * 2)
     }
 }
 
