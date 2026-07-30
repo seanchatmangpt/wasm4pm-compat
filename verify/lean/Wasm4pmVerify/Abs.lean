@@ -1,11 +1,13 @@
--- MATERIALIZED projection from the mfact verif catalog.
+
+-- RENDERED by `ggen sync` from the mfact verification catalog.
+-- Do not edit by hand.
 import ProcInt.Conformance.TokenReplay
 import Wasm4pmVerify.Kernel
 import Wasm4pmVerify.Generated.Wasm4pmCore
 
 namespace Wasm4pmVerify
 
-/-- Exact carrier map from the D1 implementation image to ProcInt.ReplayCounts. -/
+
 def replayCountsCarrier :
     Carrier Generated.ReplayCounts ProcInt.ReplayCounts where
   WF counts :=
@@ -18,5 +20,6 @@ def replayCountsCarrier :
       remaining := counts.remaining
       missing_le := h.1
       remaining_le := h.2 }
+
 
 end Wasm4pmVerify
