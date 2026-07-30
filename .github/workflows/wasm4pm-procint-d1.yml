@@ -72,6 +72,8 @@ jobs:
             echo "SORRY_AXIOM_REFUSED" >&2
             exit 65
           fi
+      - name: Test standing algebra
+        run: python3 verify/scripts/test_derive_status.py
       - name: Derive honest standing
         run: |
           cat > /tmp/evidence.json <<'JSON'
