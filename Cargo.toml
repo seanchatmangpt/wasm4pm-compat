@@ -99,6 +99,7 @@ bcinr_engine = []
 # sidecar depends on this crate and owns all specta/zod surface.
 
 [dependencies]
+wasm4pm-core = { path = "wasm4pm-core" }
 quick-xml = "0.36.0"
 
 blake3 = "1.8.5"
@@ -133,6 +134,7 @@ harness = false
 [workspace]
 members = [
     ".",
+    "wasm4pm-core",
 ]
 exclude = [
     "target",
@@ -151,5 +153,3 @@ exclude = [
     "wasm4pm-compat-lsp",
 ]
 resolver = "2"
-
-
