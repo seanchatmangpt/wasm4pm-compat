@@ -1,0 +1,38 @@
+// First-class Rust projection manufactured from ggen/ontology/standing-law.ttl.
+// Change the canonical graph/query/template and regenerate this file together.
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StandingSpec {
+    pub rank: u8,
+    pub name: &'static str,
+    pub promotable: bool,
+    pub terminal: bool,
+    pub description: &'static str,
+}
+
+pub const GGEN_STANDARD_VERSION: &str = "26.7.31";
+pub const AUTHORITY: &str = "canonical_graph";
+pub const PROJECTION_MODE: &str = "deterministic_committed";
+
+pub const REQUIRED_OBLIGATIONS: &[&str] = &[
+    "positive_execution",
+    "negative_refusal",
+    "receipt_replay",
+];
+
+pub const REFUSAL_CODES: &[&str] = &[
+    "GGEN-ACTUATION-001",
+    "GGEN-STANDING-001",
+    "GGEN-DRIFT-001",
+    "GGEN-ADMISSION-001",
+];
+
+pub const STANDING: &[StandingSpec] = &[
+{% for row in rows %}    StandingSpec {
+        rank: {{ row.rank }},
+        name: "{{ row.variant }}",
+        promotable: {{ row.promotable }},
+        terminal: {{ row.terminal }},
+        description: "{{ row.description | replace(from="\\", to="\\\\") | replace(from="\"", to="\\\"") }}",
+    },
+{% endfor %}];
