@@ -2,6 +2,7 @@
 to: tests/fixtures/ggen_gall_checkpoints.rs
 freeze_policy: checksum
 freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+determinism: true
 sparql:
   checkpoints: |
     PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
@@ -15,7 +16,8 @@ sparql:
                   skos:definition ?description .
     } ORDER BY ?rank ?code
 ---
-// First-class Rust source manufactured from the admitted Gall checkpoint graph.
+// First-class Rust projection manufactured from ggen/ontology/standing-law.ttl.
+// Change the canonical graph/query/template and regenerate this file together.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GallCheckpointSpec {
