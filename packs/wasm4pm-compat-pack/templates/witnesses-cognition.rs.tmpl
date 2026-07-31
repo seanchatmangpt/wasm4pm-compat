@@ -16,6 +16,16 @@ sparql:
     } ORDER BY ?rustType
 ---
 //! Cognition Breed witness markers — compiled from `ontology/witnesses-cognition.ttl`.
+//!
+//! Every entry here is derived from a `compat:WitnessMarker` tagged
+//! `compat:paperCategory "cognition"` in the ontology.
+//!
+//! To add a paper, declare it in `ontology/witnesses-cognition.ttl`, then run
+//! the repository ggen consumer rail. Never patch this file alone.
+//!
+//! Structure-only authority labels. Graduate to `wasm4pm` when the
+//! paper's algorithm must actually execute.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
