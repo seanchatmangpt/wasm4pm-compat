@@ -15,7 +15,8 @@ sparql:
              skos:definition ?description .
     } ORDER BY ?rank ?variant
 ---
-// First-class Rust source manufactured from the admitted standing-law graph.
+// First-class Rust projection manufactured from ggen/ontology/standing-law.ttl.
+// Change the canonical graph and this pack template together.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StandingSpec {
@@ -26,16 +27,14 @@ pub struct StandingSpec {
     pub description: &'static str,
 }
 
-pub const GGEN_STANDARD_VERSION: &str = "26.7.62";
-pub const GGEN_SOURCE_COMMIT: &str = "68952593c40214ac1a681073d65f3902a9cdfce4";
+pub const GGEN_STANDARD_VERSION: &str = "26.7.31";
 pub const AUTHORITY: &str = "canonical_graph";
-pub const PROJECTION_MODE: &str = "frontmatter_pack";
+pub const PROJECTION_MODE: &str = "deterministic_committed";
 
 pub const REQUIRED_OBLIGATIONS: &[&str] = &[
     "positive_execution",
     "negative_refusal",
     "receipt_replay",
-    "consumer_execution",
 ];
 
 pub const REFUSAL_CODES: &[&str] = &[
@@ -43,8 +42,6 @@ pub const REFUSAL_CODES: &[&str] = &[
     "GGEN-STANDING-001",
     "GGEN-DRIFT-001",
     "GGEN-ADMISSION-001",
-    "GGEN-SHADOW-CONFIG-001",
-    "GGEN-CROSS-REPO-001",
 ];
 
 pub const STANDING: &[StandingSpec] = &[
