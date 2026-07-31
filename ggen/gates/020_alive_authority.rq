@@ -1,0 +1,9 @@
+# MESSAGE: ALIVE must be the sole promotable standing state
+PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+SELECT ?state ?variant WHERE {
+  ?state a compat:StandingState ;
+         compat:rustVariant ?variant ;
+         compat:promotable true .
+  FILTER(?variant != "ALIVE")
+}
+ORDER BY ?variant ?state
