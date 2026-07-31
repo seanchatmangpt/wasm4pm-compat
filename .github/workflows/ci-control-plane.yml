@@ -27,28 +27,16 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
-      - name: Admit ggen observation carrier
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f ggen/standing.ggen.toml
-          test -f ggen/ontology/standing-law.ttl
-          test -f ggen/queries/extract-standing-law.rq
-          test -f ggen/queries/extract-gall-checkpoints.rq
-          test -f ggen/templates/standing-law.rs.tera
-          test -f ggen/templates/gall-checkpoints.rs.tera
-          test -f tests/fixtures/ggen_standing_projection.rs
-          test -f tests/fixtures/ggen_gall_checkpoints.rs
-          ! grep -R --line-number '/Users/' \
-            ggen/standing.ggen.toml \
-            ggen/ontology/standing-law.ttl \
-            ggen/queries/extract-standing-law.rq \
-            ggen/queries/extract-gall-checkpoints.rq \
-            ggen/templates/standing-law.rs.tera \
-            ggen/templates/gall-checkpoints.rs.tera
-          grep -q 'ORDER BY ?rank ?variant' ggen/queries/extract-standing-law.rq
-          grep -q 'ORDER BY ?rank ?code' ggen/queries/extract-gall-checkpoints.rq
-          test "$(grep -c 'code:.*GALL-CP-' tests/fixtures/ggen_gall_checkpoints.rs)" = 10
+      - name: Admit the sole ggen consumer and local pack
+        run: python3 scripts/audit-ggen-usage.py --output target/ggen-standing/usage-audit.json
+      - name: Upload usage-audit receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ggen-usage-audit-${{ github.sha }}
+          path: target/ggen-standing/usage-audit.json
+          if-no-files-found: error
+          retention-days: 30
 
   inspection:
     name: ci/inspection
@@ -121,15 +109,11 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-
           report = json.loads(Path("target/ggen-standing/gall-checkpoints.json").read_text())
-          if report["checkpoint_count"] != 10:
-              raise SystemExit(f"expected 10 checkpoints, got {report['checkpoint_count']}")
-          if report["all_passed"] is not True:
+          if report["checkpoint_count"] != 10 or report["all_passed"] is not True:
               raise SystemExit("Gall checkpoint dependency closure refused")
           if report["standing"] != "PARTIAL_ALIVE":
               raise SystemExit(f"checkpoint standing drift: {report['standing']}")
-          print(json.dumps(report, indent=2, sort_keys=True))
           PY
       - name: Upload Gall checkpoint report
         if: always()
@@ -140,10 +124,60 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  ggen_contract:
+    name: ci/ggen-contract
+    needs: admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      standing: ${{ steps.contract.outputs.standing }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify current ggen runtime when admitted
+        id: contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target/ggen-standing
+          standing=BLOCKED
+          reason='ggen 26.7.62 executable is not provisioned on this runner'
+          if command -v ggen >/dev/null 2>&1 && ggen --version | grep -q '26.7.62'; then
+            ggen graph validate
+            ggen doctor run
+            ggen sync run --dry-run
+            standing=PARTIAL_ALIVE
+            reason='graph validation, doctor, and dry-run passed; exact sync/receipt/replay remain in the standing rail'
+          fi
+          printf 'standing=%s\n' "${standing}" >> "${GITHUB_OUTPUT}"
+          python3 - "${standing}" "${reason}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          Path("target/ggen-standing/ggen-contract.json").write_text(
+              json.dumps({
+                  "schema": "https://chatmangpt.com/schemas/ggen-runtime-contract/v1",
+                  "required_version": "26.7.62",
+                  "required_commit": "68952593c40214ac1a681073d65f3902a9cdfce4",
+                  "standing": sys.argv[1],
+                  "reason": sys.argv[2],
+              }, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+      - name: Upload ggen runtime contract
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ggen-runtime-contract-${{ github.sha }}
+          path: target/ggen-standing/ggen-contract.json
+          if-no-files-found: error
+          retention-days: 30
+
   standing:
     name: ci/standing
     if: always()
-    needs: [admission, inspection, capabilities, gall_checkpoints]
+    needs: [admission, inspection, capabilities, gall_checkpoints, ggen_contract]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -164,6 +198,7 @@ jobs:
           GGEN_INSPECTION_RESULT: ${{ needs.inspection.result }}
           GGEN_CAPABILITIES_RESULT: ${{ needs.capabilities.result }}
           GGEN_GALL_RESULT: ${{ needs.gall_checkpoints.result }}
+          GGEN_MANUFACTURING_RESULT: ${{ needs.ggen_contract.outputs.standing }}
           GGEN_RECEIPT_PATH: target/ggen-standing/receipt.json
         shell: bash
         run: |
@@ -173,18 +208,14 @@ jobs:
           python3 - <<'PY'
           import json
           from pathlib import Path
-
           receipt = json.loads(Path("target/ggen-standing/receipt.json").read_text())
           if len(receipt["gall_checkpoints"]) != 10:
               raise SystemExit("standing receipt does not contain ten Gall checkpoints")
           if receipt["standing"] != "ALIVE":
               raise SystemExit(
-                  "standing refused: "
-                  + receipt["standing"]
-                  + " lanes="
-                  + json.dumps(receipt["lanes"], sort_keys=True)
+                  "standing refused: " + receipt["standing"]
+                  + " lanes=" + json.dumps(receipt["lanes"], sort_keys=True)
               )
-          print(json.dumps(receipt, indent=2, sort_keys=True))
           PY
       - name: Upload standing receipt
         if: always()
