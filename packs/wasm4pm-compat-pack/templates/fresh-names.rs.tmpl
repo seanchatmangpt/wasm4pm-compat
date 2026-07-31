@@ -1,0 +1,16 @@
+---
+to: src/fresh_names.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  names: |
+    PREFIX compat: <https://wasm4pm.dev/ns#>
+    SELECT ?breed_id ?fresh_name WHERE {
+      ?breed a compat:CognitionBreed ; compat:breedId ?breed_id ; compat:freshName ?fresh_name .
+    } ORDER BY ?breed_id ?fresh_name
+---
+//! Fresh-name lookup table rendered from the cognition breed ontology.
+
+pub const FRESH_NAME_PAIRS: &[(&str, &str)] = &[
+{% for row in names %}    ("{{ row.breed_id }}", "{{ row.fresh_name }}"),
+{% endfor %}];
