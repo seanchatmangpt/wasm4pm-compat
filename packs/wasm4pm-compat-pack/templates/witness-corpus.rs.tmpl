@@ -1,0 +1,37 @@
+---
+to: src/witness_corpus.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  witnesses: |
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
+    SELECT ?witnessKey WHERE {
+      ?marker a compat:WitnessMarker ; compat:witnessKey ?witnessKey .
+    } ORDER BY ?witnessKey
+---
+//! Corpus-integrity proof — every witness KEY in the bibliography is unique.
+//!
+//! This is a first-class ggen projection and a compile-time law, not a runtime registry.
+
+/// Every witness key in the corpus, sorted.
+pub const ALL_WITNESS_KEYS: &[&str] = &[
+{% for row in witnesses %}    "{{ row.witnessKey }}",
+{% endfor %}];
+
+const _: () = {
+    let keys = ALL_WITNESS_KEYS;
+    let n = keys.len();
+    let mut i = 0;
+    while i < n {
+        let mut j = i + 1;
+        while j < n {
+            assert!(
+                !crate::witness_law::str_eq(keys[i], keys[j]),
+                "duplicate witness key — authority collision in ALL_WITNESS_KEYS"
+            );
+            j += 1;
+        }
+        i += 1;
+    }
+};
