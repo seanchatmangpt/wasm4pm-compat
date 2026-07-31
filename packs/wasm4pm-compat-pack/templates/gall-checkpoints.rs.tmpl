@@ -1,0 +1,37 @@
+---
+to: tests/fixtures/ggen_gall_checkpoints.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  checkpoints: |
+    PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    SELECT ?rank ?code ?variant ?depends_on ?description WHERE {
+      ?checkpoint a compat:GallCheckpoint ;
+                  compat:rank ?rank ;
+                  compat:code ?code ;
+                  compat:rustVariant ?variant ;
+                  compat:dependsOnCode ?depends_on ;
+                  skos:definition ?description .
+    } ORDER BY ?rank ?code
+---
+// First-class Rust source manufactured from the admitted Gall checkpoint graph.
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GallCheckpointSpec {
+    pub rank: u8,
+    pub code: &'static str,
+    pub name: &'static str,
+    pub depends_on: &'static str,
+    pub description: &'static str,
+}
+
+pub const GALL_CHECKPOINTS: &[GallCheckpointSpec] = &[
+{% for row in checkpoints %}    GallCheckpointSpec {
+        rank: {{ row.rank }},
+        code: "{{ row.code }}",
+        name: "{{ row.variant }}",
+        depends_on: "{{ row.depends_on }}",
+        description: "{{ row.description | replace(from="\\", to="\\\\") | replace(from="\"", to="\\\"") }}",
+    },
+{% endfor %}];
