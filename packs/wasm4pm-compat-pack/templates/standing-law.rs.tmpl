@@ -1,0 +1,58 @@
+---
+to: tests/fixtures/ggen_standing_projection.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  states: |
+    PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+    PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+    SELECT ?rank ?variant ?promotable ?terminal ?description WHERE {
+      ?state a compat:StandingState ;
+             compat:rank ?rank ;
+             compat:rustVariant ?variant ;
+             compat:promotable ?promotable ;
+             compat:terminal ?terminal ;
+             skos:definition ?description .
+    } ORDER BY ?rank ?variant
+---
+// First-class Rust source manufactured from the admitted standing-law graph.
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StandingSpec {
+    pub rank: u8,
+    pub name: &'static str,
+    pub promotable: bool,
+    pub terminal: bool,
+    pub description: &'static str,
+}
+
+pub const GGEN_STANDARD_VERSION: &str = "26.7.62";
+pub const GGEN_SOURCE_COMMIT: &str = "68952593c40214ac1a681073d65f3902a9cdfce4";
+pub const AUTHORITY: &str = "canonical_graph";
+pub const PROJECTION_MODE: &str = "frontmatter_pack";
+
+pub const REQUIRED_OBLIGATIONS: &[&str] = &[
+    "positive_execution",
+    "negative_refusal",
+    "receipt_replay",
+    "consumer_execution",
+];
+
+pub const REFUSAL_CODES: &[&str] = &[
+    "GGEN-ACTUATION-001",
+    "GGEN-STANDING-001",
+    "GGEN-DRIFT-001",
+    "GGEN-ADMISSION-001",
+    "GGEN-SHADOW-CONFIG-001",
+    "GGEN-CROSS-REPO-001",
+];
+
+pub const STANDING: &[StandingSpec] = &[
+{% for row in states %}    StandingSpec {
+        rank: {{ row.rank }},
+        name: "{{ row.variant }}",
+        promotable: {{ row.promotable }},
+        terminal: {{ row.terminal }},
+        description: "{{ row.description | replace(from="\\", to="\\\\") | replace(from="\"", to="\\\"") }}",
+    },
+{% endfor %}];
