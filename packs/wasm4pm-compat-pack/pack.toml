@@ -1,0 +1,4 @@
+[pack]
+name = "wasm4pm-compat-pack"
+version = "26.7.62"
+description = "Structure-only wasm4pm compatibility projections: standing law, Gall checkpoint ladder, witness authority, and replay proofs. The pack writes only first-class files inside the consumer repository and has no external actuation path."
