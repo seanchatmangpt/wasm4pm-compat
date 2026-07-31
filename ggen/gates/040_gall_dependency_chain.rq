@@ -1,0 +1,12 @@
+# MESSAGE: every Gall checkpoint after rank zero must depend on rank minus one
+PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+SELECT ?checkpoint ?rank ?dependency ?dependencyRank WHERE {
+  ?checkpoint a compat:GallCheckpoint ; compat:rank ?rank .
+  FILTER(?rank > 0)
+  OPTIONAL {
+    ?checkpoint compat:dependsOn ?dependency .
+    ?dependency compat:rank ?dependencyRank .
+  }
+  FILTER(!BOUND(?dependencyRank) || ?dependencyRank != (?rank - 1))
+}
+ORDER BY ?rank ?checkpoint
