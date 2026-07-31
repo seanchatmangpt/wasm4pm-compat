@@ -1,0 +1,7 @@
+# MESSAGE: standing law must define exactly six states
+PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+SELECT ?count WHERE {
+  { SELECT (COUNT(?state) AS ?count) WHERE { ?state a compat:StandingState . } }
+  FILTER(?count != 6)
+}
+ORDER BY ?count
