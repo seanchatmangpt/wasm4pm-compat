@@ -1,0 +1,28 @@
+---
+to: src/witnesses_ai_llm.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  witnesses: |
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
+    SELECT ?rustType ?witnessKey ?witnessTitle ?witnessYear ?witnessFamily ?description WHERE {
+      ?marker a compat:WitnessMarker ; compat:paperCategory "ai-llm" ; compat:rustType ?rustType ; compat:witnessKey ?witnessKey ; compat:witnessTitle ?witnessTitle .
+      OPTIONAL { ?marker compat:witnessYear ?witnessYear . }
+      OPTIONAL { ?marker compat:witnessFamily ?witnessFamily . }
+      OPTIONAL { ?marker compat:description ?description . }
+    } ORDER BY ?rustType
+---
+//! AI/LLM/Agents witness markers — compiled from `ontology/witnesses-ai-llm.ttl`.
+use crate::witness::WitnessFamily;
+
+{% for row in witnesses %}
+witness_marker!(
+    /// {{ row.description }}
+    {{ row.rustType }},
+    "{{ row.witnessKey }}",
+    WitnessFamily::{{ row.witnessFamily | split(pat="#") | last }},
+    "{{ row.witnessTitle }}",
+    {% if row.witnessYear %}Some({{ row.witnessYear }}){% else %}None{% endif %}
+);
+{% endfor %}
