@@ -1,0 +1,14 @@
+PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+PREFIX ggen: <https://chatmangpt.com/ns/ggen#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?rank ?variant ?promotable ?terminal ?description
+WHERE {
+  ?state a compat:StandingState ;
+         compat:rank ?rank ;
+         compat:rustVariant ?variant ;
+         compat:promotable ?promotable ;
+         compat:terminal ?terminal ;
+         skos:definition ?description .
+}
+ORDER BY ?rank ?variant

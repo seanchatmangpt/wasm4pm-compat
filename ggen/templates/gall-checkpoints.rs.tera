@@ -1,0 +1,21 @@
+// First-class Rust projection manufactured from ggen/ontology/standing-law.ttl.
+// Change the canonical graph/query/template and regenerate this file together.
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GallCheckpointSpec {
+    pub rank: u8,
+    pub code: &'static str,
+    pub name: &'static str,
+    pub depends_on: &'static str,
+    pub description: &'static str,
+}
+
+pub const GALL_CHECKPOINTS: &[GallCheckpointSpec] = &[
+{% for row in rows %}    GallCheckpointSpec {
+        rank: {{ row.rank }},
+        code: "{{ row.code }}",
+        name: "{{ row.variant }}",
+        depends_on: "{{ row.depends_on }}",
+        description: "{{ row.description | replace(from="\\", to="\\\\") | replace(from="\"", to="\\\"") }}",
+    },
+{% endfor %}];

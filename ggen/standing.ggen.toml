@@ -1,0 +1,28 @@
+[project]
+name = "wasm4pm-compat-standing-law"
+version = "26.7.31"
+description = "Deterministic standing-law and Gall-checkpoint projections for wasm4pm-compat"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ontology/standing-law.ttl"
+imports = []
+standard_only = false
+
+[generation]
+output_dir = ".."
+
+[[generation.rules]]
+name = "standing-law"
+query = { file = "queries/extract-standing-law.rq" }
+template = { file = "templates/standing-law.rs.tera" }
+output_file = "tests/fixtures/ggen_standing_projection.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "gall-checkpoints"
+query = { file = "queries/extract-gall-checkpoints.rq" }
+template = { file = "templates/gall-checkpoints.rs.tera" }
+output_file = "tests/fixtures/ggen_gall_checkpoints.rs"
+mode = "Overwrite"

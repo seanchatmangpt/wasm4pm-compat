@@ -1,6 +1,6 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.6.23"
+version = "26.6.29"
 
 [security]
 trust_tier = "ProductionReady"
