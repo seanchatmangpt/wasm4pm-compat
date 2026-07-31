@@ -2,6 +2,7 @@
 to: tests/fixtures/ggen_standing_projection.rs
 freeze_policy: checksum
 freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+determinism: true
 sparql:
   states: |
     PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
@@ -16,7 +17,7 @@ sparql:
     } ORDER BY ?rank ?variant
 ---
 // First-class Rust projection manufactured from ggen/ontology/standing-law.ttl.
-// Change the canonical graph and this pack template together.
+// Change the canonical graph/query/template and regenerate this file together.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct StandingSpec {
