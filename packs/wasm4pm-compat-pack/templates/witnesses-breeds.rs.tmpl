@@ -18,6 +18,14 @@ sparql:
     } ORDER BY ?breedId
 ---
 //! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
+//!
+//! Every entry is derived from a `compat:CognitionBreed` instance. Add or revise
+//! the breed in the ontology, then run the repository ggen consumer rail.
+//!
+//! These are structure-only authority labels. A witness names the founding paper
+//! of a cognition breed algorithm; it does not implement the algorithm. Graduate
+//! to `wasm4pm` when execution is required.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
