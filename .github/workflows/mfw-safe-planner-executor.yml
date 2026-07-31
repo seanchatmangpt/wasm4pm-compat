@@ -1,0 +1,120 @@
+name: External MFW Safe-Planner Crown
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/mfw-safe-planner-executor.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-mfw-safe-planner-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  exact-tree-crown:
+    name: exact MFW head -> Safe-Planner -> FF/VAL -> ALIVE
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      MFW_SHA: 3409e7839be9ae481a777c3e78ae8650a08dc741
+      SAFE_PLANNER_SHA: 778c73f06d3d034abec74c8b42f63866bcd4126d
+    steps:
+      - name: Checkout external verifier carrier
+        uses: actions/checkout@v4
+      - name: Checkout exact MFW candidate
+        uses: actions/checkout@v4
+        with:
+          repository: seanchatmangpt/mfw
+          ref: ${{ env.MFW_SHA }}
+          path: mfw
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@1.91.0
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: mfw/mfw-planner/standalone
+      - name: Install native planner build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake bison flex gawk
+      - name: Admit exact MFW tree and Python surfaces
+        run: |
+          set -euxo pipefail
+          test "$(git -C mfw rev-parse HEAD)" = "$MFW_SHA"
+          python -m py_compile \
+            mfw/mfw-planner/bin/mfw-safe-planner \
+            mfw/mfw-planner/scripts/verify_safe_planner_alive.py
+          python -m unittest discover -s mfw/mfw-planner/tests -p 'test_*.py' -v
+      - name: Compile and test standalone MFW FOND kernel
+        run: |
+          set -euxo pipefail
+          manifest="$GITHUB_WORKSPACE/mfw/mfw-planner/standalone/Cargo.toml"
+          cargo fmt --manifest-path "$manifest" --all -- --check
+          cargo generate-lockfile --manifest-path "$manifest"
+          cargo test --manifest-path "$manifest" --all-targets
+          cargo clippy --manifest-path "$manifest" --all-targets -- -D warnings
+          cargo build --manifest-path "$manifest" --release --bin mfw-fond
+      - name: Materialize and admit exact Safe-Planner source
+        run: |
+          set -euxo pipefail
+          safe="$RUNNER_TEMP/safe-planner"
+          git clone --recurse-submodules https://github.com/mokhtarivahid/safe-planner.git "$safe"
+          git -C "$safe" checkout --detach "$SAFE_PLANNER_SHA"
+          git -C "$safe" submodule update --init --recursive
+          test "$(git -C "$safe" rev-parse HEAD)" = "$SAFE_PLANNER_SHA"
+          echo "PDDL_SOLVERS_SHA=$(git -C "$safe/third_party/pddl-solvers" rev-parse HEAD)" >> "$GITHUB_ENV"
+          python -m pip install --upgrade pip
+          python -m pip install -e "$safe" blake3
+      - name: Build exact FF and VAL children
+        working-directory: ${{ runner.temp }}/safe-planner/third_party/pddl-solvers
+        run: |
+          set -euxo pipefail
+          ./build_all.sh --planner ff
+          ./build_all.sh --planner val
+          test -x planners/ff/ff
+          test -x VAL/build/bin/Validate
+      - name: Execute real benchmark through MFW
+        run: |
+          set -euxo pipefail
+          chmod +x mfw/mfw-planner/bin/mfw-safe-planner
+          export PATH="$GITHUB_WORKSPACE/mfw/mfw-planner/bin:$PATH"
+          safe="$RUNNER_TEMP/safe-planner"
+          run="$GITHUB_WORKSPACE/artifacts/safe-planner-elevators-p01"
+          mkdir -p "$run"
+          cp mfw/mfw-planner/standalone/Cargo.lock "$run/standalone.Cargo.lock"
+          mfw/mfw-planner/standalone/target/release/mfw-fond \
+            --engines "$GITHUB_WORKSPACE/mfw/mfw-planner/engines.toml" \
+            --domain "$safe/benchmarks/fond-domains/elevators/domain.pddl" \
+            --problem "$safe/benchmarks/fond-domains/elevators/p01.pddl" \
+            --run-dir "$run" \
+            --policy "$run/candidate.policy.json" \
+            --timeout-ms 900000
+      - name: Assign external exact-tree ALIVE standing
+        run: |
+          set -euxo pipefail
+          safe="$RUNNER_TEMP/safe-planner"
+          run="$GITHUB_WORKSPACE/artifacts/safe-planner-elevators-p01"
+          python mfw/mfw-planner/scripts/verify_safe_planner_alive.py \
+            --run-dir "$run" \
+            --policy "$run/candidate.policy.json" \
+            --adapter "$GITHUB_WORKSPACE/mfw/mfw-planner/bin/mfw-safe-planner" \
+            --ff "$safe/third_party/pddl-solvers/planners/ff/ff" \
+            --val "$safe/third_party/pddl-solvers/VAL/build/bin/Validate" \
+            --lockfile "$run/standalone.Cargo.lock" \
+            --mfw-commit "$MFW_SHA" \
+            --safe-planner-commit "$SAFE_PLANNER_SHA" \
+            --pddl-solvers-commit "$PDDL_SOLVERS_SHA" \
+            --benchmark "fond-domains/elevators/p01"
+          grep -F '"state": "ALIVE"' "$run/verifier-report.json"
+      - name: Upload exact-tree crown receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: external-mfw-safe-planner-crown-${{ env.MFW_SHA }}
+          path: artifacts/safe-planner-elevators-p01
+          if-no-files-found: warn
