@@ -1,0 +1,76 @@
+@prefix compat: <https://chatmangpt.com/ns/wasm4pm-compat#> .
+@prefix ggen: <https://chatmangpt.com/ns/ggen#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+compat:StandingLaw
+    a ggen:ManufacturingContract ;
+    ggen:standardVersion "26.7.31" ;
+    ggen:authority "canonical_graph" ;
+    ggen:projectionMode "deterministic_committed" ;
+    ggen:requiresObligation compat:PositiveExecution,
+                            compat:NegativeRefusal,
+                            compat:ReceiptReplay ;
+    ggen:refuses compat:DirectActuation,
+                 compat:SelfPromotion,
+                 compat:HandEditedProjection,
+                 compat:UnknownAsAdmitted ;
+    prov:wasDerivedFrom <https://github.com/seanchatmangpt/ggen/commit/68952593c40214ac1a681073d65f3902a9cdfce4> .
+
+compat:Unknown
+    a compat:StandingState ;
+    compat:rank 0 ;
+    compat:rustVariant "UNKNOWN" ;
+    compat:promotable false ;
+    compat:terminal false ;
+    skos:definition "Required execution evidence is absent, stale, incomplete, or bound to another tree." .
+
+compat:Unsupported
+    a compat:StandingState ;
+    compat:rank 1 ;
+    compat:rustVariant "UNSUPPORTED" ;
+    compat:promotable false ;
+    compat:terminal true ;
+    skos:definition "The bounded verifier does not implement the requested surface." .
+
+compat:Blocked
+    a compat:StandingState ;
+    compat:rank 2 ;
+    compat:rustVariant "BLOCKED" ;
+    compat:promotable false ;
+    compat:terminal false ;
+    skos:definition "A required admission, tool, permission, dependency, or observation is unavailable." .
+
+compat:BuildBroken
+    a compat:StandingState ;
+    compat:rank 3 ;
+    compat:rustVariant "BUILD_BROKEN" ;
+    compat:promotable false ;
+    compat:terminal false ;
+    skos:definition "Admitted source reached execution but compilation, tests, lint, or packaging failed." .
+
+compat:PartialAlive
+    a compat:StandingState ;
+    compat:rank 4 ;
+    compat:rustVariant "PARTIAL_ALIVE" ;
+    compat:promotable false ;
+    compat:terminal false ;
+    skos:definition "A bounded checkpoint passed but the full crown is incomplete." .
+
+compat:Alive
+    a compat:StandingState ;
+    compat:rank 5 ;
+    compat:rustVariant "ALIVE" ;
+    compat:promotable true ;
+    compat:terminal true ;
+    skos:definition "The exact-tree external verifier admitted every positive, negative, and receipt/replay obligation." .
+
+compat:PositiveExecution a compat:VerificationObligation ; compat:code "positive_execution" .
+compat:NegativeRefusal a compat:VerificationObligation ; compat:code "negative_refusal" .
+compat:ReceiptReplay a compat:VerificationObligation ; compat:code "receipt_replay" .
+
+compat:DirectActuation a compat:RefusalLaw ; compat:code "GGEN-ACTUATION-001" .
+compat:SelfPromotion a compat:RefusalLaw ; compat:code "GGEN-STANDING-001" .
+compat:HandEditedProjection a compat:RefusalLaw ; compat:code "GGEN-DRIFT-001" .
+compat:UnknownAsAdmitted a compat:RefusalLaw ; compat:code "GGEN-ADMISSION-001" .
