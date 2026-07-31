@@ -1,7 +1,9 @@
 ---
 to: src/witness_corpus.rs
+force: true
 freeze_policy: checksum
 freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+determinism: true
 sparql:
   witnesses: |
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
