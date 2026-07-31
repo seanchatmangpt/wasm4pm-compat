@@ -30,12 +30,40 @@ write only inside this repository. It cannot create or update files in the sibli
 - `packs/wasm4pm-compat-pack/templates/*.tmpl` — active frontmatter projections.
 - `ggen/ontology/*.ttl` and `ggen/ontology-breeds/*.ttl` — canonical domain inputs.
 - `ggen/gates/*.rq` — ordered fail-closed graph gates.
-- `.ggen-v2/receipt.json` and `.ggen-v2/receipt-log.jsonl` — execution evidence emitted by ggen.
+- `ggen.lock` — reviewed pack-content lock emitted by the pinned first sync.
+- `.ggen/freeze/wasm4pm-compat-pack/**` — reviewed ownership slots for eleven outputs.
+- `.ggen-v2/receipt.json` and `.ggen-v2/receipt-log.jsonl` — runtime execution evidence emitted by ggen.
 - `scripts/audit-ggen-usage.py` — repository-wide static admission verifier.
 - `scripts/verify-ggen-contract.sh` — consumer, receipt, and replay verifier.
 
 Rendered Rust is ordinary committed source. There is no second-class source directory.
 Every pack output uses checksum freeze; drift is refused rather than silently overwritten.
+
+## Ownership bootstrap
+
+The first exact ggen execution is a bounded bootstrap, not a crown replay:
+
+```bash
+python3 scripts/audit-ggen-usage.py --output target/ggen-standing/usage-audit.json
+ggen graph validate
+ggen doctor run
+ggen sync run --dry-run
+ggen sync run
+ggen receipt verify
+```
+
+Review the output diff, `ggen.lock`, and all eleven `.ggen/freeze` checksum slots. Commit
+the lock, slots, and any admitted projection changes together. Do not hand-create them.
+`.ggen-v2` is execution evidence and may evolve independently of source bytes.
+
+After bootstrap state is reviewed and tracked, run the crown replay:
+
+```bash
+bash scripts/verify-ggen-contract.sh
+```
+
+The crown verifier refuses an absent or untracked lock/slot, source drift after either
+sync, a failed receipt, a mismatched tool version, or a dirty exact tree.
 
 ## Preserved type-law receipts
 
@@ -46,19 +74,9 @@ those projections compile within the real consumer.
 
 ## Commands
 
-Run from the repository root:
-
-```bash
-python3 scripts/audit-ggen-usage.py --output target/ggen-standing/usage-audit.json
-ggen graph validate
-ggen doctor run
-ggen sync run --dry-run
-ggen sync run
-ggen receipt verify
-bash scripts/verify-ggen-contract.sh
-```
-
-The equivalent cargo-make tasks live in `ggen/Makefile.toml`.
+The equivalent cargo-make tasks live in `ggen/Makefile.toml`. Current noun–verb commands
+are `graph validate`, `doctor run`, `sync run`, and `receipt verify`; no manifest or
+partial-rule override is admitted.
 
 ## Historical evidence
 
