@@ -1,12 +1,20 @@
-# MESSAGE: every Gall checkpoint after rank zero must depend on rank minus one
+# MESSAGE: every Gall checkpoint must name its exact predecessor code
 PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
-SELECT ?checkpoint ?rank ?dependency ?dependencyRank WHERE {
-  ?checkpoint a compat:GallCheckpoint ; compat:rank ?rank .
-  FILTER(?rank > 0)
-  OPTIONAL {
-    ?checkpoint compat:dependsOn ?dependency .
-    ?dependency compat:rank ?dependencyRank .
+SELECT ?checkpoint ?rank ?observed ?expected WHERE {
+  VALUES (?rank ?expected) {
+    (1 "ROOT")
+    (2 "GALL-CP-001")
+    (3 "GALL-CP-002")
+    (4 "GALL-CP-003")
+    (5 "GALL-CP-004")
+    (6 "GALL-CP-005")
+    (7 "GALL-CP-006")
+    (8 "GALL-CP-007")
+    (9 "GALL-CP-008")
+    (10 "GALL-CP-009")
   }
-  FILTER(!BOUND(?dependencyRank) || ?dependencyRank != (?rank - 1))
+  ?checkpoint a compat:GallCheckpoint ; compat:rank ?rank .
+  OPTIONAL { ?checkpoint compat:dependsOnCode ?observed . }
+  FILTER(!BOUND(?observed) || ?observed != ?expected)
 }
 ORDER BY ?rank ?checkpoint
