@@ -16,6 +16,11 @@ sparql:
     } ORDER BY ?rustType
 ---
 //! Process Mining/Workflow witness markers — compiled from `ontology/witnesses-workflow.ttl`.
+//!
+//! Entries identify workflow and process-mining authorities; they do not execute
+//! discovery, replay, conformance, or planning. Change the ontology, then run the
+//! repository ggen consumer rail.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
