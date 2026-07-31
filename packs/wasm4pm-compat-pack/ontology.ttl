@@ -1,0 +1,13 @@
+@prefix compatpack: <https://chatmangpt.com/ns/wasm4pm-compat-pack#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix ggen: <https://chatmangpt.com/ns/ggen#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+compatpack:Pack
+    a ggen:Pack ;
+    dcterms:title "wasm4pm-compat-pack" ;
+    dcterms:hasVersion "26.7.62" ;
+    ggen:authority "canonical_graph" ;
+    ggen:projectionMode "frontmatter_pack" ;
+    ggen:actuationBoundary "consumer_repository_only" ;
+    prov:wasDerivedFrom <https://github.com/seanchatmangpt/ggen/commit/68952593c40214ac1a681073d65f3902a9cdfce4> .
