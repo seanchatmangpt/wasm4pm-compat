@@ -14,9 +14,29 @@ sparql:
 ---
 //! Corpus-integrity proof — every witness KEY in the bibliography is unique.
 //!
-//! This is a first-class ggen projection and a compile-time law, not a runtime registry.
+//! ## What this module IS
+//!
+//! - A ggen-rendered census of every `compat:WitnessMarker` key across the core
+//!   module and all per-category modules ([`crate::witnesses`],
+//!   [`crate::witnesses_cognition`], …).
+//! - A **compile-time law**: the [`const _: () = { … }`] block below proves no two
+//!   witnesses share a `KEY`. Two distinct witness types with the same key would
+//!   compile (Rust only rejects duplicate type *names*) yet print identical
+//!   provenance — silently reviving the authority-erasure problem. This module
+//!   makes that a build error regardless of how a witness file was produced.
+//!
+//! ## What this module is **NOT**
+//!
+//! - Not a runtime registry. The arrays are `const`; the proof runs at compile
+//!   time and costs nothing at runtime.
+//! - Not hand-maintained. Edit the witness TTL and run the repository ggen
+//!   consumer rail; never patch this file alone.
+//!
+//! Structure-only. There is nothing to graduate — corpus integrity is a property
+//! of this crate's bibliography, not of any execution engine.
 
-/// Every witness key in the corpus, sorted.
+/// Every witness key in the corpus, sorted. One entry per `compat:WitnessMarker`
+/// across all category modules.
 pub const ALL_WITNESS_KEYS: &[&str] = &[
 {% for row in witnesses %}    "{{ row.witnessKey }}",
 {% endfor %}];
