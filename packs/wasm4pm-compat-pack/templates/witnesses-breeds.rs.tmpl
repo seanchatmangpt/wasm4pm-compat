@@ -1,0 +1,30 @@
+---
+to: src/witnesses_breeds.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  witnesses: |
+    PREFIX compat: <https://wasm4pm.dev/ns#>
+    SELECT ?rustType ?witnessKey ?witnessTitle ?witnessYear ?witnessFamily ?description WHERE {
+      ?breed a compat:CognitionBreed ; compat:breedId ?breedId ; compat:breedLabel ?breedLabel ; compat:citation ?citation .
+      BIND(CONCAT(?breedLabel, "Paper") AS ?rustType)
+      BIND(CONCAT("cognition/", REPLACE(?breedId, "_", "-")) AS ?witnessKey)
+      BIND(?breedLabel AS ?witnessTitle)
+      BIND("Paper" AS ?witnessFamily)
+      BIND(IF(STRLEN(?citation) > 120, CONCAT(SUBSTR(?citation, 1, 117), "..."), ?citation) AS ?description)
+      OPTIONAL { ?breed compat:witnessYear ?witnessYear . }
+    } ORDER BY ?breedId
+---
+//! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
+use crate::witness::WitnessFamily;
+
+{% for row in witnesses %}
+witness_marker!(
+    /// {{ row.description }}
+    {{ row.rustType }},
+    "{{ row.witnessKey }}",
+    WitnessFamily::{{ row.witnessFamily }},
+    "{{ row.witnessTitle }}",
+    {% if row.witnessYear %}Some({{ row.witnessYear }}){% else %}None{% endif %}
+);
+{% endfor %}
