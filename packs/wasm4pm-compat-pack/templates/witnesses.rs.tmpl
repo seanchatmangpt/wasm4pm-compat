@@ -1,0 +1,36 @@
+---
+to: src/witnesses.rs
+freeze_policy: checksum
+freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+sparql:
+  witnesses: |
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
+    SELECT ?rustType ?witnessKey ?witnessTitle ?witnessYear ?witnessFamily ?description WHERE {
+      ?marker a compat:WitnessMarker ; compat:rustType ?rustType ; compat:witnessKey ?witnessKey ; compat:witnessTitle ?witnessTitle .
+      FILTER NOT EXISTS { ?marker compat:paperCategory ?category . }
+      OPTIONAL { ?marker compat:witnessYear ?witnessYear . }
+      OPTIONAL { ?marker compat:witnessFamily ?witnessFamily . }
+      OPTIONAL { ?marker compat:description ?description . }
+    } ORDER BY ?rustType
+---
+//! Witness marker declarations — compiled from `wasm4pm-compat.ttl`.
+//!
+//! Every entry here is derived from a `compat:WitnessMarker` instance in the ontology.
+//! To add a witness: declare it in the TTL, run `ggen sync`, this file updates.
+//! To change a witness: change the TTL, run `ggen sync`.
+//! This file and `witness.rs` are the same kind of source — one happens to be compiled
+//! from the ontology, one defines the trait. Neither is second-class.
+
+use crate::witness::WitnessFamily;
+
+{% for row in witnesses %}
+witness_marker!(
+    /// {{ row.description }}
+    {{ row.rustType }},
+    "{{ row.witnessKey }}",
+    WitnessFamily::{{ row.witnessFamily | split(pat="#") | last }},
+    "{{ row.witnessTitle }}",
+    {% if row.witnessYear %}Some({{ row.witnessYear }}){% else %}None{% endif %}
+);
+{% endfor %}
