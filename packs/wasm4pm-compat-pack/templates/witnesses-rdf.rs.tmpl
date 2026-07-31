@@ -16,6 +16,11 @@ sparql:
     } ORDER BY ?rustType
 ---
 //! RDF/SPARQL/KG witness markers — compiled from `ontology/witnesses-rdf.ttl`.
+//!
+//! Every entry is an ontology-derived authority label, not an RDF engine.
+//! Add or revise a paper in `ontology/witnesses-rdf.ttl`, then run the
+//! repository ggen consumer rail. Never patch this file alone.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
