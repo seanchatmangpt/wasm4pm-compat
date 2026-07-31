@@ -4,43 +4,52 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${repo_root}"
 
-ggen_surfaces=(
-  ggen/standing.ggen.toml
-  ggen/ontology/standing-law.ttl
-  ggen/queries/extract-standing-law.rq
-  ggen/queries/extract-gall-checkpoints.rq
-  ggen/templates/standing-law.rs.tera
-  ggen/templates/gall-checkpoints.rs.tera
-  tests/fixtures/ggen_standing_projection.rs
-  tests/fixtures/ggen_gall_checkpoints.rs
-)
-
-for surface in "${ggen_surfaces[@]}"; do
-  if [[ ! -s "${surface}" ]]; then
-    echo "GALL-CP-001: missing or empty surface: ${surface}" >&2
-    exit 1
-  fi
-done
-
-if grep -R --line-number '/Users/' "${ggen_surfaces[@]}"; then
-  echo 'GGEN-PORTABILITY-001: absolute developer path found' >&2
-  exit 1
-fi
-
-if ! grep -q 'ORDER BY ?rank ?variant' ggen/queries/extract-standing-law.rq; then
-  echo 'GGEN-ORDER-001: standing projection query is not byte-order bounded' >&2
-  exit 1
-fi
-
-if ! grep -q 'ORDER BY ?rank ?code' ggen/queries/extract-gall-checkpoints.rq; then
-  echo 'GALL-CP-003: Gall checkpoint query is not byte-order bounded' >&2
-  exit 1
-fi
+usage_report="${GGEN_USAGE_REPORT_PATH:-target/ggen-standing/usage-audit.json}"
+python3 scripts/audit-ggen-usage.py --output "${usage_report}"
 
 checkpoint_count="$(grep -c 'code: "GALL-CP-' tests/fixtures/ggen_gall_checkpoints.rs)"
 if [[ "${checkpoint_count}" != "10" ]]; then
-  echo "GALL-COUNT-001: expected 10 committed checkpoints, found ${checkpoint_count}" >&2
+  echo "GALL-COUNT-001 BUILD_BROKEN: expected 10 committed checkpoints, found ${checkpoint_count}" >&2
   exit 1
 fi
 
 cargo test --locked --test ggen_manufacturing_contract -- --nocapture
+
+if ! command -v ggen >/dev/null 2>&1; then
+  echo 'GGEN-TOOL-001 BLOCKED: static and Rust verifiers passed; ggen 26.7.62 execution unavailable' >&2
+  exit 2
+fi
+
+version_output="$(ggen --version)"
+if [[ "${version_output}" != *"26.7.62"* ]]; then
+  echo "GGEN-PIN-001 BLOCKED: expected ggen 26.7.62, observed ${version_output}" >&2
+  exit 2
+fi
+
+if [[ -n "$(git status --porcelain)" ]]; then
+  echo 'GGEN-TREE-001 BLOCKED: replay requires a clean exact tree' >&2
+  exit 2
+fi
+
+ggen graph validate
+ggen doctor run
+ggen sync run --dry-run
+ggen sync run
+ggen receipt verify
+
+first_tree="$(git diff --binary)"
+if [[ -n "${first_tree}" ]]; then
+  echo 'GGEN-DRIFT-001 BUILD_BROKEN: committed projections differ from the first sync' >&2
+  git diff --stat >&2
+  exit 1
+fi
+
+ggen sync run
+ggen receipt verify
+second_tree="$(git diff --binary)"
+if [[ "${first_tree}" != "${second_tree}" ]]; then
+  echo 'GGEN-REPLAY-001 BUILD_BROKEN: second sync changed the exact tree' >&2
+  exit 1
+fi
+
+echo 'GGEN-CONTRACT PARTIAL_ALIVE: audit, graph, doctor, dry-run, sync, receipt, Rust consumer, and replay passed'
