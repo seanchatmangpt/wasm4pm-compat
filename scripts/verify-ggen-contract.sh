@@ -26,30 +26,58 @@ if [[ "${version_output}" != *"26.7.62"* ]]; then
   exit 2
 fi
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  echo 'GGEN-TREE-001 BLOCKED: replay requires a clean exact tree' >&2
+assert_projection_tree_clean() {
+  if ! git diff --quiet -- . ':(exclude).ggen-v2/**'; then
+    echo 'GGEN-DRIFT-001 BUILD_BROKEN: tracked source differs after sync' >&2
+    git diff --stat -- . ':(exclude).ggen-v2/**' >&2
+    return 1
+  fi
+  if ! git diff --cached --quiet -- . ':(exclude).ggen-v2/**'; then
+    echo 'GGEN-INDEX-001 BLOCKED: staged source prevents exact-tree replay' >&2
+    return 2
+  fi
+  local untracked
+  untracked="$(git ls-files --others --exclude-standard | grep -v '^\.ggen-v2/' || true)"
+  if [[ -n "${untracked}" ]]; then
+    echo 'GGEN-UNTRACKED-001 BLOCKED: untracked manufacturing state is not admitted' >&2
+    printf '%s\n' "${untracked}" >&2
+    return 2
+  fi
+}
+
+assert_projection_tree_clean
+
+if ! git ls-files --error-unmatch ggen.lock >/dev/null 2>&1; then
+  echo 'GGEN-LOCK-001 BLOCKED: run the pinned first sync, review ggen.lock, and commit it' >&2
   exit 2
 fi
+
+mapfile -t owned_outputs < <(
+  grep -h '^to: ' packs/wasm4pm-compat-pack/templates/*.tmpl \
+    | sed 's/^to: //' \
+    | LC_ALL=C sort
+)
+if [[ "${#owned_outputs[@]}" != "11" ]]; then
+  echo "GGEN-OWNERSHIP-001 BUILD_BROKEN: expected 11 owned outputs, found ${#owned_outputs[@]}" >&2
+  exit 1
+fi
+for output in "${owned_outputs[@]}"; do
+  slot=".ggen/freeze/wasm4pm-compat-pack/${output}.blake3"
+  if [[ ! -f "${slot}" ]] || ! git ls-files --error-unmatch "${slot}" >/dev/null 2>&1; then
+    echo "GGEN-OWNERSHIP-002 BLOCKED: checksum slot is absent or untracked: ${slot}" >&2
+    exit 2
+  fi
+done
 
 ggen graph validate
 ggen doctor run
 ggen sync run --dry-run
 ggen sync run
 ggen receipt verify
-
-first_tree="$(git diff --binary)"
-if [[ -n "${first_tree}" ]]; then
-  echo 'GGEN-DRIFT-001 BUILD_BROKEN: committed projections differ from the first sync' >&2
-  git diff --stat >&2
-  exit 1
-fi
+assert_projection_tree_clean
 
 ggen sync run
 ggen receipt verify
-second_tree="$(git diff --binary)"
-if [[ "${first_tree}" != "${second_tree}" ]]; then
-  echo 'GGEN-REPLAY-001 BUILD_BROKEN: second sync changed the exact tree' >&2
-  exit 1
-fi
+assert_projection_tree_clean
 
-echo 'GGEN-CONTRACT PARTIAL_ALIVE: audit, graph, doctor, dry-run, sync, receipt, Rust consumer, and replay passed'
+echo 'GGEN-CONTRACT PARTIAL_ALIVE: audit, graph, doctor, dry-run, tracked ownership, sync, receipt, Rust consumer, and second-run replay passed'
