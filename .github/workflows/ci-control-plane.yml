@@ -48,7 +48,7 @@ jobs:
             ggen/templates/gall-checkpoints.rs.tera
           grep -q 'ORDER BY ?rank ?variant' ggen/queries/extract-standing-law.rq
           grep -q 'ORDER BY ?rank ?code' ggen/queries/extract-gall-checkpoints.rq
-          test "$(grep -c 'code: \"GALL-CP-' tests/fixtures/ggen_gall_checkpoints.rs)" = 10
+          test "$(grep -c 'code:.*GALL-CP-' tests/fixtures/ggen_gall_checkpoints.rs)" = 10
 
   inspection:
     name: ci/inspection
