@@ -7,8 +7,8 @@
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** hand-authored — edit `breed-vocabulary.ttl` and run
-//!   `ggen sync --rule fresh-name-manifest`, never this file.
+//! - **Not** hand-authored — edit `breed-vocabulary.ttl` and run the repository ggen
+//!   consumer rail, never this file alone.
 //! - **Not** an engine. It maps ids to names; it runs nothing.
 //!
 //! Structure only.
