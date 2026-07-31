@@ -16,6 +16,11 @@ sparql:
     } ORDER BY ?rustType
 ---
 //! AI/LLM/Agents witness markers — compiled from `ontology/witnesses-ai-llm.ttl`.
+//!
+//! Entries are structure-only provenance tokens. They do not execute models,
+//! agents, searches, tools, or workflows. Change the ontology, then run the
+//! repository ggen consumer rail. Never patch this file alone.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
