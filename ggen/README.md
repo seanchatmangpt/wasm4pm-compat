@@ -1,130 +1,84 @@
-# wasm4pm-compat ggen substrate
+# wasm4pm-compat ggen consumer
 
-wasm4pm-compat is the last manually-coded layer. Everything downstream is generated.
+`wasm4pm-compat` is a structure-only consumer of **ggen 26.7.62** at exact source commit
+`68952593c40214ac1a681073d65f3902a9cdfce4`.
 
-## The post-handcoding doctrine
+## Authority and fence
 
-> No hand coding. No refactoring. Type law in ontology. Artifacts in ggen output.
+The active manufacturing path is singular:
 
-The crate's Rust source files in `src/` are the final hand-written surface. Every
-artifact that depends on the type law — witness markers, trybuild fixtures, audit
-scripts, module documentation, coverage ledgers, graduation maps — is rendered by
-the ggen pipeline from the RDF/Turtle ontology.
-
-## Pipeline anatomy
-
-```
-ontology/wasm4pm-compat.ttl   (type law surfaces as RDF triples)
-ontology/papers.ttl            (paper inventory and coverage claims)
-         |
-         | SPARQL SELECT
-         v
-queries/*.rq                   (extract structured facts from the graph)
-         |
-         | Tera rendering
-         v
-templates/*.tera               (one template per artifact class)
-         |
-         | ggen sync
-         v
-src/generated/witnesses.rs
-tests/ui/compile_fail/
-tests/ui/compile_pass/
-scripts/audit/
-docs/generated/
-docs/PAPER_COVERAGE_LEDGER_GENERATED.md
-docs/GRADUATION_BOUNDARIES_GENERATED.md
+```text
+ggen.toml
+  -> canonical ontology union
+  -> packs/wasm4pm-compat-pack
+  -> ordered frontmatter SPARQL
+  -> checksum-frozen first-class Rust
+  -> real crate compilation and tests
+  -> ggen receipt
+  -> replay and external standing
 ```
 
-## How to add a new process form
+The repository root `ggen.toml` is the only active consumer manifest. The local pack may
+write only inside this repository. It cannot create or update files in the sibling
+`wasm4pm` workspace, publish a crate, deploy a service, or promote its own standing.
 
-1. Open `ggen/ontology/wasm4pm-compat.ttl`.
-2. Add one `compat:ProcessForm` instance triple block:
-   ```turtle
-   compat:MyNewForm
-       a compat:ProcessForm ;
-       compat:rustType "MyNewForm" ;
-       compat:sourceModule compat:mod_mymodule ;
-       compat:graduatesToWasm4pm false ;
-       rdfs:label "MyNewForm" ;
-       rdfs:comment "What this form is and is not." .
-   ```
-3. Run `cargo make ggen-sync`.
+## Active surfaces
 
-The compile-pass fixture and module doc are regenerated automatically.
+- `ggen.toml` — consumer observation carrier.
+- `packs/wasm4pm-compat-pack/pack.toml` — pack identity and version.
+- `packs/wasm4pm-compat-pack/ontology.ttl` — pack authority and actuation boundary.
+- `packs/wasm4pm-compat-pack/templates/*.tmpl` — active frontmatter projections.
+- `ggen/ontology/*.ttl` and `ggen/ontology-breeds/*.ttl` — canonical domain inputs.
+- `ggen/gates/*.rq` — ordered fail-closed graph gates.
+- `.ggen-v2/receipt.json` and `.ggen-v2/receipt-log.jsonl` — execution evidence emitted by ggen.
+- `scripts/audit-ggen-usage.py` — repository-wide static admission verifier.
+- `scripts/verify-ggen-contract.sh` — consumer, receipt, and replay verifier.
 
-## How to add a new paper
+Rendered Rust is ordinary committed source. There is no second-class source directory.
+Every pack output uses checksum freeze; drift is refused rather than silently overwritten.
 
-1. Open `ggen/ontology/papers.ttl`.
-2. Add one `paper:AcademicPaper` triple block with `paper:doi`, `paper:year`,
-   `paper:witnessMarker`, and `paper:coverageStatus`.
-3. Run `cargo make ggen-sync`.
+## Preserved type-law receipts
 
-The paper ledger at `docs/PAPER_COVERAGE_LEDGER_GENERATED.md` is updated.
+`tests/ui/compile_pass` and `tests/ui/compile_fail` remain hand-authored compile-time
+receipts. They are intentionally heterogeneous and are not manufacturing targets. The
+pack generates witness and standing projections, then the existing test suites prove that
+those projections compile within the real consumer.
 
-## How to add a new type law (compile-fail fixture)
+## Commands
 
-1. Open `ggen/ontology/wasm4pm-compat.ttl`.
-2. Add one `compat:CompileFailLaw` instance:
-   ```turtle
-   compat:law_MyNewLaw
-       a compat:CompileFailLaw ;
-       compat:rustcErrorCode "E0277" ;
-       compat:fixtureFile "my_new_law.rs" ;
-       rdfs:label "MyNewLaw" ;
-       rdfs:comment "The invariant this law enforces and why it must be unbreakable." .
-   ```
-3. Run `cargo make ggen-sync`.
+Run from the repository root:
 
-ggen renders the compile-fail fixture skeleton into `tests/ui/compile_fail/`.
-Fill in the expected `.stderr` content, then run `cargo test --test ui_tests -- --ignored`
-to confirm the law is in force.
-
-## Cargo-make tasks
-
-| Task | What it does |
-|---|---|
-| `cargo make ggen-validate` | Parse `ggen/ggen.toml` and validate the ontology |
-| `cargo make ggen-sync` | Regenerate all artifacts from the ontology (writes files) |
-| `cargo make ggen-dry-run` | Preview regeneration output without writing any files |
-| `cargo make ggen-add-witness` | Interactively scaffold a new witness marker |
-| `cargo make ggen-add-fixture` | Interactively scaffold a new compile-fail fixture |
-| `cargo make substrate-status` | Show triple count, file counts, and last-generated timestamp |
-
-## File inventory
-
-```
-ggen/
-  ggen.toml                          -- generation pipeline config (this dir)
-  Makefile.toml                      -- cargo-make tasks
-  README.md                          -- this file
-  ontology/
-    wasm4pm-compat.ttl               -- canonical type-law ontology
-    papers.ttl                       -- paper inventory and coverage
-    ggen-substrate.ttl               -- meta-ontology: the substrate describes itself
-  queries/
-    extract-witnesses.rq             -- WitnessMarker instances
-    extract-compile-fail-laws.rq     -- CompileFailLaw instances
-    extract-process-forms.rq         -- ProcessForm + CompilePassSurface instances
-    extract-source-modules.rq        -- SourceModule instances
-    extract-paper-coverage.rq        -- PaperCoverage records
-    extract-graduation-candidates.rq -- GraduationBoundary instances
-    extract-states.rq                -- EvidenceState instances
-    construct-alive-gate.rq          -- ALIVE gate CONSTRUCT query
-  templates/
-    witness-marker.tera              -- renders src/generated/witnesses.rs
-    compile-fail-fixture.tera        -- renders tests/ui/compile_fail/*.rs
-    compile-pass-fixture.tera        -- renders tests/ui/compile_pass/*.rs
-    audit-script.tera                -- renders scripts/audit/*.sh
-    module-docs.tera                 -- renders docs/generated/*.md
-    paper-ledger-row.tera            -- renders docs/PAPER_COVERAGE_LEDGER_GENERATED.md
-    graduation-boundary-map.tera     -- renders docs/GRADUATION_BOUNDARIES_GENERATED.md
-    gap-register-row.tera            -- renders gap register entries
+```bash
+python3 scripts/audit-ggen-usage.py --output target/ggen-standing/usage-audit.json
+ggen graph validate
+ggen doctor run
+ggen sync run --dry-run
+ggen sync run
+ggen receipt verify
+bash scripts/verify-ggen-contract.sh
 ```
 
-## The substrate describes itself
+The equivalent cargo-make tasks live in `ggen/Makefile.toml`.
 
-`ggen/ontology/ggen-substrate.ttl` is a meta-ontology. It declares every generation
-rule as an RDF instance of `substrate:GenerationRule`, wiring each query file to its
-template and output target. The substrate is self-documenting: the ontology that drives
-ggen also contains the description of how ggen is configured.
+## Historical evidence
+
+The following directories are retained as dated evidence, not current command or
+configuration authority:
+
+- `ggen/emitted/`
+- `ggen/gap-closure-receipts/`
+- `ggen/intel/`
+- `checkpoints/`
+- `archive/`
+
+Legacy `.tera` and `.rq` assets under `ggen/templates*` and `ggen/queries*` remain as the
+source record from which the frontmatter pack was converged. The root manifest does not
+discover them. New production changes belong in the pack template and canonical ontology;
+historical receipts are never rewritten to impersonate current execution.
+
+## Unsupported here
+
+Breed registration, TypeScript registry generation, paper-pointer tests, and anti-cheat
+fixtures targeting the sibling `wasm4pm` workspace are `UNSUPPORTED` in this compat
+consumer. Their lawful implementation is a pack installed and executed by that target
+workspace. One repository may describe another; it may not silently actuate it.
