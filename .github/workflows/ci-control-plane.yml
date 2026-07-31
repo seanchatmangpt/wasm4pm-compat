@@ -1,0 +1,138 @@
+name: CI Control Plane
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-control-plane-${{ github.event.pull_request.number || github.ref }}-${{ github.sha }}
+  cancel-in-progress: true
+
+env:
+  RUST_TOOLCHAIN: nightly-2026-06-22
+  CARGO_TERM_COLOR: always
+
+jobs:
+  admission:
+    name: ci/admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Admit ggen observation carrier
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f ggen/standing.ggen.toml
+          test -f ggen/ontology/standing-law.ttl
+          test -f ggen/queries/extract-standing-law.rq
+          test -f ggen/templates/standing-law.rs.tera
+          test -f tests/fixtures/ggen_standing_projection.rs
+          ! grep -R --line-number '/Users/' \
+            ggen/standing.ggen.toml \
+            ggen/ontology/standing-law.ttl \
+            ggen/queries/extract-standing-law.rq \
+            ggen/templates/standing-law.rs.tera
+          grep -q 'ORDER BY ?rank ?variant' ggen/queries/extract-standing-law.rq
+
+  inspection:
+    name: ci/inspection
+    needs: admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal --component rustfmt,clippy
+          rustup override set "${RUST_TOOLCHAIN}"
+      - name: Format
+        run: cargo fmt --all -- --check
+      - name: Clippy
+        run: cargo clippy --locked --all-features --tests -- -D warnings
+
+  capabilities:
+    name: ci/capabilities
+    needs: admission
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal
+          rustup override set "${RUST_TOOLCHAIN}"
+      - name: Unit and integration crown
+        run: cargo test --locked --all-features --tests
+      - name: PC-POWL2 contract crown
+        run: cargo test --locked --all-features pc_powl2
+      - name: Compile-time type-law crown
+        run: cargo test --locked --test ui_tests -- --ignored
+
+  standing:
+    name: ci/standing
+    if: always()
+    needs: [admission, inspection, capabilities]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Install pinned Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal
+          rustup override set "${RUST_TOOLCHAIN}"
+      - name: Verify and receipt exact-tree standing
+        env:
+          GGEN_SOURCE_COMMIT: ${{ github.sha }}
+          GGEN_ADMISSION_RESULT: ${{ needs.admission.result }}
+          GGEN_INSPECTION_RESULT: ${{ needs.inspection.result }}
+          GGEN_CAPABILITIES_RESULT: ${{ needs.capabilities.result }}
+          GGEN_RECEIPT_PATH: target/ggen-standing/receipt.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          export GGEN_SOURCE_TREE="$(git rev-parse HEAD^{tree})"
+          cargo test --locked --test ggen_manufacturing_contract -- --nocapture
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          receipt = json.loads(Path("target/ggen-standing/receipt.json").read_text())
+          if receipt["standing"] != "ALIVE":
+              raise SystemExit(
+                  "standing refused: "
+                  + receipt["standing"]
+                  + " lanes="
+                  + json.dumps(receipt["lanes"], sort_keys=True)
+              )
+          print(json.dumps(receipt, indent=2, sort_keys=True))
+          PY
+      - name: Upload standing receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ggen-standing-${{ github.sha }}
+          path: target/ggen-standing/receipt.json
+          if-no-files-found: error
+          retention-days: 30
