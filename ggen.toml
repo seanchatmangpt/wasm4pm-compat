@@ -1,0 +1,43 @@
+[project]
+name = "wasm4pm-compat"
+
+[ontology]
+source = "ggen/ontology/wasm4pm-compat.ttl"
+
+[ontology.prefixes]
+compat = "https://wasm4pm-compat.rs/ontology#"
+ggen = "https://chatmangpt.com/ns/ggen#"
+prov = "http://www.w3.org/ns/prov#"
+rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+skos = "http://www.w3.org/2004/02/skos/core#"
+xsd = "http://www.w3.org/2001/XMLSchema#"
+
+[packs]
+wasm4pm-compat-pack = { path = "packs/wasm4pm-compat-pack", extra_ontologies = [
+  "ggen/ontology/papers.ttl",
+  "ggen/ontology/ggen-substrate.ttl",
+  "ggen/ontology/audit-machinery.ttl",
+  "ggen/ontology/zod-types.ttl",
+  "ggen/ontology-breeds/breed-vocabulary.ttl",
+  "ggen/ontology-breeds/paper-pointers.ttl",
+  "ggen/ontology/witnesses-cognition.ttl",
+  "ggen/ontology/witnesses-rdf.ttl",
+  "ggen/ontology/witnesses-ai-llm.ttl",
+  "ggen/ontology/witnesses-domain.ttl",
+  "ggen/ontology/witnesses-workflow.ttl",
+  "ggen/ontology/standing-law.ttl",
+] }
+
+[templates]
+dir = "ggen/project-templates"
+aggregate_modules = false
+
+[law]
+gates = [
+  "ggen/gates/010_standing_cardinality.rq",
+  "ggen/gates/020_alive_authority.rq",
+  "ggen/gates/030_gall_cardinality.rq",
+  "ggen/gates/040_gall_dependency_chain.rq",
+]
+reflexive = true
