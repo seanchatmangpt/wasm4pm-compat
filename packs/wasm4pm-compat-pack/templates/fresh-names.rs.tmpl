@@ -1,7 +1,9 @@
 ---
 to: src/fresh_names.rs
+force: true
 freeze_policy: checksum
 freeze_slots_dir: .ggen/freeze/wasm4pm-compat-pack
+determinism: true
 sparql:
   names: |
     PREFIX compat: <https://wasm4pm.dev/ns#>
