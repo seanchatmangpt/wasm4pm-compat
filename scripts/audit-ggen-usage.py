@@ -22,6 +22,7 @@ SHADOW_MANIFESTS = (
 )
 ACTIVE_TEXT = (
     "AGENTS.md",
+    "CLAUDE.md",
     "ggen.toml",
     "ggen/README.md",
     "ggen/Makefile.toml",
@@ -30,6 +31,12 @@ ACTIVE_TEXT = (
     ".github/workflows/ci-control-plane.yml",
     "docs/architecture/GGEN_V26_7_31_RETROFIT.md",
     "docs/architecture/GGEN_26_7_62_CONVERGENCE.md",
+    "docs/reference/public-api-for-ggen.md",
+    "ggen/WIT_TEMPLATE_USAGE.md",
+    "ggen/WIT_TEMPLATE_MANUFACTURE.md",
+    "ggen/WIT_TEMPLATE_MANIFEST.md",
+    "ggen/PROJECTION_MANIFESTS.md",
+    "ggen/VALIDATION-QUERY-REFERENCE.md",
 )
 FORBIDDEN_ACTIVE_PATTERNS = {
     "GGEN-PORTABILITY-001": re.compile(r"/Users/"),
@@ -37,7 +44,7 @@ FORBIDDEN_ACTIVE_PATTERNS = {
     "GGEN-CLI-001": re.compile(r"ggen\s+generate\b"),
     "GGEN-CLI-002": re.compile(r"ggen\s+sync\s+--(?:manifest|locked|rule|queries|ontology|output-dir)\b"),
     "GGEN-CLI-003": re.compile(r"ggen\s+validate\b"),
-    "GGEN-SOURCE-CASTE-001": re.compile(r"src/generated(?:/|\\b)"),
+    "GGEN-SOURCE-CASTE-001": re.compile(r"src/generated(?:/|\b)"),
 }
 
 
@@ -87,7 +94,7 @@ def main() -> int:
         check(GGEN_COMMIT in pack_ontology.read_text(), "GGEN-PIN-002", "pack authority binds the exact ggen commit", checks, failures)
 
     templates = sorted((ROOT / "packs/wasm4pm-compat-pack/templates").glob("*.tmpl"))
-    check(len(templates) >= 10, "GGEN-TEMPLATE-001", "active pack contains the full projection family", checks, failures)
+    check(len(templates) == 11, "GGEN-TEMPLATE-001", "active pack contains exactly eleven projection templates", checks, failures)
     outputs: set[str] = set()
     for template in templates:
         text = template.read_text()
@@ -101,13 +108,16 @@ def main() -> int:
             check(safe, "GGEN-ACTUATION-001", f"repository-local output: {output}", checks, failures)
             check(output not in outputs, "GGEN-OUTPUT-002", f"single writer for output: {output}", checks, failures)
             outputs.add(output)
+        check("force: true" in text, "GGEN-OWNERSHIP-001", f"initial ownership slot can be established: {relative}", checks, failures)
         check("freeze_policy: checksum" in text, "GGEN-FREEZE-001", f"checksum freeze enabled: {relative}", checks, failures)
+        check("determinism: true" in text, "GGEN-DETERMINISM-001", f"double extraction enabled: {relative}", checks, failures)
         select_count = len(re.findall(r"(?im)^\s*SELECT\b", text))
         order_count = len(re.findall(r"(?im)\bORDER\s+BY\b", text))
         check(select_count == order_count and select_count >= 1, "GGEN-ORDER-001", f"every SELECT is ordered: {relative}", checks, failures)
 
     for path in ACTIVE_TEXT:
         file_path = ROOT / path
+        check(file_path.exists(), "GGEN-ACTIVE-SURFACE-001", f"active authority surface exists: {path}", checks, failures)
         if not file_path.exists():
             continue
         text = file_path.read_text(errors="replace")
@@ -115,7 +125,7 @@ def main() -> int:
             check(pattern.search(text) is None, code, f"active surface excludes deprecated form: {path}", checks, failures)
 
     report = {
-        "schema": "https://chatmangpt.com/schemas/ggen-usage-audit/v1",
+        "schema": "https://chatmangpt.com/schemas/ggen-usage-audit/v2",
         "ggen_version": GGEN_VERSION,
         "ggen_commit": GGEN_COMMIT,
         "standing": "PARTIAL_ALIVE" if not failures else "BUILD_BROKEN",
