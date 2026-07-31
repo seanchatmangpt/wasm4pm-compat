@@ -16,6 +16,11 @@ sparql:
     } ORDER BY ?rustType
 ---
 //! Business/Security/Maturity/BEAM/General witness markers — compiled from `ontology/witnesses-domain.ttl`.
+//!
+//! Entries are structure-only domain authority labels. They do not implement
+//! business, security, maturity, BEAM, or general-domain algorithms. Change the
+//! ontology, then run the repository ggen consumer rail.
+
 use crate::witness::WitnessFamily;
 
 {% for row in witnesses %}
