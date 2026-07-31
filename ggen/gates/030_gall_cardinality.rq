@@ -1,0 +1,7 @@
+# MESSAGE: Gall law must define exactly ten ordered checkpoints
+PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
+SELECT ?count WHERE {
+  { SELECT (COUNT(?checkpoint) AS ?count) WHERE { ?checkpoint a compat:GallCheckpoint . } }
+  FILTER(?count != 10)
+}
+ORDER BY ?count
