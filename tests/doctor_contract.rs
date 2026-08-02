@@ -90,3 +90,26 @@ fn capability_snapshot_has_one_owner_per_capability() {
         1
     );
 }
+
+#[test]
+fn cargo_feature_graph_has_exactly_three_public_stages() {
+    let manifest = include_str!("../Cargo.toml");
+    let mut in_features = false;
+    let mut keys = Vec::new();
+    for raw_line in manifest.lines() {
+        let line = raw_line.trim();
+        if line.starts_with('[') {
+            in_features = line == "[features]";
+            continue;
+        }
+        if in_features && !line.is_empty() && !line.starts_with('#') {
+            if let Some((key, _)) = line.split_once('=') {
+                keys.push(key.trim());
+            }
+        }
+    }
+    keys.sort();
+    assert_eq!(keys, ["default", "formats", "strict", "wasm4pm"]);
+    assert!(manifest.lines().any(|line| line.trim() == "default = [\"formats\"]"));
+    assert!(!manifest.contains("bcinr_engine ="));
+}
