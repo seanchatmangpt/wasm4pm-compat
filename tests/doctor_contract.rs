@@ -126,5 +126,21 @@ fn cargo_feature_graph_has_exactly_three_public_stages() {
     assert!(manifest
         .lines()
         .any(|line| line.trim() == "default = [\"formats\"]"));
-    assert!(!manifest.contains("bcinr_engine ="));
+}
+
+#[test]
+fn legacy_engine_surface_is_physically_absent() {
+    let manifest = include_str!("../Cargo.toml");
+    let conformance = include_str!("../src/conformance.rs");
+    let foundry = include_str!("../src/nightly_foundry.rs");
+    for (path, source) in [
+        ("Cargo.toml", manifest),
+        ("src/conformance.rs", conformance),
+        ("src/nightly_foundry.rs", foundry),
+    ] {
+        assert!(
+            !source.contains("bcinr_engine"),
+            "legacy engine symbol remains in {path}"
+        );
+    }
 }
