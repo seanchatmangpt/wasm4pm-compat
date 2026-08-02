@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-control-plane-${{ github.event.pull_request.number || github.ref }}-${{ github.sha }}
+  group: ci-control-plane-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
