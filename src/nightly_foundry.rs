@@ -178,7 +178,6 @@ pub mod petri_law {
             self.weights[t * P + p]
         }
 
-        #[cfg(not(feature = "bcinr_engine"))]
         #[inline]
         pub fn fire(&self, t: usize, m: Marking<P>, pre: &PreMatrix<P, T>) -> Marking<P>
         where
@@ -189,45 +188,6 @@ pub mod petri_law {
             while p < P {
                 next.0[p] =
                     next.0[p] - pre.weights[p * T + t] as u32 + self.weights[t * P + p] as u32;
-                p += 1;
-            }
-            next
-        }
-
-        #[cfg(feature = "bcinr_engine")]
-        #[inline]
-        pub fn fire(&self, t: usize, m: Marking<P>, pre: &PreMatrix<P, T>) -> Marking<P>
-        where
-            [(); P * T]: Sized,
-        {
-            let mut in_mask = 0u64;
-            let mut out_mask = 0u64;
-            let mut state_mask = 0u64;
-
-            let mut p = 0;
-            while p < P && p < 64 {
-                if pre.weights[p * T + t] > 0 {
-                    in_mask |= 1 << p;
-                }
-                if self.weights[t * P + p] > 0 {
-                    out_mask |= 1 << p;
-                }
-                if m.0[p] > 0 {
-                    state_mask |= 1 << p;
-                }
-                p += 1;
-            }
-
-            let missing_tokens = (!state_mask) & in_mask;
-            let diff_non_zero_msb = (missing_tokens | missing_tokens.wrapping_neg()) >> 63;
-            let exec_mask = diff_non_zero_msb.wrapping_sub(1);
-            let new_state_mask = (state_mask & !(in_mask & exec_mask)) | (out_mask & exec_mask);
-
-            let mut next = m;
-            p = 0;
-            while p < P && p < 64 {
-                let has_token = (new_state_mask >> p) & 1;
-                next.0[p] = has_token as u32; // Simplified binary marking mapping
                 p += 1;
             }
             next
