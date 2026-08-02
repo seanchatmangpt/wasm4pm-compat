@@ -1,101 +1,174 @@
 //! Compatibility diagnostics — the named laws of a well-formed compat surface.
 //!
-//! A [`crate::diagnostic::CompatDiagnostic`] names a *structural law* about how evidence crosses
+//! A [`CompatDiagnostic`] names a *structural law* about how evidence crosses
 //! this crate's boundary. Each variant is a specific, auditable accusation —
 //! "this surface flattened in secret", "this raw value was exported as if
-//! admitted" — together with the action that *satisfies* the law. Like
-//! [`crate::admission::Refusal`], a diagnostic is never a vague "something is
-//! wrong"; it points at the exact missing structure.
+//! admitted" — together with the action that satisfies the law.
 //!
-//! These diagnostics are the vocabulary a linter, a CI gate, or a graduation
-//! reviewer uses to decide whether a compat boundary is honest. They are
-//! **structure only**: each names a law and its remedy; none of them runs an
-//! engine. When the remedy is "verify it for real", the answer is to graduate
-//! the surface to `wasm4pm`.
+//! These diagnostics are the vocabulary a linter, CI gate, doctor, or
+//! graduation reviewer uses to decide whether a compat boundary is honest.
+//! They are **structure only**: each names a law and its remedy; none runs an
+//! engine. When the remedy is "verify it for real", graduate to `wasm4pm`.
+
+/// Deterministic capability doctor, route planner, and repair-plan surface.
+pub mod doctor;
+
+pub use doctor::{CompatDoctor, DoctorProfile, DoctorReport, Intent, RoutePlan};
 
 /// A named law a compatibility surface may violate, and how to satisfy it.
-///
-/// Use these to explain *why* a boundary is rejected as ill-formed, or as the
-/// checklist a surface must clear before it is considered paper-complete in
-/// structure.
-///
-/// Structure-only diagnostic vocabulary. A variant names a deficiency in the
-/// *shape/protocol* of a compat surface — not a runtime fault in an engine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CompatDiagnostic {
-    /// **Law:** every admitted/projected surface answers to a named
-    /// [`crate::witness::Witness`].
-    ///
-    /// **Satisfied by:** tagging the evidence with the standard/paper/grammar it
-    /// is being judged against, so the boundary's authority is explicit.
+    /// Every admitted/projected surface answers to a named witness.
     MissingWitness,
-
-    /// **Law:** a round-trip claim (import then export) must be backed by a
-    /// fixture proving it actually round-trips.
-    ///
-    /// **Satisfied by:** adding the import→export→compare fixture for the claim.
+    /// A round-trip claim has no import→export→compare fixture.
     MissingRoundTripFixture,
-
-    /// **Law:** [`crate::state::Raw`] evidence may not leave the crate as if it
-    /// were [`crate::state::Admitted`].
-    ///
-    /// **Satisfied by:** routing the value through an [`crate::admission::Admit`]
-    /// impl so it becomes genuinely `Admitted` before export.
+    /// Raw evidence is leaving the boundary as if it were admitted.
     RawEvidenceExportedAsAdmitted,
-
-    /// **Law:** any lossy projection is governed by a [`crate::loss::LossPolicy`].
-    ///
-    /// **Satisfied by:** implementing the transformation via
-    /// [`crate::loss::Project`] under an explicit policy instead of an ad-hoc
-    /// conversion.
+    /// A lossy projection has no explicit loss policy.
     LossyProjectionWithoutPolicy,
-
-    /// **Law:** structure must not be discarded silently (no secret flattening).
-    ///
-    /// **Satisfied by:** emitting a [`crate::loss::LossReport`] that itemizes the
-    /// discarded evidence under a named [`crate::loss::ProjectionName`].
+    /// Structure was flattened without a named loss report.
     HiddenFlattening,
-
-    /// **Law:** every serious surface offers a refusal path with a *specific*
-    /// named reason.
-    ///
-    /// **Satisfied by:** giving the [`crate::admission::Admit`]/
-    /// [`crate::loss::Project`] impl a named `Reason` (never "InvalidInput") and
-    /// a code path that returns it.
+    /// A serious surface has no specific typed refusal path.
     MissingRefusalPath,
-
-    /// **Law:** evidence that should be provenance-bearing carries a receipt
-    /// shape ([`crate::state::Receipted`]).
-    ///
-    /// **Satisfied by:** wrapping the admitted value in the receipt envelope so
-    /// its provenance and witness travel with it.
+    /// Provenance-bearing evidence has no receipt shape.
     MissingReceiptShape,
-
-    /// **Law:** every shape the crate knows is *reachable* — no canon type is
-    /// declared yet wired to nothing.
-    ///
-    /// **Satisfied by:** connecting the orphaned primitive to an admission,
-    /// projection, or export contract (or removing it from the canon).
+    /// A canon primitive is declared but connected to no lawful route.
     UnreachablePrimitive,
-
-    /// **Advisory:** this surface has outgrown compatibility and now needs real
-    /// execution semantics.
-    ///
-    /// **Satisfied by:** graduating the surface to `wasm4pm`, where an engine can
-    /// discover/conform/replay rather than merely admit and tag.
+    /// The surface now requires active execution and should graduate.
     MigrationRecommended,
 }
 
+impl CompatDiagnostic {
+    /// Complete catalog in stable order.
+    pub const ALL: [Self; 9] = [
+        Self::MissingWitness,
+        Self::MissingRoundTripFixture,
+        Self::RawEvidenceExportedAsAdmitted,
+        Self::LossyProjectionWithoutPolicy,
+        Self::HiddenFlattening,
+        Self::MissingRefusalPath,
+        Self::MissingReceiptShape,
+        Self::UnreachablePrimitive,
+        Self::MigrationRecommended,
+    ];
+
+    /// Stable machine code suitable for JSON, CI annotations, and support links.
+    pub const fn code(self) -> &'static str {
+        match self {
+            Self::MissingWitness => "W4PM_COMPAT_001",
+            Self::MissingRoundTripFixture => "W4PM_COMPAT_002",
+            Self::RawEvidenceExportedAsAdmitted => "W4PM_COMPAT_003",
+            Self::LossyProjectionWithoutPolicy => "W4PM_COMPAT_004",
+            Self::HiddenFlattening => "W4PM_COMPAT_005",
+            Self::MissingRefusalPath => "W4PM_COMPAT_006",
+            Self::MissingReceiptShape => "W4PM_COMPAT_007",
+            Self::UnreachablePrimitive => "W4PM_COMPAT_008",
+            Self::MigrationRecommended => "W4PM_COMPAT_009",
+        }
+    }
+
+    /// Rust variant name, kept stable for source-level search.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::MissingWitness => "MissingWitness",
+            Self::MissingRoundTripFixture => "MissingRoundTripFixture",
+            Self::RawEvidenceExportedAsAdmitted => "RawEvidenceExportedAsAdmitted",
+            Self::LossyProjectionWithoutPolicy => "LossyProjectionWithoutPolicy",
+            Self::HiddenFlattening => "HiddenFlattening",
+            Self::MissingRefusalPath => "MissingRefusalPath",
+            Self::MissingReceiptShape => "MissingReceiptShape",
+            Self::UnreachablePrimitive => "UnreachablePrimitive",
+            Self::MigrationRecommended => "MigrationRecommended",
+        }
+    }
+
+    /// Severity assigned by the compatibility court.
+    pub const fn severity(self) -> DiagnosticSeverity {
+        match self {
+            Self::MigrationRecommended => DiagnosticSeverity::Info,
+            _ => DiagnosticSeverity::Error,
+        }
+    }
+
+    /// Concise accusation without severity prefix.
+    pub const fn message(self) -> &'static str {
+        match self {
+            Self::MissingWitness => {
+                "missing witness: admitted/projected surface must name its authority"
+            }
+            Self::MissingRoundTripFixture => {
+                "missing round-trip fixture: round-trip claim requires an import→export→compare fixture"
+            }
+            Self::RawEvidenceExportedAsAdmitted => {
+                "raw evidence exported as admitted: route through Admit before export"
+            }
+            Self::LossyProjectionWithoutPolicy => {
+                "lossy projection without policy: use Project under an explicit LossPolicy"
+            }
+            Self::HiddenFlattening => {
+                "hidden flattening: emit a LossReport itemising discarded evidence"
+            }
+            Self::MissingRefusalPath => {
+                "missing refusal path: Admit/Project impl must carry a named Reason type"
+            }
+            Self::MissingReceiptShape => {
+                "missing receipt shape: provenance-bearing evidence must be wrapped in Receipted"
+            }
+            Self::UnreachablePrimitive => {
+                "unreachable primitive: connect or remove the orphaned canon type"
+            }
+            Self::MigrationRecommended => {
+                "migration recommended: surface has outgrown compat — graduate to wasm4pm"
+            }
+        }
+    }
+
+    /// Minimal lawful repair for the diagnostic.
+    pub const fn repair(self) -> &'static str {
+        match self {
+            Self::MissingWitness => {
+                "attach the standard, paper, or grammar witness that governs admission"
+            }
+            Self::MissingRoundTripFixture => {
+                "add an import→export→compare fixture bound to the round-trip claim"
+            }
+            Self::RawEvidenceExportedAsAdmitted => {
+                "route the value through an Admit implementation before export"
+            }
+            Self::LossyProjectionWithoutPolicy => {
+                "implement Project and require an explicit LossPolicy"
+            }
+            Self::HiddenFlattening => {
+                "emit a named LossReport itemizing every discarded evidence item"
+            }
+            Self::MissingRefusalPath => {
+                "add a specific Reason enum and return a typed refusal for each violated law"
+            }
+            Self::MissingReceiptShape => {
+                "wrap admitted evidence in a receipt envelope carrying witness, digest, and replay hint"
+            }
+            Self::UnreachablePrimitive => {
+                "connect the primitive to admission, projection, export, or remove it from the canon"
+            }
+            Self::MigrationRecommended => {
+                "prepare a GraduationCandidate and execute only in wasm4pm"
+            }
+        }
+    }
+
+    /// Resolve a stable machine code or Rust variant name.
+    pub fn from_code(value: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|diagnostic| {
+            diagnostic.code().eq_ignore_ascii_case(value)
+                || diagnostic.name().eq_ignore_ascii_case(value)
+        })
+    }
+}
+
 /// Severity level for a compatibility diagnostic.
-///
-/// `Error` means the surface violates a structural law and must be corrected
-/// before the boundary is considered honest. `Warning` means the surface is
-/// questionable but not outright wrong. `Info` is advisory only.
-///
-/// Structure-only; no engine semantics.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DiagnosticSeverity {
-    /// The surface violates a named structural law; must be corrected.
+    /// The surface violates a named structural law; it must be corrected.
     Error,
     /// The surface is suspect; correction is strongly recommended.
     Warning,
@@ -106,58 +179,55 @@ pub enum DiagnosticSeverity {
 impl core::fmt::Display for DiagnosticSeverity {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            DiagnosticSeverity::Error => f.write_str("Error"),
-            DiagnosticSeverity::Warning => f.write_str("Warning"),
-            DiagnosticSeverity::Info => f.write_str("Info"),
+            Self::Error => f.write_str("Error"),
+            Self::Warning => f.write_str("Warning"),
+            Self::Info => f.write_str("Info"),
         }
     }
 }
 
 impl core::fmt::Display for CompatDiagnostic {
-    /// Formats the diagnostic as `[<severity>] <short description>`.
-    ///
-    /// The severity is inferred from the variant: `MigrationRecommended` is
-    /// `Info`; all other variants represent structural law violations and are
-    /// `Error`.
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let (severity, message) = match self {
-            CompatDiagnostic::MissingWitness => (
-                DiagnosticSeverity::Error,
-                "missing witness: admitted/projected surface must name its authority",
-            ),
-            CompatDiagnostic::MissingRoundTripFixture => (
-                DiagnosticSeverity::Error,
-                "missing round-trip fixture: round-trip claim requires an import→export→compare fixture",
-            ),
-            CompatDiagnostic::RawEvidenceExportedAsAdmitted => (
-                DiagnosticSeverity::Error,
-                "raw evidence exported as admitted: route through Admit before export",
-            ),
-            CompatDiagnostic::LossyProjectionWithoutPolicy => (
-                DiagnosticSeverity::Error,
-                "lossy projection without policy: use Project under an explicit LossPolicy",
-            ),
-            CompatDiagnostic::HiddenFlattening => (
-                DiagnosticSeverity::Error,
-                "hidden flattening: emit a LossReport itemising discarded evidence",
-            ),
-            CompatDiagnostic::MissingRefusalPath => (
-                DiagnosticSeverity::Error,
-                "missing refusal path: Admit/Project impl must carry a named Reason type",
-            ),
-            CompatDiagnostic::MissingReceiptShape => (
-                DiagnosticSeverity::Error,
-                "missing receipt shape: provenance-bearing evidence must be wrapped in Receipted",
-            ),
-            CompatDiagnostic::UnreachablePrimitive => (
-                DiagnosticSeverity::Error,
-                "unreachable primitive: connect or remove the orphaned canon type",
-            ),
-            CompatDiagnostic::MigrationRecommended => (
-                DiagnosticSeverity::Info,
-                "migration recommended: surface has outgrown compat — graduate to wasm4pm",
-            ),
-        };
-        write!(f, "[{severity}] {message}")
+        write!(f, "[{}] {}", self.severity(), self.message())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeSet;
+
+    #[test]
+    fn catalog_codes_and_names_are_unique() {
+        let codes: BTreeSet<_> = CompatDiagnostic::ALL
+            .into_iter()
+            .map(CompatDiagnostic::code)
+            .collect();
+        let names: BTreeSet<_> = CompatDiagnostic::ALL
+            .into_iter()
+            .map(CompatDiagnostic::name)
+            .collect();
+        assert_eq!(codes.len(), CompatDiagnostic::ALL.len());
+        assert_eq!(names.len(), CompatDiagnostic::ALL.len());
+    }
+
+    #[test]
+    fn every_diagnostic_round_trips_by_code_and_name() {
+        for diagnostic in CompatDiagnostic::ALL {
+            assert_eq!(CompatDiagnostic::from_code(diagnostic.code()), Some(diagnostic));
+            assert_eq!(CompatDiagnostic::from_code(diagnostic.name()), Some(diagnostic));
+        }
+    }
+
+    #[test]
+    fn display_preserves_existing_human_shape() {
+        assert_eq!(
+            CompatDiagnostic::MissingWitness.to_string(),
+            "[Error] missing witness: admitted/projected surface must name its authority"
+        );
+        assert_eq!(
+            CompatDiagnostic::MigrationRecommended.to_string(),
+            "[Info] migration recommended: surface has outgrown compat — graduate to wasm4pm"
+        );
     }
 }
