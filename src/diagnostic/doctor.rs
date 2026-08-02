@@ -557,8 +557,7 @@ impl DoctorReport {
                 check.state, check.code, check.summary
             )
             .expect("writing to String cannot fail");
-            writeln!(&mut output, "  {}", check.detail)
-                .expect("writing to String cannot fail");
+            writeln!(&mut output, "  {}", check.detail).expect("writing to String cannot fail");
         }
         if !self.repairs.is_empty() {
             output.push_str("repairs:\n");
@@ -566,8 +565,7 @@ impl DoctorReport {
                 writeln!(&mut output, "- {}: {}", repair.code, repair.summary)
                     .expect("writing to String cannot fail");
                 if let Some(command) = &repair.command {
-                    writeln!(&mut output, "  {}", command)
-                        .expect("writing to String cannot fail");
+                    writeln!(&mut output, "  {}", command).expect("writing to String cannot fail");
                 }
             }
         }
@@ -592,7 +590,10 @@ impl CompatDoctor {
             match observation {
                 Some(observation) => checks.push(check_from_observation(observation)),
                 None => checks.push(DoctorCheck {
-                    code: format!("CAPABILITY_{}_UNMODELED", capability.code().to_ascii_uppercase()),
+                    code: format!(
+                        "CAPABILITY_{}_UNMODELED",
+                        capability.code().to_ascii_uppercase()
+                    ),
                     capability: Some(*capability),
                     state: DoctorCheckState::Unsupported,
                     summary: format!("{} is not modeled", capability.summary()),
@@ -947,7 +948,8 @@ fn route_intent(intent: Intent) -> RouteDecision {
             intent,
             target: RouteTarget::ExternalVerifier,
             state: RouteState::Routed,
-            reason: "exact-tree standing is external; compat cannot self-promote to ALIVE".to_string(),
+            reason: "exact-tree standing is external; compat cannot self-promote to ALIVE"
+                .to_string(),
             required_feature: None,
             repair: None,
         },
@@ -1054,9 +1056,8 @@ mod tests {
     #[test]
     fn vision_profile_tracks_feature_closure() {
         let report = CompatDoctor::run(DoctorProfile::Vision2030);
-        let all_features = cfg!(feature = "formats")
-            && cfg!(feature = "strict")
-            && cfg!(feature = "wasm4pm");
+        let all_features =
+            cfg!(feature = "formats") && cfg!(feature = "strict") && cfg!(feature = "wasm4pm");
         assert_eq!(
             report.standing,
             if all_features {
@@ -1074,11 +1075,9 @@ mod tests {
         let second = report.fingerprint().unwrap();
         assert_eq!(first, second);
         assert_eq!(first.len(), 64);
-        assert!(
-            first
-                .chars()
-                .all(|ch| ch.is_ascii_digit() || ('a'..='f').contains(&ch))
-        );
+        assert!(first
+            .chars()
+            .all(|ch| ch.is_ascii_digit() || ('a'..='f').contains(&ch)));
     }
 
     #[test]
@@ -1099,10 +1098,7 @@ mod tests {
     fn standing_verification_is_always_external() {
         let plan = CompatDoctor::plan([Intent::VerifyStanding]);
         assert_eq!(plan.decisions.len(), 1);
-        assert_eq!(
-            plan.decisions[0].target,
-            RouteTarget::ExternalVerifier
-        );
+        assert_eq!(plan.decisions[0].target, RouteTarget::ExternalVerifier);
         assert_eq!(plan.decisions[0].state, RouteState::Routed);
     }
 
@@ -1134,7 +1130,10 @@ mod tests {
     fn route_plan_canonicalization_replays() {
         let first = CompatDoctor::plan([Intent::Admit, Intent::VerifyStanding]);
         let second = CompatDoctor::plan([Intent::Admit, Intent::VerifyStanding]);
-        assert_eq!(first.canonical_json().unwrap(), second.canonical_json().unwrap());
+        assert_eq!(
+            first.canonical_json().unwrap(),
+            second.canonical_json().unwrap()
+        );
         assert_eq!(first.fingerprint().unwrap(), second.fingerprint().unwrap());
     }
 }

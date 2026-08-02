@@ -17,7 +17,11 @@ fn prelude_exposes_the_bounded_doctor() {
 #[test]
 fn vision2030_is_feature_closed_or_explicitly_blocked() {
     let report = CompatDoctor::run(DoctorProfile::Vision2030);
-    if cfg!(all(feature = "formats", feature = "strict", feature = "wasm4pm")) {
+    if cfg!(all(
+        feature = "formats",
+        feature = "strict",
+        feature = "wasm4pm"
+    )) {
         assert_eq!(report.standing, DoctorStanding::PartialAlive);
         assert!(report.repairs.is_empty());
     } else {
@@ -51,12 +55,21 @@ fn exact_tree_standing_is_external() {
 fn report_and_plan_replay_by_canonical_identity() {
     let report_a = CompatDoctor::run(DoctorProfile::Boundary);
     let report_b = CompatDoctor::run(DoctorProfile::Boundary);
-    assert_eq!(report_a.canonical_json().unwrap(), report_b.canonical_json().unwrap());
-    assert_eq!(report_a.fingerprint().unwrap(), report_b.fingerprint().unwrap());
+    assert_eq!(
+        report_a.canonical_json().unwrap(),
+        report_b.canonical_json().unwrap()
+    );
+    assert_eq!(
+        report_a.fingerprint().unwrap(),
+        report_b.fingerprint().unwrap()
+    );
 
     let plan_a = CompatDoctor::plan([Intent::Admit, Intent::VerifyStanding]);
     let plan_b = CompatDoctor::plan([Intent::Admit, Intent::VerifyStanding]);
-    assert_eq!(plan_a.canonical_json().unwrap(), plan_b.canonical_json().unwrap());
+    assert_eq!(
+        plan_a.canonical_json().unwrap(),
+        plan_b.canonical_json().unwrap()
+    );
     assert_eq!(plan_a.fingerprint().unwrap(), plan_b.fingerprint().unwrap());
 }
 
@@ -110,6 +123,8 @@ fn cargo_feature_graph_has_exactly_three_public_stages() {
     }
     keys.sort();
     assert_eq!(keys, ["default", "formats", "strict", "wasm4pm"]);
-    assert!(manifest.lines().any(|line| line.trim() == "default = [\"formats\"]"));
+    assert!(manifest
+        .lines()
+        .any(|line| line.trim() == "default = [\"formats\"]"));
     assert!(!manifest.contains("bcinr_engine ="));
 }

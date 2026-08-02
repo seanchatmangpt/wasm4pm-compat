@@ -129,8 +129,8 @@ fn run_explain(args: &[String], json: bool) -> Result<u8, String> {
     if args.len() != 1 {
         return Err("explain requires exactly one diagnostic code or variant name".to_string());
     }
-    let entry = explain_diagnostic(&args[0])
-        .ok_or_else(|| format!("unknown diagnostic `{}`", args[0]))?;
+    let entry =
+        explain_diagnostic(&args[0]).ok_or_else(|| format!("unknown diagnostic `{}`", args[0]))?;
     if json {
         print_json(&entry)?;
     } else {

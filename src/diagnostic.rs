@@ -214,8 +214,14 @@ mod tests {
     #[test]
     fn every_diagnostic_round_trips_by_code_and_name() {
         for diagnostic in CompatDiagnostic::ALL {
-            assert_eq!(CompatDiagnostic::from_code(diagnostic.code()), Some(diagnostic));
-            assert_eq!(CompatDiagnostic::from_code(diagnostic.name()), Some(diagnostic));
+            assert_eq!(
+                CompatDiagnostic::from_code(diagnostic.code()),
+                Some(diagnostic)
+            );
+            assert_eq!(
+                CompatDiagnostic::from_code(diagnostic.name()),
+                Some(diagnostic)
+            );
         }
     }
 
