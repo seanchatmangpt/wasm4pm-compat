@@ -77,8 +77,13 @@ strict = []
 # wasm4pm: Graduation bridge to engine-facing contracts.
 wasm4pm = []
 
-# bcinr_engine: Use the new branchless (CC=1) execution matrix for performance and determinism.
-bcinr_engine = []
+# `bcinr_engine` existed as a selectable fourth feature in an earlier baseline.
+# It is intentionally no longer part of Cargo's public capability graph. The
+# stale cfg branches remain source-visible as a non-selectable tombstone until
+# they are physically extracted with their owning engine. Declaring the legacy
+# cfg value here prevents `unexpected_cfgs` noise without re-admitting it.
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(feature, values("bcinr_engine"))'] }
 
 # NOTE (otel instrumentation — N/A for this crate): No `otel` feature and no
 # opentelemetry/tracing-opentelemetry dependency is added here. This crate is
@@ -151,5 +156,3 @@ exclude = [
     "wasm4pm-compat-lsp",
 ]
 resolver = "2"
-
-
