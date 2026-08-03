@@ -107,13 +107,7 @@ fn computed_standing() -> &'static str {
     let exact_source = commit.as_deref().is_some_and(|value| !value.is_empty())
         && tree.as_deref().is_some_and(|value| !value.is_empty());
 
-    standing_for(
-        &admission,
-        &inspection,
-        &capabilities,
-        &gall,
-        exact_source,
-    )
+    standing_for(&admission, &inspection, &capabilities, &gall, exact_source)
 }
 
 fn receipt_path() -> Option<PathBuf> {
@@ -173,7 +167,10 @@ fn verify_projection() -> Result<(), &'static str> {
         return Err("GGEN-PROJECTION-001");
     }
 
-    let names: Vec<_> = projection::STANDING.iter().map(|state| state.name).collect();
+    let names: Vec<_> = projection::STANDING
+        .iter()
+        .map(|state| state.name)
+        .collect();
     if names != EXPECTED_STATES {
         return Err("GGEN-DRIFT-001");
     }
@@ -286,8 +283,7 @@ fn checkpoint_passes(rank: u8) -> bool {
                 && ONTOLOGY.contains("ggen:authority \"canonical_graph\"")
         }
         3 => {
-            QUERY.contains("ORDER BY ?rank ?variant")
-                && GALL_QUERY.contains("ORDER BY ?rank ?code")
+            QUERY.contains("ORDER BY ?rank ?variant") && GALL_QUERY.contains("ORDER BY ?rank ?code")
         }
         4 => verify_projection().is_ok() && verify_gall_projection().is_ok(),
         5 => {
@@ -311,40 +307,41 @@ fn checkpoint_passes(rank: u8) -> bool {
             .iter()
             .all(|input_digest| input_digest.len() == 64),
         9 => {
-            let first = digest(&[
-                ONTOLOGY,
-                QUERY,
-                GALL_QUERY,
-                TEMPLATE,
-                GALL_TEMPLATE,
-                MANIFEST,
-                PROJECTION,
-                GALL_PROJECTION,
-            ]
-            .concat());
-            let second = digest(&[
-                ONTOLOGY,
-                QUERY,
-                GALL_QUERY,
-                TEMPLATE,
-                GALL_TEMPLATE,
-                MANIFEST,
-                PROJECTION,
-                GALL_PROJECTION,
-            ]
-            .concat());
+            let first = digest(
+                &[
+                    ONTOLOGY,
+                    QUERY,
+                    GALL_QUERY,
+                    TEMPLATE,
+                    GALL_TEMPLATE,
+                    MANIFEST,
+                    PROJECTION,
+                    GALL_PROJECTION,
+                ]
+                .concat(),
+            );
+            let second = digest(
+                &[
+                    ONTOLOGY,
+                    QUERY,
+                    GALL_QUERY,
+                    TEMPLATE,
+                    GALL_TEMPLATE,
+                    MANIFEST,
+                    PROJECTION,
+                    GALL_PROJECTION,
+                ]
+                .concat(),
+            );
             first == second
         }
         10 => {
             standing_for("success", "success", "success", "success", true) == "ALIVE"
-                && standing_for("success", "success", "success", "unknown", true)
-                    == "PARTIAL_ALIVE"
+                && standing_for("success", "success", "success", "unknown", true) == "PARTIAL_ALIVE"
                 && standing_for("success", "success", "success", "success", false)
                     == "PARTIAL_ALIVE"
-                && standing_for("success", "success", "success", "failure", true)
-                    == "BUILD_BROKEN"
-                && standing_for("failure", "success", "success", "success", true)
-                    == "BLOCKED"
+                && standing_for("success", "success", "success", "failure", true) == "BUILD_BROKEN"
+                && standing_for("failure", "success", "success", "success", true) == "BLOCKED"
         }
         _ => false,
     }
@@ -369,10 +366,7 @@ fn checkpoint_receipts() -> Vec<GallCheckpointReceipt> {
         };
         let evidence = digest(&format!(
             "{}:{}:{}:{}:{dependency_matches}:{local_passed}",
-            checkpoint.rank,
-            checkpoint.code,
-            checkpoint.name,
-            checkpoint.depends_on
+            checkpoint.rank, checkpoint.code, checkpoint.name, checkpoint.depends_on
         ));
 
         receipts.push(GallCheckpointReceipt {
@@ -519,7 +513,10 @@ fn replay_is_byte_stable_and_receipted() {
             parsed["inputs"]["gall_projection_blake3"].as_str(),
             Some(gall_first.as_str())
         );
-        assert_eq!(parsed["gall_checkpoints"].as_array().map(Vec::len), Some(10));
+        assert_eq!(
+            parsed["gall_checkpoints"].as_array().map(Vec::len),
+            Some(10)
+        );
         assert_eq!(parsed["standing"].as_str(), Some(computed_standing()));
     }
 }

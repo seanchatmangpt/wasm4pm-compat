@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ci-control-plane-${{ github.event.pull_request.number || github.ref }}-${{ github.sha }}
+  group: ci-control-plane-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 env:
@@ -85,12 +85,66 @@ jobs:
           set -euo pipefail
           rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal
           rustup override set "${RUST_TOOLCHAIN}"
+      - name: Execute compatibility doctor contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target/compat-doctor
+          cargo run --locked --no-default-features --bin wasm4pm-compat -- \
+            doctor core --json > target/compat-doctor/core.json
+          cargo run --locked --all-features --bin wasm4pm-compat -- \
+            doctor vision2030 --json > target/compat-doctor/vision2030.json
+          cargo run --locked --all-features --bin wasm4pm-compat -- \
+            plan discover replay verify-standing --json \
+            > target/compat-doctor/routes.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("target/compat-doctor")
+          core = json.loads((root / "core.json").read_text())
+          vision = json.loads((root / "vision2030.json").read_text())
+          routes = json.loads((root / "routes.json").read_text())
+
+          for name, document in (("core", core), ("vision2030", vision), ("routes", routes)):
+              fingerprint = document["fingerprint"]
+              if len(fingerprint) != 64 or any(ch not in "0123456789abcdef" for ch in fingerprint):
+                  raise SystemExit(f"{name} fingerprint is not canonical BLAKE3 hex")
+
+          if core["report"]["standing"] != "PARTIAL_ALIVE":
+              raise SystemExit(f"core doctor standing drift: {core['report']['standing']}")
+          if vision["report"]["standing"] != "PARTIAL_ALIVE":
+              raise SystemExit(
+                  f"Vision 2030 doctor standing drift: {vision['report']['standing']}"
+              )
+          if vision["report"]["repairs"]:
+              raise SystemExit("all-feature Vision 2030 doctor unexpectedly emitted repairs")
+
+          decisions = routes["plan"]["decisions"]
+          observed = [(item["intent"], item["target"], item["state"]) for item in decisions]
+          expected = [
+              ("discover", "wasm4pm", "routed"),
+              ("replay", "wasm4pm", "routed"),
+              ("verify_standing", "external_verifier", "routed"),
+          ]
+          if observed != expected:
+              raise SystemExit(f"route fence drift: observed={observed!r}")
+          print(json.dumps({"core": core, "vision2030": vision, "routes": routes}, indent=2))
+          PY
       - name: Unit and integration crown
         run: cargo test --locked --all-features --tests
       - name: PC-POWL2 contract crown
         run: cargo test --locked --all-features pc_powl2
       - name: Compile-time type-law crown
         run: cargo test --locked --test ui_tests -- --ignored
+      - name: Upload compatibility doctor reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: compat-doctor-${{ github.sha }}
+          path: target/compat-doctor/*.json
+          if-no-files-found: warn
+          retention-days: 30
 
   gall_checkpoints:
     name: ci/gall-checkpoints

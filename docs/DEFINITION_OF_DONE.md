@@ -1,17 +1,15 @@
 # Definition of Done
 
-A change to `wasm4pm-compat` is **done** only when every gate below holds. These
-gates are derived from the master specification.
+A change to `wasm4pm-compat` is done only when every applicable gate below
+holds. These gates preserve the structure-only boundary and make failures
+operator-visible.
 
 ## Structural gates
 
-- [ ] Every canon shape is a small, strongly-named, transparent type
-      (events, traces, logs, OCEL, XES, BPMN, Petri, WF-net, OC-Petri-net,
-      POWL, process tree, Declare, OC-Declare, OCPQ, DFG, conformance verdict,
-      prediction problem, receipt-shaped evidence).
-- [ ] Witness/state typing uses `PhantomData` markers; IDs are zero-cost
-      `#[repr(transparent)]` wrappers.
-- [ ] No engine logic anywhere: no discovery, conformance checking, replay,
+- [ ] Every canon shape is a small, strongly named type.
+- [ ] Witness/state typing uses `PhantomData` markers; IDs remain zero-cost
+      transparent wrappers.
+- [ ] No engine logic exists here: no discovery, conformance execution, replay,
       alignment, optimization, or visualization.
 
 ## Canon gates
@@ -23,40 +21,50 @@ gates are derived from the master specification.
 
 - [ ] No raw format-to-format laundering: `external -> admitted compat ->
       external | wasm4pm` only.
-- [ ] Every serious surface refuses with a **specific named law**, never a bare
-      `InvalidInput`.
-- [ ] Lossy projection carries a named `ProjectionName`, a `LossPolicy`, a
-      `LossReport`, and a refusal path.
+- [ ] Every serious surface refuses with a specific named law.
+- [ ] Lossy projection carries a `ProjectionName`, `LossPolicy`, `LossReport`,
+      and refusal path.
 
 ## Evidence gates
 
-- [ ] Receipt-shaped evidence is structure only and carries provenance.
+- [ ] Receipt-shaped evidence carries provenance fields without claiming
+      signature or execution authority.
 - [ ] Admission and refusal are first-class values, not panics.
+- [ ] Deterministic identities are reproducible over canonical input.
 
 ## Feature gates
 
 - [ ] Exactly three public Cargo features exist: `formats`, `strict`, `wasm4pm`.
 - [ ] `default = ["formats"]`.
 - [ ] No per-format flags.
-- [ ] Nightly is **not** a feature; the crate requires nightly unconditionally
-      (rust-toolchain.toml pins nightly; `nightly_foundry.rs` has no cfg gate).
+- [ ] Nightly remains unconditional and pinned.
 - [ ] `#![forbid(unsafe_code)]` holds.
 
-## Docs gates
+## Documentation gates
 
-- [ ] Every public module has `//!` module docs.
-- [ ] Every public `fn` has a doctest (or a documented `ignore` reason).
-- [ ] Every public type has rustdoc stating what it represents, what it does
-      **not** do, that it is structure-only, and when it should graduate.
+- [ ] Every public module has module documentation.
+- [ ] Public types state what they represent, what they do not do, and when to
+      graduate.
+- [ ] Operator commands document status semantics and exit codes.
 
-## DX gates
+## DX and doctor gates
 
-- [ ] The `prelude` re-exports the core adoption surface.
+- [ ] The prelude re-exports the bounded doctor entry point.
+- [ ] `doctor core` works without optional feature assumptions.
+- [ ] `doctor vision2030 --json` reports the current feature closure.
+- [ ] Every disabled feature produces one minimal reversible repair.
+- [ ] Discovery, conformance, replay, and optimization never route to compat.
+- [ ] Exact-tree standing always routes to the external verifier.
+- [ ] Doctor reports and route plans have deterministic canonical JSON and
+      BLAKE3 fingerprints.
+- [ ] The doctor type cannot represent self-issued `ALIVE` standing.
 - [ ] `cargo doc --all-features --no-deps` builds clean.
 
 ## Release gates
 
-- [ ] Full verification matrix passes (see README "Verification commands").
-- [ ] `cargo clippy --all-features -- -D warnings` is clean.
-- [ ] `cargo fmt --check` is clean.
-- [ ] Nightly toolchain documented (rust-toolchain.toml); no MSRV (nightly-only).
+- [ ] `cargo fmt --all -- --check` is clean.
+- [ ] `cargo clippy --locked --all-features --tests -- -D warnings` is clean.
+- [ ] `cargo test --locked --all-features --tests` passes.
+- [ ] Compile-time law fixtures pass for the intended reason.
+- [ ] The external exact-tree standing receipt is produced by the verifier, not
+      inferred from inspection or a doctor report.

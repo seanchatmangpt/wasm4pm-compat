@@ -85,11 +85,11 @@ pub struct Pddl8ActionSchema {
     pub del_effects: Vec<Pddl8Atom>,
     // PDDL 3.1 extended fields
     #[serde(default)]
-    pub typed_params: Vec<(String, String)>,   // (?var, type) pairs
+    pub typed_params: Vec<(String, String)>, // (?var, type) pairs
     #[serde(default)]
-    pub condition: Option<PddlCondition>,       // full condition algebra
+    pub condition: Option<PddlCondition>, // full condition algebra
     #[serde(default)]
-    pub effects: Vec<PddlEffect>,               // full effect algebra
+    pub effects: Vec<PddlEffect>, // full effect algebra
     #[serde(default)]
     pub numeric_effects: Vec<NumericEffect>,
 }
@@ -302,19 +302,16 @@ pub struct Pddl8ExecutionReceipt {
 /// - `rule.id`        → `schema.name`
 /// - `rule.premise`   → `schema.preconditions` (each as `pred=val` split)
 /// - `rule.conclusion` → semicolon-list of `add1;add2;!del1` effects
-pub fn schema_from_rule(
-    rule_id: &str,
-    premises: &[String],
-    conclusion: &str,
-) -> Pddl8ActionSchema {
-    let preconditions = premises
-        .iter()
-        .map(|p| atom_from_pred_eq(p))
-        .collect();
+pub fn schema_from_rule(rule_id: &str, premises: &[String], conclusion: &str) -> Pddl8ActionSchema {
+    let preconditions = premises.iter().map(|p| atom_from_pred_eq(p)).collect();
 
     let mut add_effects = Vec::new();
     let mut del_effects = Vec::new();
-    for tok in conclusion.split(';').map(str::trim).filter(|s| !s.is_empty()) {
+    for tok in conclusion
+        .split(';')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+    {
         if let Some(rest) = tok.strip_prefix('!') {
             del_effects.push(atom_from_pred_eq(rest));
         } else {
@@ -338,9 +335,15 @@ pub fn schema_from_rule(
 fn atom_from_pred_eq(s: &str) -> Pddl8Atom {
     // `predicate=value` → Pddl8Atom { pred: "predicate", args: ["value"] }
     if let Some((p, v)) = s.split_once('=') {
-        Pddl8Atom { pred: p.to_string(), args: vec![v.to_string()] }
+        Pddl8Atom {
+            pred: p.to_string(),
+            args: vec![v.to_string()],
+        }
     } else {
-        Pddl8Atom { pred: s.to_string(), args: vec![] }
+        Pddl8Atom {
+            pred: s.to_string(),
+            args: vec![],
+        }
     }
 }
 
@@ -367,8 +370,14 @@ pub enum PddlCondition {
     Not(Box<PddlCondition>),
     And(Vec<PddlCondition>),
     Or(Vec<PddlCondition>),
-    Forall { vars: Vec<(String, String)>, body: Box<PddlCondition> },
-    Exists { vars: Vec<(String, String)>, body: Box<PddlCondition> },
+    Forall {
+        vars: Vec<(String, String)>,
+        body: Box<PddlCondition>,
+    },
+    Exists {
+        vars: Vec<(String, String)>,
+        body: Box<PddlCondition>,
+    },
     Imply(Box<PddlCondition>, Box<PddlCondition>),
     /// (at start cond) | (over all cond) | (at end cond) inside durative conditions
     Timed(TimeSpecifier, Box<PddlCondition>),
@@ -378,10 +387,18 @@ pub enum PddlCondition {
 
 /// Comparison operator for a numeric fluent precondition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum CompareOp { Ge, Le, Gt, Lt, Eq }
+pub enum CompareOp {
+    Ge,
+    Le,
+    Gt,
+    Lt,
+    Eq,
+}
 
 impl Default for PddlCondition {
-    fn default() -> Self { PddlCondition::And(vec![]) }
+    fn default() -> Self {
+        PddlCondition::And(vec![])
+    }
 }
 
 // --- Numeric fluents ----------------------------------------------------------
@@ -397,13 +414,22 @@ pub struct PddlFunction {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum NumericExpr {
     Number(f64),
-    FunctionTerm(String, Vec<String>),   // (fuel-level ?v)
-    BinOp { op: NumericOp, lhs: Box<NumericExpr>, rhs: Box<NumericExpr> },
+    FunctionTerm(String, Vec<String>), // (fuel-level ?v)
+    BinOp {
+        op: NumericOp,
+        lhs: Box<NumericExpr>,
+        rhs: Box<NumericExpr>,
+    },
     Neg(Box<NumericExpr>),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum NumericOp { Add, Sub, Mul, Div }
+pub enum NumericOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
+}
 
 /// Effect that modifies a numeric fluent.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -425,15 +451,25 @@ pub enum PddlEffect {
     Numeric(NumericEffect),
     /// at start / at end wrapper
     Timed(TimeSpecifier, Box<PddlEffect>),
-    Forall { vars: Vec<(String, String)>, effects: Vec<PddlEffect> },
-    When { condition: PddlCondition, effects: Vec<PddlEffect> },
+    Forall {
+        vars: Vec<(String, String)>,
+        effects: Vec<PddlEffect>,
+    },
+    When {
+        condition: PddlCondition,
+        effects: Vec<PddlEffect>,
+    },
 }
 
 // --- Temporal PDDL 2.1 -------------------------------------------------------
 
 /// Temporal qualifier for durative action conditions/effects.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum TimeSpecifier { AtStart, AtEnd, OverAll }
+pub enum TimeSpecifier {
+    AtStart,
+    AtEnd,
+    OverAll,
+}
 
 /// Duration constraint: (= ?duration X), (<= ...), (>= ...), (and ...)
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -473,14 +509,24 @@ pub enum MetricExpr {
     FunctionTerm(String, Vec<String>),
     TotalTime,
     IsViolated(String),
-    BinOp { op: NumericOp, lhs: Box<MetricExpr>, rhs: Box<MetricExpr> },
+    BinOp {
+        op: NumericOp,
+        lhs: Box<MetricExpr>,
+        rhs: Box<MetricExpr>,
+    },
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum MetricDir { Minimize, Maximize }
+pub enum MetricDir {
+    Minimize,
+    Maximize,
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Metric { pub dir: MetricDir, pub expr: MetricExpr }
+pub struct Metric {
+    pub dir: MetricDir,
+    pub expr: MetricExpr,
+}
 
 // --- PDDL 3.x constraints and preferences ------------------------------------
 

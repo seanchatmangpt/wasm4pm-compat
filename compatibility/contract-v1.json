@@ -1,0 +1,92 @@
+{
+  "schema": "https://chatmangpt.com/ns/wasm4pm-compat/compatibility-contract/v1",
+  "schema_version": 1,
+  "package": {
+    "name": "wasm4pm-compat",
+    "version": "26.6.29",
+    "edition": "2021",
+    "toolchain": "nightly-2026-06-22",
+    "scope": "structure-only"
+  },
+  "features": {
+    "public": [
+      "formats",
+      "strict",
+      "wasm4pm"
+    ],
+    "default": [
+      "formats"
+    ],
+    "change_policy": "any addition, removal, rename, or default change is breaking"
+  },
+  "authority": {
+    "execution_owner": "wasm4pm",
+    "standing_owner": "external-verifier",
+    "max_self_issued_standing": "PARTIAL_ALIVE"
+  },
+  "required_modules": [
+    "admission",
+    "diagnostic",
+    "dfcm",
+    "engine_bridge",
+    "evidence",
+    "formats",
+    "loss",
+    "ocel",
+    "pddl",
+    "petri",
+    "powl",
+    "prelude",
+    "receipt",
+    "strict",
+    "xes"
+  ],
+  "required_prelude_exports": [
+    "Admission",
+    "Admit",
+    "CompatDoctor",
+    "DoctorIntent",
+    "DoctorProfile",
+    "DoctorReport",
+    "Evidence",
+    "LossPolicy",
+    "LossReport",
+    "ProjectionName",
+    "Refusal",
+    "RoutePlan",
+    "Witness",
+    "WitnessFamily"
+  ],
+  "capabilities": [
+    {"code": "typed_evidence", "owner": "wasm4pm-compat"},
+    {"code": "named_refusals", "owner": "wasm4pm-compat"},
+    {"code": "diagnostics", "owner": "wasm4pm-compat"},
+    {"code": "receipt_shapes", "owner": "wasm4pm-compat"},
+    {"code": "deterministic_digests", "owner": "wasm4pm-compat"},
+    {"code": "dfcm", "owner": "wasm4pm-compat"},
+    {"code": "doctor", "owner": "wasm4pm-compat"},
+    {"code": "formats", "owner": "wasm4pm-compat"},
+    {"code": "strict_boundary", "owner": "wasm4pm-compat"},
+    {"code": "graduation_bridge", "owner": "wasm4pm-compat"},
+    {"code": "engine_execution", "owner": "wasm4pm"},
+    {"code": "standing_authority", "owner": "external-verifier"}
+  ],
+  "forbidden_source_tokens": [
+    "bcinr_engine"
+  ],
+  "compatibility_rules": {
+    "package_name_change": "breaking",
+    "schema_version_change": "breaking",
+    "feature_set_change": "breaking",
+    "default_feature_change": "breaking",
+    "required_module_removal": "breaking",
+    "prelude_export_removal": "breaking",
+    "capability_set_change": "breaking",
+    "capability_owner_change": "breaking",
+    "authority_change": "breaking",
+    "forbidden_token_relaxation": "breaking",
+    "package_version_change": "informational",
+    "required_module_addition": "compatible",
+    "prelude_export_addition": "compatible"
+  }
+}
