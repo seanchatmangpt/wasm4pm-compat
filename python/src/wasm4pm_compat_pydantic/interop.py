@@ -1,7 +1,7 @@
 """Interoperability with ``seanchatmangpt/POWL`` TaggedPOWL dictionaries.
 
 The adapter targets the public ``TaggedPOWL.to_dict()`` shape at upstream/fork
-commit ``d2bae89b4f3a6375b56225ecfaf5eac3797900dc``. It is dependency-free and does
+commit ``2231f3be45e55c298be0599ac0ef379f6ae0ea68``. It is dependency-free and does
 not import the AGPL-licensed implementation.
 """
 
@@ -25,7 +25,7 @@ from .powl import (
 
 TAGGED_POWL_REPOSITORY = "seanchatmangpt/POWL"
 TAGGED_POWL_UPSTREAM = "fit-process-mining/POWL"
-TAGGED_POWL_COMMIT = "d2bae89b4f3a6375b56225ecfaf5eac3797900dc"
+TAGGED_POWL_COMMIT = "2231f3be45e55c298be0599ac0ef379f6ae0ea68"
 
 
 class TaggedPowlInteropRefusal(str, Enum):
