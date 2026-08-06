@@ -6,7 +6,7 @@
    *Hierarchical Decomposition of Separable Workflow-Nets*,
    arXiv:2602.15739v3, especially Definitions 3.6–3.9.
 2. `seanchatmangpt/POWL` / `fit-process-mining/POWL` at exact commit
-   `d2bae89b4f3a6375b56225ecfaf5eac3797900dc`.
+   `2231f3be45e55c298be0599ac0ef379f6ae0ea68`.
 
 The paper is normative for the core language. The fork is the executable
 interoperability oracle. Fork-only frequency and organizational tags are
