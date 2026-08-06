@@ -1,9 +1,14 @@
-"""Paper-bounded Pydantic v2 models for POWL 2.0.
+"""Research-bounded Pydantic v2 models for POWL 2.0.
 
 The wire representation is deliberately flat: nodes are stored once and composite
-nodes refer to their children by identifier.  This preserves POWL's recursive
+nodes refer to their children by identifier. This preserves POWL's recursive
 hierarchy while remaining friendly to JSON, Rust arenas, TypeScript, and WebAssembly.
-The module validates structure only; it does not execute or replay a process.
+
+The module validates structural syntax only. It does not execute, discover, replay,
+or actuate processes. Partial-order wire edges form an acyclic generating graph;
+the mathematical strict partial-order relation from the POWL 2.0 research is its
+transitive closure. This matches the official POWL repository, which stores DAG or
+transitive-reduction edges and derives reachability when the full relation is needed.
 """
 
 from __future__ import annotations
@@ -12,7 +17,14 @@ from collections import Counter, defaultdict
 from enum import Enum
 from typing import Annotated, Iterable, Literal, TypeAlias
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    JsonValue,
+    StringConstraints,
+    model_validator,
+)
 from pydantic_core import PydanticCustomError
 
 NodeId: TypeAlias = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
@@ -39,6 +51,8 @@ class PowlRefusal(str, Enum):
     DUPLICATE_ORDER_EDGE = "powl.duplicate_order_edge"
     REFLEXIVE_ORDER_EDGE = "powl.reflexive_order_edge"
     CYCLIC_PARTIAL_ORDER = "powl.cyclic_partial_order"
+    # Retained as a stable legacy code. POWL repository DAG encodings no longer
+    # require callers to materialize the transitive closure on the wire.
     NON_TRANSITIVE_PARTIAL_ORDER = "powl.non_transitive_partial_order"
     INVALID_CHOICE_ENDPOINT = "powl.invalid_choice_endpoint"
     DUPLICATE_CHOICE_EDGE = "powl.duplicate_choice_edge"
@@ -54,8 +68,27 @@ class _CompatModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+class PowlAnnotations(_CompatModel):
+    """Semantics-free annotations preserved across the POWL fork adapter.
+
+    The research language is determined by transitions, hierarchy, partial-order
+    reachability, and choice-graph paths. These annotations do not alter that
+    language. Frequency tags are intentionally excluded because they are semantic
+    and must be expanded by the POWL fork before entering the core contract.
+    """
+
+    organization: str | None = None
+    role: str | None = None
+    attributes: dict[str, JsonValue] = Field(default_factory=dict)
+
+
+class _PowlNodeModel(_CompatModel):
+    id: NodeId
+    annotations: PowlAnnotations = Field(default_factory=PowlAnnotations)
+
+
 class OrderEdge(_CompatModel):
-    """One ordered pair in a strict partial-order relation."""
+    """One generating precedence edge between direct child models."""
 
     before: NodeId
     after: NodeId
@@ -64,7 +97,7 @@ class OrderEdge(_CompatModel):
 class ChoiceGraphEdge(_CompatModel):
     """One directed edge in a POWL 2.0 choice graph.
 
-    ``__start__`` and ``__end__`` are artificial boundary identifiers.  They
+    ``__start__`` and ``__end__`` are artificial boundary identifiers. They
     never appear in :class:`PowlModel.nodes`.
     """
 
@@ -72,31 +105,29 @@ class ChoiceGraphEdge(_CompatModel):
     target: NodeId
 
 
-class Transition(_CompatModel):
+class Transition(_PowlNodeModel):
     """An observable transition; ``id`` distinguishes duplicate labels."""
 
     kind: Literal["transition"] = "transition"
-    id: NodeId
     label: Annotated[str, StringConstraints(min_length=1)]
 
 
-class SilentTransition(_CompatModel):
-    """A silent (tau) transition."""
+class SilentTransition(_PowlNodeModel):
+    """A silent transition whose research label is tau."""
 
     kind: Literal["silent_transition"] = "silent_transition"
-    id: NodeId
 
 
-class StrictPartialOrder(_CompatModel):
-    """A POWL partial-order composite over two or more child models.
+class StrictPartialOrder(_PowlNodeModel):
+    """A POWL partial-order composite over two or more direct child models.
 
-    ``order`` is the strict relation itself, not merely a transitive reduction.
-    Consequently the validator requires irreflexivity, acyclicity, and explicit
-    transitive closure.
+    ``order`` is a finite acyclic generating graph. The strict partial-order
+    relation used by the POWL 2.0 semantics is the transitive closure returned by
+    :meth:`semantic_relation`. Both a transitive reduction and a materialized
+    closure therefore encode the same research-level relation.
     """
 
     kind: Literal["partial_order"] = "partial_order"
-    id: NodeId
     children: tuple[NodeId, ...]
     order: tuple[OrderEdge, ...] = ()
 
@@ -110,7 +141,7 @@ class StrictPartialOrder(_CompatModel):
         if len(pair_set) != len(pairs):
             _refuse(
                 PowlRefusal.DUPLICATE_ORDER_EDGE,
-                "partial order {node_id} contains a duplicate relation pair",
+                "partial order {node_id} contains a duplicate precedence edge",
                 node_id=self.id,
             )
 
@@ -125,7 +156,7 @@ class StrictPartialOrder(_CompatModel):
             if before == after:
                 _refuse(
                     PowlRefusal.REFLEXIVE_ORDER_EDGE,
-                    "partial order {node_id} contains reflexive pair {endpoint}",
+                    "partial order {node_id} contains reflexive edge {endpoint}",
                     node_id=self.id,
                     endpoint=before,
                 )
@@ -136,26 +167,44 @@ class StrictPartialOrder(_CompatModel):
                 "partial order {node_id} contains a directed cycle",
                 node_id=self.id,
             )
-
-        closure = _transitive_closure(child_ids, pair_set)
-        missing = sorted(closure - pair_set)
-        if missing:
-            before, after = missing[0]
-            _refuse(
-                PowlRefusal.NON_TRANSITIVE_PARTIAL_ORDER,
-                "partial order {node_id} omits required transitive pair {before}->{after}",
-                node_id=self.id,
-                before=before,
-                after=after,
-            )
         return self
 
+    def semantic_relation(self) -> tuple[OrderEdge, ...]:
+        """Return the mathematical strict partial-order relation.
 
-class ChoiceGraph(_CompatModel):
+        POWL 2.0 defines a strict partial order over child models. The official
+        implementation stores a DAG, often its transitive reduction. Reachability
+        in that DAG is the relation consumed by the research semantics.
+        """
+
+        pairs = _transitive_closure(
+            self.children,
+            ((edge.before, edge.after) for edge in self.order),
+        )
+        return tuple(OrderEdge(before=before, after=after) for before, after in sorted(pairs))
+
+    def canonical_order(self) -> tuple[OrderEdge, ...]:
+        """Return a deterministic transitive reduction for canonical transport."""
+
+        pairs = _transitive_reduction(
+            self.children,
+            {(edge.before, edge.after) for edge in self.order},
+        )
+        return tuple(OrderEdge(before=before, after=after) for before, after in sorted(pairs))
+
+    def precedes(self, before: str, after: str) -> bool:
+        """Return whether ``before`` precedes ``after`` in the semantic relation."""
+
+        return any(
+            edge.before == before and edge.after == after
+            for edge in self.semantic_relation()
+        )
+
+
+class ChoiceGraph(_PowlNodeModel):
     """A POWL 2.0 choice-graph composite over two or more child models."""
 
     kind: Literal["choice_graph"] = "choice_graph"
-    id: NodeId
     children: tuple[NodeId, ...]
     edges: tuple[ChoiceGraphEdge, ...]
 
@@ -191,7 +240,9 @@ class ChoiceGraph(_CompatModel):
 
         forward = _reachable(CHOICE_START, pair_set)
         backward = _reachable(CHOICE_END, ((target, source) for source, target in pair_set))
-        disconnected = sorted(child for child in children if child not in forward or child not in backward)
+        disconnected = sorted(
+            child for child in children if child not in forward or child not in backward
+        )
         if CHOICE_END not in forward or disconnected:
             _refuse(
                 PowlRefusal.CHOICE_GRAPH_DISCONNECTED,
@@ -200,6 +251,28 @@ class ChoiceGraph(_CompatModel):
                 nodes=",".join(disconnected) if disconnected else CHOICE_END,
             )
         return self
+
+    def start_nodes(self) -> tuple[NodeId, ...]:
+        """Return children directly reachable from the artificial start."""
+
+        return tuple(
+            sorted(edge.target for edge in self.edges if edge.source == CHOICE_START)
+        )
+
+    def end_nodes(self) -> tuple[NodeId, ...]:
+        """Return children directly connected to the artificial end."""
+
+        return tuple(sorted(edge.source for edge in self.edges if edge.target == CHOICE_END))
+
+    def child_edges(self) -> tuple[ChoiceGraphEdge, ...]:
+        """Return edges whose endpoints are both direct children."""
+
+        children = set(self.children)
+        return tuple(
+            edge
+            for edge in self.edges
+            if edge.source in children and edge.target in children
+        )
 
 
 PowlNode: TypeAlias = Annotated[
@@ -293,6 +366,11 @@ class PowlModel(_CompatModel):
             )
         return self
 
+    def node_by_id(self) -> dict[NodeId, PowlNode]:
+        """Return the arena indexed by stable node identifier."""
+
+        return {node.id: node for node in self.nodes}
+
 
 def _validate_children(node_id: str, children: tuple[str, ...]) -> None:
     if len(children) < 2:
@@ -306,6 +384,14 @@ def _validate_children(node_id: str, children: tuple[str, ...]) -> None:
             PowlRefusal.DUPLICATE_CHILD,
             "composite {node_id} contains duplicate child identifiers",
             node_id=node_id,
+        )
+    reserved = sorted(set(children) & _RESERVED_IDS)
+    if reserved:
+        _refuse(
+            PowlRefusal.RESERVED_NODE_ID,
+            "composite {node_id} uses reserved boundary identifier {child} as a child",
+            node_id=node_id,
+            child=reserved[0],
         )
     if node_id in children:
         _refuse(
@@ -357,15 +443,26 @@ def _has_cycle(nodes: Iterable[str], edges: Iterable[tuple[str, str]]) -> bool:
 def _transitive_closure(
     nodes: Iterable[str], edges: Iterable[tuple[str, str]]
 ) -> set[tuple[str, str]]:
-    adjacency = _adjacency(edges)
+    edge_set = set(edges)
     closure: set[tuple[str, str]] = set()
     for source in nodes:
-        for target in _reachable(source, adjacency_pairs(adjacency)) - {source}:
+        for target in _reachable(source, edge_set) - {source}:
             closure.add((source, target))
     return closure
 
 
-def adjacency_pairs(adjacency: dict[str, set[str]]) -> Iterable[tuple[str, str]]:
-    for source, targets in adjacency.items():
-        for target in targets:
-            yield source, target
+def _transitive_reduction(
+    nodes: Iterable[str], edges: set[tuple[str, str]]
+) -> set[tuple[str, str]]:
+    """Compute a transitive reduction for a finite DAG without external deps."""
+
+    node_set = set(nodes)
+    if _has_cycle(node_set, edges):
+        raise ValueError("transitive reduction requires a DAG")
+
+    reduced = set(edges)
+    for source, target in sorted(edges):
+        candidate = reduced - {(source, target)}
+        if target in _reachable(source, candidate):
+            reduced.remove((source, target))
+    return reduced
