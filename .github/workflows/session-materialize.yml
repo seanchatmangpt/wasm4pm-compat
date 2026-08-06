@@ -1,0 +1,67 @@
+name: Session Materialization
+
+on:
+  push:
+    branches:
+      - agent/ggen-pydantic-all-types
+    paths:
+      - .github/workflows/session-materialize.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: session-materialize-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capsule:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bind exact source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD | tee source-head.txt
+          git rev-parse HEAD^{tree} | tee source-tree.txt
+          git bundle create wasm4pm-compat.bundle --all
+          tar --exclude=.git -czf wasm4pm-compat-source.tar.gz .
+
+      - name: Manufacture pinned ggen capsule
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://github.com/seanchatmangpt/ggen/releases/download/v26.8.6/ggen-x86_64-unknown-linux-gnu.tar.gz'
+          expected='4a8e957858423ae88e50278442c8c6bf5d44d24f8061774a911185cfe74ee469'
+          curl --fail --location --retry 3 --output ggen-x86_64-unknown-linux-gnu.tar.gz "$url"
+          printf '%s  %s\n' "$expected" ggen-x86_64-unknown-linux-gnu.tar.gz | sha256sum --check
+          mkdir ggen-capsule
+          tar -xzf ggen-x86_64-unknown-linux-gnu.tar.gz -C ggen-capsule
+          candidate="$(find ggen-capsule -type f -name ggen -perm -111 | head -n 1)"
+          test -n "$candidate"
+          "$candidate" --version | tee ggen-version.txt
+          file "$candidate" | tee ggen-file.txt
+          ldd "$candidate" | tee ggen-ldd.txt || true
+          sha256sum "$candidate" | tee ggen-binary.sha256
+
+      - name: Upload replayable source and toolchain
+        uses: actions/upload-artifact@v4
+        with:
+          name: session-source-ggen-capsule
+          retention-days: 7
+          if-no-files-found: error
+          path: |
+            wasm4pm-compat.bundle
+            wasm4pm-compat-source.tar.gz
+            source-head.txt
+            source-tree.txt
+            ggen-x86_64-unknown-linux-gnu.tar.gz
+            ggen-version.txt
+            ggen-file.txt
+            ggen-ldd.txt
+            ggen-binary.sha256
