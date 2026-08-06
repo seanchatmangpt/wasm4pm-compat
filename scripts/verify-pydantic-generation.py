@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Verify ontology-to-Pydantic closure and emit a machine-readable receipt."""
+"""Verify Rust-source → ontology → ggen → Pydantic closure.
+
+Graph closure and literal Rust source coverage are reported separately. The
+receipt cannot be ALIVE while the exact Rust source tree is unavailable or a
+public Serde data type lacks an admitted generated projection.
+"""
 from __future__ import annotations
 
 import argparse
@@ -15,6 +20,11 @@ from rdflib import Graph, Namespace
 
 COMPAT = Namespace("https://wasm4pm-compat.rs/ontology#")
 SIMPLE_RUST_TYPE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+SERDE_PUBLIC_TYPE = re.compile(
+    r"#\s*\[\s*derive\s*\((?P<derives>[^)]*(?:Serialize|Deserialize)[^)]*)\)\s*\]"
+    r"(?:\s*#\s*\[[^\]]*\])*\s*pub\s+(?:struct|enum)\s+(?P<name>[A-Za-z_][A-Za-z0-9_]*)",
+    re.MULTILINE | re.DOTALL,
+)
 
 
 def digest(path: Path) -> str:
@@ -37,12 +47,26 @@ def load_module(path: Path):
     return module
 
 
+def scan_source(source_root: Path) -> tuple[str, list[str], dict[str, list[str]]]:
+    files = sorted(source_root.rglob("*.rs")) if source_root.is_dir() else []
+    if not files:
+        return "UNKNOWN", [], {}
+    observed: dict[str, list[str]] = {}
+    for path in files:
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for match in SERDE_PUBLIC_TYPE.finditer(text):
+            observed.setdefault(match.group("name"), []).append(str(path))
+    return "OBSERVED", sorted(observed), observed
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
+    parser.add_argument("--source-root", type=Path)
     parser.add_argument("--receipt", type=Path)
     args = parser.parse_args()
     root = args.root.resolve()
+    source_root = (args.source_root or root / "src").resolve()
     ontology_paths = [
         root / "ggen/ontology/wasm4pm-compat.ttl",
         root / "ggen/ontology/zod-types.ttl",
@@ -95,18 +119,33 @@ def main() -> int:
 
     schema_errors: dict[str, str] = {}
     for name in sorted(actual):
-        model = getattr(module, name)
         try:
-            model.model_json_schema()
+            getattr(module, name).model_json_schema()
         except Exception as exc:  # pragma: no cover - receipt captures exact failure
             schema_errors[name] = f"{type(exc).__name__}: {exc}"
 
-    status = "ALIVE" if not any((duplicate_conflicts, missing, extra, rust_type_mismatches, schema_errors)) else "PARTIAL_ALIVE"
+    graph_failures = (duplicate_conflicts, missing, extra, rust_type_mismatches, schema_errors)
+    graph_status = "ALIVE" if not any(graph_failures) else "PARTIAL_ALIVE"
+
+    scan_status, serde_types, serde_locations = scan_source(source_root)
+    source_missing = sorted(set(serde_types) - set(actual))
+    if scan_status == "UNKNOWN":
+        source_coverage_status = "UNKNOWN"
+    else:
+        source_coverage_status = "ALIVE" if not source_missing else "PARTIAL_ALIVE"
+
+    status = "ALIVE" if graph_status == source_coverage_status == "ALIVE" else "PARTIAL_ALIVE"
     receipt = {
-        "schema": "wasm4pm-compat.pydantic-generation-receipt.v1",
+        "schema": "wasm4pm-compat.pydantic-generation-receipt.v2",
         "status": status,
+        "graph_status": graph_status,
+        "source_coverage_status": source_coverage_status,
+        "source_root": str(source_root),
         "ontology_type_count": len(expected),
         "generated_type_count": len(actual),
+        "public_serde_type_count": len(serde_types),
+        "source_missing": source_missing,
+        "source_locations": {name: serde_locations[name] for name in source_missing},
         "duplicate_conflicts": duplicate_conflicts,
         "shadowed_structural_types": shadowed_structural_types,
         "missing": missing,
