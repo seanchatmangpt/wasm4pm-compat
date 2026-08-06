@@ -1,0 +1,62 @@
+"""Pydantic v2 projections of the canonical wasm4pm-compat type graph.
+
+Manufactured by ggen from RDF type law. Every exported class retains its exact
+Rust spelling in ``__rust_type__``. Empty specifications represent intentional
+marker/typestate surfaces rather than invented runtime fields.
+"""
+from __future__ import annotations
+
+from typing import Any, ClassVar, ForwardRef, Optional, Union
+
+from pydantic import BaseModel, ConfigDict, Field, create_model
+
+JsonNumber = int | float
+
+
+class CompatModel(BaseModel):
+    """Strict base for synchronized compatibility projections."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+
+# (rust_type, ((python_name, field_type, optional, array, alias), ...))
+_SPECS: dict[str, tuple[str, tuple[tuple[str, str, bool, bool, str | None], ...]]] = {
+{% set last_type = "" %}{% for row in sparql_results %}{% if row.className != last_type %}{% if last_type != "" %})),
+{% endif %}    "{{ row.className }}": ("{{ row.rustType }}", ({% set_global last_type = row.className %}{% endif %}{% if row.fieldName %}("{{ row.pythonName }}", "{{ row.fieldType }}", {% if row.isOptional %}True{% else %}False{% endif %}, {% if row.isArray %}True{% else %}False{% endif %}, {% if row.hasAlias %}"{{ row.fieldName }}"{% else %}None{% endif %}), {% endif %}{% endfor %}{% if last_type != "" %})),
+{% endif %}}
+
+_PRIMITIVES: dict[str, Any] = {
+    "string": str,
+    "number": JsonNumber,
+    "boolean": bool,
+    "any": Any,
+    "Record<string, string>": dict[str, str],
+    "Record<string, any>": dict[str, Any],
+}
+
+
+def _annotation(field_type: str, is_array: bool, is_optional: bool) -> Any:
+    annotation = _PRIMITIVES[field_type] if field_type in _PRIMITIVES else ForwardRef(field_type)
+    if is_array:
+        annotation = list[annotation]
+    if is_optional:
+        annotation = Optional[annotation]
+    return annotation
+
+
+for _name, (_rust_type, _fields) in _SPECS.items():
+    _definitions: dict[str, tuple[Any, Any]] = {}
+    for _python_name, _field_type, _optional, _array, _alias in _fields:
+        _field = None if _optional else ...
+        if _alias is not None:
+            _field = Field(_field, alias=_alias)
+        _definitions[_python_name] = (_annotation(_field_type, _array, _optional), _field)
+    _model = create_model(_name, __base__=CompatModel, **_definitions)
+    _model.__module__ = __name__
+    _model.__rust_type__ = _rust_type
+    globals()[_name] = _model
+
+for _name in _SPECS:
+    globals()[_name].model_rebuild(_types_namespace=globals())
+
+__all__ = ["CompatModel", "JsonNumber", *_SPECS]

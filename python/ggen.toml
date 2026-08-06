@@ -1,0 +1,44 @@
+[project]
+name = "wasm4pm-compat-pydantic"
+version = "0.3.0"
+description = "Generate Pydantic v2 projections from canonical wasm4pm-compat type law"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "../ggen/ontology/wasm4pm-compat.ttl"
+imports = ["../ggen/ontology/zod-types.ttl"]
+standard_only = false
+
+[generation]
+output_dir = "../.."
+
+[inference]
+rules = [{ name = "identity", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } ORDER BY ?s ?p ?o" }]
+
+[[generation.rules]]
+name = "pydantic-all-types"
+query = { file = "../ggen/queries/extract-pydantic-models.rq" }
+template = { file = "../ggen/templates/pydantic-models.py.tera" }
+output_file = "src/wasm4pm_compat_pydantic/generated.py"
+mode = "Overwrite"
+
+[sync]
+enabled = true
+on_change = "manual"
+validate_after = true
+conflict_mode = "overwrite"
+
+[rdf]
+formats = ["turtle"]
+default_format = "turtle"
+strict_validation = true
+
+[templates]
+enable_caching = false
+auto_reload = true
+
+[output]
+formatting = "default"
+line_length = 100
+indent = 4
