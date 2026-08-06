@@ -1,0 +1,63 @@
+{
+  "source": {
+    "repository": "seanchatmangpt/POWL",
+    "upstream": "fit-process-mining/POWL",
+    "commit": "d2bae89b4f3a6375b56225ecfaf5eac3797900dc"
+  },
+  "model": {
+    "type": "ChoiceGraph",
+    "min_freq": 1,
+    "max_freq": 1,
+    "attributes": {"fixture": "fork-contract"},
+    "nodes": [
+      {
+        "type": "Activity",
+        "min_freq": 1,
+        "max_freq": 1,
+        "label": "Approve",
+        "organization": "Operations",
+        "role": "Reviewer",
+        "attributes": {"duplicate_label_instance": 1}
+      },
+      {
+        "type": "PartialOrder",
+        "min_freq": 1,
+        "max_freq": 1,
+        "attributes": {},
+        "nodes": [
+          {
+            "type": "Activity",
+            "min_freq": 1,
+            "max_freq": 1,
+            "label": "Prepare",
+            "organization": null,
+            "role": null,
+            "attributes": {}
+          },
+          {
+            "type": "Activity",
+            "min_freq": 1,
+            "max_freq": 1,
+            "label": null,
+            "organization": null,
+            "role": null,
+            "attributes": {}
+          },
+          {
+            "type": "Activity",
+            "min_freq": 1,
+            "max_freq": 1,
+            "label": "Approve",
+            "organization": "Operations",
+            "role": "Reviewer",
+            "attributes": {"duplicate_label_instance": 2}
+          }
+        ],
+        "edges": [[0, 1], [1, 2]]
+      }
+    ],
+    "edges": [[0, 1], [1, 0]],
+    "start_nodes": [0],
+    "end_nodes": [0]
+  }
+}
