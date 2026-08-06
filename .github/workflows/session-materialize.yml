@@ -1,17 +1,15 @@
 name: Session Materialization
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/ggen-pydantic-all-types
-    paths:
-      - .github/workflows/session-materialize.yml
+      - main
 
 permissions:
   contents: read
 
 concurrency:
-  group: session-materialize-${{ github.ref }}
+  group: session-materialize-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
