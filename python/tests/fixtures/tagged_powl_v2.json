@@ -2,7 +2,7 @@
   "source": {
     "repository": "seanchatmangpt/POWL",
     "upstream": "fit-process-mining/POWL",
-    "commit": "d2bae89b4f3a6375b56225ecfaf5eac3797900dc"
+    "commit": "2231f3be45e55c298be0599ac0ef379f6ae0ea68"
   },
   "model": {
     "type": "ChoiceGraph",

@@ -28,7 +28,7 @@ See [`RESEARCH_ALIGNMENT.md`](RESEARCH_ALIGNMENT.md) for the law-to-code matrix.
 
 The adapter targets `seanchatmangpt/POWL`, forked from
 `fit-process-mining/POWL`, at commit
-`d2bae89b4f3a6375b56225ecfaf5eac3797900dc`.
+`2231f3be45e55c298be0599ac0ef379f6ae0ea68`.
 
 The fork stores partial orders as DAG/transitive-reduction edges. The core model
 accepts that encoding and derives the full research relation with
