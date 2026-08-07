@@ -55,6 +55,9 @@ pub enum ProcessBoundaryKind {
     ClaimsReplay,
     /// The system advertises general process-mining support.
     ClaimsProcessMiningSupport,
+    /// The system claims coverage of one or more certification/assurance
+    /// controls (see [`crate::certification`]).
+    ClaimsCertificationCoverage,
 }
 
 impl ProcessBoundaryKind {
@@ -75,6 +78,7 @@ impl ProcessBoundaryKind {
             ProcessBoundaryKind::ClaimsReceipt => "claims_receipt",
             ProcessBoundaryKind::ClaimsReplay => "claims_replay",
             ProcessBoundaryKind::ClaimsProcessMiningSupport => "claims_process_mining_support",
+            ProcessBoundaryKind::ClaimsCertificationCoverage => "claims_certification_coverage",
         }
     }
 }
@@ -108,6 +112,9 @@ pub struct ProcessBoundary {
     pub has_conformance_fields: bool,
     /// Attests a receipt shape is present (required for receipt claims).
     pub has_receipt_shape: bool,
+    /// Attests a grounded certification/control mapping is present (required
+    /// for certification-coverage claims — see [`crate::certification`]).
+    pub has_certification_mapping: bool,
     /// Attests no engine-grade process-mining capability has grown here. `true`
     /// means "this boundary is claiming discovery/conformance/replay *execution*",
     /// which strict mode refuses — such capability must graduate to `wasm4pm`.
@@ -137,6 +144,7 @@ impl ProcessBoundary {
             has_refusal_path: true,
             has_conformance_fields: true,
             has_receipt_shape: true,
+            has_certification_mapping: true,
             exports_raw_evidence: false,
             hidden_pm_growth: false,
         }
@@ -168,6 +176,9 @@ pub enum StrictViolation {
     /// Engine-grade process-mining capability has grown here without graduating
     /// to `wasm4pm`.
     HiddenProcessMiningGrowth,
+    /// A certification-coverage-claiming boundary declared no grounded
+    /// control mapping.
+    MissingCertificationMapping,
 }
 
 impl StrictViolation {
@@ -188,6 +199,7 @@ impl StrictViolation {
             StrictViolation::MissingConformanceFields => "MissingConformanceFields",
             StrictViolation::MissingReceiptShape => "MissingReceiptShape",
             StrictViolation::HiddenProcessMiningGrowth => "HiddenProcessMiningGrowth",
+            StrictViolation::MissingCertificationMapping => "MissingCertificationMapping",
         }
     }
 }
@@ -266,6 +278,11 @@ impl StrictCheck for ProcessBoundary {
             v.push(StrictViolation::MissingReceiptShape);
         }
 
+        // Certification-coverage claims owe a grounded control mapping.
+        if matches!(self.kind, K::ClaimsCertificationCoverage) && !self.has_certification_mapping {
+            v.push(StrictViolation::MissingCertificationMapping);
+        }
+
         // Every serious, trust-bearing boundary owes a first-class refusal path.
         let owes_refusal = matches!(
             self.kind,
@@ -275,6 +292,7 @@ impl StrictCheck for ProcessBoundary {
                 | K::ClaimsReceipt
                 | K::ClaimsReplay
                 | K::ClaimsProcessMiningSupport
+                | K::ClaimsCertificationCoverage
         );
         if owes_refusal && !self.has_refusal_path {
             v.push(StrictViolation::MissingRefusalPath);

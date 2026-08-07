@@ -158,6 +158,12 @@
 
 /// Admission and refusal: the first-class boundary verdict surface.
 pub mod admission;
+/// Alignment claims: the move-classification shape of a conformance alignment
+/// (structure only — no cost function or optimal-alignment search).
+pub mod alignment;
+/// Authority envelopes: witness-tagged, digest-pinned capabilities gated by
+/// named policy constraints (structure only — no policy evaluation engine).
+pub mod authority;
 /// BPMN model shape.
 pub mod bpmn;
 /// Causal net structural shapes (Heuristics Miner output — Weijters & Ribeiro 2011).
@@ -168,6 +174,9 @@ pub mod causality;
 pub mod conformance;
 /// Cross-log correlation law: CorrelationKey, CorrelatedLog, CorrelationSchema shapes.
 pub mod correlation;
+/// Data quality claims: named event-log quality dimensions as a first-class,
+/// refusable claim shape (structure only — no quality scoring engine).
+pub mod data_quality;
 /// Declare constraint shape.
 pub mod declare;
 /// DfCM: Design-for-Combinatorial-Maximality Matrix (Vision 2030 §7).
@@ -188,12 +197,18 @@ pub mod law;
 pub mod loss;
 /// Multi-perspective process evidence: ControlFlow/Data/Resource/Time perspective markers.
 pub mod multiperspective;
+/// Object-centric conformance claims: `interop::ConformanceTriple` scoped per
+/// object type (structure only — no per-type fitness/precision computation).
+pub mod object_centric_conformance;
 /// Object lifecycle law: typed phase markers and lawful phase transitions.
 pub mod object_lifecycle;
 /// Object-centric event log (OCEL) shape.
 pub mod ocel;
 /// Object-centric process query (OCPQ) shape.
 pub mod ocpq;
+/// Process deltas: the online/incremental counterpart of `interop::ConformanceTriple`
+/// (structure only — no correlation or conformance-checking engine).
+pub mod process_delta;
 /// PDDL8 canonical types — bounded STRIPS planning algebra for the BRCE stack.
 /// Parser lives in `bcinr-pddl` (opt-in dep); these types are the cross-crate
 /// representation shared by bcinr-pddl, wasm4pm-cognition, and lsp-max.
@@ -269,6 +284,14 @@ pub mod engine_bridge;
 /// Import/export contracts, round-trip claims, and loss surfaces.
 #[cfg(feature = "formats")]
 pub mod formats;
+/// Certification/assurance envelopes: named control mappings over external
+/// frameworks (structure only — no assessment engine).
+///
+/// Gated by `strict` alongside `strict` itself, since certification coverage
+/// is a boundary-judgment concept (see
+/// `strict::ProcessBoundaryKind::ClaimsCertificationCoverage`).
+#[cfg(feature = "strict")]
+pub mod certification;
 /// Opt-in boundary judgment: strict admission/refusal declaration surfaces.
 #[cfg(feature = "strict")]
 pub mod strict;
