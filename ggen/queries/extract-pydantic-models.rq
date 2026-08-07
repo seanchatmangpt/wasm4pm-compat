@@ -1,0 +1,36 @@
+PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
+PREFIX zod: <https://wasm4pm-compat.rs/zod#>
+
+SELECT DISTINCT ?className ?rustType ?fieldName ?pythonName ?fieldType ?isOptional ?isArray ?hasAlias
+WHERE {
+  {
+    # Field-bearing runtime/data projections have authority over structural generic
+    # markers that collapse to the same Python identifier.
+    ?type compat:rustType ?rustType ;
+          zod:hasField ?field .
+    BIND(REPLACE(STR(?type), "^.*[#/]", "") AS ?localName)
+    BIND(IF(REGEX(STR(?rustType), "^[A-Za-z_][A-Za-z0-9_]*$"), STR(?rustType), ?localName) AS ?className)
+    ?field zod:fieldName ?fieldName .
+    OPTIONAL { ?field zod:fieldType ?fieldType . }
+    OPTIONAL { ?field zod:isOptional ?isOptional . }
+    OPTIONAL { ?field zod:isArray ?isArray . }
+    BIND(IF(?fieldName IN ("False", "None", "True", "and", "as", "assert", "async", "await", "break", "class", "continue", "def", "del", "elif", "else", "except", "finally", "for", "from", "global", "if", "import", "in", "is", "lambda", "match", "nonlocal", "not", "or", "pass", "raise", "return", "try", "while", "with", "yield"), CONCAT(?fieldName, "_"), ?fieldName) AS ?pythonName)
+    BIND(?pythonName != ?fieldName AS ?hasAlias)
+  }
+  UNION
+  {
+    # Marker/typestate/type-law projections are emitted only when no field-bearing
+    # model claims the same Python identifier.
+    ?type compat:rustType ?rustType .
+    BIND(REPLACE(STR(?type), "^.*[#/]", "") AS ?localName)
+    BIND(IF(REGEX(STR(?rustType), "^[A-Za-z_][A-Za-z0-9_]*$"), STR(?rustType), ?localName) AS ?className)
+    FILTER NOT EXISTS {
+      ?shaped compat:rustType ?shapedRustType ;
+              zod:hasField ?shapedField .
+      BIND(REPLACE(STR(?shaped), "^.*[#/]", "") AS ?shapedLocalName)
+      BIND(IF(REGEX(STR(?shapedRustType), "^[A-Za-z_][A-Za-z0-9_]*$"), STR(?shapedRustType), ?shapedLocalName) AS ?shapedClassName)
+      FILTER(?shapedClassName = ?className)
+    }
+  }
+}
+ORDER BY ?className ?fieldName ?rustType
