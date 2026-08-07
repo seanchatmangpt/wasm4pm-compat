@@ -1,0 +1,15 @@
+# SPARQL Query: Extract GymAct consequence-class SKOS concepts
+# Reads urn:gymact:scheme:consequence concepts (read/do) from the vendored
+# gymact profile.ttl. Each concept's prefLabel becomes a Rust enum variant name;
+# each concept's skos:definition (where present) becomes that variant's doc
+# comment, carried verbatim from the admitted ontology rather than re-derived.
+
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?concept ?prefLabel ?definition
+WHERE {
+  ?concept skos:inScheme <urn:gymact:scheme:consequence> ;
+           skos:prefLabel ?prefLabel .
+  OPTIONAL { ?concept skos:definition ?definition . }
+}
+ORDER BY ?prefLabel

@@ -6,7 +6,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
@@ -23,7 +23,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
@@ -40,7 +40,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
@@ -57,7 +57,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
@@ -74,7 +74,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric::<KIND, NUM, DEN>::new`
+note: required by a bound in `wasm4pm_compat::conformance::Metric::<KIND, NUM, DEN>::new`
   --> src/conformance.rs
    |
    |     Require<{ DEN > 0 }>: IsTrue,
@@ -91,7 +91,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric::<KIND, NUM, DEN>::new`
+note: required by a bound in `wasm4pm_compat::conformance::Metric::<KIND, NUM, DEN>::new`
   --> src/conformance.rs
    |
    |     Require<{ NUM <= DEN }>: IsTrue,
@@ -108,7 +108,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>
@@ -125,7 +125,7 @@ error[E0308]: mismatched types
    |
    = note: expected constant `false`
               found constant `true`
-note: required by a bound in `Metric`
+note: required by a bound in `wasm4pm_compat::conformance::Metric`
   --> src/conformance.rs
    |
    | pub struct Metric<const KIND: QualityMetricKind, const NUM: u64, const DEN: u64>

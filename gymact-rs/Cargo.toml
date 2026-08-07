@@ -1,0 +1,16 @@
+[package]
+name = "gymact-rs"
+version = "26.8.7"
+edition = "2021"
+description = "Rust projection of the GymAct public-semantic execution profile — a sidecar crate, ggen-generated from a vendored copy of the gymact (Python) package's admitted RDF/SHACL profile. Own lifecycle; excluded from the wasm4pm-compat workspace so it can move into its own repository later without disentanglement."
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+wasm4pm-compat = { path = ".." }
+
+# Empty workspace table: keeps this crate independently buildable/formattable
+# (cargo fmt/cargo check work standalone from within gymact-rs/) without being
+# folded into the wasm4pm-compat workspace — matches its excluded status in the
+# root Cargo.toml.
+[workspace]

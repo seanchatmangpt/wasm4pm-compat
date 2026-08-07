@@ -1,0 +1,23 @@
+# SPARQL Query: Extract GymAct interaction-pattern SKOS concepts
+# Reads urn:gymact:scheme:interaction concepts from the vendored gymact
+# profile.ttl. prefLabels are space-separated ("Episodic step", "Task harness",
+# ...) — not valid Rust enum-variant syntax as-is, so ?variantName binds the
+# exact PascalCase identifier per concept URI.
+
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?concept ?prefLabel ?definition ?variantName
+WHERE {
+  ?concept skos:inScheme <urn:gymact:scheme:interaction> ;
+           skos:prefLabel ?prefLabel .
+  OPTIONAL { ?concept skos:definition ?definition . }
+  BIND(
+    IF(?concept = <urn:gymact:interaction:episodic-step>, "EpisodicStep",
+    IF(?concept = <urn:gymact:interaction:task-harness>, "TaskHarness",
+    IF(?concept = <urn:gymact:interaction:tool-session>, "ToolSession",
+    IF(?concept = <urn:gymact:interaction:reconciliation>, "Reconciliation",
+    ?prefLabel))))
+    AS ?variantName
+  )
+}
+ORDER BY ?prefLabel

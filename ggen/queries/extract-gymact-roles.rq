@@ -1,0 +1,15 @@
+# SPARQL Query: Extract GymAct execution-role SKOS concepts
+# Reads urn:gymact:scheme:roles concepts (contestant/harness/verifier) from the
+# vendored gymact profile.ttl. Each concept's prefLabel is already a valid
+# single-word Rust enum variant name (Contestant/Harness/Verifier) — no
+# transform needed.
+
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?concept ?prefLabel ?definition
+WHERE {
+  ?concept skos:inScheme <urn:gymact:scheme:roles> ;
+           skos:prefLabel ?prefLabel .
+  OPTIONAL { ?concept skos:definition ?definition . }
+}
+ORDER BY ?prefLabel

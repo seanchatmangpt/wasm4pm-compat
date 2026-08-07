@@ -1,0 +1,43 @@
+error[E0277]: the trait bound `MissingAdmit: wasm4pm_compat::Admit` is not satisfied
+  --> tests/ui/compile_fail/gated_admit_requires_admit_supertrait.rs:22:5
+   |
+22 |     fn envelope(&self) -> &AuthorityEnvelope<Self::EnvelopeWitness> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `wasm4pm_compat::Admit` is not implemented for `MissingAdmit`
+  --> tests/ui/compile_fail/gated_admit_requires_admit_supertrait.rs:13:1
+   |
+13 | struct MissingAdmit {
+   | ^^^^^^^^^^^^^^^^^^^
+help: the trait `wasm4pm_compat::Admit` is implemented for `LinkedOcel`
+  --> src/ocel.rs
+   |
+   | impl crate::admission::Admit for LinkedOcel {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `GatedAdmit`
+  --> src/authority.rs
+   |
+   | pub trait GatedAdmit: crate::admission::Admit {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `GatedAdmit`
+
+error[E0277]: the trait bound `MissingAdmit: wasm4pm_compat::Admit` is not satisfied
+  --> tests/ui/compile_fail/gated_admit_requires_admit_supertrait.rs:19:21
+   |
+19 | impl GatedAdmit for MissingAdmit {
+   |                     ^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `wasm4pm_compat::Admit` is not implemented for `MissingAdmit`
+  --> tests/ui/compile_fail/gated_admit_requires_admit_supertrait.rs:13:1
+   |
+13 | struct MissingAdmit {
+   | ^^^^^^^^^^^^^^^^^^^
+help: the trait `wasm4pm_compat::Admit` is implemented for `LinkedOcel`
+  --> src/ocel.rs
+   |
+   | impl crate::admission::Admit for LinkedOcel {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `GatedAdmit`
+  --> src/authority.rs
+   |
+   | pub trait GatedAdmit: crate::admission::Admit {
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `GatedAdmit`

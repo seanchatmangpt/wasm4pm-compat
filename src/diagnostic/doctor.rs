@@ -957,6 +957,12 @@ fn route_intent(intent: Intent) -> RouteDecision {
 }
 
 fn feature_route(intent: Intent, target: RouteTarget, feature: &str) -> RouteDecision {
+    // Not a `matches!` candidate: each arm's `cfg!(...)` is a distinct
+    // compile-time value keyed to that specific feature, not a uniform
+    // `true` — collapsing to `matches!(feature, "formats" | "strict" |
+    // "wasm4pm")` would report a feature enabled whenever `feature` names
+    // any of the three, regardless of which one is actually compiled in.
+    #[allow(clippy::match_like_matches_macro)]
     let enabled = match feature {
         "formats" => cfg!(feature = "formats"),
         "strict" => cfg!(feature = "strict"),

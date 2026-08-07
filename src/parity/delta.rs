@@ -4,6 +4,11 @@
 //!
 //! - Const-generic delta containers over `[0, 1]`-bounded fitness/precision
 //!   values, carrying the *shape* of a baseline-vs-current comparison.
+//! - [`DriftClaim`]: the runtime-shaped sibling of [`DriftWitness`] — a
+//!   [`DriftKind`]-classified, variable-length change-point set. Neither type
+//!   computes drift; both state and refuse claim *shapes*.
+//! - [`DriftWitness`] remains the compile-time-proof shape for a `Sudden`
+//!   claim with a single, type-level-known change point.
 //!
 //! ## What this module is **NOT**
 //!
@@ -129,4 +134,124 @@ pub fn enforce_prediction_horizon_before_drift<
 where
     Require<{ HORIZON_STEPS <= CHANGE_POINT }>: IsTrue,
 {
+}
+
+// ── DriftClaim: the runtime-shaped, four-kind drift claim ───────────────────
+
+/// The named vocabulary of concept-drift kinds, per Bose & van der Aalst,
+/// *"Dealing with Concept Drifts in Process Mining,"* IEEE Transactions on
+/// Neural Networks and Learning Systems, 2014.
+///
+/// [`DriftWitness`]'s single `CHANGE_POINT: usize` const parameter is honest
+/// only for [`DriftKind::Sudden`]; [`DriftKind::Gradual`],
+/// [`DriftKind::Incremental`], and [`DriftKind::Recurring`] are
+/// runtime-observed, variable-length phenomena in the source taxonomy — see
+/// [`DriftClaim`] for their shape.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum DriftKind {
+    /// A single, abrupt change point.
+    Sudden,
+    /// A gradual transition between an old and a new process over a window.
+    Gradual,
+    /// A sequence of small, incremental changes.
+    Incremental,
+    /// A prior process recurs after one or more intervening changes.
+    Recurring,
+}
+
+/// A claimed drift: a [`DriftKind`] plus the runtime-observed change points,
+/// grounded to a process reference.
+///
+/// No significance/p-value computed — matching this crate's "claim, not
+/// measurement" discipline (see e.g. `crate::interop::ConformanceTriple`,
+/// `crate::alignment::AlignmentClaim`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DriftClaim {
+    /// The claimed drift kind.
+    pub kind: DriftKind,
+    /// The claimed change points (trace/event indices), in order.
+    pub change_points: Vec<usize>,
+    /// An opaque reference naming the process instance this claim is made
+    /// against (structure-only: never dereferenced here).
+    pub process_ref: String,
+}
+
+impl DriftClaim {
+    /// Claims `kind` at `change_points` against `process_ref`.
+    ///
+    /// ```
+    /// use wasm4pm_compat::parity::delta::{DriftClaim, DriftKind};
+    /// let c = DriftClaim::new(DriftKind::Sudden, vec![42], "case:1");
+    /// assert_eq!(c.change_points, vec![42]);
+    /// ```
+    #[must_use]
+    pub fn new(kind: DriftKind, change_points: Vec<usize>, process_ref: impl Into<String>) -> Self {
+        Self {
+            kind,
+            change_points,
+            process_ref: process_ref.into(),
+        }
+    }
+
+    /// Whether the claim carries a non-empty `process_ref` and at least one
+    /// change point.
+    ///
+    /// ```
+    /// use wasm4pm_compat::parity::delta::{DriftClaim, DriftKind};
+    /// assert!(!DriftClaim::new(DriftKind::Sudden, vec![], "case:1").is_grounded());
+    /// ```
+    #[must_use]
+    pub fn is_grounded(&self) -> bool {
+        !self.process_ref.trim().is_empty() && !self.change_points.is_empty()
+    }
+
+    /// Admits this claim, or refuses with a specific named law.
+    ///
+    /// A [`DriftKind::Sudden`] claim with more than one change point is
+    /// self-contradictory — a single change point is definitionally what
+    /// makes a drift "sudden" rather than gradual/incremental/recurring —
+    /// and is refused with [`DriftRefusal::SuddenDriftMultiplePoints`].
+    ///
+    /// ```
+    /// use wasm4pm_compat::parity::delta::{DriftClaim, DriftKind, DriftRefusal};
+    /// let bad = DriftClaim::new(DriftKind::Sudden, vec![1, 2], "case:1");
+    /// assert_eq!(bad.admit_flat(), Err(DriftRefusal::SuddenDriftMultiplePoints));
+    /// ```
+    #[must_use = "check the admission result"]
+    pub fn admit_flat(&self) -> Result<(), DriftRefusal> {
+        if self.process_ref.trim().is_empty() {
+            return Err(DriftRefusal::UngroundedDrift);
+        }
+        if self.change_points.is_empty() {
+            return Err(DriftRefusal::NoChangePointsClaimed);
+        }
+        if matches!(self.kind, DriftKind::Sudden) && self.change_points.len() != 1 {
+            return Err(DriftRefusal::SuddenDriftMultiplePoints);
+        }
+        Ok(())
+    }
+}
+
+/// First-class, specifically named refusals for the [`DriftClaim`] grammar.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
+pub enum DriftRefusal {
+    /// A [`DriftClaim`] carries an empty `process_ref`.
+    UngroundedDrift,
+    /// A [`DriftClaim`] carries an empty `change_points`.
+    NoChangePointsClaimed,
+    /// A [`DriftKind::Sudden`] claim carries more than one change point.
+    SuddenDriftMultiplePoints,
+}
+
+impl core::fmt::Display for DriftRefusal {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let law = match self {
+            DriftRefusal::UngroundedDrift => "UngroundedDrift",
+            DriftRefusal::NoChangePointsClaimed => "NoChangePointsClaimed",
+            DriftRefusal::SuddenDriftMultiplePoints => "SuddenDriftMultiplePoints",
+        };
+        write!(f, "drift refusal: {law}")
+    }
 }
