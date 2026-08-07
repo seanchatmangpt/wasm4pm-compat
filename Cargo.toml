@@ -55,6 +55,32 @@ exclude = [
   "wasm4pm-compat-ts/**",
   "**/node_modules/**",
   "**/*.backup",
+  # Repo-internal tooling/reports/agent-instruction dirs never needed by a
+  # consumer building this crate from the published source — found via
+  # `cargo package --allow-dirty --list` sweeping them in unintentionally.
+  ".chatmangpt/**",
+  ".cargo/**",
+  ".github/**",
+  "web/**",
+  "docs/**",
+  "scripts/**",
+  "audits/**",
+  "compatibility/**",
+  "ocel/**",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "SECURITY.md",
+  "anti-llm.toml",
+  "cicd.toml",
+  "ggen-witness.toml",
+  "clippy.toml",
+  "rustfmt.toml",
+  "Justfile",
+  "Makefile.toml",
+  "update_versions.py",
+  "AUDIT_SUMMARY_REPORT.md",
+  "DOC_COVERAGE_LOG.md",
+  "FORWARD_DEPLOYMENT.md",
 ]
 
 [lib]
