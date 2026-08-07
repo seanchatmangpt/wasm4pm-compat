@@ -5,6 +5,87 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
+## v26.8.7 — structural claim modules, gymact-rs sidecar, GatedAdmit ALIVE gate
+
+**Status:** ALIVE
+**Date:** 2026-08-07
+
+### Summary
+
+Adds six structure-only claim/admission modules following the crate's
+established `Admission`/`Witness`/`*Refusal` conventions (no engine logic,
+every refusal names a specific law):
+
+- `authority`: witness-tagged, digest-pinned `Capability` + `AuthorityEnvelope`,
+  gated by named `AuthorityConstraint` (digest pin, bounded scope, expiry,
+  data minimization, fairness attestation); `GatedAdmit` composes with
+  `admission::Admit` rather than replacing it.
+- `process_delta`: the online/incremental counterpart of
+  `interop::ConformanceTriple` — `ProcessDeltaKind` names the ways an observed
+  step can relate to an admitted process model, distinguishing unresolved
+  evidence (`IncompleteTrace`/`CorrelationAmbiguity`/`TelemetryGap`) from
+  positive conformance/deviation claims.
+- `certification` (`strict`-gated): named control mappings
+  over external frameworks (ISO 27001/FedRAMP/CSA CCM/PCI DSS); wires
+  `ProcessBoundaryKind::ClaimsCertificationCoverage` +
+  `StrictViolation::MissingCertificationMapping` into the existing strict
+  covenant.
+- `alignment`: the move-classification shape of a conformance alignment
+  (`Synchronous`/`LogOnly`/`ModelOnly`) — no cost function or
+  optimal-alignment search.
+- `data_quality`: named event-log quality dimensions
+  (`Completeness`/`Correctness`/`Confidence`/`Granularity`) as a refusable
+  claim shape.
+- `object_centric_conformance`: `interop::ConformanceTriple` scoped per object
+  type, refusing flat/unscoped claims over object-centric data.
+
+Also adds `parity::delta::DriftClaim` — a runtime-shaped, four-kind
+concept-drift claim (`DriftKind`: `Sudden`/`Gradual`/`Incremental`/
+`Recurring`, per Bose & van der Aalst, *"Dealing with Concept Drifts in
+Process Mining,"* IEEE TNNLS 2014), alongside the pre-existing const-generic
+`DriftWitness` (left unmodified — it remains the right shape for a `Sudden`
+claim inside a compile-time proof chain).
+
+### New sidecar crate: `gymact-rs`
+
+A Rust projection of the [GymAct](https://github.com/seanchatmangpt/gymact)
+public-semantic execution profile — a separate, pure-Python package
+(pydantic/fastapi/fastmcp/faststream/rdflib/pyshacl/typer). Vendors
+`gymact`'s admitted RDF/SHACL profile (via `gymact export-profile`) into
+`ggen/ontology/gymact/`, and `ggen/ggen_gymact.toml` manufactures four
+ggen-rendered Rust enums from its SKOS schemes:
+`ConsequenceClass`/`GymActRole`/`Standing`/`InteractionPattern` (13 concepts
+total). `gymact-rs/src/gate.rs` (hand-written, not ggen-rendered) pairs
+`ConsequenceClass` with `wasm4pm_compat::authority::AuthorityEnvelope` — the
+crate's first genuine exercise of `wasm4pm-compat`'s admission/authority
+vocabulary rather than a declared-but-unused dependency. `gymact-rs` is a
+workspace-`exclude`d, own-lifecycle sidecar (matching the existing
+`wasm4pm-compat-ts` precedent) — buildable standalone, intended to move into
+its own repository later without disentanglement.
+
+### Type-law receipts
+
+- `tests/ui/compile_fail/gated_admit_requires_admit_supertrait.rs` +
+  `.stderr`: proves `GatedAdmit: crate::admission::Admit`'s supertrait bound
+  is enforced — a type implementing only `GatedAdmit`'s items without `Admit`
+  fails with E0277 citing the exact bound.
+- `tests/ui/compile_pass/gated_admit_composes_with_admit.rs`: proves a type
+  implementing both traits correctly has both `check_gate()` and
+  `Admit::admit()` callable — the "wraps, never replaces" claim in
+  `authority.rs`'s own doc comment, made executable.
+
+### Verification
+
+- `cargo make ci` (check-all + test-all + clippy --all-features -D warnings +
+  fmt --check + alive trybuild gate) green on this commit.
+- Every new module ships a runnable `examples/*.rs` printing "All assertions
+  passed." and inline doctests, spot-checked via `cargo test --doc`.
+- `cd gymact-rs && cargo fmt/check/clippy -D warnings/test --doc/run --example
+  consequence_gate` all clean; root `cargo make check-all`/`clippy`/`test-all`
+  confirmed unaffected by the workspace `exclude`.
+
+---
+
 ## v26.6.15 — verification and types complete
 
 **Status:** ALIVE (CROWN target)
