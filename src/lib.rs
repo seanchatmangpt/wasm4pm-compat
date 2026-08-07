@@ -206,9 +206,6 @@ pub mod object_lifecycle;
 pub mod ocel;
 /// Object-centric process query (OCPQ) shape.
 pub mod ocpq;
-/// Process deltas: the online/incremental counterpart of `interop::ConformanceTriple`
-/// (structure only — no correlation or conformance-checking engine).
-pub mod process_delta;
 /// PDDL8 canonical types — bounded STRIPS planning algebra for the BRCE stack.
 /// Parser lives in `bcinr-pddl` (opt-in dep); these types are the cross-crate
 /// representation shared by bcinr-pddl, wasm4pm-cognition, and lsp-max.
@@ -225,6 +222,9 @@ pub mod prediction;
 pub mod prelude;
 /// Process cube dimensional structure (van der Aalst 2013 — multi-perspective comparison).
 pub mod process_cube;
+/// Process deltas: the online/incremental counterpart of `interop::ConformanceTriple`
+/// (structure only — no correlation or conformance-checking engine).
+pub mod process_delta;
 /// Process tree shape.
 pub mod process_tree;
 /// Receipt shape: provenance-bearing evidence envelope.
@@ -278,12 +278,6 @@ pub mod xes;
 
 // ── Feature-gated: capability stages ────────────────────────────────────────
 
-/// Graduation bridge traits toward the `wasm4pm` execution engine.
-#[cfg(feature = "wasm4pm")]
-pub mod engine_bridge;
-/// Import/export contracts, round-trip claims, and loss surfaces.
-#[cfg(feature = "formats")]
-pub mod formats;
 /// Certification/assurance envelopes: named control mappings over external
 /// frameworks (structure only — no assessment engine).
 ///
@@ -292,6 +286,12 @@ pub mod formats;
 /// `strict::ProcessBoundaryKind::ClaimsCertificationCoverage`).
 #[cfg(feature = "strict")]
 pub mod certification;
+/// Graduation bridge traits toward the `wasm4pm` execution engine.
+#[cfg(feature = "wasm4pm")]
+pub mod engine_bridge;
+/// Import/export contracts, round-trip claims, and loss surfaces.
+#[cfg(feature = "formats")]
+pub mod formats;
 /// Opt-in boundary judgment: strict admission/refusal declaration surfaces.
 #[cfg(feature = "strict")]
 pub mod strict;
