@@ -1,0 +1,28 @@
+# SPARQL Query: Extract GymAct evidence-standing SKOS concepts
+# Reads urn:gymact:scheme:standing concepts from the vendored gymact profile.ttl.
+# prefLabels are SCREAMING_SNAKE_CASE ("PARTIAL_ALIVE", "BUILD_BROKEN", ...) —
+# not valid Rust enum-variant syntax as-is, so ?variantName binds the exact
+# PascalCase identifier per concept URI, grounded to this repo's own existing
+# standing vocabulary (see CLAUDE.md / no-overclaiming-rust.md: Unknown/
+# PartialAlive/Alive/Blocked/BuildBroken/Unsupported/Refused).
+
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT DISTINCT ?concept ?prefLabel ?definition ?variantName
+WHERE {
+  ?concept skos:inScheme <urn:gymact:scheme:standing> ;
+           skos:prefLabel ?prefLabel .
+  OPTIONAL { ?concept skos:definition ?definition . }
+  BIND(
+    IF(?concept = <urn:gymact:standing:unknown>, "Unknown",
+    IF(?concept = <urn:gymact:standing:partial-alive>, "PartialAlive",
+    IF(?concept = <urn:gymact:standing:alive>, "Alive",
+    IF(?concept = <urn:gymact:standing:blocked>, "Blocked",
+    IF(?concept = <urn:gymact:standing:build-broken>, "BuildBroken",
+    IF(?concept = <urn:gymact:standing:unsupported>, "Unsupported",
+    IF(?concept = <urn:gymact:standing:refused>, "Refused",
+    ?prefLabel)))))))
+    AS ?variantName
+  )
+}
+ORDER BY ?prefLabel

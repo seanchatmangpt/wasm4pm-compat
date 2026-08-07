@@ -1,0 +1,91 @@
+# Vendored via: gymact export-profile <dir>  (see ~/gymact/src/gymact/cli.py)
+# Source package: gymact v26.8.7 (see ~/gymact/pyproject.toml)
+# Vendored at gymact commit: 55b2ad3
+# Do not hand-edit — re-vendor via `gymact export-profile <dir>` to update.
+#
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix pplan: <http://purl.org/net/p-plan#> .
+@prefix prof: <http://www.w3.org/ns/dx/prof/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix qudt: <http://qudt.org/schema/qudt/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix sosa: <http://www.w3.org/ns/sosa/> .
+@prefix td: <https://www.w3.org/2019/wot/td#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+
+<urn:gymact:profile:v26.8.7>
+    a prof:Profile, prov:Entity ;
+    dct:title "GymAct v26.8.7 public-semantic execution profile" ;
+    dct:description "Application profile for bounded executable benchmark worlds. GymAct owns profile/ABox identities, SKOS concepts, and SHACL shapes, not a competing custom ontology TBox." ;
+    dct:identifier "gymact-v26.8.7" ;
+    dct:hasVersion "26.8.7" ;
+    prof:isProfileOf prov:, pplan:, sosa:, td:, odrl:, sh:, earl:, dqv:, qudt:, dcat:, skos:, time: ;
+    prof:hasResource <urn:gymact:resource:profile-shacl> .
+
+<urn:gymact:resource:profile-shacl>
+    a prof:ResourceDescriptor ;
+    dct:title "GymAct profile SHACL constraints" ;
+    dct:format "text/turtle" ;
+    dct:conformsTo sh: .
+
+<urn:gymact:scheme:roles>
+    a skos:ConceptScheme ;
+    dct:title "GymAct execution roles" .
+
+<urn:gymact:role:contestant>
+    a skos:Concept ;
+    skos:inScheme <urn:gymact:scheme:roles> ;
+    skos:prefLabel "Contestant" .
+
+<urn:gymact:role:harness>
+    a skos:Concept ;
+    skos:inScheme <urn:gymact:scheme:roles> ;
+    skos:prefLabel "Harness" .
+
+<urn:gymact:role:verifier>
+    a skos:Concept ;
+    skos:inScheme <urn:gymact:scheme:roles> ;
+    skos:prefLabel "Verifier" .
+
+<urn:gymact:scheme:standing>
+    a skos:ConceptScheme ;
+    dct:title "GymAct evidence standing" .
+
+<urn:gymact:standing:unknown> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "UNKNOWN" .
+<urn:gymact:standing:partial-alive> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "PARTIAL_ALIVE" .
+<urn:gymact:standing:alive> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "ALIVE" .
+<urn:gymact:standing:blocked> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "BLOCKED" .
+<urn:gymact:standing:build-broken> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "BUILD_BROKEN" .
+<urn:gymact:standing:unsupported> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "UNSUPPORTED" .
+<urn:gymact:standing:refused> a skos:Concept ; skos:inScheme <urn:gymact:scheme:standing> ; skos:prefLabel "REFUSED" .
+
+<urn:gymact:scheme:consequence>
+    a skos:ConceptScheme ;
+    dct:title "GymAct capability consequence classes" .
+
+<urn:gymact:consequence:read>
+    a skos:Concept ;
+    skos:inScheme <urn:gymact:scheme:consequence> ;
+    skos:prefLabel "READ" ;
+    skos:definition "Observation-only capability; represented by SOSA observation semantics and never itself a consequential DO." .
+
+<urn:gymact:consequence:do>
+    a skos:Concept ;
+    skos:inScheme <urn:gymact:scheme:consequence> ;
+    skos:prefLabel "DO" ;
+    skos:definition "Consequential capability whose execution is represented by SOSA actuation semantics and requires an admitted external authority decision when the environment declares authority required." .
+
+<urn:gymact:scheme:interaction>
+    a skos:ConceptScheme ;
+    dct:title "Observed interaction patterns" ;
+    dct:description "Patterns are hypotheses learned from executable gyms, not ontology classes." .
+
+<urn:gymact:interaction:episodic-step> a skos:Concept ; skos:inScheme <urn:gymact:scheme:interaction> ; skos:prefLabel "Episodic step" .
+<urn:gymact:interaction:task-harness> a skos:Concept ; skos:inScheme <urn:gymact:scheme:interaction> ; skos:prefLabel "Task harness" .
+<urn:gymact:interaction:tool-session> a skos:Concept ; skos:inScheme <urn:gymact:scheme:interaction> ; skos:prefLabel "Tool session" .
+<urn:gymact:interaction:reconciliation> a skos:Concept ; skos:inScheme <urn:gymact:scheme:interaction> ; skos:prefLabel "Reconciliation" .

@@ -1,0 +1,57 @@
+# Run from the repository root (paths below are root-relative on purpose):
+#   cp ggen/ggen_gymact.toml ggen.toml && ggen sync run --dry-run   # preview
+#   cp ggen/ggen_gymact.toml ggen.toml && ggen sync run && rm ggen.toml
+# The installed ggen CLI (26.8.6) has no --manifest flag and reads only ./ggen.toml,
+# and refuses to write outside that directory (no ".." traversal) -- same
+# invocation convention as ggen/ggen_pydantic.toml.
+#
+# Generates gymact-rs/src/consequence.rs, a Rust projection of the vendored
+# GymAct public-semantic profile's urn:gymact:scheme:consequence SKOS concepts.
+# gymact-rs is a workspace-excluded sidecar crate (see root Cargo.toml
+# [workspace] exclude) with its own lifecycle, depending on this crate's
+# authority/admission/witness/receipt primitives rather than duplicating them.
+
+[project]
+name = "gymact-rs-gen"
+version = "26.8.7"
+description = "Rust projection of the GymAct public-semantic execution profile"
+authors = ["Sean Chatman"]
+license = "MIT"
+
+[ontology]
+source = "ggen/ontology/gymact/profile.ttl"
+imports = [
+  "ggen/ontology/gymact/profile.shacl.ttl"
+]
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "gymact-consequence"
+query = { file = "ggen/queries/extract-gymact-consequence.rq" }
+template = { file = "ggen/templates/gymact-consequence.rs.tera" }
+output_file = "gymact-rs/src/consequence.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "gymact-roles"
+query = { file = "ggen/queries/extract-gymact-roles.rq" }
+template = { file = "ggen/templates/gymact-roles.rs.tera" }
+output_file = "gymact-rs/src/role.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "gymact-standing"
+query = { file = "ggen/queries/extract-gymact-standing.rq" }
+template = { file = "ggen/templates/gymact-standing.rs.tera" }
+output_file = "gymact-rs/src/standing.rs"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "gymact-interaction"
+query = { file = "ggen/queries/extract-gymact-interaction.rq" }
+template = { file = "ggen/templates/gymact-interaction.rs.tera" }
+output_file = "gymact-rs/src/interaction.rs"
+mode = "Overwrite"

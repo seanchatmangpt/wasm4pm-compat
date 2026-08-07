@@ -148,5 +148,11 @@ exclude = [
   # dependency currently fails a naive workspace build (E0432). It does not
   # gate the core crate release — build it with -p wasm4pm-compat-lsp.
   "wasm4pm-compat-lsp",
+  # gymact sidecar: Rust projection of the GymAct public-semantic profile,
+  # ggen-generated from a vendored copy of ~/gymact's ontology. Own lifecycle,
+  # intended to move into its own repo later — built standalone with
+  # `cargo check -p gymact-rs` from within `gymact-rs/`, not gated by
+  # `cargo make ci`.
+  "gymact-rs",
 ]
 resolver = "2"
