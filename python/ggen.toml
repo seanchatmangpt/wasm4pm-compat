@@ -11,7 +11,7 @@ imports = ["../ggen/ontology/zod-types.ttl"]
 standard_only = false
 
 [generation]
-output_dir = "../.."
+output_dir = "."
 
 [inference]
 rules = [{ name = "identity", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } ORDER BY ?s ?p ?o" }]
