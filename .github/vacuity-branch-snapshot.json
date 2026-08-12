@@ -1,0 +1,27 @@
+{
+  "repository": "seanchatmangpt/wasm4pm-compat",
+  "captured_at": "2026-08-12T12:15:00-07:00",
+  "canonical_base": "81ceb8c9c95a09aee9d3dafcb6e98ef0de85840c",
+  "branches": {
+    "agent/chatmangpt-namespace-26.7.29": "ca5900d1c3dddae71caabdbcf7c8536b442bfa11",
+    "agent/ggen-26.7.62-convergence": "c29d807f14e01236fed28afbb760ad5c1dadf08a",
+    "agent/ggen-v26.7.31-retrofit": "a25a97512ef42ff9a97f6c53d799ed9aef086bc0",
+    "agent/mfw-safe-planner-executor": "5bd8cb66ade0269604b62254bb483ef90f42b2bb",
+    "agent/pc-powl2-wire": "c3edd4c25663f5ef6a552abb2a1b9e8d23ac4d5b",
+    "agent/powl-ci-admission": "c8db33493faa5c4043b8ce8b5c8a947372a43880",
+    "agent/powl-fork-contract-pin": "da8387eb020144843de683443f605078e45ba2e2",
+    "agent/powl-research-alignment": "7ea1249e484d8884c3dc478109798a2356dbb096",
+    "agent/powl-v2-pydantic": "b8b37b8db508b850bef99cc8d0e2f39fc90fb621",
+    "agent/v26.7.24-quick-xml-security": "4d44275c29eb67d3ff5fcbf180250a098885d234",
+    "agent/vision2030-dx-doctor": "3c501aec6bc9c06fce77ffdbf62c2eaec130b0c6",
+    "agent/wasm4pm-procint-d1": "62d97a11dbc10cff9cdbfd8776e1fc9885f6c16c",
+    "agent/80-20-innovation-contract": "918c35070087897872ca9908d5100fde8c8960f9",
+    "claude/epic-turing-z89dvx": "ada2e5b9aa430ba6403855dcafd0da4a50470faa",
+    "feat/compat-ts": "4a96a95dddd1f274b4d6259a84f84bd2394389ff",
+    "feat/paper-fidelity-ontology": "346ca64735c2d2f4f65cb5a1c3af0a689fc383fe",
+    "feat/wip-examples-web-coverage": "dff56061927568e77ee35181bb36e3ffa9563429",
+    "fix/breed-doc-citation-duplication": "6e32757b6e1ced2c1927fa2f19342f3b9c759147",
+    "main": "81ceb8c9c95a09aee9d3dafcb6e98ef0de85840c",
+    "wip/examples-web-gap-closures": "dff56061927568e77ee35181bb36e3ffa9563429"
+  }
+}
