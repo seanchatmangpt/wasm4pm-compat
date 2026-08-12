@@ -1,0 +1,65 @@
+name: exhaustive-vacuity-audit
+
+on:
+  push:
+    branches:
+      - agent/exhaustive-vacuity-audit-20260812
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout audit machinery
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch all frozen branch objects
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --prune origin '+refs/heads/*:refs/remotes/origin/*'
+          python3 - <<'PY'
+          import json
+          import subprocess
+          from pathlib import Path
+
+          snapshot = json.loads(Path('.github/vacuity-branch-snapshot.json').read_text())
+          missing = []
+          for branch, sha in snapshot['branches'].items():
+              result = subprocess.run(['git', 'cat-file', '-e', f'{sha}^{{commit}}'])
+              if result.returncode != 0:
+                  missing.append((branch, sha))
+          if missing:
+              raise SystemExit(f'missing frozen branch objects: {missing}')
+          print(f"admitted {len(snapshot['branches'])} refs / {len(set(snapshot['branches'].values()))} unique tips")
+          PY
+
+      - name: Audit every frozen branch and file object
+        run: |
+          set -euo pipefail
+          python3 scripts/audit_vacuity.py
+
+      - name: Publish audit summary
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f target/vacuity-audit.md ]]; then
+            cat target/vacuity-audit.md >> "$GITHUB_STEP_SUMMARY"
+            cat target/vacuity-audit.md
+          fi
+
+      - name: Upload machine-readable audit receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: exhaustive-vacuity-audit
+          path: |
+            target/vacuity-audit.json
+            target/vacuity-audit.md
+          if-no-files-found: error
