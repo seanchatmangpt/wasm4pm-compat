@@ -1,0 +1,29 @@
+PREFIX rdf:    <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX xsd:    <http://www.w3.org/2001/XMLSchema#>
+PREFIX compat: <https://wasm4pm.dev/ns#>
+
+# One row per breed with a real, human-authored algorithm_statement (see
+# breed-vocabulary.ttl's module docstring for the verbatim-copy-only
+# discipline that field is held to) -- requiring it bound is what scopes
+# this query to exactly the pilot breeds that have one, with zero extra
+# filtering logic needed as more breeds are added later.
+SELECT ?breed_id ?breed_label ?citation ?algorithm_statement ?algorithm_statement_source
+       ?pointer_value ?pointer_locus ?pointer_derivation ?hardcode_lockable
+WHERE {
+  ?b a compat:CognitionBreed ;
+     compat:breedId ?breed_id ;
+     compat:algorithmStatement ?algorithm_statement ;
+     compat:algorithmStatementSource ?algorithm_statement_source .
+  OPTIONAL { ?b compat:breedLabel ?breed_label }
+  OPTIONAL { ?b compat:citation ?citation }
+  OPTIONAL {
+    ?pp a compat:PaperPointer ;
+        compat:forBreed ?b ;
+        compat:pointerKind "true" ;
+        compat:pointerValue ?pointer_value ;
+        compat:pointerLocus ?pointer_locus .
+    OPTIONAL { ?pp compat:pointerDerivation ?pointer_derivation }
+    OPTIONAL { ?pp compat:hardcodeLockable ?hardcode_lockable }
+  }
+}
+ORDER BY ?breed_id
