@@ -1,0 +1,130 @@
+name: ERRC Reconstitution Proof
+
+on:
+  push:
+    branches:
+      - agent/errc-reconstitution-20260812
+  pull_request:
+    paths:
+      - 'scripts/errc.py'
+      - 'scripts/test_errc.py'
+      - '.github/workflows/errc-proof.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  exact-evidence-proof:
+    name: Exact evidence compression / replay / falsification
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout exact subject
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Bind exact head
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "${#GITHUB_SHA}" -eq 40
+          printf 'ERRC_SUBJECT=%s@%s\n' "$GITHUB_REPOSITORY" "$GITHUB_SHA"
+
+      - name: Run ERRC law and falsification suite
+        run: python -m unittest -v scripts.test_errc
+
+      - name: Exercise CLI manufacture and independent replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/errc-matrix.json <<'JSON'
+          {
+            "schema": "errc.matrix.v2",
+            "tests": ["test-a", "test-b", "test-c", "test-d"],
+            "falsifiers": ["mutant-a", "mutant-b", "mutant-c"],
+            "observations": {
+              "test-a": {"mutant-a": "KILL", "mutant-b": "SURVIVE", "mutant-c": "SURVIVE"},
+              "test-b": {"mutant-a": "KILL", "mutant-b": "SURVIVE", "mutant-c": "SURVIVE"},
+              "test-c": {"mutant-a": "SURVIVE", "mutant-b": "KILL", "mutant-c": "SURVIVE"},
+              "test-d": {"mutant-a": "SURVIVE", "mutant-b": "SURVIVE", "mutant-c": "KILL"}
+            }
+          }
+          JSON
+          python scripts/errc.py compress \
+            --input /tmp/errc-matrix.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --head "$GITHUB_SHA" \
+            --output /tmp/errc-receipt.json
+          python scripts/errc.py verify \
+            --input /tmp/errc-matrix.json \
+            --receipt /tmp/errc-receipt.json \
+            --output /tmp/errc-verdict.json
+          cat /tmp/errc-verdict.json
+
+      - name: Deliberately sabotage receipt and require refusal
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          p = '/tmp/errc-receipt.json'
+          receipt = json.load(open(p, encoding='utf-8'))
+          receipt['retained_tests'] = receipt['retained_tests'][:-1]
+          json.dump(receipt, open('/tmp/errc-sabotaged.json', 'w', encoding='utf-8'), sort_keys=True)
+          PY
+          if python scripts/errc.py verify --input /tmp/errc-matrix.json --receipt /tmp/errc-sabotaged.json; then
+            echo 'ERRC accepted sabotaged evidence' >&2
+            exit 1
+          fi
+          echo 'Typed tamper refusal observed.'
+
+      - name: Issue hosted standing evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os
+          receipt = json.load(open('/tmp/errc-receipt.json', encoding='utf-8'))
+          verdict = json.load(open('/tmp/errc-verdict.json', encoding='utf-8'))
+          standing = {
+            'schema': 'errc.hosted-standing.v1',
+            'repository': os.environ['GITHUB_REPOSITORY'],
+            'head': os.environ['GITHUB_SHA'],
+            'standing': 'ALIVE',
+            'receipt_digest': receipt['receipt_digest'],
+            'replay_status': verdict['status'],
+            'evidence': [
+              '11-law-unit-falsification-suite',
+              'exact-head-binding',
+              'cli-manufacture',
+              'independent-replay',
+              'deliberate-tamper-refusal'
+            ]
+          }
+          with open('/tmp/errc-standing.json', 'w', encoding='utf-8') as out:
+              json.dump(standing, out, sort_keys=True, indent=2)
+              out.write('\n')
+          PY
+          cat /tmp/errc-standing.json
+          {
+            echo '## ERRC hosted proof'
+            echo
+            echo '```json'
+            cat /tmp/errc-standing.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload replayable evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: errc-proof-${{ github.sha }}
+          path: |
+            /tmp/errc-matrix.json
+            /tmp/errc-receipt.json
+            /tmp/errc-verdict.json
+            /tmp/errc-standing.json
+          if-no-files-found: error
+          retention-days: 30
