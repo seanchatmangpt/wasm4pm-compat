@@ -59,8 +59,14 @@ fn basic_catalog_has_one_connector_per_format() {
 fn basic_catalog_identity_is_total_and_unique() {
     for (index, spec) in BASIC_CONNECTORS.iter().enumerate() {
         assert!(!spec.id.is_empty(), "connector id must be named");
-        assert!(!spec.media_type.is_empty(), "connector media type must be named");
-        assert!(!spec.extension.is_empty(), "connector extension must be named");
+        assert!(
+            !spec.media_type.is_empty(),
+            "connector media type must be named"
+        );
+        assert!(
+            !spec.extension.is_empty(),
+            "connector extension must be named"
+        );
 
         for other in &BASIC_CONNECTORS[index + 1..] {
             assert_ne!(spec.id, other.id, "connector ids must be unique");
