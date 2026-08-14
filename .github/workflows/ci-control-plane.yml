@@ -39,6 +39,8 @@ jobs:
           test -f ggen/templates/gall-checkpoints.rs.tera
           test -f tests/fixtures/ggen_standing_projection.rs
           test -f tests/fixtures/ggen_gall_checkpoints.rs
+          test -f definition-of-done.toml
+          test -f scripts/verify-definition-of-done.py
           ! grep -R --line-number '/Users/' \
             ggen/standing.ggen.toml \
             ggen/ontology/standing-law.ttl \
@@ -194,10 +196,39 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  definition_of_done:
+    name: ci/definition-of-done
+    if: always()
+    needs: [admission, inspection, capabilities, gall_checkpoints]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Verify Definition of Done contract
+        env:
+          DOD_SOURCE_COMMIT: ${{ github.sha }}
+          DOD_ADMISSION_RESULT: ${{ needs.admission.result }}
+          DOD_INSPECTION_RESULT: ${{ needs.inspection.result }}
+          DOD_CAPABILITIES_RESULT: ${{ needs.capabilities.result }}
+          DOD_GALL_RESULT: ${{ needs.gall_checkpoints.result }}
+          DOD_RECEIPT_PATH: target/definition-of-done/receipt.json
+        run: python3 scripts/verify-definition-of-done.py
+      - name: Upload Definition of Done receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: definition-of-done-${{ github.sha }}
+          path: target/definition-of-done/receipt.json
+          if-no-files-found: error
+          retention-days: 30
+
   standing:
     name: ci/standing
     if: always()
-    needs: [admission, inspection, capabilities, gall_checkpoints]
+    needs: [admission, inspection, capabilities, gall_checkpoints, definition_of_done]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -218,10 +249,12 @@ jobs:
           GGEN_INSPECTION_RESULT: ${{ needs.inspection.result }}
           GGEN_CAPABILITIES_RESULT: ${{ needs.capabilities.result }}
           GGEN_GALL_RESULT: ${{ needs.gall_checkpoints.result }}
+          GGEN_DOD_RESULT: ${{ needs.definition_of_done.result }}
           GGEN_RECEIPT_PATH: target/ggen-standing/receipt.json
         shell: bash
         run: |
           set -euo pipefail
+          test "${GGEN_DOD_RESULT}" = "success"
           export GGEN_SOURCE_TREE="$(git rev-parse HEAD^{tree})"
           cargo test --locked --test ggen_manufacturing_contract -- --nocapture
           python3 - <<'PY'
