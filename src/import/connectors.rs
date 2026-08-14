@@ -24,9 +24,7 @@ impl ConnectorDirection {
     pub const fn allows(self, requested: Self) -> bool {
         matches!(
             (self, requested),
-            (Self::Bidirectional, _)
-                | (Self::Import, Self::Import)
-                | (Self::Export, Self::Export)
+            (Self::Bidirectional, _) | (Self::Import, Self::Import) | (Self::Export, Self::Export)
         )
     }
 }
@@ -276,7 +274,10 @@ mod tests {
         ];
         assert_eq!(BASIC_CONNECTORS.len(), formats.len());
         for format in formats {
-            assert_eq!(basic_connector(format).map(|spec| spec.format), Some(format));
+            assert_eq!(
+                basic_connector(format).map(|spec| spec.format),
+                Some(format)
+            );
         }
     }
 
