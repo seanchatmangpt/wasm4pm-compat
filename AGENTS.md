@@ -53,6 +53,29 @@ Execution receipts report what actually happened; they do not rewrite source law
 - `PARTIAL_ALIVE`: a bounded checkpoint passed, but the full crown is incomplete.
 - `ALIVE`: the exact-tree external verifier admitted every required positive, negative, checkpoint, and receipt/replay obligation.
 
+## Definitions of Done
+
+`definition-of-done.toml` is the admitted Definition of Done carrier and
+`scripts/verify-definition-of-done.py` is its bounded verifier. Definitions of Done
+are conjunctive evidence contracts; they are not status labels and may not weaken a
+failed check into success.
+
+- **Capability Done (`DOD-CAPABILITY`)** requires bounded scope, named refusals,
+  positive and negative verification, formatting, Clippy, and unit/integration
+  evidence. Its maximum local standing is `PARTIAL_ALIVE`.
+- **Pull Request Done (`DOD-PR`)** requires successful admission, inspection,
+  capabilities, and Gall-checkpoint lanes for one exact commit/tree, plus a
+  Definition of Done receipt. It also requires the external standing lane before the
+  pull request can be considered complete. Its verifier still emits only
+  `PARTIAL_ALIVE`.
+- **Release Done (`DOD-RELEASE`)** requires exact-subject `ALIVE` standing, successful
+  CI Control Plane, Build Matrix, Security Release, Doctor Multi-Runner, and Repair
+  Rustfmt workflows on that same head, plus explicit owner merge authorization.
+
+The CI control plane contains a dependency-closed `ci/definition-of-done` gate between
+its evidence lanes and `ci/standing`. `ci/standing` must refuse when that DoD gate is
+not successful. Only `ci/standing` may assign `ALIVE`.
+
 ## Gall checkpoint ladder
 
 The canonical graph defines exactly ten incremental checkpoints:

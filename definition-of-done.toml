@@ -1,0 +1,54 @@
+schema = "wasm4pm-compat/definition-of-done/v1"
+verifier = "scripts/verify-definition-of-done.py"
+
+[capability]
+id = "DOD-CAPABILITY"
+standing = "PARTIAL_ALIVE"
+required_evidence = [
+  "bounded-scope",
+  "named-refusal",
+  "positive-verification",
+  "negative-verification",
+  "format",
+  "clippy",
+  "unit-integration",
+]
+
+[pull_request]
+id = "DOD-PR"
+standing = "PARTIAL_ALIVE"
+required_lanes = [
+  "admission",
+  "inspection",
+  "capabilities",
+  "gall_checkpoints",
+]
+requires_exact_subject = true
+requires_definition_receipt = true
+requires_external_standing = true
+
+[release]
+id = "DOD-RELEASE"
+required_standing = "ALIVE"
+requires_exact_subject = true
+requires_owner_merge_authorization = true
+required_workflows = [
+  "CI Control Plane",
+  "Build Matrix",
+  "Security Release",
+  "Doctor Multi-Runner",
+  "Repair Rustfmt",
+]
+
+[dfcm]
+formats = 7
+directions = 3
+transports = 4
+feature_axes = 3
+construction_cells = 84
+admission_cells = 49
+feature_cells = 8
+
+[features]
+axes = ["formats", "strict", "wasm4pm"]
+default = ["formats"]
