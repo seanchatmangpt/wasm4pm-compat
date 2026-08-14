@@ -4,10 +4,5 @@ error[E0599]: the associated function or constant `new` exists for struct `Bipar
 19 |     let arc = BipartiteArcConst::<{ ArcDirectionConst::PlaceToTransition }, String>::new(
    |                                                                                      ^^^ associated function or constant cannot be called due to unsatisfied trait bounds
    |
-  ::: $RUST/alloc/src/string.rs
-   |
-   | pub struct String {
-   | ----------------- doesn't satisfy `std::string::String: Copy`
-   |
    = note: the following trait bounds were not satisfied:
            `std::string::String: Copy`

@@ -28,6 +28,3 @@ help: the type constructed contains `LossReport<_, _, Vec<&str>>` due to the typ
    |                this argument influences the type of `Err`
 note: tuple variant defined here
   --> $RUST/core/src/result.rs
-   |
-   |     Err(#[stable(feature = "rust1", since = "1.0.0")] E),
-   |     ^^^
