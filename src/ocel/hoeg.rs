@@ -316,9 +316,7 @@ mod tests {
             EventObjectLink::new("event-1", "item-1").qualified("item"),
             EventObjectLink::new("event-2", "order-1").qualified("order"),
         ];
-        let mut o2o = vec![
-            ObjectObjectLink::new("order-1", "item-1").qualified("contains"),
-        ];
+        let mut o2o = vec![ObjectObjectLink::new("order-1", "item-1").qualified("contains")];
 
         if reverse_events {
             events.reverse();
