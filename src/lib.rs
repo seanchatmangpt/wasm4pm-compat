@@ -278,6 +278,10 @@ pub mod xes;
 
 // ── Feature-gated: capability stages ────────────────────────────────────────
 
+/// Arazzo 1.1 structural compatibility types (structure only — no parsing,
+/// admission, or execution; those belong to wasm4pm).
+#[cfg(feature = "formats")]
+pub mod arazzo;
 /// Certification/assurance envelopes: named control mappings over external
 /// frameworks (structure only — no assessment engine).
 ///
