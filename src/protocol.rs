@@ -35,6 +35,9 @@ pub enum ConsequenceClass {
 }
 
 /// Evidence standing for one exact subject.
+///
+/// `REFUSED` is intentionally absent. Refusal is a typed disposition, not an
+/// evidence standing and must never be collapsed into this enum.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum ProtocolStanding {
@@ -44,7 +47,6 @@ pub enum ProtocolStanding {
     Blocked,
     BuildBroken,
     Unsupported,
-    Refused,
 }
 
 /// A transport projection of one semantic capability.
@@ -151,6 +153,11 @@ impl CapabilityContract {
                 capability_id: self.id.clone(),
             });
         }
+        if matches!(self.custom_semantic_iri.as_deref(), Some(iri) if iri.trim().is_empty()) {
+            refusals.push(ProtocolRefusal::EmptyCustomSemantic {
+                capability_id: self.id.clone(),
+            });
+        }
         if self.semantic_digest.trim().is_empty() {
             refusals.push(ProtocolRefusal::MissingSemanticDigest {
                 capability_id: self.id.clone(),
@@ -200,6 +207,7 @@ pub enum SurfaceDisposition {
         reason: String,
     },
     Refused {
+        code: String,
         reason: String,
     },
 }
@@ -262,6 +270,7 @@ impl SurfaceBinding {
         capability_id: impl Into<String>,
         surface: SurfaceKind,
         semantic_digest: impl Into<String>,
+        code: impl Into<String>,
         reason: impl Into<String>,
     ) -> Self {
         Self {
@@ -269,6 +278,7 @@ impl SurfaceBinding {
             surface,
             semantic_digest: semantic_digest.into(),
             disposition: SurfaceDisposition::Refused {
+                code: code.into(),
                 reason: reason.into(),
             },
             ambient_authority: false,
@@ -350,14 +360,25 @@ impl ProtocolBundle {
                         surface: binding.surface,
                     });
                 }
-                SurfaceDisposition::Unsupported { reason }
-                | SurfaceDisposition::Refused { reason }
-                    if reason.trim().is_empty() =>
-                {
+                SurfaceDisposition::Unsupported { reason } if reason.trim().is_empty() => {
                     refusals.push(ProtocolRefusal::EmptyDispositionReason {
                         capability_id: binding.capability_id.clone(),
                         surface: binding.surface,
                     });
+                }
+                SurfaceDisposition::Refused { code, reason } => {
+                    if code.trim().is_empty() {
+                        refusals.push(ProtocolRefusal::EmptyRefusalCode {
+                            capability_id: binding.capability_id.clone(),
+                            surface: binding.surface,
+                        });
+                    }
+                    if reason.trim().is_empty() {
+                        refusals.push(ProtocolRefusal::EmptyDispositionReason {
+                            capability_id: binding.capability_id.clone(),
+                            surface: binding.surface,
+                        });
+                    }
                 }
                 _ => {}
             }
@@ -640,15 +661,21 @@ impl DoEnvelope {
         if receipt.replay_contract.trim().is_empty() {
             refusals.push(ProtocolRefusal::MissingReplayContract);
         }
+        if matches!(receipt.parent_receipt_digest.as_deref(), Some(parent) if parent.trim().is_empty())
+        {
+            refusals.push(ProtocolRefusal::EmptyParentReceiptDigest);
+        }
 
-        if refusals.is_empty() {
-            Ok(Self {
-                intent: intent.expect("intent exists when refusals are empty"),
+        if !refusals.is_empty() {
+            return Err(refusals);
+        }
+        match intent {
+            Some(intent) => Ok(Self {
+                intent,
                 authority,
                 receipt,
-            })
-        } else {
-            Err(refusals)
+            }),
+            None => Err(vec![ProtocolRefusal::DoIntentUnavailable]),
         }
     }
 
@@ -685,6 +712,9 @@ pub enum ProtocolRefusal {
         capability_id: String,
     },
     MissingPublicSemantic {
+        capability_id: String,
+    },
+    EmptyCustomSemantic {
         capability_id: String,
     },
     MissingSemanticDigest {
@@ -733,6 +763,10 @@ pub enum ProtocolRefusal {
         capability_id: String,
         surface: SurfaceKind,
     },
+    EmptyRefusalCode {
+        capability_id: String,
+        surface: SurfaceKind,
+    },
     ConsequenceClassMismatch {
         capability_id: String,
         expected: ConsequenceClass,
@@ -754,4 +788,6 @@ pub enum ProtocolRefusal {
     MissingReceiptVersion,
     MissingReceiptDigestAlgorithm,
     MissingReplayContract,
+    EmptyParentReceiptDigest,
+    DoIntentUnavailable,
 }
