@@ -30,8 +30,8 @@ pub use pc_powl2::{
 pub use protocol::{
     AuthorityDecisionRef, AuthorityMode, CapabilityContract, ConsequenceClass, ConstructPhase,
     DoEnvelope, DoPhase, EventWireFormat, Intent as ProtocolIntent, PhaseMarker, ProtocolBundle,
-    ProtocolRefusal, ProtocolStanding, ReceiptPolicy, ReceiptRequirement, SelectPhase,
-    SubjectRef, SurfaceBinding, SurfaceDisposition, SurfaceKind, PROTOCOL_SURFACES,
+    ProtocolRefusal, ProtocolStanding, ReceiptPolicy, ReceiptRequirement, SelectPhase, SubjectRef,
+    SurfaceBinding, SurfaceDisposition, SurfaceKind, PROTOCOL_SURFACES,
 };
 
 pub use crate::witness::{Witness, WitnessFamily};

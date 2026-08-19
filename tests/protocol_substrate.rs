@@ -79,10 +79,12 @@ fn missing_transport_binding_is_refused() {
         .surfaces
         .retain(|binding| binding.surface != SurfaceKind::Mcp);
 
-    assert!(bundle.validate().contains(&ProtocolRefusal::MissingSurfaceBinding {
-        capability_id: "deploy.application".into(),
-        surface: SurfaceKind::Mcp,
-    }));
+    assert!(bundle
+        .validate()
+        .contains(&ProtocolRefusal::MissingSurfaceBinding {
+            capability_id: "deploy.application".into(),
+            surface: SurfaceKind::Mcp,
+        }));
 }
 
 #[test]
@@ -139,9 +141,11 @@ fn consequential_do_requires_authority_and_receiptability() {
     assert!(refusals.contains(&ProtocolRefusal::DoWithoutAuthority {
         capability_id: "deploy.application".into(),
     }));
-    assert!(refusals.contains(&ProtocolRefusal::DoWithoutRequiredReceipt {
-        capability_id: "deploy.application".into(),
-    }));
+    assert!(
+        refusals.contains(&ProtocolRefusal::DoWithoutRequiredReceipt {
+            capability_id: "deploy.application".into(),
+        })
+    );
 }
 
 #[test]
@@ -178,14 +182,8 @@ fn do_envelope_binds_exact_subject_authority_and_receipt_contract() {
     );
     let receipt = ReceiptRequirement::new("ce-receipt/1", "blake3", "ce-replay/1");
 
-    let envelope = DoEnvelope::try_new(
-        &capability,
-        subject,
-        "blake3:input",
-        authority,
-        receipt,
-    )
-    .unwrap();
+    let envelope =
+        DoEnvelope::try_new(&capability, subject, "blake3:input", authority, receipt).unwrap();
 
     assert_eq!(envelope.intent().consequence_class(), ConsequenceClass::Do);
     assert!(!envelope.intent().reversible());
@@ -204,17 +202,10 @@ fn authority_for_another_subject_is_refused_before_runtime() {
     );
     let receipt = ReceiptRequirement::new("ce-receipt/1", "blake3", "ce-replay/1");
 
-    let refusals = DoEnvelope::try_new(
-        &capability,
-        subject,
-        "blake3:input",
-        authority,
-        receipt,
-    )
-    .unwrap_err();
+    let refusals =
+        DoEnvelope::try_new(&capability, subject, "blake3:input", authority, receipt).unwrap_err();
 
-    assert!(refusals.iter().any(|refusal| matches!(
-        refusal,
-        ProtocolRefusal::AuthoritySubjectMismatch { .. }
-    )));
+    assert!(refusals
+        .iter()
+        .any(|refusal| matches!(refusal, ProtocolRefusal::AuthoritySubjectMismatch { .. })));
 }
