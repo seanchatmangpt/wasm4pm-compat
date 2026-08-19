@@ -3,11 +3,13 @@
 //! `use wasm4pm_compat::prelude::*;` brings in the core process-evidence shapes
 //! ([`crate::event_log::Event`], [`crate::event_log::Trace`],
 //! [`crate::event_log::EventLog`], [`crate::ocel::OcelLog`]), typestate tokens,
-//! witness markers, boundary laws, and the bounded compatibility doctor.
+//! witness markers, boundary laws, the federated protocol substrate, and the
+//! bounded compatibility doctor.
 //!
 //! This prelude re-exports **structure only**. None of these types run
-//! discovery, conformance, replay, alignment, or optimization. When you need
-//! execution, graduate to the `wasm4pm` engine (see the `wasm4pm` feature).
+//! discovery, conformance, replay, alignment, optimization, transport servers,
+//! brokers, or consequential actuation. When you need execution, graduate to
+//! the `wasm4pm` engine (see the `wasm4pm` feature).
 //!
 //! Every path re-exported here is contractually stable — sibling modules are
 //! guaranteed to expose exactly these items.
@@ -15,11 +17,21 @@
 #[path = "pc_powl2.rs"]
 pub mod pc_powl2;
 
+#[path = "protocol.rs"]
+pub mod protocol;
+
 pub use pc_powl2::{
     AssertionRef, AuthorizationEnvelope, CertificateClaim, CertifiedPowl, CommutationWitness,
     CycleWitness, EdgeContract, ExecutionReceiptShape, ExecutionSelection, GraphNodeProof,
     ObservedStep, PcpRefusal, ProofTerm, VariantRef, VerificationBounds, PC_POWL2_SCHEMA,
     PC_POWL2_VERSION,
+};
+
+pub use protocol::{
+    AuthorityDecisionRef, AuthorityMode, CapabilityContract, ConsequenceClass, ConstructPhase,
+    DoEnvelope, DoPhase, EventWireFormat, Intent as ProtocolIntent, PhaseMarker, ProtocolBundle,
+    ProtocolRefusal, ProtocolStanding, ReceiptPolicy, ReceiptRequirement, SelectPhase,
+    SubjectRef, SurfaceBinding, SurfaceDisposition, SurfaceKind, PROTOCOL_SURFACES,
 };
 
 pub use crate::witness::{Witness, WitnessFamily};
