@@ -53,10 +53,7 @@ fn parses_arazzo_1_1_async_workflow_shape() {
         doc.source_descriptions[0].source_type,
         Some(SourceDescriptionType::Openapi)
     );
-    assert_eq!(
-        doc.workflows[0].steps[1].action,
-        Some(AsyncAction::Receive)
-    );
+    assert_eq!(doc.workflows[0].steps[1].action, Some(AsyncAction::Receive));
     assert_eq!(
         doc.workflows[0].steps[1].depends_on,
         vec!["dispatch".to_owned()]
