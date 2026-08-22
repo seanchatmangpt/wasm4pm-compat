@@ -405,7 +405,10 @@ mod tests {
         let msg = &result.discrepancies[0];
         assert!(msg.contains("balance(acct-7)"), "msg: {msg}");
         assert!(msg.contains("140"), "must report actual new value: {msg}");
-        assert!(msg.contains("150"), "must report declared expected value: {msg}");
+        assert!(
+            msg.contains("150"),
+            "must report declared expected value: {msg}"
+        );
     }
 
     #[test]

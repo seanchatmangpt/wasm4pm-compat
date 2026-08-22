@@ -54,7 +54,9 @@ fn parse_groups(ttl: &str) -> Vec<Group> {
             continue;
         }
 
-        let Some(group) = current.as_mut() else { continue };
+        let Some(group) = current.as_mut() else {
+            continue;
+        };
 
         if let Some(v) = quoted(line, "sourceModule") {
             group.source_module = v;
@@ -129,8 +131,14 @@ fn ggen_ash_projection_is_closed_and_in_sync() {
         "projectionClass",
         "sourceFeature",
     ] {
-        assert!(query.contains(&format!("?{binding}")), "SPARQL missing {binding}");
-        assert!(template.contains(&format!("row.{binding}")), "Tera missing {binding}");
+        assert!(
+            query.contains(&format!("?{binding}")),
+            "SPARQL missing {binding}"
+        );
+        assert!(
+            template.contains(&format!("row.{binding}")),
+            "Tera missing {binding}"
+        );
     }
     assert!(query.contains("rdf:rest*/rdf:first"));
 
@@ -152,7 +160,10 @@ fn ggen_ash_projection_is_closed_and_in_sync() {
             members += 1;
             let short_name = format!("wasm4pm_{}", snake_case(rust_type));
             let module = format!("{}.{}", group.elixir_namespace, rust_type);
-            assert!(short_names.insert(short_name.clone()), "duplicate {short_name}");
+            assert!(
+                short_names.insert(short_name.clone()),
+                "duplicate {short_name}"
+            );
             assert!(modules.insert(module.clone()), "duplicate {module}");
 
             let row = format!(
@@ -165,7 +176,12 @@ fn ggen_ash_projection_is_closed_and_in_sync() {
 
     assert_eq!(members, 71);
     assert_eq!(generated.matches("    {:wasm4pm_").count(), 71);
-    assert_eq!(generated.matches("use Ash.Type.NewType, subtype_of:").count(), 1);
+    assert_eq!(
+        generated
+            .matches("use Ash.Type.NewType, subtype_of:")
+            .count(),
+        1
+    );
     assert!(generated.contains("Module.create(module, body, Macro.Env.location(__ENV__))"));
     assert!(ttl.contains("does not recreate Rust typestate"));
     assert!(generated.contains("they do not\n  manufacture Rust typestate"));
