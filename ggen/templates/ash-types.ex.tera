@@ -1,0 +1,76 @@
+{# μ(AshTypeProjectionGroup*) -> Elixir Ash.Type.NewType modules. #}
+# This file is a checked-in projection of ggen/ontology/ash-types.ttl.
+# Regenerate through ggen/ash-types.toml; do not add Ash semantics here that
+# are absent from the ontology.
+
+defmodule Wasm4pmCompat.AshTypes do
+  @moduledoc """
+  ggen-manufactured Ash types for `wasm4pm-compat`.
+
+  `wasm4pm-compat` remains the identity and law authority. These modules are
+  reversible storage/casting projections for Ash attributes; they do not
+  manufacture Rust typestate, witness, const-generic, admission, receipt, or
+  execution authority.
+  """
+
+  @projection_rows [
+{% for row in sparql_results %}
+    {:wasm4pm_{{ row.rustType | snake_case }}, {{ row.elixirNamespace }}.{{ row.rustType }}, "{{ row.sourceModule }}", "{{ row.rustType }}", :{{ row.subtypeOf }}, :{{ row.projectionClass }}, :{{ row.sourceFeature | replace(from="-", to="_") }}},
+{% endfor %}
+  ]
+
+  @descriptors Enum.map(
+                 @projection_rows,
+                 fn {short_name, module, source_module, rust_type, subtype, projection,
+                      source_feature} ->
+                   %{
+                     short_name: short_name,
+                     module: module,
+                     source_module: source_module,
+                     rust_type: rust_type,
+                     source_rust_type: source_module <> "::" <> rust_type,
+                     subtype: subtype,
+                     projection: projection,
+                     source_feature: source_feature
+                   }
+                 end
+               )
+
+  # CONSTRUCT only: manufacture storage/casting modules. No ambient DO authority.
+  for descriptor <- @descriptors do
+    module = descriptor.module
+    subtype = descriptor.subtype
+    source_rust_type = descriptor.source_rust_type
+    projection = descriptor.projection
+    source_feature = descriptor.source_feature
+
+    body =
+      quote do
+        @moduledoc """
+        Ash storage/casting projection of `#{unquote(source_rust_type)}`.
+
+        Projection class: `#{unquote(projection)}`.
+        This module carries no ambient execution or receipt authority.
+        """
+        use Ash.Type.NewType, subtype_of: unquote(subtype)
+
+        @source_rust_type unquote(source_rust_type)
+        @projection_class unquote(projection)
+        @source_feature unquote(source_feature)
+
+        def source_rust_type, do: @source_rust_type
+        def projection_class, do: @projection_class
+        def source_feature, do: @source_feature
+      end
+
+    Module.create(module, body, Macro.Env.location(__ENV__))
+  end
+
+  @type_modules Map.new(@descriptors, &{&1.short_name, &1.module})
+
+  def descriptors, do: @descriptors
+  def custom_types, do: Enum.map(@descriptors, &{&1.short_name, &1.module})
+  def fetch(short_name) when is_atom(short_name), do: Map.fetch(@type_modules, short_name)
+  def fetch!(short_name) when is_atom(short_name), do: Map.fetch!(@type_modules, short_name)
+  def array(short_name) when is_atom(short_name), do: {:array, fetch!(short_name)}
+end

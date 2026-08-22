@@ -1,0 +1,28 @@
+[project]
+name = "wasm4pm-compat-ash-types"
+version = "26.8.7"
+description = "ggen projection of wasm4pm-compat public value carriers into Elixir Ash.Type modules"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ontology/ash-types.ttl"
+imports = [
+  "ontology/wasm4pm-compat.ttl",
+  "ontology/ggen-substrate.ttl",
+  "ontology/ash-substrate.ttl",
+]
+standard_only = false
+
+[generation]
+# Manifest paths are resolved relative to ggen/. This intentionally targets
+# the repository root without retaining the machine-specific absolute path
+# used by the historical monolithic manifest.
+output_dir = ".."
+
+[[generation.rules]]
+name = "elixir-ash-types"
+query = { file = "queries/extract-ash-types.rq" }
+template = { file = "templates/ash-types.ex.tera" }
+output_file = "bindings/elixir/lib/wasm4pm_compat/ash_types.ex"
+mode = "Overwrite"

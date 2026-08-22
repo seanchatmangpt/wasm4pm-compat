@@ -39,10 +39,33 @@ jobs:
       - name: Manufacture formatter-only repair
         id: repair
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.sha }}
         run: |
           set -euo pipefail
+
+          allowed="${RUNNER_TEMP}/rustfmt-allowed.txt"
+          : > "${allowed}"
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            # A PR repair may only mutate Rust files already owned by that PR.
+            # This prevents pre-existing repository-wide rustfmt drift from
+            # hitchhiking into an unrelated feature branch.
+            git diff --name-only --diff-filter=ACMR "${BASE_SHA}...HEAD" -- '*.rs' > "${allowed}"
+          fi
+
           cargo fmt --all
           git diff --check
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              if ! grep -Fxq -- "${path}" "${allowed}"; then
+                git restore --worktree -- "${path}"
+              fi
+            done < <(git diff --name-only -- '*.rs')
+          fi
 
           changed="$(git diff --name-only)"
           if [[ -z "${changed}" ]]; then
@@ -54,6 +77,17 @@ jobs:
           if [[ -n "${refused}" ]]; then
             printf 'RUSTFMT_NON_RUST_MUTATION_REFUSED\n%s\n' "${refused}" >&2
             exit 65
+          fi
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            outside_scope="$(printf '%s\n' "${changed}" | while IFS= read -r path; do
+              [[ -z "${path}" ]] && continue
+              grep -Fxq -- "${path}" "${allowed}" || printf '%s\n' "${path}"
+            done)"
+            if [[ -n "${outside_scope}" ]]; then
+              printf 'RUSTFMT_OUTSIDE_PR_SCOPE_REFUSED\n%s\n' "${outside_scope}" >&2
+              exit 66
+            fi
           fi
 
           printf '%s\n' "${changed}"

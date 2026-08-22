@@ -1,0 +1,23 @@
+# Expand every member of each admitted Ash projection group.
+PREFIX ashbind: <https://wasm4pm-compat.rs/ash#>
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT
+  ?sourceModule
+  ?elixirNamespace
+  ?rustType
+  ?subtypeOf
+  ?projectionClass
+  ?sourceFeature
+WHERE {
+  ?group a ashbind:AshTypeProjectionGroup ;
+         ashbind:sourceModule ?sourceModule ;
+         ashbind:elixirNamespace ?elixirNamespace ;
+         ashbind:rustTypes ?types ;
+         ashbind:subtypeOf ?subtypeOf ;
+         ashbind:projectionClass ?projectionClass ;
+         ashbind:sourceFeature ?sourceFeature .
+
+  ?types rdf:rest*/rdf:first ?rustType .
+}
+ORDER BY ?sourceModule ?rustType

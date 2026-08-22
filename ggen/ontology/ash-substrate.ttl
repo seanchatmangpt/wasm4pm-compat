@@ -1,0 +1,37 @@
+# Self-description of the dedicated Ash projection pipeline.
+@prefix substrate: <https://wasm4pm-compat.rs/substrate#> .
+@prefix rdf:       <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:      <http://www.w3.org/2000/01/rdf-schema#> .
+
+substrate:OntologyFile_ash_types
+    a substrate:OntologyFile ;
+    substrate:filePath "ontology/ash-types.ttl" ;
+    rdfs:label "Ash.Type projection ontology" ;
+    rdfs:comment "Admitted mapping from wasm4pm-compat public value carriers to Elixir Ash.Type.NewType modules." .
+
+substrate:OntologyFile_ash_substrate
+    a substrate:OntologyFile ;
+    substrate:filePath "ontology/ash-substrate.ttl" ;
+    rdfs:label "Ash projection substrate" ;
+    rdfs:comment "Self-description of the dedicated Ash projection generation rule." .
+
+substrate:QueryFile_extract_ash_types
+    a substrate:QueryFile ;
+    substrate:filePath "queries/extract-ash-types.rq" ;
+    rdfs:label "extract-ash-types" ;
+    rdfs:comment "SELECT every admitted Ash type projection with complete renderer bindings." .
+
+substrate:TemplateFile_ash_types
+    a substrate:TemplateFile ;
+    substrate:filePath "templates/ash-types.ex.tera" ;
+    rdfs:label "ash-types" ;
+    rdfs:comment "Render the Elixir Ash.Type registry and NewType modules." .
+
+substrate:ElixirAshTypesGenRule
+    a substrate:GenerationRule ;
+    substrate:query "queries/extract-ash-types.rq" ;
+    substrate:template "templates/ash-types.ex.tera" ;
+    substrate:output "bindings/elixir/lib/wasm4pm_compat/ash_types.ex" ;
+    substrate:outputIsDirectory false ;
+    substrate:description "Generate usable Ash.Type.NewType modules from the admitted wasm4pm-compat projection graph." ;
+    rdfs:label "elixir-ash-types" .
