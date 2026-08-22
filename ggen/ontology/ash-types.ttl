@@ -1,0 +1,364 @@
+# wasm4pm-compat -> Ash.Type projection ontology
+#
+# Canonical source identity remains wasm4pm-compat. Projection groups preserve
+# shared morphisms while RDF Collections enumerate every admitted public value
+# carrier. This graph does not recreate Rust typestate, witness, const-generic,
+# admission, receipt, or execution authority.
+
+@prefix ashbind: <https://wasm4pm-compat.rs/ash#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+
+<https://wasm4pm-compat.rs/ash>
+    a owl:Ontology ;
+    rdfs:label "wasm4pm-compat Ash.Type projections" ;
+    rdfs:comment "Admitted Elixir/Ash storage and casting projections of wasm4pm-compat public value carriers. Rust law remains authoritative." ;
+    owl:versionInfo "26.8.7" .
+
+ashbind:AshTypeProjectionGroup a rdfs:Class ;
+    rdfs:comment "A shared lawful projection morphism applied to an RDF Collection of Rust public value carriers." .
+
+ashbind:sourceModule a rdf:Property ; rdfs:range xsd:string .
+ashbind:elixirNamespace a rdf:Property ; rdfs:range xsd:string .
+ashbind:rustTypes a rdf:Property .
+ashbind:subtypeOf a rdf:Property ; rdfs:range xsd:string .
+ashbind:projectionClass a rdf:Property ; rdfs:range xsd:string .
+ashbind:sourceFeature a rdf:Property ; rdfs:range xsd:string .
+ashbind:rationale a rdf:Property ; rdfs:range xsd:string .
+
+ashbind:Class_structural_map
+    a ashbind:ProjectionClass ;
+    rdfs:label "structural_map" ;
+    ashbind:rationale "Structural carrier projected to Ash :map; field-level Rust law remains authoritative." .
+
+ashbind:Class_scalar_string
+    a ashbind:ProjectionClass ;
+    rdfs:label "scalar_string" ;
+    ashbind:rationale "Scalar text wrapper projected to Ash :string." .
+
+ashbind:Class_enum_atom
+    a ashbind:ProjectionClass ;
+    rdfs:label "enum_atom" ;
+    ashbind:rationale "Closed vocabulary projected to Ash :atom." .
+
+ashbind:Class_opaque_term
+    a ashbind:ProjectionClass ;
+    rdfs:label "opaque_term" ;
+    ashbind:rationale "Representation intentionally kept opaque as Ash :term; no stronger scalar encoding is admitted." .
+
+ashbind:Class_scalar_integer
+    a ashbind:ProjectionClass ;
+    rdfs:label "scalar_integer" ;
+    ashbind:rationale "Typed integer wrapper projected to Ash :integer; Rust phantom/namespace proof remains source-side." .
+
+ashbind:Class_opaque_metric
+    a ashbind:ProjectionClass ;
+    rdfs:label "opaque_metric" ;
+    ashbind:rationale "Compile-time bounded rational metric retained as Ash :term; numeric/storage equivalence is not asserted." .
+
+ashbind:Class_sum_term
+    a ashbind:ProjectionClass ;
+    rdfs:label "sum_term" ;
+    ashbind:rationale "Rust sum/payload enum retained as Ash :term until a tagged interchange representation is admitted." .
+
+ashbind:Class_scalar_binary
+    a ashbind:ProjectionClass ;
+    rdfs:label "scalar_binary" ;
+    ashbind:rationale "Byte-oriented wrapper projected to Ash :binary." .
+
+ashbind:ProjectionClass a rdfs:Class .
+
+# Fail-closed group shape: routing fields are singular and each group owns a
+# non-empty RDF Collection. The Rust member names are expanded by SPARQL.
+ashbind:AshTypeProjectionGroupShape
+    a sh:NodeShape ;
+    sh:targetClass ashbind:AshTypeProjectionGroup ;
+    sh:closed false ;
+    sh:property [ sh:path ashbind:sourceModule ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path ashbind:elixirNamespace ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path ashbind:rustTypes ; sh:minCount 1 ; sh:maxCount 1 ] ;
+    sh:property [ sh:path ashbind:subtypeOf ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ; sh:in ("map" "term" "atom" "string" "integer" "binary") ] ;
+    sh:property [ sh:path ashbind:projectionClass ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path ashbind:sourceFeature ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ] .
+
+ashbind:Group_01
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::admission" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Admission" ;
+    ashbind:rustTypes ("Admission" "Refusal") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_02
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::bpmn" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Bpmn" ;
+    ashbind:rustTypes ("BpmnEdge" "BpmnEvent" "BpmnGateway" "BpmnNode" "BpmnProcess" "BpmnTask") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_03
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::conformance" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Conformance" ;
+    ashbind:rustTypes ("ConformanceVerdict" "Deviation" "LogOnlyMove" "ModelOnlyMove" "SyncMove") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_04
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::conformance" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Conformance" ;
+    ashbind:rustTypes ("F1" "Fitness" "Precision") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "opaque_metric" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_05
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::declare" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Declare" ;
+    ashbind:rustTypes ("DeclareTemplate") ;
+    ashbind:subtypeOf "atom" ;
+    ashbind:projectionClass "enum_atom" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_06
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::declare" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Declare" ;
+    ashbind:rustTypes ("Activity" "DeclareConstraint" "DeclareScope") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_07
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::dfg" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Dfg" ;
+    ashbind:rustTypes ("DfgActivityId") ;
+    ashbind:subtypeOf "integer" ;
+    ashbind:projectionClass "scalar_integer" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_08
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::dfg" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Dfg" ;
+    ashbind:rustTypes ("DfgEdge" "DfgNode" "DirectlyFollowsGraph") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_09
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::dfg" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Dfg" ;
+    ashbind:rustTypes ("DfgWeight") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "opaque_term" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_10
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::diagnostic" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Diagnostic" ;
+    ashbind:rustTypes ("DiagnosticSeverity") ;
+    ashbind:subtypeOf "atom" ;
+    ashbind:projectionClass "enum_atom" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_11
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::diagnostic" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Diagnostic" ;
+    ashbind:rustTypes ("CompatDiagnostic") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "sum_term" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_12
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::engine_bridge" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.EngineBridge" ;
+    ashbind:rustTypes ("GraduationReason") ;
+    ashbind:subtypeOf "atom" ;
+    ashbind:projectionClass "enum_atom" ;
+    ashbind:sourceFeature "wasm4pm" .
+
+ashbind:Group_13
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::engine_bridge" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.EngineBridge" ;
+    ashbind:rustTypes ("GraduationCandidate") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "wasm4pm" .
+
+ashbind:Group_14
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::eventlog" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Eventlog" ;
+    ashbind:rustTypes ("Event" "EventLog" "EventLogClassifier" "Trace") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_15
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::evidence" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Evidence" ;
+    ashbind:rustTypes ("Evidence") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_16
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::ids" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Ids" ;
+    ashbind:rustTypes ("ActivityId" "CaseId" "EventId" "ObjectId") ;
+    ashbind:subtypeOf "integer" ;
+    ashbind:projectionClass "scalar_integer" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_17
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::loss" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Loss" ;
+    ashbind:rustTypes ("LossPolicy") ;
+    ashbind:subtypeOf "atom" ;
+    ashbind:projectionClass "enum_atom" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_18
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::loss" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Loss" ;
+    ashbind:rustTypes ("LossReport") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_19
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::loss" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Loss" ;
+    ashbind:rustTypes ("ProjectionName") ;
+    ashbind:subtypeOf "string" ;
+    ashbind:projectionClass "scalar_string" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_20
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::ocel" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Ocel" ;
+    ashbind:rustTypes ("EventObjectLink" "Object" "ObjectChange" "ObjectObjectLink" "OcelEvent" "OcelLog") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_21
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::petri" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Petri" ;
+    ashbind:rustTypes ("Marking" "PetriNet" "WfNet") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_22
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::powl" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Powl" ;
+    ashbind:rustTypes ("OrderEdge" "Powl" "PowlNode") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_23
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::prediction" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Prediction" ;
+    ashbind:rustTypes ("PredictionProblem") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_24
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::prediction" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Prediction" ;
+    ashbind:rustTypes ("DriftSignal" "NextActivity" "OutcomeLabel" "RemainingTime") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "opaque_term" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_25
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::prediction" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Prediction" ;
+    ashbind:rustTypes ("PredictionHorizon") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "sum_term" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_26
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::process_tree" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.ProcessTree" ;
+    ashbind:rustTypes ("ProcessTreeOperator") ;
+    ashbind:subtypeOf "atom" ;
+    ashbind:projectionClass "enum_atom" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_27
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::process_tree" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.ProcessTree" ;
+    ashbind:rustTypes ("ProcessTree" "ProcessTreeNode") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_28
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::receipt" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Receipt" ;
+    ashbind:rustTypes ("Digest") ;
+    ashbind:subtypeOf "binary" ;
+    ashbind:projectionClass "scalar_binary" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_29
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::receipt" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Receipt" ;
+    ashbind:rustTypes ("ReceiptChain" "ReceiptEnvelope" "ReceiptShape") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_30
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::receipt" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Receipt" ;
+    ashbind:rustTypes ("ReplayHint") ;
+    ashbind:subtypeOf "term" ;
+    ashbind:projectionClass "opaque_term" ;
+    ashbind:sourceFeature "default" .
+
+ashbind:Group_31
+    a ashbind:AshTypeProjectionGroup ;
+    ashbind:sourceModule "wasm4pm_compat::xes" ;
+    ashbind:elixirNamespace "Wasm4pmCompat.AshTypes.Xes" ;
+    ashbind:rustTypes ("XesEvent" "XesExtension" "XesLog" "XesTrace") ;
+    ashbind:subtypeOf "map" ;
+    ashbind:projectionClass "structural_map" ;
+    ashbind:sourceFeature "default" .
