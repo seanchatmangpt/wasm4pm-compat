@@ -138,10 +138,8 @@ impl crate::admission::Admit for WeaverCheckAdmit {
 
     fn admit(
         raw: Evidence<WeaverRegistryInput, Raw, WeaverSemconv>,
-    ) -> Result<
-        Admission<WeaverAdmittedRegistry, WeaverSemconv>,
-        Refusal<WeaverRefusalReason, WeaverSemconv>,
-    > {
+    ) -> Result<Admission<WeaverAdmittedRegistry, WeaverSemconv>, Refusal<WeaverRefusalReason, WeaverSemconv>>
+    {
         let input = raw.value;
 
         let output = match Command::new(&input.weaver_bin)
@@ -317,10 +315,7 @@ mod tests {
         ));
         let refusal = WeaverCheckAdmit::admit(raw).expect_err("broken registry must be refused");
         match refusal.into_reason() {
-            WeaverRefusalReason::Named {
-                kind,
-                diagnostics_json,
-            } => {
+            WeaverRefusalReason::Named { kind, diagnostics_json } => {
                 assert_eq!(kind, "Resolver");
                 assert!(diagnostics_json.contains("UnresolvedAttributeRef"));
             }
