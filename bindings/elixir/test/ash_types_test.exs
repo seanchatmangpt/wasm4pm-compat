@@ -1,5 +1,3 @@
-ExUnit.start()
-
 defmodule Wasm4pmCompat.AshTypesTest do
   use ExUnit.Case, async: true
 
