@@ -1,0 +1,48 @@
+name: ggen Ash replay proof
+
+on:
+  pull_request:
+    paths:
+      - "ggen/ash-types.toml"
+      - "ggen/ontology/ash-types.ttl"
+      - "ggen/ontology/ash-substrate.ttl"
+      - "ggen/queries/extract-ash-types.rq"
+      - "ggen/templates/ash-types.ex.tera"
+      - "bindings/elixir/lib/wasm4pm_compat/ash_types.ex"
+      - "scripts/verify_ggen_ash_replay.sh"
+      - ".github/workflows/ggen-ash-replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout exact wasm4pm-compat subject
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Checkout pinned ggen v26.8.19
+        uses: actions/checkout@v4
+        with:
+          repository: seanchatmangpt/ggen
+          ref: 7fc324df397973004059c37b752a365315d7bfb8
+          path: .tooling/ggen
+          persist-credentials: false
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build real ggen CLI
+        run: cargo build --locked --manifest-path .tooling/ggen/Cargo.toml -p ggen-cli-lib --bin ggen
+
+      - name: Execute two-pass ggen replay and byte-compare
+        env:
+          GGEN_BIN: ${{ github.workspace }}/.tooling/ggen/target/debug/ggen
+          # Deterministic receipt identity for this isolated replay capsule.
+          GGEN_SIGNING_KEY: 000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
+        run: bash scripts/verify_ggen_ash_replay.sh
