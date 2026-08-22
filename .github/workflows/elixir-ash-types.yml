@@ -1,0 +1,43 @@
+name: Elixir Ash type projection
+
+on:
+  pull_request:
+    paths:
+      - "ggen/ash-types.toml"
+      - "ggen/ontology/ash-types.ttl"
+      - "ggen/ontology/ash-substrate.ttl"
+      - "ggen/queries/extract-ash-types.rq"
+      - "ggen/templates/ash-types.ex.tera"
+      - "bindings/elixir/**"
+      - "tests/ggen_ash_types_contract.rs"
+      - ".github/workflows/elixir-ash-types.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  rust-projection-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - name: Verify ontology-query-template-output closure
+        run: cargo test --test ggen_ash_types_contract
+
+  ash-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27"
+          elixir-version: "1.18"
+      - name: Fetch Ash
+        working-directory: bindings/elixir
+        run: mix deps.get
+      - name: Compile with warnings as errors
+        working-directory: bindings/elixir
+        run: mix compile --warnings-as-errors
+      - name: Execute Ash type tests
+        working-directory: bindings/elixir
+        run: mix test
