@@ -23,7 +23,9 @@ use wasm4pm_compat::ocel_diff::{diff_and_match, StateSnapshot};
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     if args.len() != 3 {
-        eprintln!("usage: ocel_diff_cli <before.json> <after.json> <expected_effect.json>");
+        eprintln!(
+            "usage: ocel_diff_cli <before.json> <after.json> <expected_effect.json>"
+        );
         return ExitCode::from(64);
     }
 
@@ -59,10 +61,7 @@ fn main() -> ExitCode {
         "diff": diff,
         "match_result": match_result,
     });
-    println!(
-        "{}",
-        serde_json::to_string(&output).expect("serialize output")
-    );
+    println!("{}", serde_json::to_string(&output).expect("serialize output"));
 
     if match_result.matches {
         ExitCode::from(0)
