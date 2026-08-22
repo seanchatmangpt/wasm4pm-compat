@@ -9,11 +9,16 @@ help: the trait `wasm4pm_compat::Admit` is not implemented for `MissingAdmit`
    |
 13 | struct MissingAdmit {
    | ^^^^^^^^^^^^^^^^^^^
-help: the trait `wasm4pm_compat::Admit` is implemented for `LinkedOcel`
-  --> src/ocel.rs
+help: the following other types implement trait `wasm4pm_compat::Admit`
+  --> src/weaver_semconv.rs
+   |
+   | impl crate::admission::Admit for WeaverCheckAdmit {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `WeaverCheckAdmit`
+   |
+  ::: src/ocel.rs
    |
    | impl crate::admission::Admit for LinkedOcel {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `LinkedOcel`
 note: required by a bound in `GatedAdmit`
   --> src/authority.rs
    |
@@ -31,11 +36,16 @@ help: the trait `wasm4pm_compat::Admit` is not implemented for `MissingAdmit`
    |
 13 | struct MissingAdmit {
    | ^^^^^^^^^^^^^^^^^^^
-help: the trait `wasm4pm_compat::Admit` is implemented for `LinkedOcel`
-  --> src/ocel.rs
+help: the following other types implement trait `wasm4pm_compat::Admit`
+  --> src/weaver_semconv.rs
+   |
+   | impl crate::admission::Admit for WeaverCheckAdmit {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `WeaverCheckAdmit`
+   |
+  ::: src/ocel.rs
    |
    | impl crate::admission::Admit for LinkedOcel {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `LinkedOcel`
 note: required by a bound in `GatedAdmit`
   --> src/authority.rs
    |
