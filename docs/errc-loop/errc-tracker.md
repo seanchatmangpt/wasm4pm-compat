@@ -4,6 +4,27 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Cycle 6 — 2026-08-24 — closed out
+
+Ran via `wf_aa0da59c-71a`. 2 verified (both executed, commit `7b704ee`),
+5 parked:
+
+- **Done:** owl:Ontology headers added to the 5 files missing them
+  (dfg/genetic_matrix/random_variables/transition_system/trie), confirmed
+  header-only (diffed pre/post generated Rust, zero field-shape change).
+  Done: log.ttl's EA/OA gap disclosure comment added.
+- **Parked (real, not bounded):** typed id newtypes for `sh:class`
+  references (design decision), struct-name-collision naming convention
+  (no live bug, premature), Makefile.toml ggen CLI flags (3-way scope
+  choice, unchanged since cycle 2), cron job `4021d1dd` staleness
+  (user's own standing job, not touched unilaterally).
+
+**Remaining backlog is now entirely user-decision items** — no more
+bounded/mechanical work is queued. Cycle 7+ should keep checking rather
+than assume this is final (a new cluster, a new user request, or new
+review can always add real work), but should say plainly if nothing
+changed rather than re-park the same 4 items verbatim every hour.
+
 ## Between cycles 5 and 6 — adversarial panel review (user-requested, not an ERRC cycle)
 
 User requested an adversarial multi-expert review ("post-AGI Dr. Wil van der
