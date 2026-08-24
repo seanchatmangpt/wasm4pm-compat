@@ -23,10 +23,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Checkout exact subject
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
+      - name: Bind exact subject identity
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          observed="$(git rev-parse HEAD)"
+          test "${observed}" = "${EXPECTED_SHA}"
+          printf 'subject_commit=%s\n' "${observed}"
+          printf 'subject_tree=%s\n' "$(git rev-parse HEAD^{tree})"
       - name: Install pinned Rust toolchain
         shell: bash
         run: |
