@@ -1,0 +1,200 @@
+# The OCPN Ontology (draft) -- a real, standards-submission-quality OWL/SHACL
+# ontology for OCPN (Object-Centric Petri Net), authored because a targeted
+# search this session (WebSearch: "OCPN ontology RDF OWL object-centric
+# petri net namespace") found no public, dereferenceable RDF/OWL ontology
+# specifically for the OCPN formalism. The nearest related public work is
+# OCEDO (https://w3id.org/ocedo/core#, reused directly in log.ttl in this
+# same directory), which models object-centric *event data*, not the
+# object-centric *Petri net* process-model formalism itself; and a general
+# "Petri net ontology" (Gasevic/ScienceDirect, PNML-to-RDF/OWL mapping) that
+# targets classical (non-object-centric) Petri nets and has no persistent,
+# fetchable namespace to reuse. Per this session's established rule, OCPN is
+# therefore authored fresh here, grounded ONLY in a real, working reference
+# implementation -- pm4py.objects.ocpn.obj -- not invented from field names
+# alone. Modeled after this directory's powl.ttl/bpmn.ttl header shape as the
+# standards-quality bar to match: dcterms metadata, CC-BY 4.0, a
+# w3id.org-pattern namespace intended for registration (not yet registered --
+# this repo cannot register a w3id.org redirect on its own; the ontology is
+# authored to the bar a real submission would need).
+#
+# Ground truth: pm4py.objects.ocpn.obj (obj.py). OCPetriNet subclasses the
+# classical PetriNet from pm4py.objects.petri_net.obj, adding object-type
+# scoping to places/arcs and object-centric markings. Per this session's
+# convention, self-referential / graph-connectivity fields (place/transition
+# refs on arcs, marking place refs) are id-referenced (xsd:string) rather
+# than nested sh:class, to avoid circular shape references -- matching the
+# bpmn.ttl/powl.ttl precedent in this directory.
+#
+# Derived/computed fields are excluded per the source catalog:
+#   - OCMarking.places (nonzero-token places) -- derived from the Counter map
+#   - OCPetriNet.object_types (derived from self.places) -- derived
+#
+# Competency questions this ontology must answer:
+#   CQ1: What object type does a given OCPN place represent tokens for?
+#   CQ2: What object type does a given OCPN arc carry, and is that arc a
+#        variable arc (consumes/produces a *set* of that type's objects)?
+#   CQ3: Which places hold the initial/final object-centric marking, and
+#        how many object-id tokens does each carry?
+
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix ocpn:    <https://w3id.org/ocpn/core#> .
+
+<https://w3id.org/ocpn/core> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/ocpn/core/1.0.0> ;
+    dcterms:title "The OCPN Ontology"@en ;
+    dcterms:description "An ontology describing Object-Centric Petri Net (OCPN) process models, grounded in the pm4py.objects.ocpn reference implementation."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "ocpn" ;
+    vann:preferredNamespaceUri "https://w3id.org/ocpn/core#" ;
+    rdfs:comment "Draft, not yet registered on w3id.org. No public RDF/OWL ontology for OCPN specifically was found (search performed this session); authored fresh, grounded in pm4py.objects.ocpn.obj, per the OCEDO/sBPMN precedent (see log.ttl, bpmn.ttl in this same directory) for reuse-first, author-when-absent."@en .
+
+# --- classes ---------------------------------------------------------------
+
+ocpn:Place a owl:Class ;
+    rdfs:label "OCPN Place"@en ;
+    rdfs:comment "A Petri net place scoped to a single object type, extending the classical PetriNet.Place with object-type ownership. Corresponds to pm4py's OCPetriNet.Place."@en ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Place" .
+
+ocpn:Transition a owl:Class ;
+    rdfs:label "OCPN Transition"@en ;
+    rdfs:comment "A Petri net transition, unchanged in structure from the classical PetriNet.Transition (no new fields introduced by the object-centric extension). Corresponds to pm4py's OCPetriNet.Transition."@en ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Transition" .
+
+ocpn:Arc a owl:Class ;
+    rdfs:label "OCPN Arc"@en ;
+    rdfs:comment "A Petri net arc scoped to a single object type, with an additional flag marking it as a variable arc (consuming/producing a set-valued number of tokens of that object type, rather than exactly one). Corresponds to pm4py's OCPetriNet.Arc."@en ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Arc" .
+
+ocpn:Marking a owl:Class ;
+    rdfs:label "OCPN Marking"@en ;
+    rdfs:comment "An object-centric marking: a mapping from OCPN places to a multiset (Counter) of object-id tokens present at that place. Corresponds to pm4py's OCMarking. The derived 'places' property (nonzero-token places) is excluded as computed."@en ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCMarking" .
+
+ocpn:Net a owl:Class ;
+    rdfs:label "OCPN Net"@en ;
+    rdfs:comment "An object-centric Petri net: a classical PetriNet whose places and arcs are object-type-scoped, together with an initial and final OCMarking. The derived 'object_types' property (computed from self.places) is excluded. Corresponds to pm4py's OCPetriNet."@en ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet" .
+
+# --- properties --------------------------------------------------------------
+
+ocpn:objectType a owl:DatatypeProperty ;
+    rdfs:label "object type"@en ;
+    rdfs:comment "The object type (e.g. 'order', 'item') that this place or arc is scoped to."@en ;
+    rdfs:domain [ owl:unionOf ( ocpn:Place ocpn:Arc ) ] ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Place.object_type / OCPetriNet.Arc.object_type" .
+
+ocpn:isVariable a owl:DatatypeProperty ;
+    rdfs:label "is variable arc"@en ;
+    rdfs:comment "Whether this arc is a variable arc: it consumes/produces a variable-size set of object-id tokens of its object type, rather than exactly one token. Defaults to false."@en ;
+    rdfs:domain ocpn:Arc ;
+    rdfs:range xsd:boolean ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Arc.is_variable" .
+
+ocpn:sourceRef a owl:DatatypeProperty ;
+    rdfs:label "source ref"@en ;
+    rdfs:comment "Id reference to this arc's source node (a Place or Transition), matching the id-reference convention used in bpmn.ttl/powl.ttl to avoid circular shape references."@en ;
+    rdfs:domain ocpn:Arc ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.Arc.source (inherited base field, id-referenced per this file's graph-connectivity convention)" .
+
+ocpn:targetRef a owl:DatatypeProperty ;
+    rdfs:label "target ref"@en ;
+    rdfs:comment "Id reference to this arc's target node (a Place or Transition), matching the id-reference convention used in bpmn.ttl/powl.ttl to avoid circular shape references."@en ;
+    rdfs:domain ocpn:Arc ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.Arc.target (inherited base field, id-referenced per this file's graph-connectivity convention)" .
+
+ocpn:placeRef a owl:DatatypeProperty ;
+    rdfs:label "place ref"@en ;
+    rdfs:comment "Id reference to an OCPN place carrying tokens in this marking, id-referenced to avoid a circular shape reference back to ocpn:Place."@en ;
+    rdfs:domain ocpn:Marking ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCMarking (defaultdict keys, id-referenced per this file's graph-connectivity convention)" .
+
+ocpn:tokenCount a owl:DatatypeProperty ;
+    rdfs:label "token count"@en ;
+    rdfs:comment "The number of distinct object-id tokens of the place's object type present at that place in this marking (the size of the Counter value for that place)."@en ;
+    rdfs:domain ocpn:Marking ;
+    rdfs:range xsd:nonNegativeInteger ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCMarking (Counter value cardinality per place)" .
+
+ocpn:placesRef a owl:DatatypeProperty ;
+    rdfs:label "places ref"@en ;
+    rdfs:comment "Id reference to an OCPN place belonging to this net."@en ;
+    rdfs:domain ocpn:Net ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.places (inherited base field, id-referenced)" .
+
+ocpn:transitionsRef a owl:DatatypeProperty ;
+    rdfs:label "transitions ref"@en ;
+    rdfs:comment "Id reference to an OCPN transition belonging to this net."@en ;
+    rdfs:domain ocpn:Net ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.transitions (inherited base field, id-referenced)" .
+
+ocpn:arcsRef a owl:DatatypeProperty ;
+    rdfs:label "arcs ref"@en ;
+    rdfs:comment "Id reference to an OCPN arc belonging to this net."@en ;
+    rdfs:domain ocpn:Net ;
+    rdfs:range xsd:string ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.arcs (inherited base field, id-referenced)" .
+
+ocpn:initialMarking a owl:ObjectProperty ;
+    rdfs:label "initial marking"@en ;
+    rdfs:comment "The OCMarking present at this net's initial state."@en ;
+    rdfs:domain ocpn:Net ;
+    rdfs:range ocpn:Marking ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.initial_marking" .
+
+ocpn:finalMarking a owl:ObjectProperty ;
+    rdfs:label "final marking"@en ;
+    rdfs:comment "The OCMarking present at this net's final (accepting) state."@en ;
+    rdfs:domain ocpn:Net ;
+    rdfs:range ocpn:Marking ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.final_marking" .
+
+# --- shapes ------------------------------------------------------------------
+
+ocpn:PlaceShape a sh:NodeShape ;
+    sh:targetClass ocpn:Place ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Place" ;
+    sh:property
+        [ sh:path ocpn:objectType ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] .
+
+ocpn:TransitionShape a sh:NodeShape ;
+    sh:targetClass ocpn:Transition ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Transition (no new fields beyond the classical PetriNet.Transition)" .
+
+ocpn:ArcShape a sh:NodeShape ;
+    sh:targetClass ocpn:Arc ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet.Arc" ;
+    sh:property
+        [ sh:path ocpn:sourceRef  ; sh:datatype xsd:string  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ocpn:targetRef  ; sh:datatype xsd:string  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path ocpn:objectType ; sh:datatype xsd:string  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path ocpn:isVariable ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .
+
+ocpn:MarkingShape a sh:NodeShape ;
+    sh:targetClass ocpn:Marking ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCMarking" ;
+    sh:property
+        [ sh:path ocpn:placeRef    ; sh:datatype xsd:string           ; sh:minCount 0 ; sh:order 1 ] ,
+        [ sh:path ocpn:tokenCount  ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 0 ; sh:order 2 ] .
+
+ocpn:NetShape a sh:NodeShape ;
+    sh:targetClass ocpn:Net ;
+    dcterms:source "pm4py.objects.ocpn.obj.OCPetriNet" ;
+    sh:property
+        [ sh:path ocpn:placesRef      ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 1 ] ,
+        [ sh:path ocpn:transitionsRef ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path ocpn:arcsRef        ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 3 ] ,
+        [ sh:path ocpn:initialMarking ; sh:class ocpn:Marking  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 4 ] ,
+        [ sh:path ocpn:finalMarking   ; sh:class ocpn:Marking  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 5 ] .

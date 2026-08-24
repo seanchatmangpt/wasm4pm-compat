@@ -1,0 +1,38 @@
+# Extracts SHACL NodeShape/PropertyShape definitions from
+# ggen/ontology/type-shapes/*.ttl for code generation. Works over any of
+# the reused-public (sBPMN, OCEDO) or authored (POWL) ontologies in that
+# directory, since all of them use plain W3C SHACL for structure.
+PREFIX rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX sh:      <http://www.w3.org/ns/shacl#>
+PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
+PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+
+SELECT
+  ?shape
+  ?targetClass
+  ?propPath
+  ?datatype
+  ?nodeClass
+  ?minCount
+  ?maxCount
+  ?order
+  (GROUP_CONCAT(DISTINCT COALESCE(?inValue, ""); separator="|") AS ?inValues)
+WHERE {
+  ?shape a sh:NodeShape ;
+         sh:property ?prop .
+  OPTIONAL { ?shape sh:targetClass ?targetClass . }
+
+  ?prop sh:path ?propPath .
+  OPTIONAL { ?prop sh:datatype ?datatype . }
+  OPTIONAL { ?prop sh:class ?nodeClass . }
+  OPTIONAL { ?prop sh:minCount ?minCount . }
+  OPTIONAL { ?prop sh:maxCount ?maxCount . }
+  OPTIONAL { ?prop sh:order ?order . }
+  OPTIONAL {
+    ?prop sh:in ?inList .
+    ?inList rdf:rest*/rdf:first ?inValue .
+  }
+}
+GROUP BY ?shape ?targetClass ?propPath ?datatype ?nodeClass ?minCount ?maxCount ?order
+ORDER BY ?shape ?order

@@ -1,0 +1,89 @@
+{# μ(AshTypeProjectionGroup*) -> plain Elixir struct modules (no Ash dependency). #}
+# This file is a checked-in projection of ggen/ontology/ash-types.ttl.
+# Regenerate through ggen/ash-types.toml; do not add Ash semantics here -- this
+# module tree has no dependency on the `ash` library.
+
+defmodule Wasm4pmCompat.PlainTypes do
+  @moduledoc """
+  ggen-manufactured plain Elixir struct projections for `wasm4pm-compat`.
+
+  `wasm4pm-compat` remains the identity and law authority. These modules are
+  dependency-free structural carriers -- a `{:value, term}` struct plus
+  provenance metadata -- for callers who do not use Ash. They manufacture no
+  Rust typestate, witness, const-generic, admission, receipt, or execution
+  authority.
+
+  See `Wasm4pmCompat.AshTypes` for the Ash.Type.NewType-backed sibling
+  projection of the same source rows.
+  """
+
+  @projection_rows [
+{% for row in sparql_results %}
+    {:wasm4pm_{{ row.rustType | snake_case }}, {{ row.elixirNamespace | replace(from="AshTypes", to="PlainTypes") }}.{{ row.rustType }}, "{{ row.sourceModule }}", "{{ row.rustType }}", :{{ row.subtypeOf }}, :{{ row.projectionClass }}, :{{ row.sourceFeature | replace(from="-", to="_") }}},
+{% endfor %}
+  ]
+
+  @descriptors Enum.map(
+                 @projection_rows,
+                 fn {short_name, module, source_module, rust_type, subtype, projection,
+                      source_feature} ->
+                   %{
+                     short_name: short_name,
+                     module: module,
+                     source_module: source_module,
+                     rust_type: rust_type,
+                     source_rust_type: source_module <> "::" <> rust_type,
+                     subtype: subtype,
+                     projection: projection,
+                     source_feature: source_feature
+                   }
+                 end
+               )
+
+  # CONSTRUCT only: manufacture plain struct modules. No ambient DO authority.
+  for descriptor <- @descriptors do
+    module = descriptor.module
+    subtype = descriptor.subtype
+    source_rust_type = descriptor.source_rust_type
+    projection = descriptor.projection
+    source_feature = descriptor.source_feature
+
+    body =
+      quote do
+        @moduledoc """
+        Plain Elixir struct projection of `#{unquote(source_rust_type)}`.
+
+        Projection class: `#{unquote(projection)}`.
+        This module carries no ambient execution or receipt authority, and no
+        dependency on the `ash` library.
+        """
+
+        @enforce_keys [:value]
+        defstruct value: nil
+
+        @type t :: %__MODULE__{value: term()}
+
+        @source_rust_type unquote(source_rust_type)
+        @subtype_of unquote(subtype)
+        @projection_class unquote(projection)
+        @source_feature unquote(source_feature)
+
+        def source_rust_type, do: @source_rust_type
+        def subtype_of, do: @subtype_of
+        def projection_class, do: @projection_class
+        def source_feature, do: @source_feature
+
+        def new(value), do: %__MODULE__{value: value}
+        def value(%__MODULE__{value: value}), do: value
+      end
+
+    Module.create(module, body, Macro.Env.location(__ENV__))
+  end
+
+  @type_modules Map.new(@descriptors, &{&1.short_name, &1.module})
+
+  def descriptors, do: @descriptors
+  def custom_types, do: Enum.map(@descriptors, &{&1.short_name, &1.module})
+  def fetch(short_name) when is_atom(short_name), do: Map.fetch(@type_modules, short_name)
+  def fetch!(short_name) when is_atom(short_name), do: Map.fetch!(@type_modules, short_name)
+end

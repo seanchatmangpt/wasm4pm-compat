@@ -99,6 +99,19 @@ args = ["build", "--no-default-features", "--features", "wasm4pm"]
 
 # ---------------------------------------------------------------------------
 # ggen provision
+#
+# NOTE (2026-08-24): --rule/--manifest below are NOT real flags on the
+# installed ggen CLI (v26.8.18) — `ggen sync run` only takes --dry-run/
+# --format/--select/--watch/--introspect/--structured-errors/--autonomic,
+# and has no per-rule selection at all (every rule in the resolved
+# ggen.toml renders together on every invocation). The `cwd = "ggen"` on
+# each task below is what actually makes ggen find ggen/ggen.toml (it
+# resolves ggen.toml from cwd only, no manifest-path argument exists) --
+# it is not incidental to the (broken) --manifest flag next to it. These
+# task bodies are stale and will fail as written until redesigned; see
+# CLAUDE.md's "ggen provision" section for the full finding and the
+# confirmed temp-root-level-ggen.toml workaround. Do not treat a green
+# `cargo make ggen-*` run as evidence these flags exist.
 # ---------------------------------------------------------------------------
 
 [tasks.ggen-sync]

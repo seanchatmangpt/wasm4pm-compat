@@ -1,0 +1,62 @@
+# Reuses the real, published OCED Ontology (Latif, Ekaputra, Kirrane,
+# di Ciccio, Vidgof -- arXiv:2511.03351, CC-BY 4.0), fetched verbatim from
+# https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl.
+# This file does NOT redefine oced:/aux: classes/properties -- it only adds
+# SHACL shape constraints on top of them, per this session's
+# reuse-real-ontologies rule.
+#
+# Note an honest discrepancy in OCEDO's own source file: the `@prefix oced:`
+# declaration at the top binds to <https://w3id.org/ocedo/core#>, but the
+# ontology's own `vann:preferredNamespaceUri` annotation states
+# <https://w3id.org/semsys/ns/ocedo/core#>. The `@prefix` binding is what
+# actually governs term resolution in the file and is used here; the
+# discrepancy is OCEDO's own, not introduced by this file.
+#
+# Covers pm4py's `log/obj.py` (classical, case-centric XES-shaped log:
+# EventLog -> Trace -> Event) via OCEDO's generic Event/Object/attribute
+# vocabulary -- OCED is object-centric-first, but its Event class and
+# attribute super-properties cover the case-centric shape as a special case
+# (one implicit "case" object per trace).
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix oced:    <https://w3id.org/ocedo/core#> .
+@prefix aux:     <https://w3id.org/ocedo/aux#> .
+
+oced:EventShape a sh:NodeShape ;
+    sh:targetClass oced:Event ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path oced:observed_at ; sh:datatype xsd:dateTime ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:has_event_attribute ; sh:class aux:EventAttribute ; sh:minCount 0 ; sh:order 1 ] .
+# `event_attribute` (super-property for use-case-specific attributes, e.g.
+# XES `concept:name`/`org:resource`) is reused directly, not redeclared.
+
+aux:EventAttributeShape a sh:NodeShape ;
+    sh:targetClass aux:EventAttribute ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path aux:event_attribute       ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:event_attribute_value ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] .
+# Attribute *name*/*value* pair, matching pm4py Event's `_dict` key/value
+# bag -- OCEDO reifies this as its own class rather than a plain RDF
+# key/value pair (OCEDO's own design choice, reused as-is).
+
+# `Trace` (pm4py: an ordered Event sequence under one case id) and
+# `EventLog` (a collection of Traces) have no direct 1:1 OCEDO class --
+# OCEDO models case-centricity implicitly via an oced:Object of a "case"
+# aux:ObjectType that events `aux:observe`, not as a first-class ordered
+# container. This is a real gap between pm4py's log shape and OCEDO's
+# object-centric-first model, flagged rather than silently bridged: a
+# generation pass needs its own decision here (synthesize a TraceShape that
+# groups Events by their related "case" Object, ordered by observed_at), not
+# invented in this shape file.
+#
+# `XESExtension` (ArtifactLifecycle/Concept/Cost/Identity/Lifecycle/Micro/
+# Organizational/Semantic/SoftwareCommunication/SoftwareEvent/
+# SoftwareTelemetry/Time) has no OCEDO equivalent -- XES itself has no
+# public RDF/OWL ontology (confirmed absent in this session's research
+# pass), and OCEDO doesn't model XES's extension-declaration mechanism.
+# Left unmodeled, not invented.

@@ -1,0 +1,105 @@
+# The Process Tree Ontology (draft) -- authored fresh because a targeted
+# web search this session ("process_tree RDF OWL ontology process mining
+# namespace", "process tree ontology OWL sequence xor parallel loop
+# operator pm4py w3id") found no real, published, dereferenceable public
+# RDF/OWL ontology for the pm4py process-tree concept -- only general OWL
+# tutorials and process-tree *algorithm* papers/docs, none defining a
+# reusable RDF vocabulary or persistent namespace for process-tree
+# operators/nodes. Unlike BPMN (sBPMN, reused in bpmn.ttl) and OCEL/OCED
+# (OCEDO, reused in log.ttl), no such prior art exists for process trees,
+# matching this session's precedent for POWL (see powl.ttl's header).
+#
+# Grounded in pm4py.objects.process_tree.obj (~/chatmangpt/pm4py), a real,
+# working reference implementation, not invented from field names alone.
+# Modeled after this repo's own powl.ttl/bpmn.ttl header shape as the
+# standards-quality bar to match: dcterms metadata, CC-BY 4.0, a
+# w3id.org-pattern namespace intended for eventual registration (not yet
+# registered -- this repo cannot register a w3id.org redirect on its own;
+# authored to the bar a real submission would need).
+#
+# Competency questions this ontology must answer:
+#   CQ1: What operator (if any) governs how a process-tree node's children
+#        combine (sequence/exclusive-choice/parallel/loop/inclusive-or/
+#        interleaving/partial-order)?
+#   CQ2: Is a given node a leaf activity (has a label) or silent (tau)?
+#   CQ3: What are the ordered children of an operator node?
+#
+# Explicitly excluded per the pm4py catalog (derived/redundant/out-of-scope
+# for a structure-only crate):
+#   - ProcessTree.parent -- a redundant back-link to the owning node,
+#     recoverable from the children relation; children are id-referenced
+#     rather than nested to avoid circular shape references (matching the
+#     bpmn.ttl/powl.ttl convention for self-referential structures).
+#   - ProcessTree._properties -- unused/empty dict in pm4py's obj.py.
+#   - ProcessTree.OperatorState (Enabled/Open/Closed/Future) and
+#     process_tree/state.py's State (Closed/Enabled/Open) -- runtime replay
+#     semantics never populated by obj.py's own construction path; out of
+#     scope for this structure-only crate (no engine logic belongs here).
+#   - GenerationTree(ProcessTree) (semantics.py) -- adds no new fields,
+#     identity-based equality only; not modeled separately.
+
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix pt:      <https://w3id.org/process-tree/core#> .
+
+<https://w3id.org/process-tree/core> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/process-tree/core/1.0.0> ;
+    dcterms:title "The Process Tree Ontology"@en ;
+    dcterms:description "An ontology describing pm4py-style process trees: operator nodes (sequence, exclusive choice, parallel, loop, inclusive-or, interleaving, partial order) and leaf activities, grounded in the pm4py.objects.process_tree reference implementation."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "pt" ;
+    vann:preferredNamespaceUri "https://w3id.org/process-tree/core#" ;
+    rdfs:comment "Draft, not yet registered on w3id.org. Authored to standards-submission quality per the OCEDO/sBPMN precedent (see log.ttl, bpmn.ttl); no public process-tree RDF/OWL ontology was found after a targeted search this session, so this file follows the POWL precedent (powl.ttl) of authoring fresh rather than reusing."@en .
+
+# --- classes ---------------------------------------------------------------
+
+pt:ProcessTreeNode a owl:Class ;
+    rdfs:label "Process Tree Node"@en ;
+    rdfs:comment "A single node in a pm4py process tree: either an operator node (has an operator and children) or a leaf activity (has a label, or is silent/tau if unlabeled). Corresponds to pm4py's ProcessTree."@en ;
+    dcterms:source "pm4py.objects.process_tree.obj.ProcessTree" .
+
+# --- properties --------------------------------------------------------
+
+pt:operator a owl:DatatypeProperty ;
+    rdfs:domain pt:ProcessTreeNode ; rdfs:range xsd:string ;
+    rdfs:label "operator"@en ;
+    rdfs:comment "The combination operator governing this node's children. Absent on leaf nodes."@en ;
+    dcterms:source "pm4py.objects.process_tree.obj.ProcessTree.operator (pm4py.objects.process_tree.obj.Operator Enum)" .
+
+pt:label a owl:DatatypeProperty ;
+    rdfs:domain pt:ProcessTreeNode ; rdfs:range xsd:string ;
+    rdfs:label "label"@en ;
+    rdfs:comment "The leaf activity's name. Absent means either an operator node, or a silent (tau) leaf activity."@en ;
+    dcterms:source "pm4py.objects.process_tree.obj.ProcessTree.label" .
+
+pt:child a owl:ObjectProperty ;
+    rdfs:domain pt:ProcessTreeNode ; rdfs:range xsd:string ;
+    rdfs:label "child"@en ;
+    rdfs:comment "An ordered child of this operator node, referenced by node id rather than nested inline to avoid circular shape references (matching bpmn.ttl/powl.ttl convention). Order among repeated pt:child values is preserved by sh:order in a consuming shape, or by an external ordered-list encoding; the underlying pm4py field is a Python list, so order is significant."@en ;
+    dcterms:source "pm4py.objects.process_tree.obj.ProcessTree.children" .
+
+# --- SHACL cardinality/datatype shapes, layered on the OWL class above -----
+
+pt:ProcessTreeNodeShape a sh:NodeShape ;
+    sh:targetClass pt:ProcessTreeNode ;
+    sh:property
+        [ sh:path pt:operator ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ;
+          # pm4py.objects.process_tree.obj.Operator member NAMES, not its
+          # .value strings ("->","X","+","*","O","<>","PO") -- a Rust enum
+          # variant must be a valid identifier, and the member name is what
+          # the Enum actually IS; the symbol is display/serialization detail.
+          sh:in ( "Sequence" "Xor" "Parallel" "Loop" "Or" "Interleaving" "PartialOrder" ) ] ,
+        [ sh:path pt:label    ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path pt:child    ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 0 ] .
+
+# `pt:parent` (pm4py's ProcessTree.parent) is deliberately not modeled: it
+# is a redundant back-link fully recoverable from the pt:child relation of
+# whichever node owns this one, matching this repo's convention of never
+# nesting/duplicating a bidirectional graph edge as two independent
+# ontology properties.

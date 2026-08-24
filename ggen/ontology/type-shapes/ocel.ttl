@@ -1,0 +1,67 @@
+# Reuses the real, published OCED Ontology (see log.ttl header for full
+# citation/discrepancy note) for pm4py's `ocel/obj.py` `OCEL` class -- which
+# is DataFrame-backed (events/objects/relations/o2o/e2e/object_changes),
+# with no OCELEvent/OCELObject/etc. Python classes of its own. This file
+# maps each DataFrame's *columns* onto OCEDO's real classes/properties.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix oced:    <https://w3id.org/ocedo/core#> .
+@prefix aux:     <https://w3id.org/ocedo/aux#> .
+
+oced:ObjectShape a sh:NodeShape ;
+    sh:targetClass oced:Object ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path aux:instance_of ; sh:class aux:ObjectType ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:has_object_attribute ; sh:class aux:ObjectAttribute ; sh:minCount 0 ; sh:order 1 ] .
+# `oced:Object` <- OCEL `objects` DataFrame row (object_id_column ->
+# instance identity, object_type_column -> aux:instance_of aux:ObjectType).
+
+aux:ObjectAttributeShape a sh:NodeShape ;
+    sh:targetClass aux:ObjectAttribute ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path aux:object_attribute       ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:object_attribute_value ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] .
+# OCEL's `object_changes` DataFrame (object_id, object_type, timestamp,
+# changed_field) -- OCEDO's aux:ObjectAttribute has no timestamp property in
+# the fetched ontology fragment. This is a real gap, not silently bridged:
+# an ObjectAttribute *value history* over time is not modeled by OCEDO as
+# fetched; a generation pass needs to either extend aux: (contradicting
+# reuse-only) or fall back to a plain xsd:dateTime-typed reified change
+# event. Flagged for the follow-up pass, not resolved here.
+
+aux:ObserveShape a sh:NodeShape ;
+    sh:targetClass aux:Observe ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path aux:observe_event  ; sh:class oced:Event  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:observe_object ; sh:class oced:Object ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path aux:qualifier      ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] .
+# `aux:Observe` <- OCEL's `relations` DataFrame (E2O links): event_id,
+# object_id, qualifier columns map directly onto observe_event/
+# observe_object/qualifier, an exact real-ontology match.
+
+aux:ObjectRelationShape a sh:NodeShape ;
+    sh:targetClass aux:ObjectRelation ;
+    dcterms:source <https://raw.githubusercontent.com/wu-semsys/ocedo/main/files/oced_ontology.ttl> ;
+    sh:property
+        [ sh:path aux:from          ; sh:class oced:Object ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path aux:to            ; sh:class oced:Object ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path aux:relation_type ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] .
+# `aux:ObjectRelation` <- OCEL's `o2o` DataFrame: object_id, object_id_2,
+# qualifier columns map onto from/to/relation_type, another exact match.
+
+# OCEL's `e2e` DataFrame (OCEL2-style event-to-event relations: event_id,
+# event_id_2, qualifier) has no OCEDO equivalent class in the fetched
+# ontology fragment (only Event-to-Object `aux:Observe` and Object-to-Object
+# `aux:ObjectRelation` are modeled, no Event-to-Event class). Left
+# unmodeled, not invented, same as e2e's absence noted in the earlier
+# pm4py-grounded catalog of this session.
+#
+# `globals` (a plain dict, not a DataFrame; default/global attribute
+# values) has no OCEDO structural equivalent either -- it's an OCEL
+# exchange-format convenience, not domain data; not modeled.

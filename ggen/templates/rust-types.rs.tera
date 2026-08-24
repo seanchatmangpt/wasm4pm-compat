@@ -1,0 +1,84 @@
+{# μ(sh:NodeShape*) -> Rust structs. Renders directly as a normal, first-class
+   sibling module (src/bpmn_ontology.rs, etc.) -- same convention as
+   src/witnesses.rs: "ggen-rendered source. Do not hand-edit it... it is
+   provided by ggen, but it is source" (CLAUDE.md). No separate generated/
+   directory: that would make ontology-derived types a second-class citizen
+   relative to hand-written src/*.rs, which this file's whole purpose
+   contradicts. #}
+// This file is a checked-in projection of the ontology under
+// ggen/ontology/type-shapes/. Regenerate through the owning *.toml manifest;
+// do not hand-edit -- if a field is wrong, fix the source .ttl and re-render.
+// It is provided by ggen, but it is source (same doctrine as src/witnesses.rs).
+//
+// Field types come straight from real SHACL constraints (sh:datatype /
+// sh:class / sh:in), reused from a real public ontology where the source
+// .ttl says so (see that file's header) -- not invented at generation time.
+
+#![allow(dead_code)]
+
+{% set shapes = [] %}
+{% for row in sparql_results %}
+  {% set_global shapes = shapes | concat(with=[row.shape]) | unique %}
+{% endfor %}
+
+{% for shape_iri in shapes %}
+{% set shape_name = shape_iri | split(pat="#") | last | split(pat="/") | last | replace(from="Shape", to="") %}
+{% set fields = sparql_results | filter(attribute="shape", value=shape_iri) %}
+
+/// Generated from `{{ shape_iri }}`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct {{ shape_name }} {
+{% for f in fields %}
+{% set field_name = f.propPath | split(pat="#") | last | split(pat="/") | last %}
+{% set sc = field_name | snake_case %}
+{% if sc in ["final", "type", "fn", "match", "loop", "move", "ref", "self", "Self", "struct", "trait", "impl", "enum", "mod", "use", "pub", "let", "mut", "const", "static", "return", "if", "else", "for", "while", "in", "as", "dyn", "where", "unsafe", "async", "await", "box", "crate", "extern", "true", "false", "abstract", "become", "do", "final", "macro", "override", "priv", "typeof", "unsized", "virtual", "yield", "try"] %}
+{% set rust_field = "r#" ~ sc %}
+{% else %}
+{% set rust_field = sc %}
+{% endif %}
+{% set xsd = f.datatype | default(value="http://www.w3.org/2001/XMLSchema#string") | split(pat="#") | last %}
+{% if xsd == "string" or xsd == "ID" or xsd == "dateTime" or xsd == "anyURI" %}
+{% set rust_type = "String" %}
+{% elif xsd == "boolean" %}
+{% set rust_type = "bool" %}
+{% elif xsd == "integer" or xsd == "int" or xsd == "long" %}
+{% set rust_type = "i64" %}
+{% elif xsd == "nonNegativeInteger" or xsd == "unsignedInt" or xsd == "unsignedLong" %}
+{% set rust_type = "u64" %}
+{% elif xsd == "double" or xsd == "float" or xsd == "decimal" %}
+{% set rust_type = "f64" %}
+{% else %}
+{% set rust_type = "String" %}
+{% endif %}
+{% if f.inValues %}
+    pub {{ rust_field }}: {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }},
+{% elif f.nodeClass %}
+    pub {{ rust_field }}: Vec<String>,
+{% elif f.maxCount is defined and (f.maxCount == "1" or f.maxCount == 1) %}
+{% if f.minCount is defined and (f.minCount == "0" or f.minCount == 0) %}
+    pub {{ rust_field }}: Option<{{ rust_type }}>,
+{% else %}
+    pub {{ rust_field }}: {{ rust_type }},
+{% endif %}
+{% else %}
+    pub {{ rust_field }}: Vec<String>,
+{% endif %}
+{% endfor %}
+}
+
+{% for f in fields %}
+{% if f.inValues %}
+{% set field_name = f.propPath | split(pat="#") | last | split(pat="/") | last %}
+/// Enum for `{{ shape_name }}.{{ field_name }}`, per `sh:in` on the source shape.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }} {
+{% for v in f.inValues | split(pat="|") %}
+{% if v %}
+    {{ v | title | replace(from=" ", to="") }},
+{% endif %}
+{% endfor %}
+}
+{% endif %}
+{% endfor %}
+
+{% endfor %}

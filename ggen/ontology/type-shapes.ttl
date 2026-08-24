@@ -1,0 +1,43 @@
+# Index of the type-shape ontology catalog for wasm4pm-compat.
+#
+# Rule (established this session, recorded in
+# docs/superpowers/specs/2026-08-24-ontology-first-restart-design.md):
+# reuse a real, published, dereferenceable public RDF/OWL ontology wherever
+# one exists; author one at genuine standards-submission quality only where
+# none does, grounded in a real working reference implementation rather
+# than invented from field names alone.
+#
+# All 15 pm4py-object-model clusters resolved (deep-research pass
+# wf_4abe2be2-569 for bpmn/log/ocel/powl, per-cluster targeted searches via
+# wf_f250b3f7-f05 for the remaining 11 -- confirmed no public ontology
+# exists for any of them):
+#   bpmn.ttl              -- reuses sBPMN (Krause et al., ACM K-CAP 2025)
+#   log.ttl, ocel.ttl     -- reuse OCEDO (Latif et al., arXiv:2511.03351)
+#   powl.ttl              -- authored fresh, grounded in ~/POWL
+#   process_tree.ttl, petri_net.ttl, transition_system.ttl,
+#   oc_causal_net.ttl, ocpn.ttl, dfg.ttl, heuristics_net.ttl, org.ttl,
+#   trie.ttl, genetic_matrix.ttl, random_variables.ttl
+#                          -- authored fresh, grounded in pm4py.objects.*
+#   no-reference-modules.ttl -- stochastic_petri/yawl, confirmed zero
+#                          classes, flagged not silently omitted
+
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://wasm4pm-compat.rs/type-shapes> a owl:Ontology ;
+    owl:imports
+        <https://sBPMN.github.io/2.0/> ,
+        <https://w3id.org/ocedo/core> ,
+        <https://w3id.org/ocedo/auxiliary> ,
+        <https://w3id.org/powl/core> ,
+        <https://wasm4pm-compat.rs/shapes/process_tree> ,
+        <https://wasm4pm-compat.rs/shapes/petri_net> ,
+        <https://wasm4pm-compat.rs/shapes/transition_system> ,
+        <https://wasm4pm-compat.rs/shapes/oc_causal_net> ,
+        <https://wasm4pm-compat.rs/shapes/ocpn> ,
+        <https://wasm4pm-compat.rs/shapes/dfg> ,
+        <https://wasm4pm-compat.rs/shapes/heuristics_net> ,
+        <https://wasm4pm-compat.rs/shapes/org> ,
+        <https://wasm4pm-compat.rs/shapes/trie> ,
+        <https://wasm4pm-compat.rs/shapes/genetic_matrix> ,
+        <https://wasm4pm-compat.rs/shapes/random_variables> ,
+        <https://wasm4pm-compat.rs/type-shapes/no-reference-modules> .

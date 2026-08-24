@@ -1,0 +1,173 @@
+# The OC Causal Net Ontology (draft) -- authored fresh. A targeted web search
+# ("oc_causal_net RDF OWL ontology process mining namespace") returned no
+# real, published, dereferenceable public RDF/OWL ontology for pm4py's
+# object-centric causal net (oc_causal_net) concept -- only generic OWL/RDF
+# tutorial material and unrelated maintenance/adverse-event ontologies. No
+# real ontology exists to reuse (unlike BPMN/sBPMN or OCEL-OCED/OCEDO,
+# confirmed real and reused directly in sibling files bpmn.ttl and log.ttl).
+#
+# Grounded ONLY in pm4py.objects.oc_causal_net.obj (a real, working
+# reference implementation), not invented from field names alone. Minted
+# under https://wasm4pm-compat.rs/shapes/oc_causal_net# because this is a
+# niche pm4py-specific structure with no recognizable general RDF/graph-
+# theory vocabulary that fits better, and no public standard exists for it.
+#
+# Ground-truth scope note: OCCausalNet.dependency_graph (a networkx
+# MultiDiGraph) is the one PRIMARY field in this module that is graph-shaped
+# rather than scalar/collection-shaped. Its derived views (activities, edges,
+# object_types) are excluded per the DERIVED-exclusion rule. The graph's own
+# node/edge identity is not separately re-modeled here (would require
+# inventing structure pm4py does not name), consistent with this ontology's
+# grounding-only-in-real-shapes policy; activity_count is modeled as the
+# real dict field it is.
+#
+# Competency questions:
+#   CQ1: What is the occurrence count of a given activity in this causal net?
+#   CQ2: What relative-occurrence threshold was used to prune this net?
+#   CQ3: For a given (related activity, object type) pair, what is the
+#        marker's count range (min/max)?
+#   CQ4: Which marker groups gate a given activity's inputs/outputs?
+#   CQ5: What support count backs a given marker group?
+
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix ocn:     <https://wasm4pm-compat.rs/shapes/oc_causal_net#> .
+
+<https://wasm4pm-compat.rs/shapes/oc_causal_net> a owl:Ontology ;
+    owl:versionIRI <https://wasm4pm-compat.rs/shapes/oc_causal_net/1.0.0> ;
+    dcterms:title "The OC Causal Net Ontology"@en ;
+    dcterms:description "An ontology describing pm4py's object-centric causal net (OCCausalNet) structures: activity occurrence counts and input/output marker groups gating object-type-qualified relations."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "ocn" ;
+    vann:preferredNamespaceUri "https://wasm4pm-compat.rs/shapes/oc_causal_net#" ;
+    rdfs:comment "Draft, minted fresh after a real targeted search confirmed no public RDF/OWL ontology for oc_causal_net exists. Grounded in pm4py.objects.oc_causal_net.obj."@en .
+
+# --- classes ---------------------------------------------------------------
+
+ocn:OCCausalNet a owl:Class ;
+    rdfs:label "Object-Centric Causal Net"@en ;
+    rdfs:comment "An object-centric causal net: per-activity occurrence counts, a pruning threshold, and named input/output marker groups. Its dependency_graph (networkx MultiDiGraph) is graph-shaped internal state; activities/edges/object_types are derived views over it and are excluded here. Corresponds to pm4py's OCCausalNet."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet" .
+
+ocn:Marker a owl:Class ;
+    rdfs:label "Marker"@en ;
+    rdfs:comment "A single object-type-qualified occurrence-count marker on a related activity, keyed by an integer marker key. count_range is split into countMin/countMax; the derived min_count/max_count property views are excluded. Corresponds to pm4py's Marker."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker" .
+
+ocn:MarkerGroup a owl:Class ;
+    rdfs:label "Marker Group"@en ;
+    rdfs:comment "A named group of Markers with an aggregate support count. dict_representation and key_constraints are @cached_property derived views and are excluded. Corresponds to pm4py's MarkerGroup."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.MarkerGroup" .
+
+# --- properties on ocn:OCCausalNet ------------------------------------------
+
+ocn:activityName a owl:DatatypeProperty ;
+    rdfs:domain ocn:OCCausalNet ; rdfs:range xsd:string ;
+    rdfs:label "activity name"@en ;
+    rdfs:comment "One key of activity_count: an activity name present in this causal net. Paired positionally with ocn:activityOccurrenceCount, standing in for the primary dict field activity_count:{str:int} (SHACL has no native map type)."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.activity_count (keys)" .
+
+ocn:activityOccurrenceCount a owl:DatatypeProperty ;
+    rdfs:domain ocn:OCCausalNet ; rdfs:range xsd:integer ;
+    rdfs:label "activity occurrence count"@en ;
+    rdfs:comment "One value of activity_count: how many times the paired activity name occurred."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.activity_count (values)" .
+
+ocn:relativeOccurrenceThreshold a owl:DatatypeProperty ;
+    rdfs:domain ocn:OCCausalNet ; rdfs:range xsd:double ;
+    rdfs:label "relative occurrence threshold"@en ;
+    rdfs:comment "The relative-frequency threshold used to prune this causal net's dependency graph."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.relative_occurrence_threshold" .
+
+ocn:hasInputMarkerGroup a owl:ObjectProperty ;
+    rdfs:domain ocn:OCCausalNet ; rdfs:range ocn:MarkerGroup ;
+    rdfs:label "has input marker group"@en ;
+    rdfs:comment "One of this causal net's named input marker groups (input_marker_groups:{str:[MarkerGroup]}); the group's own name is carried by ocn:markerGroupName on the MarkerGroup itself."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.input_marker_groups" .
+
+ocn:hasOutputMarkerGroup a owl:ObjectProperty ;
+    rdfs:domain ocn:OCCausalNet ; rdfs:range ocn:MarkerGroup ;
+    rdfs:label "has output marker group"@en ;
+    rdfs:comment "One of this causal net's named output marker groups (output_marker_groups:{str:[MarkerGroup]}); the group's own name is carried by ocn:markerGroupName on the MarkerGroup itself."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.output_marker_groups" .
+
+# --- properties on ocn:MarkerGroup ------------------------------------------
+
+ocn:markerGroupName a owl:DatatypeProperty ;
+    rdfs:domain ocn:MarkerGroup ; rdfs:range xsd:string ;
+    rdfs:label "marker group name"@en ;
+    rdfs:comment "The activity/gate name this marker group is keyed under in input_marker_groups/output_marker_groups."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.OCCausalNet.input_marker_groups/output_marker_groups (keys)" .
+
+ocn:hasMarker a owl:ObjectProperty ;
+    rdfs:domain ocn:MarkerGroup ; rdfs:range ocn:Marker ;
+    rdfs:label "has marker"@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.MarkerGroup.markers" .
+
+ocn:supportCount a owl:DatatypeProperty ;
+    rdfs:domain ocn:MarkerGroup ; rdfs:range xsd:integer ;
+    rdfs:label "support count"@en ;
+    rdfs:comment "Aggregate support count for this marker group. Python default is +infinity (unbounded support); absence of this property means unbounded, flagged rather than silently defaulted to a sentinel integer."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.MarkerGroup.support_count" .
+
+# --- properties on ocn:Marker ------------------------------------------------
+
+ocn:relatedActivity a owl:DatatypeProperty ;
+    rdfs:domain ocn:Marker ; rdfs:range xsd:string ;
+    rdfs:label "related activity"@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker.related_activity" .
+
+ocn:objectType a owl:DatatypeProperty ;
+    rdfs:domain ocn:Marker ; rdfs:range xsd:string ;
+    rdfs:label "object type"@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker.object_type" .
+
+ocn:countMin a owl:DatatypeProperty ;
+    rdfs:domain ocn:Marker ; rdfs:range xsd:integer ;
+    rdfs:label "count range minimum"@en ;
+    rdfs:comment "Lower bound of count_range (int,int); split into a real field rather than kept as a tuple, matching this ontology's convention of scalar-decomposing paired ranges. The derived min_count property view is excluded."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker.count_range[0]" .
+
+ocn:countMax a owl:DatatypeProperty ;
+    rdfs:domain ocn:Marker ; rdfs:range xsd:integer ;
+    rdfs:label "count range maximum"@en ;
+    rdfs:comment "Upper bound of count_range (int,int). The derived max_count property view is excluded."@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker.count_range[1]" .
+
+ocn:markerKey a owl:DatatypeProperty ;
+    rdfs:domain ocn:Marker ; rdfs:range xsd:integer ;
+    rdfs:label "marker key"@en ;
+    dcterms:source "pm4py.objects.oc_causal_net.obj.Marker.marker_key" .
+
+# --- SHACL cardinality/datatype shapes, layered on the OWL classes above ---
+
+ocn:OCCausalNetShape a sh:NodeShape ;
+    sh:targetClass ocn:OCCausalNet ;
+    sh:property
+        [ sh:path ocn:activityName ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 1 ] ,
+        [ sh:path ocn:activityOccurrenceCount ; sh:datatype xsd:integer ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path ocn:relativeOccurrenceThreshold ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path ocn:hasInputMarkerGroup ; sh:class ocn:MarkerGroup ; sh:minCount 0 ; sh:order 4 ] ,
+        [ sh:path ocn:hasOutputMarkerGroup ; sh:class ocn:MarkerGroup ; sh:minCount 0 ; sh:order 5 ] .
+
+ocn:MarkerGroupShape a sh:NodeShape ;
+    sh:targetClass ocn:MarkerGroup ;
+    sh:property
+        [ sh:path ocn:markerGroupName ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ocn:hasMarker ; sh:class ocn:Marker ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path ocn:supportCount ; sh:datatype xsd:integer ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 3 ] .
+
+ocn:MarkerShape a sh:NodeShape ;
+    sh:targetClass ocn:Marker ;
+    sh:property
+        [ sh:path ocn:relatedActivity ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ocn:objectType ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path ocn:countMin ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path ocn:countMax ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] ,
+        [ sh:path ocn:markerKey ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 5 ] .

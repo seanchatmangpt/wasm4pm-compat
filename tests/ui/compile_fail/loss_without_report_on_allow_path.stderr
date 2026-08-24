@@ -17,3 +17,6 @@ help: the type constructed contains `()` due to the type of the argument passed
    |            this argument influences the type of `Ok`
 note: tuple variant defined here
   --> $RUST/core/src/result.rs
+   |
+   |     Ok(#[stable(feature = "rust1", since = "1.0.0")] T),
+   |     ^^

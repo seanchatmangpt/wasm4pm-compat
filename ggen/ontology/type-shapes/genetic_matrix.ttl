@@ -1,0 +1,68 @@
+# The Genetic Matrix Ontology (draft) -- a real, standards-submission-quality
+# SHACL shape for pm4py's genetic-algorithm process-mining matrix
+# representation, authored because a targeted web search this pass
+# ("genetic_matrix RDF OWL ontology process mining namespace") found no
+# real, published, dereferenceable public RDF/OWL ontology for this
+# concept -- unlike BPMN (sBPMN) and OCEL/OCED (OCEDO), reused directly
+# in sibling files rather than redefined.
+#
+# Grounded in pm4py.objects.genetic_matrix.obj (a real, working reference
+# implementation used by pm4py's genetic-algorithm process discovery
+# miner), not invented from field names alone. GeneticMatrix is a niche,
+# pm4py-specific intermediate data structure (causal dependency matrix
+# used during genetic mining) with no recognizable general RDF/graph-
+# theory vocabulary that fits better than a domain-specific mint, so per
+# the established rule this shape is minted under
+# https://wasm4pm-compat.rs/shapes/genetic_matrix# .
+#
+# Competency question this shape must answer:
+#   CQ1: For a given node (activity/transition name) in a genetic-mining
+#        causal matrix, which sets of predecessor activities can jointly
+#        enable it (input_map), and which sets of successor activities
+#        can it jointly enable (output_map)?
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix gm:      <https://wasm4pm-compat.rs/shapes/genetic_matrix#> .
+
+gm:GeneticMatrix a sh:NodeShape ;
+    sh:targetClass gm:GeneticMatrix ;
+    rdfs:label "Genetic Matrix"@en ;
+    rdfs:comment "Causal-dependency matrix used by pm4py's genetic-algorithm process discovery miner: for each node (activity name), the sets of predecessor/successor activities that can jointly enable/be-enabled by it, plus the flat list of transition names in the matrix. All fields are primary constructor state; none are derived."@en ;
+    dcterms:source "pm4py.objects.genetic_matrix.obj.GeneticMatrix" ;
+    sh:property
+        [ sh:path gm:inputMap ; sh:class gm:InputMapEntry ; sh:minCount 0 ; sh:order 1 ] ,
+        [ sh:path gm:outputMap ; sh:class gm:OutputMapEntry ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path gm:transition ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 3 ] .
+
+# `input_map`/`output_map` are `{str: [frozenset[str]]}` in the pm4py
+# reference implementation -- a node name mapped to a list of frozensets
+# of predecessor/successor activity names. A frozenset of activity names
+# has no natural single-value SHACL datatype, so each map entry is
+# reified as its own shape (node name + one predecessor/successor-set
+# member), mirroring the id-referenced/no-circular-shape convention used
+# for connectivity fields elsewhere in this ontology family
+# (bpmn.ttl/powl.ttl) rather than nesting an unbounded set-of-sets
+# inline.
+
+gm:InputMapEntry a sh:NodeShape ;
+    sh:targetClass gm:InputMapEntry ;
+    rdfs:label "Genetic Matrix Input-Map Entry"@en ;
+    rdfs:comment "One (node, predecessor-set-member) pair from GeneticMatrix.input_map: node is enabled once every activity in its predecessor set has occurred."@en ;
+    dcterms:source "pm4py.objects.genetic_matrix.obj.GeneticMatrix.input_map" ;
+    sh:property
+        [ sh:path gm:node ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path gm:predecessorSetId ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path gm:predecessorActivity ; sh:datatype xsd:string ; sh:minCount 1 ; sh:order 3 ] .
+
+gm:OutputMapEntry a sh:NodeShape ;
+    sh:targetClass gm:OutputMapEntry ;
+    rdfs:label "Genetic Matrix Output-Map Entry"@en ;
+    rdfs:comment "One (node, successor-set-member) pair from GeneticMatrix.output_map: node jointly enables every activity in one of its successor sets."@en ;
+    dcterms:source "pm4py.objects.genetic_matrix.obj.GeneticMatrix.output_map" ;
+    sh:property
+        [ sh:path gm:node ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path gm:successorSetId ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path gm:successorActivity ; sh:datatype xsd:string ; sh:minCount 1 ; sh:order 3 ] .

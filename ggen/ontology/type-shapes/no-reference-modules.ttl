@@ -1,0 +1,25 @@
+# Modules confirmed to contribute zero data-model classes -- stated fact,
+# not a gap. Verified this session directly against pm4py source:
+#
+# - stochastic_petri/ (pm4py.objects.stochastic_petri): pure algorithm/
+#   utility functions operating on petri_net objects (ctmc.py, tangible_
+#   reachability.py, utils.py). `grep -n "^class "` across the whole
+#   subdirectory returns zero matches.
+# - yawl/ (pm4py.objects.yawl): no object-model .py files exist at all --
+#   only an empty exporter/ subdirectory. `find yawl -name "*.py"` returns
+#   empty.
+#
+# Per docs/superpowers/specs/2026-08-24-ontology-first-restart-design.md's
+# "Handling modules with no located reference": flagged explicitly here
+# rather than silently omitted or forced through invented shapes.
+
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<https://wasm4pm-compat.rs/shapes/stochastic_petri>
+    rdfs:comment "No data-model classes -- pure algorithm/utility functions over petri_net objects."@en ;
+    dcterms:source "pm4py.objects.stochastic_petri (ctmc.py, tangible_reachability.py, utils.py -- zero class definitions)" .
+
+<https://wasm4pm-compat.rs/shapes/yawl>
+    rdfs:comment "No object-model files exist at all -- only an empty exporter/ subdirectory."@en ;
+    dcterms:source "pm4py.objects.yawl (no .py files under the package besides an empty exporter/)" .

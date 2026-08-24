@@ -26,3 +26,10 @@ query = { file = "queries/extract-ash-types.rq" }
 template = { file = "templates/ash-types.ex.tera" }
 output_file = "bindings/elixir/lib/wasm4pm_compat/ash_types.ex"
 mode = "Overwrite"
+
+[[generation.rules]]
+name = "elixir-plain-types"
+query = { file = "queries/extract-ash-types.rq" }
+template = { file = "templates/plain-types.ex.tera" }
+output_file = "bindings/elixir/lib/wasm4pm_compat/plain_types.ex"
+mode = "Overwrite"

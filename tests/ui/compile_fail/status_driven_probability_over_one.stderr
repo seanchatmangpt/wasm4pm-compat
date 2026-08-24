@@ -1,0 +1,67 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/status_driven_probability_over_one.rs:12:12
+   |
+12 |     let _: TaskSuccessProbability<5, 4> = TaskSuccessProbability::new();
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `TaskSuccessProbability`
+  --> src/status_driven.rs
+   |
+   | pub struct TaskSuccessProbability<const NUM: u64, const DEN: u64>
+   |            ---------------------- required by a bound in this struct
+...
+   |     Require<{ NUM <= DEN }>: IsTrue,
+   |                              ^^^^^^ required by this bound in `TaskSuccessProbability`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/status_driven_probability_over_one.rs:12:43
+   |
+12 |     let _: TaskSuccessProbability<5, 4> = TaskSuccessProbability::new();
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `TaskSuccessProbability`
+  --> src/status_driven.rs
+   |
+   | pub struct TaskSuccessProbability<const NUM: u64, const DEN: u64>
+   |            ---------------------- required by a bound in this struct
+...
+   |     Require<{ NUM <= DEN }>: IsTrue,
+   |                              ^^^^^^ required by this bound in `TaskSuccessProbability`
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/status_driven_probability_over_one.rs:12:43
+   |
+12 |     let _: TaskSuccessProbability<5, 4> = TaskSuccessProbability::new();
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `TaskSuccessProbability::<NUM, DEN>::new`
+  --> src/status_driven.rs
+   |
+   |     Require<{ NUM <= DEN }>: IsTrue,
+   |                              ^^^^^^ required by this bound in `TaskSuccessProbability::<NUM, DEN>::new`
+   | {
+   |     pub const fn new() -> Self {
+   |                  --- required by a bound in this associated function
+
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/status_driven_probability_over_one.rs:12:43
+   |
+12 |     let _: TaskSuccessProbability<5, 4> = TaskSuccessProbability::new();
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ expected `false`, found `true`
+   |
+   = note: expected constant `false`
+              found constant `true`
+note: required by a bound in `TaskSuccessProbability`
+  --> src/status_driven.rs
+   |
+   | pub struct TaskSuccessProbability<const NUM: u64, const DEN: u64>
+   |            ---------------------- required by a bound in this struct
+...
+   |     Require<{ NUM <= DEN }>: IsTrue,
+   |                              ^^^^^^ required by this bound in `TaskSuccessProbability`

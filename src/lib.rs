@@ -166,6 +166,12 @@ pub mod alignment;
 pub mod authority;
 /// BPMN model shape.
 pub mod bpmn;
+/// BPMN model shapes rendered from `ggen/ontology/type-shapes/bpmn.ttl` (reuses
+/// the real sBPMN ontology). Proves the ontology-first generation pipeline
+/// end to end; not yet the crate's canon BPMN surface (see `bpmn` above) —
+/// pending the strangler-fig rollout in
+/// `docs/superpowers/specs/2026-08-24-reference-rdf-ggen-charter.md`.
+pub mod bpmn_ontology;
 /// Causal net structural shapes (Heuristics Miner output — Weijters & Ribeiro 2011).
 pub mod causal_net;
 /// Causal consistency law: CausalChain, CausalLink, CausalConsistency, CausallyOrderedEvidence.
@@ -183,12 +189,30 @@ pub mod declare;
 pub mod dfcm;
 /// Directly-follows graph (DFG) shape.
 pub mod dfg;
+/// DFG shapes rendered from `ggen/ontology/type-shapes/dfg.ttl` (authored
+/// fresh, grounded in `pm4py.objects.dfg.obj` — no public ontology found).
+pub mod dfg_ontology;
 /// Diagnostic shapes for explaining admission and refusal.
 pub mod diagnostic;
 /// The universal evidence carrier `Evidence<T, State, W>` and its typestate transitions.
 pub mod evidence;
+/// GeneticMatrix shape rendered from `ggen/ontology/type-shapes/genetic_matrix.ttl`
+/// (authored fresh, grounded in `pm4py.objects.genetic_matrix.obj`).
+pub mod genetic_matrix_ontology;
+/// HeuristicsNet shapes rendered from `ggen/ontology/type-shapes/heuristics_net.ttl`
+/// (authored fresh, grounded in `pm4py.objects.heuristics_net`).
+pub mod heuristics_net_ontology;
 /// Zero-cost `#[repr(transparent)]` identifier wrappers.
 pub mod ids;
+/// Event/Trace/EventLog shapes rendered from `ggen/ontology/type-shapes/log.ttl`
+/// (reuses the real OCEDO ontology).
+pub mod log_ontology;
+/// Object/attribute/relation shapes rendered from
+/// `ggen/ontology/type-shapes/ocel.ttl` (reuses the real OCEDO ontology).
+pub mod ocel_ontology;
+/// POWL model shapes rendered from `ggen/ontology/type-shapes/powl.ttl`
+/// (authored fresh, grounded in `~/POWL/powl/objects/`).
+pub mod powl_ontology;
 /// Interop traits: import, export, round-trip claim plumbing.
 pub mod interop;
 /// Compile-time law kernel: `ConstParamTy` enums, bounds machinery, `ConditionCell`, `Between01`.
@@ -202,17 +226,33 @@ pub mod multiperspective;
 pub mod object_centric_conformance;
 /// Object lifecycle law: typed phase markers and lawful phase transitions.
 pub mod object_lifecycle;
+/// Object-centric causal net shapes rendered from
+/// `ggen/ontology/type-shapes/oc_causal_net.ttl` (authored fresh, grounded
+/// in `pm4py.objects.oc_causal_net.obj`).
+pub mod oc_causal_net_ontology;
 /// Object-centric event log (OCEL) shape.
 pub mod ocel;
 pub mod ocel_diff;
+/// Object-centric Petri net shapes rendered from
+/// `ggen/ontology/type-shapes/ocpn.ttl` (authored fresh, grounded in
+/// `pm4py.objects.ocpn.obj`).
+pub mod ocpn_ontology;
 /// Object-centric process query (OCPQ) shape.
 pub mod ocpq;
+/// Social network / role shapes rendered from
+/// `ggen/ontology/type-shapes/org.ttl` (authored fresh, grounded in
+/// `pm4py.objects.org.{sna,roles}.obj`).
+pub mod org_ontology;
 /// PDDL8 canonical types — bounded STRIPS planning algebra for the BRCE stack.
 /// Parser lives in `bcinr-pddl` (opt-in dep); these types are the cross-crate
 /// representation shared by bcinr-pddl, wasm4pm-cognition, and lsp-max.
 pub mod pddl;
 /// Petri net shape.
 pub mod petri;
+/// Petri net shapes rendered from `ggen/ontology/type-shapes/petri_net.ttl`
+/// (authored fresh, grounded in `pm4py.objects.petri_net.obj` and its
+/// stochastic/data-marking variants).
+pub mod petri_net_ontology;
 /// POWL (partially ordered workflow language) shape.
 pub mod powl;
 /// POWL8 operator discriminant — compact `u8` wire-format companion to [`crate::powl::PowlNodeKind`].
@@ -228,14 +268,33 @@ pub mod process_cube;
 pub mod process_delta;
 /// Process tree shape.
 pub mod process_tree;
+/// Process tree shapes rendered from
+/// `ggen/ontology/type-shapes/process_tree.ttl` (authored fresh, grounded
+/// in `pm4py.objects.process_tree.obj`).
+pub mod process_tree_ontology;
+/// Random-variable/stochastic-distribution shapes rendered from
+/// `ggen/ontology/type-shapes/random_variables.ttl` (authored fresh,
+/// grounded in `pm4py.objects.random_variables`).
+pub mod random_variables_ontology;
 /// Receipt shape: provenance-bearing evidence envelope.
 pub mod receipt;
 /// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
 pub mod state;
+/// Status-driven system shapes: `StatusDrivenSystem`, `ActiveTransitionConstraint`,
+/// `TaskSuccessProbability` (Qi et al. 2025, closed-form/boundary task-success
+/// probability expressions).
+pub mod status_driven;
 /// Streaming evidence context law: online vs. offline collection markers and EventWindow.
 pub mod streaming;
 /// Temporal ordering and profile law surfaces.
 pub mod temporal;
+/// Transition-system shapes rendered from
+/// `ggen/ontology/type-shapes/transition_system.ttl` (authored fresh,
+/// grounded in `pm4py.objects.transition_system.obj`).
+pub mod transition_system_ontology;
+/// Trie shape rendered from `ggen/ontology/type-shapes/trie.ttl` (authored
+/// fresh, grounded in `pm4py.objects.trie.obj`).
+pub mod trie_ontology;
 /// Witness markers and witness families (type-level proof carriers).
 #[macro_use]
 pub mod witness;

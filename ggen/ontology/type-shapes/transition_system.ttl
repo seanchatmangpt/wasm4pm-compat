@@ -1,0 +1,117 @@
+# Transition System type-shapes -- authored fresh.
+#
+# Ground truth: a targeted web search this session ("transition_system RDF OWL
+# ontology process mining namespace", "'transition system' ontology OWL
+# 'state' 'transition' pm4py OR 'process mining' w3id OR github.io") found no
+# real, published, dereferenceable public RDF/OWL ontology specifically for
+# pm4py's transition_system concept. Adjacent hits exist (OLTSA -- an
+# ontology-based *analyzer tool*, not a persistent transition-system
+# ontology namespace; the PackML state-machine ODP at w3id.org, which models
+# an industrial machine standard, not process-mining reachability graphs;
+# UML State Machine ontology papers with no persistent URI) but none is a
+# real fetchable ontology file/namespace for this concept. Per this session's
+# established rule, these shapes are authored fresh, grounded only in the
+# real, working pm4py reference implementation
+# (pm4py.objects.transition_system.obj), never invented from field names
+# alone.
+#
+# Minted under https://wasm4pm-compat.rs/shapes/transition_system# because
+# this is a niche pm4py-specific reachability-graph shape (State/Transition
+# labeled transition system) with no public standard to reuse, matching the
+# petri_net/powl precedent in this same directory for pm4py-internal shapes
+# lacking a public ontology.
+#
+# Derived fields (State.incoming/outgoing -- graph-populated by
+# TransitionSystem construction, not constructor-primary) are excluded per
+# the ontology-authoring rule for this pass. Self-referential/graph-edge
+# fields (Transition.from_state/to_state, State's event lists) are
+# id-referenced as xsd:string, matching the bpmn.ttl/powl.ttl convention of
+# avoiding circular nested-shape references.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ts:      <https://wasm4pm-compat.rs/shapes/transition_system#> .
+
+# --- TransitionSystem --------------------------------------------------
+
+ts:TransitionSystemShape a sh:NodeShape ;
+    rdfs:label "Transition System"@en ;
+    rdfs:comment "A labeled transition system: a named set of states connected by named transitions. Corresponds to pm4py's TransitionSystem."@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.TransitionSystem" ;
+    sh:property
+        [ sh:path ts:name  ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ts:state ; sh:class ts:StateShape  ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path ts:transition ; sh:class ts:TransitionShape ; sh:minCount 0 ; sh:order 3 ] .
+
+ts:name a rdf:Property ;
+    rdfs:label "name"@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.TransitionSystem.name" .
+
+ts:state a rdf:Property ;
+    rdfs:label "state"@en ;
+    rdfs:comment "A State belonging to this TransitionSystem."@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.TransitionSystem.states" .
+
+ts:transition a rdf:Property ;
+    rdfs:label "transition"@en ;
+    rdfs:comment "A Transition belonging to this TransitionSystem."@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.TransitionSystem.transitions" .
+
+# --- State ---------------------------------------------------------------
+
+ts:StateShape a sh:NodeShape ;
+    rdfs:label "State"@en ;
+    rdfs:comment "A single reachability-graph state, identified by name, with the names of events observed entering and leaving it. incoming/outgoing Transition sets are graph-populated (derived) and excluded here." ;
+    dcterms:source "pm4py.objects.transition_system.obj.State" ;
+    sh:property
+        [ sh:path ts:stateName ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ts:ingoingEvent ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path ts:outgoingEvent ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 3 ] .
+
+ts:stateName a rdf:Property ;
+    rdfs:label "state name"@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.State.name" .
+
+ts:ingoingEvent a rdf:Property ;
+    rdfs:label "ingoing event"@en ;
+    rdfs:comment "An event name recorded in this State's data[constants.INGOING_EVENTS] list." ;
+    dcterms:source "pm4py.objects.transition_system.obj.State.data[constants.INGOING_EVENTS]" .
+
+ts:outgoingEvent a rdf:Property ;
+    rdfs:label "outgoing event"@en ;
+    rdfs:comment "An event name recorded in this State's data[constants.OUTGOING_EVENTS] list." ;
+    dcterms:source "pm4py.objects.transition_system.obj.State.data[constants.OUTGOING_EVENTS]" .
+
+# --- Transition ------------------------------------------------------------
+
+ts:TransitionShape a sh:NodeShape ;
+    rdfs:label "Transition"@en ;
+    rdfs:comment "A directed edge between two States, identified by name, carrying the names of the events it represents. from_state/to_state are id-referenced by state name (xsd:string) rather than nested sh:class, to avoid a circular State<->Transition shape reference." ;
+    dcterms:source "pm4py.objects.transition_system.obj.Transition" ;
+    sh:property
+        [ sh:path ts:transitionName ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path ts:fromState ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path ts:toState ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path ts:event ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 4 ] .
+
+ts:transitionName a rdf:Property ;
+    rdfs:label "transition name"@en ;
+    dcterms:source "pm4py.objects.transition_system.obj.Transition.name" .
+
+ts:fromState a rdf:Property ;
+    rdfs:label "from state"@en ;
+    rdfs:comment "The name of the source State of this Transition." ;
+    dcterms:source "pm4py.objects.transition_system.obj.Transition.from_state" .
+
+ts:toState a rdf:Property ;
+    rdfs:label "to state"@en ;
+    rdfs:comment "The name of the target State of this Transition." ;
+    dcterms:source "pm4py.objects.transition_system.obj.Transition.to_state" .
+
+ts:event a rdf:Property ;
+    rdfs:label "event"@en ;
+    rdfs:comment "An event name recorded in this Transition's data[constants.EVENTS] list." ;
+    dcterms:source "pm4py.objects.transition_system.obj.Transition.data[constants.EVENTS]" .

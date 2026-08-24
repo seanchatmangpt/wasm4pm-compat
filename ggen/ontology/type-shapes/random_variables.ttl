@@ -1,0 +1,172 @@
+# The Random Variables Ontology (draft) -- no real, published, dereferenceable
+# public RDF/OWL ontology exists for pm4py's random_variables concept. A
+# targeted search (WebSearch: "random_variables RDF OWL ontology process
+# mining", "\"random variable\" ontology OWL RDF process mining stochastic
+# petri net namespace") surfaced only stochastic-Petri-net-for-service-
+# composition papers (Xia et al., IEEE/Wiley/ACM), none of which publish a
+# persistent, fetchable ontology URI or namespace -- unlike sBPMN
+# (sbpmn.github.io/2.0/ontology.ttl) and OCEDO (w3id.org/ocedo/core#), both
+# confirmed real and reused directly in sibling files (bpmn.ttl, log.ttl)
+# rather than redefined here. This module is therefore authored fresh,
+# grounded ONLY in pm4py.objects.random_variables (a real, working reference
+# implementation: basic_structure.py, exponential/, deterministic/,
+# lognormal/, gamma/, normal/, uniform/, constant0/, random_variable.py),
+# never invented from field names alone, matching this session's
+# established rule for concepts with no public standard.
+#
+# Namespace minted under https://wasm4pm-compat.rs/shapes/random_variables#
+# because this is a niche pm4py-specific concept (six SciPy-distribution-
+# backed subclasses of a priority/weight-carrying base, plus a thin
+# discriminated-union wrapper) with no recognizable general RDF/graph-theory
+# vocabulary that fits better -- unlike e.g. an id/attribute pattern, there
+# is no widely-adopted probability-distribution RDF vocabulary this crate
+# already depends on, so a domain-specific mint is the correct choice here
+# per the task's own stated fallback rule.
+#
+# pm4py.objects.random_variables.stochastic_petri/ and
+# pm4py.objects.random_variables.yawl/ contribute ZERO classes: confirmed
+# real-code fact -- stochastic_petri/ is pure algorithm functions over
+# already-modeled petri_net objects (no new object model), and yawl/ has no
+# .py object-model files at all (only an empty exporter/ dir). No shapes are
+# authored for either; they are noted below per the task's own instruction
+# for zero-class modules.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rv:      <https://wasm4pm-compat.rs/shapes/random_variables#> .
+
+# --- pm4py.objects.random_variables.stochastic_petri: zero classes ---------
+# Pure algorithm functions (firing-rate / marking-dependent-rate computation)
+# over existing petri_net objects -- no new object model, so no shapes are
+# authored for it. This module contributes nothing to the ontology.
+
+# --- pm4py.objects.random_variables.yawl: zero classes ----------------------
+# No .py object-model files exist in this package at all -- only an empty
+# exporter/ directory. No shapes are authored for it. This module
+# contributes nothing to the ontology.
+
+# --- root shape --------------------------------------------------------------
+
+rv:BasicStructureRandomVariableShape a sh:NodeShape ;
+    rdfs:label "Basic Structure Random Variable"@en ;
+    rdfs:comment "Root shape shared by every concrete stochastic-distribution subclass below. get_transition_type()/get_distribution_type() return hardcoded literal strings overridden per subclass (e.g. \"TIMED\", \"NORMAL\") -- these are not stored fields and are not modeled as sh:property; they are structurally implied by rdf:type of the concrete subclass shape instead, per this ontology's own no-real-Enum-anywhere ground truth."@en ;
+    dcterms:source "pm4py.objects.random_variables.basic_structure.BasicStructureRandomVariable" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] .
+
+rv:priority a rdfs:label ;
+    rdfs:comment "Firing priority. Default 0."@en ;
+    dcterms:source "pm4py.objects.random_variables.basic_structure.BasicStructureRandomVariable.priority" .
+
+rv:weight a rdfs:label ;
+    rdfs:comment "Firing weight, used to break priority ties. Default 0."@en ;
+    dcterms:source "pm4py.objects.random_variables.basic_structure.BasicStructureRandomVariable.weight" .
+
+# --- six concrete distribution subclasses -----------------------------------
+
+rv:ExponentialShape a sh:NodeShape ;
+    rdfs:label "Exponential Random Variable"@en ;
+    rdfs:comment "Exponential distribution, SciPy-parameterized (loc, scale). Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.exponential.random_variable.Exponential" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:loc      ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:scale    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .
+
+rv:DeterministicShape a sh:NodeShape ;
+    rdfs:label "Deterministic Random Variable"@en ;
+    rdfs:comment "Degenerate distribution firing at a single fixed value. Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.deterministic.random_variable.Deterministic" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:value    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] .
+
+rv:LogNormalShape a sh:NodeShape ;
+    rdfs:label "Log-Normal Random Variable"@en ;
+    rdfs:comment "Log-normal distribution, SciPy-parameterized (s, loc, scale). Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.lognormal.random_variable.LogNormal" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:s        ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:loc      ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] ,
+        [ sh:path rv:scale    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 5 ] .
+
+rv:GammaShape a sh:NodeShape ;
+    rdfs:label "Gamma Random Variable"@en ;
+    rdfs:comment "Gamma distribution, SciPy-parameterized (a, loc, scale). Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.gamma.random_variable.Gamma" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:a        ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:loc      ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] ,
+        [ sh:path rv:scale    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 5 ] .
+
+rv:NormalShape a sh:NodeShape ;
+    rdfs:label "Normal Random Variable"@en ;
+    rdfs:comment "Normal (Gaussian) distribution, SciPy-parameterized (mu, sigma). Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.normal.random_variable.Normal" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:mu       ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:sigma    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .
+
+rv:UniformShape a sh:NodeShape ;
+    rdfs:label "Uniform Random Variable"@en ;
+    rdfs:comment "Uniform distribution, SciPy-parameterized (loc, scale). Subclass of BasicStructureRandomVariable -- inherits priority/weight."@en ;
+    dcterms:source "pm4py.objects.random_variables.uniform.random_variable.Uniform" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:loc      ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:scale    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .
+
+# --- Constant0: degenerate subclass of Uniform ------------------------------
+
+rv:Constant0Shape a sh:NodeShape ;
+    rdfs:label "Constant0 Random Variable"@en ;
+    rdfs:comment "Degenerate case of Uniform with fixed loc=0, scale=0, priority=1 -- always fires the constant 0. Subclass of rv:UniformShape's underlying type (pm4py's Constant0 extends Uniform), inherits priority/weight/loc/scale but with fixed defaults enforced by the constructor rather than caller-supplied values."@en ;
+    dcterms:source "pm4py.objects.random_variables.constant0.random_variable.Constant0" ;
+    sh:property
+        [ sh:path rv:priority ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:weight   ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path rv:loc      ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path rv:scale    ; sh:datatype xsd:double  ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .
+
+# --- RandomVariable: standalone discriminated-union wrapper -----------------
+# Modeled as a discriminator (rv:variantKind, an enumerated string naming
+# which of the six concrete shapes above is held) plus a single id-reference
+# to the held distribution, rather than a nested sh:class union, matching
+# this directory's convention (bpmn.ttl/powl.ttl) of id-referencing rather
+# than circularly nesting shape references. sh:in enumerates the real
+# concrete subclass names from pm4py's own module layout (not an invented
+# Enum -- pm4py has none here; this is the ontology's own discriminator,
+# stated as such).
+
+rv:RandomVariableShape a sh:NodeShape ;
+    rdfs:label "Random Variable (wrapper)"@en ;
+    rdfs:comment "Standalone factory/wrapper holding a reference to exactly one concrete distribution instance -- NOT part of the BasicStructureRandomVariable class hierarchy. Corresponds to pm4py's RandomVariable, whose sole field is a reference to one of Exponential/Deterministic/LogNormal/Gamma/Normal/Uniform (Constant0 included as a Uniform variant)."@en ;
+    dcterms:source "pm4py.objects.random_variables.random_variable.RandomVariable" ;
+    sh:property
+        [ sh:path rv:variantKind ;
+          sh:datatype xsd:string ;
+          sh:in ( "Exponential" "Deterministic" "LogNormal" "Gamma" "Normal" "Uniform" "Constant0" ) ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path rv:randomVariableRef ;
+          sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] .
+
+rv:variantKind a rdfs:label ;
+    rdfs:comment "Discriminator naming which concrete distribution shape rv:randomVariableRef points to."@en ;
+    dcterms:source "pm4py.objects.random_variables.random_variable.RandomVariable.random_variable (discriminated at the type of the held instance)" .
+
+rv:randomVariableRef a rdfs:label ;
+    rdfs:comment "Id-reference to the held concrete distribution instance (Exponential/Deterministic/LogNormal/Gamma/Normal/Uniform/Constant0), id-referenced rather than nested per this directory's circular-reference-avoidance convention."@en ;
+    dcterms:source "pm4py.objects.random_variables.random_variable.RandomVariable.random_variable" .
