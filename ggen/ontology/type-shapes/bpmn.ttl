@@ -1,0 +1,101 @@
+# Reuses the real, published sBPMN ontology (Krause et al., ACM K-CAP 2025,
+# "sBPMN: A Framework for Capturing Business Process Semantics in Dynamic
+# Knowledge Graphs", DOI 10.1145/3731443.3771361, CC-BY 4.0) -- fetched
+# verbatim from https://sbpmn.github.io/2.0/ontology.ttl. sBPMN's own base
+# namespace is <https://sBPMN.github.io/2.0/> with an unprefixed (`:`)
+# vocabulary; bound here to `sbpmn:` for readability. This file does NOT
+# redefine sBPMN's classes/properties -- it only adds SHACL shape
+# constraints (cardinality/datatype) on top of them, per this session's
+# reuse-real-ontologies rule.
+#
+# sBPMN confirms `conditionExpression` on sequenceFlow and `complexGateway`
+# are real BPMN 2.0 constructs -- both were dropped from the earlier
+# pm4py-grounded draft of this file because pm4py's Python object model
+# doesn't implement them. sBPMN is the fuller-spec authority; both are
+# restored here.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix sbpmn:   <https://sBPMN.github.io/2.0/> .
+
+sbpmn:TaskShape a sh:NodeShape ;
+    sh:targetClass sbpmn:task ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:incoming ; sh:class sbpmn:sequenceFlow ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path sbpmn:outgoing ; sh:class sbpmn:sequenceFlow ; sh:minCount 0 ; sh:order 3 ] .
+# Task subtypes reused as-is: sbpmn:businessRuleTask, sbpmn:userTask,
+# sbpmn:serviceTask, sbpmn:scriptTask, sbpmn:sendTask, sbpmn:receiveTask --
+# each is its own sBPMN class (subclass of sbpmn:task), not a discriminator
+# field, matching sBPMN's own modeling instead of this session's earlier
+# task-kind-enum flattening.
+
+sbpmn:SubProcessShape a sh:NodeShape ;
+    sh:targetClass sbpmn:subProcess ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:flowElement ; sh:minCount 0 ; sh:order 2 ] .
+# sbpmn:adHocSubProcess, sbpmn:callActivity are sibling sBPMN classes, reused
+# as-is (not modeled separately here -- same shape pattern applies to them).
+
+sbpmn:GatewayShape a sh:NodeShape ;
+    sh:targetClass sbpmn:gateway ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:gatewayDirection ; sh:datatype xsd:string ;
+          sh:in ("Converging" "Diverging") ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] .
+# sbpmn:exclusiveGateway, sbpmn:inclusiveGateway, sbpmn:parallelGateway,
+# sbpmn:complexGateway, and pm4py's eventBasedGateway equivalent are each
+# their own sBPMN class (subclass of sbpmn:gateway), reused as-is.
+
+sbpmn:EventShape a sh:NodeShape ;
+    sh:targetClass sbpmn:event ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:eventDefinition ; sh:minCount 0 ; sh:order 2 ] .
+# sbpmn:startEvent, sbpmn:endEvent, sbpmn:boundaryEvent are each their own
+# sBPMN class (subclass of sbpmn:event), reused as-is. `parallelMultiple`
+# (xsd:boolean, domain catchEvent) covers start-event trigger semantics --
+# also reused as-is, not re-declared here.
+
+sbpmn:SequenceFlowShape a sh:NodeShape ;
+    sh:targetClass sbpmn:sequenceFlow ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:sourceRef ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path sbpmn:targetRef ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path sbpmn:conditionExpression ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 4 ] .
+
+sbpmn:ProcessShape a sh:NodeShape ;
+    sh:targetClass sbpmn:process ;
+    dcterms:source <https://sbpmn.github.io/2.0/ontology.ttl> ;
+    sh:property
+        [ sh:path sbpmn:id           ; sh:datatype xsd:ID      ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path sbpmn:name         ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path sbpmn:isExecutable ; sh:datatype xsd:boolean ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path sbpmn:flowElement  ; sh:minCount 0 ; sh:order 3 ] .
+# `flowElement` (process/subProcess/choreography -> flowElement) is sBPMN's
+# own generic containment property -- reused directly rather than this
+# session's earlier per-kind Vec<T> fields (tasks/gateways/events/...); a
+# consumer discriminates contained flowElements by rdf:type.
+
+# NOT restated here (all reused verbatim from sBPMN, no shape needed beyond
+# what's declared above): sbpmn:incoming/outgoing on flowNode, sbpmn:property,
+# sbpmn:resourceRole, sbpmn:loopCharacteristics, sbpmn:messageFlow,
+# sbpmn:participantRef, sbpmn:textFormat on sbpmn:textAnnotation.
+#
+# `Marking`-equivalent token semantics are out of scope, same boundary as
+# before -- sBPMN itself is a structural formalization (execution semantics
+# graduate elsewhere), consistent with src/bpmn.rs's own doc comment.

@@ -1,0 +1,31 @@
+# Index of the type-shape ontology catalog for wasm4pm-compat.
+#
+# Rule (established this session, recorded in
+# docs/superpowers/specs/2026-08-24-ontology-first-restart-design.md):
+# reuse a real, published, dereferenceable public RDF/OWL ontology wherever
+# one exists; author one at genuine standards-submission quality only where
+# none does, grounded in a real working reference implementation rather
+# than invented from field names alone.
+#
+# Resolved so far (deep-research pass wf_4abe2be2-569, 100 adversarially-
+# verified sub-agents):
+#   bpmn.ttl  -- reuses sBPMN (Krause et al., ACM K-CAP 2025)
+#   log.ttl   -- reuses OCEDO (Latif et al., arXiv:2511.03351)
+#   ocel.ttl  -- reuses OCEDO (same ontology, object-centric side)
+#   powl.ttl  -- authored fresh (no public POWL ontology exists), grounded
+#                in ~/POWL/powl/objects/, at the same header/documentation
+#                quality bar OCEDO itself uses
+#
+# Deferred to a follow-up pass (each needs its own targeted check before
+# deciding reuse-vs-author, not assumed from one broad sweep):
+# process_tree, petri_net, transition_system, oc_causal_net, ocpn, dfg,
+# heuristics_net, org, trie, genetic_matrix, random_variables.
+
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://wasm4pm-compat.rs/type-shapes> a owl:Ontology ;
+    owl:imports
+        <https://sBPMN.github.io/2.0/> ,
+        <https://w3id.org/ocedo/core> ,
+        <https://w3id.org/ocedo/auxiliary> ,
+        <https://w3id.org/powl/core> .
