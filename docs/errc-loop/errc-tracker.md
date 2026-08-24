@@ -4,6 +4,35 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Cycle 5 — 2026-08-24 — closed out
+
+Ran via `wf_3117cb19-5d6`, post-charter-execution (commit `120e473` had
+just landed and been pushed). 0 verified, 4 parked — but one parked item
+("3 of 15 clusters non-generatable") was mis-scoped as "not safe to
+verify": it was actually a concrete, bounded gap once identified (which 3
+clusters), not a policy decision. Identified and fixed same session:
+**`log`, `ocel`, `powl`** were the 3 clusters never run through the
+generation pipeline (bpmn + the 11 authored clusters were done; these 3
+were missed). Generated, tested (5 real tests), committed `b5202e9`,
+pushed. **All 15/15 ontology clusters now have real Rust projections**
+(except `stochastic_petri`/`yawl`, correctly non-generatable — zero
+classes).
+
+Remaining genuinely parked (standing-configuration questions, not
+bounded fixes — surfaced to the user, not resolved unilaterally):
+
+- **Makefile.toml still calls non-existent ggen CLI flags** on 8+ tasks
+  (`--manifest`/`--rule`). Confirmed real, parked since cycle 2 — the
+  fix shape (single sync-all task vs. removing per-rule tasks vs.
+  waiting on upstream ggen) is a scope choice.
+- **Cron job `4021d1dd` may be stale** — it re-derives "awaiting charter
+  decision" framing from cycles 1-3 even though the charter is resolved
+  and executed. Not stopped/redirected unilaterally (user's own standing
+  job); flagged for the user to decide whether to update its prompt.
+- **`docs/errc-loop/pending-decisions.md` doesn't exist** — the tracker's
+  own inline parked-items sections have been serving that role instead.
+  Flagged as a documentation-structure preference, not changed.
+
 ## Charter decision — 2026-08-24
 
 User delegated the DMEDI charter decision ("figure it out"). Resolved:
