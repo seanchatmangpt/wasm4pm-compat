@@ -6,7 +6,7 @@
 //! real generated types, real field construction, no mocks.
 
 use wasm4pm_compat::log_ontology::{Event, EventAttribute};
-use wasm4pm_compat::ocel_ontology::{Observe, ObjectRelation};
+use wasm4pm_compat::ocel_ontology::{ObjectRelation, Observe};
 use wasm4pm_compat::powl_ontology::Activity;
 
 #[test]
