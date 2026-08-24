@@ -46,11 +46,11 @@ fn petri_net_arc_kind_enum_round_trips() {
         source: "p1".to_string(),
         target: "t1".to_string(),
         weight: Some(1),
-        arc_kind: ArcArcKind::Inhibitor,
+        arc_kind: Some(ArcArcKind::Inhibitor),
         properties: None,
     };
-    assert_eq!(arc.arc_kind, ArcArcKind::Inhibitor);
-    assert_ne!(arc.arc_kind, ArcArcKind::Reset);
+    assert_eq!(arc.arc_kind, Some(ArcArcKind::Inhibitor));
+    assert_ne!(arc.arc_kind, Some(ArcArcKind::Reset));
 }
 
 #[test]
@@ -61,10 +61,10 @@ fn process_tree_operator_enum_uses_member_names_not_symbols() {
     // ...). This test would fail to compile if that regressed.
     let node = ProcessTreeNode {
         label: None,
-        operator: ProcessTreeNodeOperator::Sequence,
+        operator: Some(ProcessTreeNodeOperator::Sequence),
         child: vec!["n1".to_string(), "n2".to_string()],
     };
-    assert_eq!(node.operator, ProcessTreeNodeOperator::Sequence);
+    assert_eq!(node.operator, Some(ProcessTreeNodeOperator::Sequence));
     assert_eq!(node.child.len(), 2);
 }
 
@@ -102,17 +102,17 @@ fn heuristics_net_edge_type_enum_is_valid_rust_identifiers() {
     // literals ("frequency"/"performance"); the template must title-case
     // them into valid, idiomatic Rust enum variants.
     let e = Edge {
-        start_node: vec!["n1".to_string()],
-        end_node: vec!["n2".to_string()],
+        start_node: "n1".to_string(),
+        end_node: "n2".to_string(),
         dependency_value: 0.0,
         dfg_value: 0.0,
         repr_value: 0.0,
         edge_label: None,
         repr_color: None,
-        edge_type: EdgeEdgeType::Frequency,
+        edge_type: Some(EdgeEdgeType::Frequency),
         edge_net_name: None,
     };
-    assert_eq!(e.edge_type, EdgeEdgeType::Frequency);
+    assert_eq!(e.edge_type, Some(EdgeEdgeType::Frequency));
 }
 
 #[test]

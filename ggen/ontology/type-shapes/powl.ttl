@@ -188,21 +188,28 @@ powl:ActivityShape a sh:NodeShape ;
         [ sh:path powl:minFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ] ,
         [ sh:path powl:maxFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 0 ; sh:maxCount 1 ] .
 
+# node/precedes are id references (xsd:string), not sh:class powl:Model --
+# a nested sh:class reference to the shape's own supertype would be
+# circular (powl:Model has no dedicated NodeShape to resolve against), and
+# would break this ontology suite's established id-reference convention
+# for avoiding circular shape references (see trie.ttl, transition_system.ttl,
+# process_tree.ttl, petri_net.ttl). Adversarial review (2026-08-24) caught
+# this as a real inconsistency in an earlier draft of this file; fixed.
 powl:PartialOrderShape a sh:NodeShape ;
     sh:targetClass powl:PartialOrder ;
     sh:property
         [ sh:path powl:minFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ] ,
         [ sh:path powl:maxFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 0 ; sh:maxCount 1 ] ,
-        [ sh:path powl:node ; sh:class powl:Model ; sh:minCount 0 ] ,
-        [ sh:path powl:precedes ; sh:class powl:Model ; sh:minCount 0 ] .
+        [ sh:path powl:node ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path powl:precedes ; sh:datatype xsd:string ; sh:minCount 0 ] .
 
 powl:ChoiceGraphShape a sh:NodeShape ;
     sh:targetClass powl:ChoiceGraph ;
     sh:property
         [ sh:path powl:minFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ] ,
         [ sh:path powl:maxFrequency ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 0 ; sh:maxCount 1 ] ,
-        [ sh:path powl:node ; sh:class powl:Model ; sh:minCount 0 ] ,
-        [ sh:path powl:precedes ; sh:class powl:Model ; sh:minCount 0 ] .
+        [ sh:path powl:node ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path powl:precedes ; sh:datatype xsd:string ; sh:minCount 0 ] .
 # `_start`/`_end` internal sentinel nodes (_ChoiceGraphStart/_ChoiceGraphEnd
 # in ~/POWL) are implementation plumbing for graph algorithms, not domain
 # data -- not modeled as ontology individuals.

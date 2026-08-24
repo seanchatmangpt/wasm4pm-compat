@@ -40,7 +40,7 @@ sbpmn:SubProcessShape a sh:NodeShape ;
     sh:property
         [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
         [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
-        [ sh:path sbpmn:flowElement ; sh:minCount 0 ; sh:order 2 ] .
+        [ sh:path sbpmn:flowElement ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 2 ] .
 # sbpmn:adHocSubProcess, sbpmn:callActivity are sibling sBPMN classes, reused
 # as-is (not modeled separately here -- same shape pattern applies to them).
 
@@ -62,7 +62,7 @@ sbpmn:EventShape a sh:NodeShape ;
     sh:property
         [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
         [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
-        [ sh:path sbpmn:eventDefinition ; sh:minCount 0 ; sh:order 2 ] .
+        [ sh:path sbpmn:eventDefinition ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 2 ] .
 # sbpmn:startEvent, sbpmn:endEvent, sbpmn:boundaryEvent are each their own
 # sBPMN class (subclass of sbpmn:event), reused as-is. `parallelMultiple`
 # (xsd:boolean, domain catchEvent) covers start-event trigger semantics --
@@ -74,8 +74,8 @@ sbpmn:SequenceFlowShape a sh:NodeShape ;
     sh:property
         [ sh:path sbpmn:id   ; sh:datatype xsd:ID     ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
         [ sh:path sbpmn:name ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
-        [ sh:path sbpmn:sourceRef ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
-        [ sh:path sbpmn:targetRef ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path sbpmn:sourceRef ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path sbpmn:targetRef ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
         [ sh:path sbpmn:conditionExpression ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 4 ] .
 
 sbpmn:ProcessShape a sh:NodeShape ;
@@ -85,7 +85,7 @@ sbpmn:ProcessShape a sh:NodeShape ;
         [ sh:path sbpmn:id           ; sh:datatype xsd:ID      ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
         [ sh:path sbpmn:name         ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
         [ sh:path sbpmn:isExecutable ; sh:datatype xsd:boolean ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] ,
-        [ sh:path sbpmn:flowElement  ; sh:minCount 0 ; sh:order 3 ] .
+        [ sh:path sbpmn:flowElement  ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 3 ] .
 # `flowElement` (process/subProcess/choreography -> flowElement) is sBPMN's
 # own generic containment property -- reused directly rather than this
 # session's earlier per-kind Vec<T> fields (tasks/gateways/events/...); a

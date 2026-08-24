@@ -204,19 +204,13 @@ pub mod genetic_matrix_ontology;
 pub mod heuristics_net_ontology;
 /// Zero-cost `#[repr(transparent)]` identifier wrappers.
 pub mod ids;
-/// Event/Trace/EventLog shapes rendered from `ggen/ontology/type-shapes/log.ttl`
-/// (reuses the real OCEDO ontology).
-pub mod log_ontology;
-/// Object/attribute/relation shapes rendered from
-/// `ggen/ontology/type-shapes/ocel.ttl` (reuses the real OCEDO ontology).
-pub mod ocel_ontology;
-/// POWL model shapes rendered from `ggen/ontology/type-shapes/powl.ttl`
-/// (authored fresh, grounded in `~/POWL/powl/objects/`).
-pub mod powl_ontology;
 /// Interop traits: import, export, round-trip claim plumbing.
 pub mod interop;
 /// Compile-time law kernel: `ConstParamTy` enums, bounds machinery, `ConditionCell`, `Between01`.
 pub mod law;
+/// Event/Trace/EventLog shapes rendered from `ggen/ontology/type-shapes/log.ttl`
+/// (reuses the real OCEDO ontology).
+pub mod log_ontology;
 /// Loss policy, loss report, and named projection law.
 pub mod loss;
 /// Multi-perspective process evidence: ControlFlow/Data/Resource/Time perspective markers.
@@ -233,6 +227,9 @@ pub mod oc_causal_net_ontology;
 /// Object-centric event log (OCEL) shape.
 pub mod ocel;
 pub mod ocel_diff;
+/// Object/attribute/relation shapes rendered from
+/// `ggen/ontology/type-shapes/ocel.ttl` (reuses the real OCEDO ontology).
+pub mod ocel_ontology;
 /// Object-centric Petri net shapes rendered from
 /// `ggen/ontology/type-shapes/ocpn.ttl` (authored fresh, grounded in
 /// `pm4py.objects.ocpn.obj`).
@@ -257,6 +254,9 @@ pub mod petri_net_ontology;
 pub mod powl;
 /// POWL8 operator discriminant — compact `u8` wire-format companion to [`crate::powl::PowlNodeKind`].
 pub mod powl8_op;
+/// POWL model shapes rendered from `ggen/ontology/type-shapes/powl.ttl`
+/// (authored fresh, grounded in `~/POWL/powl/objects/`).
+pub mod powl_ontology;
 /// Prediction problem shape (structure only — no predictor).
 pub mod prediction;
 /// Core adoption surface — re-exports the most-needed shapes and laws.

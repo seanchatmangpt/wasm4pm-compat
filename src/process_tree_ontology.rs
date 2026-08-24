@@ -14,7 +14,7 @@
 pub struct ProcessTreeNode {
     pub label: Option<String>,
 
-    pub operator: ProcessTreeNodeOperator,
+    pub operator: Option<ProcessTreeNodeOperator>,
 
     pub child: Vec<String>,
 }

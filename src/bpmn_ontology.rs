@@ -26,7 +26,7 @@ pub struct Gateway {
 
     pub name: Option<String>,
 
-    pub gateway_direction: GatewayGatewayDirection,
+    pub gateway_direction: Option<GatewayGatewayDirection>,
 }
 
 /// Enum for `Gateway.gatewayDirection`, per `sh:in` on the source shape.

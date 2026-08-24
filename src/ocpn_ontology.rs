@@ -38,9 +38,9 @@ pub struct Net {
 
     pub arcs_ref: Vec<String>,
 
-    pub initial_marking: Vec<String>,
+    pub initial_marking: Option<String>,
 
-    pub final_marking: Vec<String>,
+    pub final_marking: Option<String>,
 }
 
 /// Generated from `https://w3id.org/ocpn/core#PlaceShape`.

@@ -26,19 +26,19 @@ pub struct Activity {
 /// Generated from `https://w3id.org/powl/core#ChoiceGraphShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ChoiceGraph {
-    pub node: Vec<String>,
-
     pub min_frequency: u64,
 
     pub max_frequency: Option<u64>,
 
     pub precedes: Vec<String>,
+
+    pub node: Vec<String>,
 }
 
 /// Generated from `https://w3id.org/powl/core#ComplexModelShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ComplexModel {
-    pub projects_from: Vec<String>,
+    pub projects_from: String,
 
     pub maps_child: Vec<String>,
 }
@@ -46,9 +46,9 @@ pub struct ComplexModel {
 /// Generated from `https://w3id.org/powl/core#LeafNodeShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LeafNode {
-    pub projects_from: Vec<String>,
-
     pub is_convergent: bool,
+
+    pub projects_from: String,
 
     pub activity_name: String,
 

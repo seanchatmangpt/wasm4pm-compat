@@ -20,9 +20,9 @@ pub struct ObjectAttribute {
 /// Generated from `https://w3id.org/ocedo/aux#ObjectRelationShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectRelation {
-    pub from: Vec<String>,
+    pub from: String,
 
-    pub to: Vec<String>,
+    pub to: String,
 
     pub relation_type: Option<String>,
 }
@@ -30,9 +30,9 @@ pub struct ObjectRelation {
 /// Generated from `https://w3id.org/ocedo/aux#ObserveShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Observe {
-    pub observe_event: Vec<String>,
+    pub observe_event: String,
 
-    pub observe_object: Vec<String>,
+    pub observe_object: String,
 
     pub qualifier: Option<String>,
 }
@@ -40,7 +40,7 @@ pub struct Observe {
 /// Generated from `https://w3id.org/ocedo/core#ObjectShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Object {
-    pub instance_of: Vec<String>,
+    pub instance_of: String,
 
     pub has_object_attribute: Vec<String>,
 }

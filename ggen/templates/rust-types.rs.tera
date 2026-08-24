@@ -50,12 +50,28 @@ pub struct {{ shape_name }} {
 {% else %}
 {% set rust_type = "String" %}
 {% endif %}
+{% set is_single = f.maxCount is defined and (f.maxCount == "1" or f.maxCount == 1) %}
+{% set is_optional = f.minCount is defined and (f.minCount == "0" or f.minCount == 0) %}
 {% if f.inValues %}
-    pub {{ rust_field }}: {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }},
+{% set field_title = field_name | title | replace(from=" ", to="") %}
+{% set enum_type = shape_name ~ field_title %}
+{% if is_optional %}
+    pub {{ rust_field }}: Option<{{ enum_type }}>,
+{% else %}
+    pub {{ rust_field }}: {{ enum_type }},
+{% endif %}
 {% elif f.nodeClass %}
+{% if is_single %}
+{% if is_optional %}
+    pub {{ rust_field }}: Option<String>,
+{% else %}
+    pub {{ rust_field }}: String,
+{% endif %}
+{% else %}
     pub {{ rust_field }}: Vec<String>,
-{% elif f.maxCount is defined and (f.maxCount == "1" or f.maxCount == 1) %}
-{% if f.minCount is defined and (f.minCount == "0" or f.minCount == 0) %}
+{% endif %}
+{% elif is_single %}
+{% if is_optional %}
     pub {{ rust_field }}: Option<{{ rust_type }}>,
 {% else %}
     pub {{ rust_field }}: {{ rust_type }},

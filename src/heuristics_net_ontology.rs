@@ -20,15 +20,15 @@ pub struct ActivityOccurrence {
 /// Generated from `https://w3id.org/heuristics-net/core#EdgeShape`.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Edge {
-    pub end_node: Vec<String>,
+    pub end_node: String,
 
     pub dfg_value: f64,
 
-    pub start_node: Vec<String>,
+    pub start_node: String,
 
     pub edge_label: Option<String>,
 
-    pub edge_type: EdgeEdgeType,
+    pub edge_type: Option<EdgeEdgeType>,
 
     pub dependency_value: f64,
 
@@ -86,7 +86,7 @@ pub struct Node {
 
     pub node_default_edges_color: Option<String>,
 
-    pub belongs_to_net: Vec<String>,
+    pub belongs_to_net: Option<String>,
 
     pub node_name: String,
 

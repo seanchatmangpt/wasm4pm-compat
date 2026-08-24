@@ -18,7 +18,7 @@ pub struct Arc {
 
     pub weight: Option<i64>,
 
-    pub arc_kind: ArcArcKind,
+    pub arc_kind: Option<ArcArcKind>,
 
     pub properties: Option<String>,
 }
@@ -82,7 +82,7 @@ pub struct StochasticArcWeight {
 
     pub target: String,
 
-    pub arc_kind: StochasticArcWeightArcKind,
+    pub arc_kind: Option<StochasticArcWeightArcKind>,
 
     pub token_count: u64,
 

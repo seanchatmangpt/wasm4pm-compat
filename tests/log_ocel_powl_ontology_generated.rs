@@ -6,7 +6,7 @@
 //! real generated types, real field construction, no mocks.
 
 use wasm4pm_compat::log_ontology::{Event, EventAttribute};
-use wasm4pm_compat::ocel_ontology::{Observe, ObjectRelation};
+use wasm4pm_compat::ocel_ontology::{ObjectRelation, Observe};
 use wasm4pm_compat::powl_ontology::Activity;
 
 #[test]
@@ -35,8 +35,8 @@ fn ocel_observe_carries_real_qualifier() {
     // aux:Observe reifies OCEL's E2O relations/qualifier column, per
     // OCEDO's own real ontology design.
     let o = Observe {
-        observe_event: vec!["e1".to_string()],
-        observe_object: vec!["o1".to_string()],
+        observe_event: "e1".to_string(),
+        observe_object: "o1".to_string(),
         qualifier: Some("payer".to_string()),
     };
     assert_eq!(o.qualifier.as_deref(), Some("payer"));
@@ -45,8 +45,8 @@ fn ocel_observe_carries_real_qualifier() {
 #[test]
 fn ocel_object_relation_carries_real_relation_type() {
     let r = ObjectRelation {
-        from: vec!["o1".to_string()],
-        to: vec!["o2".to_string()],
+        from: "o1".to_string(),
+        to: "o2".to_string(),
         relation_type: Some("contains".to_string()),
     };
     assert_eq!(r.relation_type.as_deref(), Some("contains"));
