@@ -1,11 +1,54 @@
 @prefix compat: <https://chatmangpt.com/ns/wasm4pm-compat#> .
 @prefix ggen: <https://chatmangpt.com/ns/ggen#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+# PUBLIC-ONTOLOGY-FIRST STANDING LAW
+#
+# Public vocabularies carry the semantic identity:
+#   PROV-O  — the standing law is a plan with derivation identity.
+#   SKOS    — standing states are concepts in one explicit concept scheme.
+#   EARL    — Gall checkpoints and verification/refusal laws are test requirements.
+#   DCTERMS — identifiers, descriptions, containment, dependencies, conformance.
+#   SHACL   — the graph carries machine-checkable structural admission constraints.
+#
+# compat:/ggen: terms below are intentionally restricted to irreducible runtime
+# projection metadata (rank, Rust variant, promotability, terminality) and legacy
+# projection keys consumed by the current Rust verifier. They do not define the
+# semantic class membership of states or checkpoints.
+
+compat:StandingScheme
+    a skos:ConceptScheme ;
+    dcterms:title "wasm4pm-compat standing states" ;
+    dcterms:description "Public-ontology profile for exact-tree execution standing." .
+
 compat:StandingLaw
-    a ggen:ManufacturingContract ;
+    a prov:Plan ;
+    dcterms:title "wasm4pm-compat standing law" ;
+    dcterms:conformsTo <https://github.com/seanchatmangpt/ggen/commit/68952593c40214ac1a681073d65f3902a9cdfce4> ;
+    dcterms:requires compat:PositiveExecution,
+                     compat:NegativeRefusal,
+                     compat:ReceiptReplay ;
+    dcterms:hasPart compat:GallCheckpoint01,
+                    compat:GallCheckpoint02,
+                    compat:GallCheckpoint03,
+                    compat:GallCheckpoint04,
+                    compat:GallCheckpoint05,
+                    compat:GallCheckpoint06,
+                    compat:GallCheckpoint07,
+                    compat:GallCheckpoint08,
+                    compat:GallCheckpoint09,
+                    compat:GallCheckpoint10 ;
+    dcterms:references compat:DirectActuation,
+                       compat:SelfPromotion,
+                       compat:HandEditedProjection,
+                       compat:UnknownAsAdmitted ;
+    prov:wasDerivedFrom <https://github.com/seanchatmangpt/ggen/commit/68952593c40214ac1a681073d65f3902a9cdfce4> ;
+    # Projection metadata retained for byte-compatible Rust manufacture.
     ggen:standardVersion "26.7.31" ;
     ggen:authority "canonical_graph" ;
     ggen:projectionMode "deterministic_committed" ;
@@ -25,11 +68,12 @@ compat:StandingLaw
     ggen:refuses compat:DirectActuation,
                  compat:SelfPromotion,
                  compat:HandEditedProjection,
-                 compat:UnknownAsAdmitted ;
-    prov:wasDerivedFrom <https://github.com/seanchatmangpt/ggen/commit/68952593c40214ac1a681073d65f3902a9cdfce4> .
+                 compat:UnknownAsAdmitted .
 
 compat:Unknown
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "UNKNOWN" ;
     compat:rank 0 ;
     compat:rustVariant "UNKNOWN" ;
     compat:promotable false ;
@@ -37,7 +81,9 @@ compat:Unknown
     skos:definition "Required execution evidence is absent, stale, incomplete, or bound to another tree." .
 
 compat:Unsupported
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "UNSUPPORTED" ;
     compat:rank 1 ;
     compat:rustVariant "UNSUPPORTED" ;
     compat:promotable false ;
@@ -45,7 +91,9 @@ compat:Unsupported
     skos:definition "The bounded verifier does not implement the requested surface." .
 
 compat:Blocked
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "BLOCKED" ;
     compat:rank 2 ;
     compat:rustVariant "BLOCKED" ;
     compat:promotable false ;
@@ -53,7 +101,9 @@ compat:Blocked
     skos:definition "A required admission, tool, permission, dependency, or observation is unavailable." .
 
 compat:BuildBroken
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "BUILD_BROKEN" ;
     compat:rank 3 ;
     compat:rustVariant "BUILD_BROKEN" ;
     compat:promotable false ;
@@ -61,7 +111,9 @@ compat:BuildBroken
     skos:definition "Admitted source reached execution but compilation, tests, lint, or packaging failed." .
 
 compat:PartialAlive
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "PARTIAL_ALIVE" ;
     compat:rank 4 ;
     compat:rustVariant "PARTIAL_ALIVE" ;
     compat:promotable false ;
@@ -69,98 +121,195 @@ compat:PartialAlive
     skos:definition "A bounded checkpoint passed but the full crown is incomplete." .
 
 compat:Alive
-    a compat:StandingState ;
+    a skos:Concept ;
+    skos:inScheme compat:StandingScheme ;
+    skos:notation "ALIVE" ;
     compat:rank 5 ;
     compat:rustVariant "ALIVE" ;
     compat:promotable true ;
     compat:terminal true ;
     skos:definition "The exact-tree external verifier admitted every positive, negative, and receipt/replay obligation." .
 
+compat:RootCriterion
+    a earl:TestCriterion ;
+    dcterms:identifier "ROOT" ;
+    dcterms:title "Root admission boundary" ;
+    dcterms:description "Sentinel predecessor for the first Gall checkpoint; it is not itself a checkpoint." .
+
 compat:GallCheckpoint01
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-001" ;
+    dcterms:requires compat:RootCriterion ;
+    dcterms:description "All canonical graph, query, template, manifest, and committed projection observations exist and are bounded." ;
     compat:rank 1 ;
-    compat:code "GALL-CP-001" ;
-    compat:rustVariant "OBSERVATION_ADMITTED" ;
-    compat:dependsOnCode "ROOT" ;
-    skos:definition "All canonical graph, query, template, manifest, and committed projection observations exist and are bounded." .
+    compat:rustVariant "OBSERVATION_ADMITTED" .
 
 compat:GallCheckpoint02
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-002" ;
+    dcterms:requires compat:GallCheckpoint01 ;
+    dcterms:description "The canonical graph is the declared authority and the ggen standard version is exact." ;
     compat:rank 2 ;
-    compat:code "GALL-CP-002" ;
-    compat:rustVariant "AUTHORITY_BOUND" ;
-    compat:dependsOnCode "GALL-CP-001" ;
-    skos:definition "The canonical graph is the declared authority and the ggen standard version is exact." .
+    compat:rustVariant "AUTHORITY_BOUND" .
 
 compat:GallCheckpoint03
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-003" ;
+    dcterms:requires compat:GallCheckpoint02 ;
+    dcterms:description "Every committed-output SPARQL route defines a deterministic total ordering." ;
     compat:rank 3 ;
-    compat:code "GALL-CP-003" ;
-    compat:rustVariant "ROUTE_DETERMINISTIC" ;
-    compat:dependsOnCode "GALL-CP-002" ;
-    skos:definition "Every committed-output SPARQL route defines a deterministic total ordering." .
+    compat:rustVariant "ROUTE_DETERMINISTIC" .
 
 compat:GallCheckpoint04
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-004" ;
+    dcterms:requires compat:GallCheckpoint03 ;
+    dcterms:description "The standing projection is complete, contiguous, uniquely named, and descriptively closed." ;
     compat:rank 4 ;
-    compat:code "GALL-CP-004" ;
-    compat:rustVariant "PROJECTION_CLOSED" ;
-    compat:dependsOnCode "GALL-CP-003" ;
-    skos:definition "The standing projection is complete, contiguous, uniquely named, and descriptively closed." .
+    compat:rustVariant "PROJECTION_CLOSED" .
 
 compat:GallCheckpoint05
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-005" ;
+    dcterms:requires compat:GallCheckpoint04 ;
+    dcterms:description "Required refusal codes are explicit, unique, and mechanically addressable." ;
     compat:rank 5 ;
-    compat:code "GALL-CP-005" ;
-    compat:rustVariant "REFUSALS_TYPED" ;
-    compat:dependsOnCode "GALL-CP-004" ;
-    skos:definition "Required refusal codes are explicit, unique, and mechanically addressable." .
+    compat:rustVariant "REFUSALS_TYPED" .
 
 compat:GallCheckpoint06
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-006" ;
+    dcterms:requires compat:GallCheckpoint05 ;
+    dcterms:description "Generation is confined to first-class repository source and contains no external or developer-specific actuation path." ;
     compat:rank 6 ;
-    compat:code "GALL-CP-006" ;
-    compat:rustVariant "ACTUATION_FENCED" ;
-    compat:dependsOnCode "GALL-CP-005" ;
-    skos:definition "Generation is confined to first-class repository source and contains no external or developer-specific actuation path." .
+    compat:rustVariant "ACTUATION_FENCED" .
 
 compat:GallCheckpoint07
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-007" ;
+    dcterms:requires compat:GallCheckpoint06 ;
+    dcterms:description "A controlled projection mutation is distinguishable and maps to a named drift refusal." ;
     compat:rank 7 ;
-    compat:code "GALL-CP-007" ;
-    compat:rustVariant "NEGATIVE_WITNESS" ;
-    compat:dependsOnCode "GALL-CP-006" ;
-    skos:definition "A controlled projection mutation is distinguishable and maps to a named drift refusal." .
+    compat:rustVariant "NEGATIVE_WITNESS" .
 
 compat:GallCheckpoint08
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-008" ;
+    dcterms:requires compat:GallCheckpoint07 ;
+    dcterms:description "Every canonical input and committed projection is bound into the machine-readable receipt by BLAKE3 identity." ;
     compat:rank 8 ;
-    compat:code "GALL-CP-008" ;
-    compat:rustVariant "RECEIPT_BOUND" ;
-    compat:dependsOnCode "GALL-CP-007" ;
-    skos:definition "Every canonical input and committed projection is bound into the machine-readable receipt by BLAKE3 identity." .
+    compat:rustVariant "RECEIPT_BOUND" .
 
 compat:GallCheckpoint09
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-009" ;
+    dcterms:requires compat:GallCheckpoint08 ;
+    dcterms:description "Repeated verification over the same admitted tree produces byte-equivalent identities and checkpoint outcomes." ;
     compat:rank 9 ;
-    compat:code "GALL-CP-009" ;
-    compat:rustVariant "REPLAY_EQUIVALENT" ;
-    compat:dependsOnCode "GALL-CP-008" ;
-    skos:definition "Repeated verification over the same admitted tree produces byte-equivalent identities and checkpoint outcomes." .
+    compat:rustVariant "REPLAY_EQUIVALENT" .
 
 compat:GallCheckpoint10
-    a compat:GallCheckpoint ;
+    a earl:TestCriterion ;
+    dcterms:isPartOf compat:StandingLaw ;
+    dcterms:identifier "GALL-CP-010" ;
+    dcterms:requires compat:GallCheckpoint09 ;
+    dcterms:description "ALIVE is reachable only through an external exact-tree verifier after all lanes and all prior Gall checkpoints succeed." ;
     compat:rank 10 ;
-    compat:code "GALL-CP-010" ;
-    compat:rustVariant "CROWN_EXTERNAL" ;
-    compat:dependsOnCode "GALL-CP-009" ;
-    skos:definition "ALIVE is reachable only through an external exact-tree verifier after all lanes and all prior Gall checkpoints succeed." .
+    compat:rustVariant "CROWN_EXTERNAL" .
 
-compat:PositiveExecution a compat:VerificationObligation ; compat:code "positive_execution" .
-compat:NegativeRefusal a compat:VerificationObligation ; compat:code "negative_refusal" .
-compat:ReceiptReplay a compat:VerificationObligation ; compat:code "receipt_replay" .
+compat:PositiveExecution
+    a earl:TestRequirement ;
+    dcterms:identifier "positive_execution" ;
+    dcterms:description "Observe successful execution against the exact admitted subject." .
 
-compat:DirectActuation a compat:RefusalLaw ; compat:code "GGEN-ACTUATION-001" .
-compat:SelfPromotion a compat:RefusalLaw ; compat:code "GGEN-STANDING-001" .
-compat:HandEditedProjection a compat:RefusalLaw ; compat:code "GGEN-DRIFT-001" .
-compat:UnknownAsAdmitted a compat:RefusalLaw ; compat:code "GGEN-ADMISSION-001" .
+compat:NegativeRefusal
+    a earl:TestRequirement ;
+    dcterms:identifier "negative_refusal" ;
+    dcterms:description "Observe typed refusal for a controlled invalid or unauthorized subject." .
+
+compat:ReceiptReplay
+    a earl:TestRequirement ;
+    dcterms:identifier "receipt_replay" ;
+    dcterms:description "Bind execution identity into a receipt and prove deterministic replay." .
+
+compat:DirectActuation
+    a earl:TestRequirement ;
+    dcterms:identifier "GGEN-ACTUATION-001" ;
+    dcterms:description "Refuse direct actuation outside the admitted manufacturing boundary." .
+
+compat:SelfPromotion
+    a earl:TestRequirement ;
+    dcterms:identifier "GGEN-STANDING-001" ;
+    dcterms:description "Refuse self-promotion to ALIVE without the external exact-tree verifier." .
+
+compat:HandEditedProjection
+    a earl:TestRequirement ;
+    dcterms:identifier "GGEN-DRIFT-001" ;
+    dcterms:description "Refuse a hand-edited committed projection that diverges from deterministic manufacture." .
+
+compat:UnknownAsAdmitted
+    a earl:TestRequirement ;
+    dcterms:identifier "GGEN-ADMISSION-001" ;
+    dcterms:description "Refuse UNKNOWN evidence as if it were admitted execution evidence." .
+
+# SHACL admission constraints over the public ontology spine.
+compat:StandingStateShape
+    a sh:NodeShape ;
+    sh:targetSubjectsOf skos:inScheme ;
+    sh:property [
+        sh:path skos:inScheme ;
+        sh:hasValue compat:StandingScheme ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path skos:notation ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path compat:rank ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path compat:rustVariant ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
+
+compat:GallCheckpointShape
+    a sh:NodeShape ;
+    sh:targetObjectsOf dcterms:hasPart ;
+    sh:property [
+        sh:path dcterms:identifier ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path dcterms:requires ;
+        sh:class earl:TestCriterion ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path dcterms:description ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] ;
+    sh:property [
+        sh:path compat:rank ;
+        sh:datatype xsd:integer ;
+        sh:minCount 1 ;
+        sh:maxCount 1
+    ] .
