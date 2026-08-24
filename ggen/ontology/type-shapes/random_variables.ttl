@@ -31,11 +31,23 @@
 # authored for either; they are noted below per the task's own instruction
 # for zero-class modules.
 
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix rv:      <https://wasm4pm-compat.rs/shapes/random_variables#> .
+
+<https://wasm4pm-compat.rs/shapes/random_variables> a owl:Ontology ;
+    owl:versionIRI <https://wasm4pm-compat.rs/shapes/random_variables/1.0.0> ;
+    dcterms:title "The Random Variables Ontology"@en ;
+    dcterms:description "An ontology describing pm4py's stochastic-distribution hierarchy (BasicStructureRandomVariable and its Exponential/Deterministic/LogNormal/Gamma/Normal/Uniform/Constant0 subtypes plus the RandomVariable discriminated-union wrapper), used by stochastic Petri net simulation."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "rv" ;
+    vann:preferredNamespaceUri "https://wasm4pm-compat.rs/shapes/random_variables#" ;
+    rdfs:comment "Draft, minted fresh after a real targeted search confirmed no public RDF/OWL ontology for random_variables exists. Grounded in pm4py.objects.random_variables."@en .
 
 # --- pm4py.objects.random_variables.stochastic_petri: zero classes ---------
 # Pure algorithm functions (firing-rate / marking-dependent-rate computation)

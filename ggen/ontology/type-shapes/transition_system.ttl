@@ -28,12 +28,24 @@
 # id-referenced as xsd:string, matching the bpmn.ttl/powl.ttl convention of
 # avoiding circular nested-shape references.
 
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix ts:      <https://wasm4pm-compat.rs/shapes/transition_system#> .
+
+<https://wasm4pm-compat.rs/shapes/transition_system> a owl:Ontology ;
+    owl:versionIRI <https://wasm4pm-compat.rs/shapes/transition_system/1.0.0> ;
+    dcterms:title "The Transition System Ontology"@en ;
+    dcterms:description "An ontology describing pm4py's labeled transition system (TransitionSystem, State, Transition) -- a named reachability graph used for state-based process analysis."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "ts" ;
+    vann:preferredNamespaceUri "https://wasm4pm-compat.rs/shapes/transition_system#" ;
+    rdfs:comment "Draft, minted fresh after a real targeted search confirmed no public RDF/OWL ontology for transition_system exists. Grounded in pm4py.objects.transition_system.obj."@en .
 
 # --- TransitionSystem --------------------------------------------------
 

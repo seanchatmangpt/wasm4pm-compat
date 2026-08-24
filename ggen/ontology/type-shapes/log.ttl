@@ -60,3 +60,13 @@ aux:EventAttributeShape a sh:NodeShape ;
 # public RDF/OWL ontology (confirmed absent in this session's research
 # pass), and OCEDO doesn't model XES's extension-declaration mechanism.
 # Left unmodeled, not invented.
+#
+# OCEL 2.0's Definition 2 per-event-type/per-object-type attribute-*name*
+# schema (EA: event type -> allowed attribute names; OA: object type ->
+# allowed attribute names) has no OCEDO equivalent either -- aux:EventAttribute
+# (and its object-side counterpart in ocel.ttl) constrain individual
+# attribute name/value pairs per Event/Object *instance*, not which
+# attribute names a given event-type or object-type declares as its
+# schema. Left unmodeled, not invented, same as the two gaps above
+# (adversarial review, 2026-08-24: flagged as the one gap in this file
+# not yet disclosed alongside its siblings).

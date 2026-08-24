@@ -20,11 +20,23 @@
 #   CQ2: Which activities start a case, and how often?
 #   CQ3: Which activities end a case, and how often?
 
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix dfg:     <https://wasm4pm-compat.rs/shapes/dfg#> .
+
+<https://wasm4pm-compat.rs/shapes/dfg> a owl:Ontology ;
+    owl:versionIRI <https://wasm4pm-compat.rs/shapes/dfg/1.0.0> ;
+    dcterms:title "The DFG Ontology"@en ;
+    dcterms:description "An ontology describing pm4py's Directly-Follows Graph (DFG): a weighted directed graph over activity names, with start/end activity frequency counters."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "dfg" ;
+    vann:preferredNamespaceUri "https://wasm4pm-compat.rs/shapes/dfg#" ;
+    rdfs:comment "Draft, minted fresh after a real targeted search confirmed no public RDF/OWL ontology for DFG exists. Grounded in pm4py.objects.dfg.obj."@en .
 
 # --- shapes ------------------------------------------------------------
 

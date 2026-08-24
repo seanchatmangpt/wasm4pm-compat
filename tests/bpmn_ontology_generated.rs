@@ -18,8 +18,14 @@ fn gateway_carries_real_direction_enum() {
 
     assert_eq!(g.id, "g1");
     assert_eq!(g.name.as_deref(), Some("split"));
-    assert_eq!(g.gateway_direction, Some(GatewayGatewayDirection::Diverging));
-    assert_ne!(g.gateway_direction, Some(GatewayGatewayDirection::Converging));
+    assert_eq!(
+        g.gateway_direction,
+        Some(GatewayGatewayDirection::Diverging)
+    );
+    assert_ne!(
+        g.gateway_direction,
+        Some(GatewayGatewayDirection::Converging)
+    );
 }
 
 #[test]

@@ -22,11 +22,23 @@
 # kept here only as an id-ref convenience, matching how ProcessTree.parent
 # is treated elsewhere in this ontology set).
 
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
 @prefix trie:    <https://wasm4pm-compat.rs/shapes/trie#> .
+
+<https://wasm4pm-compat.rs/shapes/trie> a owl:Ontology ;
+    owl:versionIRI <https://wasm4pm-compat.rs/shapes/trie/1.0.0> ;
+    dcterms:title "The Trie Ontology"@en ;
+    dcterms:description "An ontology describing pm4py's Trie: a self-referential prefix-tree node (label, parent, children, final flag, depth) used by trie-based process discovery/filtering routines."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "trie" ;
+    vann:preferredNamespaceUri "https://wasm4pm-compat.rs/shapes/trie#" ;
+    rdfs:comment "Draft, minted fresh after a real targeted search confirmed no public RDF/OWL ontology for trie exists. Grounded in pm4py.objects.trie.obj."@en .
 
 # --- classes -----------------------------------------------------------
 
