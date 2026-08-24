@@ -26,8 +26,63 @@ generated/hand-written surfaces, with no single source of truth:
    several other modules) at all. Coverage gap, not just drift.
 
 Four surfaces, four different shapes for the same concept, one of them
-orphaned. This is the concrete evidence behind "restart from ontology":
-the current arrangement cannot self-correct, because nothing is authoritative.
+orphaned. Widening the check surfaced two more disagreeing authorities:
+`~/process-intelligence/standards/BPMN_20.md` describes a `BpmnTask` with an
+optional `task_type` and a `BpmnEdge` with a condition expression — neither
+exists in `src/bpmn.rs` — and `~/process-intelligence/standards/OCEL_20.md`
+turns out to document a *different* codebase entirely
+(`~/process-intelligence/sources/wasm4pm/src/ocel.rs`, a zero-copy binary OCEL
+engine with its own shape, not this crate's `OcelLog`). Six surfaces, at least
+five different shapes, none of them reconciled. This is the concrete evidence
+behind "restart from ontology": the current arrangement cannot self-correct,
+because nothing is authoritative.
+
+## Ground truth: pm4py first (Gall's Law), papers as secondary context
+
+Per explicit decision (Gall's Law: *a complex system that works evolved from
+a simple system that worked* — start from a working checkpoint, not a
+from-scratch spec reading): every existing shape surface above — `src/*.rs`,
+the `process-intelligence` docs and source tree, the Elixir/Python/WIT
+bindings — is sunk cost for the purpose of *determining what a type's shape
+should be*. The primary authority is **pm4py's actual, working Python object
+model** (`~/chatmangpt/pm4py/pm4py/objects/**/obj.py`, installed and
+importable locally, v2.7.22.1) — a battle-tested, widely-used implementation,
+not a spec description. Published papers/standards are consulted only where
+pm4py's model is ambiguous or silent, never to override what pm4py actually
+does. Confirmed for the modules in scope so far:
+
+- **BPMN** — `pm4py/objects/bpmn/obj.py`. Real, working shape:
+  - `BPMNNode{id: str, name: str, in_arcs: [Flow], out_arcs: [Flow], process: str}`
+    — common base for every node kind.
+  - `Gateway{gateway_direction: Unspecified|Diverging|Converging}`, subclassed
+    as `ParallelGateway`/`ExclusiveGateway`/`InclusiveGateway`/`EventBasedGateway`.
+    **No `Complex` gateway kind** — our crate's `BpmnGateway::Complex` variant
+    doesn't correspond to anything pm4py models; it's dropped.
+  - `Task`/`UserTask`/`SendTask`/... — task kind is expressed as a Python
+    class hierarchy, not a `task_type` field; the Rust projection is a tagged
+    enum (`BpmnTaskKind::User | Send | ...`) attached to `Task`, not a bare
+    `String name` as today.
+  - `Flow{id, name, source, target, process}`, `SequenceFlow(Flow)` — **no
+    condition-expression field.** (The *Real-Life BPMN* book describes
+    conditions as a general BPMN 2.0 concept, but pm4py's working model
+    doesn't carry one — per Gall's Law, pm4py wins; the book is not used to
+    add a field pm4py doesn't have.)
+  - `BPMN.__init__(process_id, name, nodes, flows)` — the process-level
+    container.
+  - `Event`/`StartEvent{isInterrupting, parallelMultiple}`/`EndEvent`/... —
+    richer event-kind hierarchy than our crate's flat 4-variant enum.
+- **OCEL** — check `pm4py/objects/ocel/obj.py`'s real `OCEL` class fields
+  before generating the `ocel` module's ontology entries (not yet done in
+  this pass — `ocel` migrates later in the rollout order, per below; it gets
+  the same pm4py-first treatment when its turn comes, not before).
+- Every subsequent module (declare, dfg, xes, petri, powl, process_tree, ...)
+  gets the same treatment when its turn in the rollout order comes: check
+  `~/chatmangpt/pm4py/pm4py/objects/**` for a working implementation first,
+  fall back to a paper in `~/Documents/Papers` only where pm4py has no
+  equivalent object, and only then check whether `src/*.rs` needs a breaking
+  correction to match. A module with neither a pm4py object nor a located
+  paper is flagged, not guessed — see "Handling modules with no located
+  reference" below.
 
 ## Goal
 
@@ -90,29 +145,84 @@ not-yet-migrated modules).
 ```turtle
 @prefix shape: <https://wasm4pm-compat.rs/type-shapes#> .
 
+# pm4py.objects.bpmn.obj.BPMN.Flow / SequenceFlow — no condition field.
 shape:BpmnEdge a shape:RustStruct ;
     shape:sourceModule "wasm4pm_compat::bpmn" ;
-    shape:field [ shape:name "source" ; shape:rustType "String" ; shape:order 0 ] ,
-                [ shape:name "target" ; shape:rustType "String" ; shape:order 1 ] .
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.SequenceFlow" ;
+    shape:field [ shape:name "id"     ; shape:rustType "String" ; shape:order 0 ] ,
+                [ shape:name "name"   ; shape:rustType "Option<String>" ; shape:order 1 ] ,
+                [ shape:name "source" ; shape:rustType "String" ; shape:order 2 ] ,
+                [ shape:name "target" ; shape:rustType "String" ; shape:order 3 ] .
 
-shape:BpmnGateway a shape:RustEnum ;
+# pm4py.objects.bpmn.obj.BPMN.Gateway.Direction — Unspecified/Diverging/Converging,
+# separate from gateway *kind*.
+shape:BpmnGatewayDirection a shape:RustEnum ;
     shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.Gateway.Direction" ;
+    shape:variant [ shape:name "Unspecified" ; shape:kind "unit" ; shape:order 0 ] ,
+                  [ shape:name "Diverging"   ; shape:kind "unit" ; shape:order 1 ] ,
+                  [ shape:name "Converging"  ; shape:kind "unit" ; shape:order 2 ] .
+
+# pm4py's Parallel/Exclusive/Inclusive/EventBased Gateway subclasses.
+# No "Complex" — dropped; pm4py doesn't model it.
+shape:BpmnGatewayKind a shape:RustEnum ;
+    shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.{Parallel,Exclusive,Inclusive,EventBased}Gateway" ;
     shape:variant [ shape:name "Exclusive" ; shape:kind "unit" ; shape:order 0 ] ,
                   [ shape:name "Parallel"  ; shape:kind "unit" ; shape:order 1 ] ,
                   [ shape:name "Inclusive" ; shape:kind "unit" ; shape:order 2 ] ,
-                  [ shape:name "EventBased"; shape:kind "unit" ; shape:order 3 ] ,
-                  [ shape:name "Complex"   ; shape:kind "unit" ; shape:order 4 ] .
+                  [ shape:name "EventBased"; shape:kind "unit" ; shape:order 3 ] .
+
+shape:BpmnGateway a shape:RustStruct ;
+    shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.Gateway" ;
+    shape:field [ shape:name "kind"      ; shape:rustType "BpmnGatewayKind" ; shape:order 0 ] ,
+                [ shape:name "direction" ; shape:rustType "BpmnGatewayDirection" ; shape:order 1 ] .
+
+# pm4py's Task/UserTask/SendTask/... class hierarchy, projected as a tagged enum.
+shape:BpmnTaskKind a shape:RustEnum ;
+    shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.{Task,UserTask,SendTask}" ;
+    shape:variant [ shape:name "Plain" ; shape:kind "unit" ; shape:order 0 ] ,
+                  [ shape:name "User"  ; shape:kind "unit" ; shape:order 1 ] ,
+                  [ shape:name "Send"  ; shape:kind "unit" ; shape:order 2 ] .
+
+shape:BpmnTask a shape:RustStruct ;
+    shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.Task" ;
+    shape:field [ shape:name "id"   ; shape:rustType "String" ; shape:order 0 ] ,
+                [ shape:name "name" ; shape:rustType "String" ; shape:order 1 ] ,
+                [ shape:name "kind" ; shape:rustType "BpmnTaskKind" ; shape:order 2 ] .
 
 shape:BpmnNode a shape:RustStruct ;
     shape:sourceModule "wasm4pm_compat::bpmn" ;
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN.BPMNNode" ;
     shape:field [ shape:name "id"   ; shape:rustType "String" ; shape:order 0 ] ,
-                [ shape:name "kind" ; shape:rustType "BpmnNodeKind" ; shape:order 1 ] .
+                [ shape:name "name" ; shape:rustType "String" ; shape:order 1 ] ,
+                [ shape:name "kind" ; shape:rustType "BpmnNodeKind" ; shape:order 2 ] .
 
 shape:BpmnProcess a shape:RustStruct ;
     shape:sourceModule "wasm4pm_compat::bpmn" ;
-    shape:field [ shape:name "nodes" ; shape:rustType "Vec<BpmnNode>" ; shape:order 0 ] ,
-                [ shape:name "edges" ; shape:rustType "Vec<BpmnEdge>" ; shape:order 1 ] .
+    shape:pm4pySource "pm4py.objects.bpmn.obj.BPMN" ;
+    shape:field [ shape:name "process_id" ; shape:rustType "String" ; shape:order 0 ] ,
+                [ shape:name "name"       ; shape:rustType "String" ; shape:order 1 ] ,
+                [ shape:name "nodes"      ; shape:rustType "Vec<BpmnNode>" ; shape:order 2 ] ,
+                [ shape:name "edges"      ; shape:rustType "Vec<BpmnEdge>" ; shape:order 3 ] .
 ```
+
+Every shape row now carries `shape:pm4pySource`, naming the exact pm4py class
+it was derived from — a traceable citation the way `witness.rs`'s markers
+already cite a paper `KEY`/`TITLE`/`YEAR`, so a future reader (or a future
+drift check) can re-verify the shape against the same working source instead
+of trusting a comment.
+
+Note `in_arcs`/`out_arcs` are deliberately dropped from `BpmnNode`: they are
+pm4py's derived/computed graph-traversal convenience (populated from
+`BpmnProcess`'s edge set), not primary data — carrying them would duplicate
+what `BpmnProcess.edges` already states and risk the two going out of sync.
+`BpmnLayout` (x/y/width/height, waypoints) is pm4py's rendering metadata, out
+of scope for a structure-only crate — same boundary `src/bpmn.rs` already
+draws today, just now traceable to *why* pm4py has it and we don't.
 
 `rustType` is a small closed grammar: a bare identifier (`String`, `u64`,
 `bool`, or another `shape:RustStruct`/`shape:RustEnum` name), `Option<T>`, or
@@ -199,25 +309,35 @@ Fixing the `ggen` CLI itself (or `Makefile.toml`'s stale assumptions about its
 flags) is out of scope for this spec but is a real, separately-worth-filing
 gap.
 
-## Equivalence verification (per module, before deleting hand-written source)
+## Verification (per module, before deleting hand-written source)
+
+Since ground truth is now pm4py, not the existing hand-written `src/bpmn.rs`,
+this is **not** an equivalence check against the old shape — the old shape is
+sunk cost and is expected to change (`BpmnGateway::Complex` is dropped,
+`BpmnTask` gains a `kind`, `BpmnEdge`/`BpmnNode` gain `id`/`name` fields that
+didn't exist before). Verification instead confirms the *new* generated shape
+is correct and usable:
 
 1. `src/generated/bpmn.rs` compiles under `cargo make check-all`.
-2. A compile-pass trybuild fixture confirms every public method the
-   hand-written `src/bpmn.rs` exposed (`BpmnEdge::new`, `.source()`,
-   `.target()`, etc.) still exists with the same signature on the generated
-   type — accessors/constructors are hand-written `impl` blocks in a sibling
-   file (`src/bpmn_impl.rs`) that the generated struct plugs into, since
-   *behavior* (builder methods, `Display`, validation) is not ontology data
-   and stays hand-written, same split as the law kernel.
-3. `cargo test bpmn` (existing unit tests, retargeted at nothing — they
-   should pass unmodified since the public API is unchanged).
+2. A real, hand-written unit test per generated type constructs a value with
+   its real fields and asserts on them (Chicago style — no interaction
+   mocking) — e.g. a test that builds a `BpmnGateway{kind: Exclusive,
+   direction: Diverging}` and asserts both fields round-trip, replacing the
+   old `BpmnEdge::new("a","b")` tests that assumed the old 2-field shape.
+   Accessors/constructors are hand-written `impl` blocks in a sibling file
+   (`src/bpmn_impl.rs`) that the generated struct plugs into — *behavior*
+   (builder methods, `Display`, validation) is not ontology data and stays
+   hand-written, same split as the law kernel.
+3. A real Python script constructs a `pm4py.objects.bpmn.obj.BPMN` graph,
+   exports it, and confirms the regenerated `generated.py`'s `Bpmn*` pydantic
+   models can round-trip it field-for-field — this is the actual Gall's-Law
+   check: the generated shape must accept what the working library produces,
+   not just look plausible.
 4. `mix test` in `bindings/elixir/` — extend `plain_types_test.exs` /
-   `ash_types_test.exs` with a `bpmn`-specific test asserting real field
+   `ash_types_test.exs` with a `bpmn`-specific test asserting the real field
    names and types on the generated struct (replacing the current
    `descriptor.subtype`-only assertions for those rows).
-5. `pytest` in `python/` against the regenerated `generated.py` for the
-   `Bpmn*` classes.
-6. `cargo make ci` full gate, green, before merge.
+5. `cargo make ci` full gate, green, before merge.
 
 ## Module rollout order (after `bpmn` proves the pipeline)
 
@@ -234,6 +354,19 @@ feature to the templates:
    the ontology's `sourceModule` for these rows is corrected to
    `wasm4pm_compat::event_log`, matching the real re-export)
 6. Remaining ~18 modules, in any order, each independently.
+
+## Handling modules with no located reference
+
+Not every `src/*.rs` module has an obvious `pm4py.objects.*` counterpart or a
+paper in `~/Documents/Papers` (e.g. `receipt`, `evidence`, `witness` are this
+crate's own invented law surfaces, not a process-mining standard). For those,
+the module is **not** forced through pm4py/paper sourcing — it's flagged
+explicitly in that module's ontology entry (`shape:noExternalReference true`
+or equivalent) and its shape is instead derived directly from the current
+`src/*.rs` definition, treated as the crate's own primary authority for that
+module only. This keeps the "ground truth, not guessed" rule honest: silence
+about a missing reference is never allowed, but a module legitimately having
+no external reference is a real, statable fact, not a gap to paper over.
 
 ## Testing strategy
 
