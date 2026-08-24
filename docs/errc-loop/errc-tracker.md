@@ -4,6 +4,22 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Charter decision — 2026-08-24
+
+User delegated the DMEDI charter decision ("figure it out"). Resolved:
+**prove the generation pipeline first** (bpmn/log/ocel/powl → real
+Rust/Elixir/Python/WIT), not the remaining 11 clusters — same Gall's-Law
+reasoning already applied to POWL's ontology sourcing this session (a
+smaller working system beats a wider unused catalog). Charter written to
+`docs/superpowers/specs/2026-08-24-reference-rdf-ggen-charter.md`.
+
+This unblocks 2 of the 3 items parked since cycle 1:
+- The 11-cluster item stays parked *deliberately* now (explicit non-goal
+  per the charter), not just unresolved.
+- The pipeline-wiring item is now the active work — cycle 4 should start
+  building `ggen/queries/extract-type-shapes.rq` and the `bpmn` Rust
+  template, per the charter's success criteria, not re-park it.
+
 ## Cycle 3 — 2026-08-24 — closed out, nothing to auto-execute
 
 Ran via `wf_6a2d00be-83c`. 0 verified, 3 parked (same 3 as cycles 1–2,
