@@ -355,6 +355,53 @@ feature to the templates:
    `wasm4pm_compat::event_log`, matching the real re-export)
 6. Remaining ~18 modules, in any order, each independently.
 
+## Addendum (2026-08-24): reuse-public-ontology-or-author rule
+
+Two corrections landed after the sections above were written, superseding
+the `shape:*` vocabulary shown in this doc's earlier examples (BPMN
+ontology example, generation pipeline) for every module actually built
+after this addendum. The rule, stated by the user directly:
+
+**Reuse a real, published, dereferenceable public RDF/OWL ontology wherever
+one exists. Where none exists, author one at genuine standards-submission
+quality — grounded in a real working reference implementation, never
+invented from field names alone — and treat it as canonical.**
+
+A "custom shape vocabulary" (this doc's own `shape:RustStruct`/
+`shape:rustType`, later `wasm:*`) is not an acceptable substitute for either
+branch: it was tried twice this session and rejected both times, first for
+baking Rust generic syntax into the ontology layer, then for minting a
+project-specific namespace for domain properties.
+
+**What "standards-submission quality" means, concretely** (matched to what
+OCEDO and sBPMN themselves actually ship, not aspirational):
+a real `owl:Ontology` header (`dcterms:title`/`description`/`creator`/
+`license`, `owl:versionIRI`); a persistent namespace pattern
+(`w3id.org/<name>/core#`, documented as intended for registration even
+before that registration happens); `rdfs:label`+`rdfs:comment` on every
+class/property; a stated set of competency questions; SHACL shapes layered
+on top of the OWL classes for validation, not replacing them.
+
+**Resolved so far** (deep-research pass `wf_4abe2be2-569`, 100
+adversarially-verified sub-agents; ontology files committed under
+`ggen/ontology/type-shapes/`):
+
+| Cluster | Public ontology? | Reused as | Namespace |
+|---|---|---|---|
+| bpmn | Yes — sBPMN (Krause et al., ACM K-CAP 2025) | `bpmn.ttl` | `https://sBPMN.github.io/2.0/` |
+| log, ocel | Yes — OCEDO (Latif et al., arXiv:2511.03351) | `log.ttl`, `ocel.ttl` | `https://w3id.org/ocedo/core#`, `.../auxiliary#` |
+| powl | No — confirmed absent, nothing published anywhere | authored fresh in `powl.ttl`, grounded in `~/POWL/powl/objects/` | `https://w3id.org/powl/core#` (draft, unregistered) |
+| xes | No — only an XML Schema (IEEE 1849-2023) exists, no RDF/OWL | not yet built | — |
+| process_tree, petri_net, transition_system, oc_causal_net, ocpn, dfg, heuristics_net, org, trie, genetic_matrix, random_variables | **Unresolved** — not found in the one broad research sweep, but not exhaustively checked per-domain either | deferred | — |
+
+**Follow-up pass procedure** (so it isn't re-litigated): for each remaining
+cluster, do a *targeted* search for that domain's own public ontology
+before assuming absence — a one-shot broad sweep is not sufficient grounds
+to treat a domain as "no public ontology exists." Only after a real
+targeted check comes back empty does that cluster move to the
+author-fresh branch, at the same standards-submission bar `powl.ttl`
+already demonstrates.
+
 ## Handling modules with no located reference
 
 Not every `src/*.rs` module has an obvious `pm4py.objects.*` counterpart or a
