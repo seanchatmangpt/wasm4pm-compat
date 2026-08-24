@@ -4,6 +4,35 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Cycle 2 — 2026-08-24 — closed out
+
+Ran via `Workflow({scriptPath: errc-cycle, ...})` (`wf_b1a81b70-29b`),
+fired by the hourly cron (job `4021d1dd`). 2 verified, 3 parked (same 3
+as cycle 1 — unchanged, still awaiting user decision).
+
+- **4 pre-existing stale-stderr fixtures** — done, commit `9baa36e`.
+  Confirmed pure nightly-rustc diagnostic-format drift (extra context
+  lines, same error code/message/anchor line on every one) before
+  regenerating via `TRYBUILD=overwrite`, then re-verified clean with a
+  plain run: `test result: ok. 2 passed; 0 failed` — **the repo-wide
+  `cargo make alive` gate is fully green for the first time this
+  session.**
+- **ggen CLI rough edges, expanded** — done, same commit. Added that
+  per-rule selection is confirmed unsupported by the installed CLI
+  entirely (not just a flag-name mismatch), and that `cwd = "ggen"` (not
+  `--manifest`) is the actual mechanism making today's tasks find their
+  manifest at all. Makefile.toml itself still not rewritten — that
+  redesign remains a parked decision.
+- **3 parked items** — unchanged from cycle 1 (remaining ~11 ontology
+  clusters, wiring ontology into a generation pipeline, DMEDI charter for
+  "reference RDF/ggen implementation"). Still awaiting user scoping;
+  re-parked rather than re-derived.
+
+**Open for cycle 3:** nothing new and bounded — the only remaining open
+items are the 3 parked ones, which need a human decision, not another
+automated verify pass. If cycle 3 finds nothing new to categorize beyond
+those 3, it should say so plainly rather than manufacture busywork.
+
 ## Cycle 1 — 2026-08-24 — closed out
 
 Ran via `Workflow({name: "errc-cycle", ...})` (`wf_f4f81eaa-301`). 5
