@@ -1,0 +1,79 @@
+# The Trie Ontology (draft) -- a real SHACL/OWL shape for pm4py's Trie
+# structure, authored fresh because a targeted web search this session
+# ("trie RDF OWL ontology namespace process mining") found no real,
+# published, dereferenceable public RDF/OWL ontology for this concept --
+# only general OWL/RDF tutorial material and unrelated ontology papers, no
+# persistent URI naming a trie/prefix-tree vocabulary for process mining or
+# otherwise. Per this session's rule ("reuse a real public ontology wherever
+# one exists; where none exists, author one grounded in a real working
+# reference implementation, never invented from field names alone"), this
+# file is grounded solely in pm4py.objects.trie.obj.Trie (obj.py:22), a
+# real, working reference implementation.
+#
+# Trie here is a minimal self-referential prefix-tree node used by pm4py's
+# trie-based process discovery/filtering routines: label, parent (link),
+# children (links), final flag, depth. All four data-carrying fields are
+# primary constructor/state, not derived -- none excluded.
+#
+# Mirrors the existing bpmn.ttl/powl.ttl convention: self-referential
+# parent/children links are modeled as xsd:string id-references rather than
+# nested sh:class, to avoid circular shape references (and, per this
+# catalog's own note, `parent` is reconstructible from `children` and is
+# kept here only as an id-ref convenience, matching how ProcessTree.parent
+# is treated elsewhere in this ontology set).
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix trie:    <https://wasm4pm-compat.rs/shapes/trie#> .
+
+# --- classes -----------------------------------------------------------
+
+trie:Trie a rdfs:Class ;
+    rdfs:label "Trie"@en ;
+    rdfs:comment "A single node of a prefix tree (trie): a label, a link to its parent node, an ordered set of child nodes, a final-state flag, and its depth in the tree. Corresponds to pm4py's Trie."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie (obj.py:22)" .
+
+# --- properties ----------------------------------------------------------
+
+trie:label a rdfs:Property ;
+    rdfs:domain trie:Trie ; rdfs:range xsd:string ;
+    rdfs:label "label"@en ;
+    rdfs:comment "The label carried by this trie node. Absent/null for the root or an unlabeled node."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie.label" .
+
+trie:parent a rdfs:Property ;
+    rdfs:domain trie:Trie ; rdfs:range xsd:string ;
+    rdfs:label "parent"@en ;
+    rdfs:comment "Id-reference to this node's parent Trie node. Absent for the root. Modeled as an id-ref rather than a nested shape to avoid circular shape references, matching the ProcessTree.parent convention used elsewhere in this ontology set; kept as a convenience back-link even though it is reconstructible from the children relation of the owning tree."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie.parent" .
+
+trie:child a rdfs:Property ;
+    rdfs:domain trie:Trie ; rdfs:range xsd:string ;
+    rdfs:label "child"@en ;
+    rdfs:comment "Id-reference to one of this node's child Trie nodes."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie.children" .
+
+trie:final a rdfs:Property ;
+    rdfs:domain trie:Trie ; rdfs:range xsd:boolean ;
+    rdfs:label "final"@en ;
+    rdfs:comment "Whether this node marks the end of an accepted sequence in the trie."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie.final" .
+
+trie:depth a rdfs:Property ;
+    rdfs:domain trie:Trie ; rdfs:range xsd:integer ;
+    rdfs:label "depth"@en ;
+    rdfs:comment "This node's depth in the trie, root at 0."@en ;
+    dcterms:source "pm4py.objects.trie.obj.Trie.depth" .
+
+# --- SHACL shape -----------------------------------------------------------
+
+trie:TrieShape a sh:NodeShape ;
+    sh:targetClass trie:Trie ;
+    sh:property
+        [ sh:path trie:label  ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path trie:parent ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path trie:child  ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path trie:final  ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] ,
+        [ sh:path trie:depth  ; sh:datatype xsd:integer ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ] .

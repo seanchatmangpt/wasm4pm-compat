@@ -1,0 +1,175 @@
+# Petri Net type-shapes -- authored fresh, grounded in pm4py.objects.petri_net.
+#
+# STEP-1 RESEARCH RESULT: a targeted web search ("petri_net RDF OWL ontology
+# process mining namespace", "petri net ontology namespace dereferenceable")
+# turned up only papers PROPOSING a Petri-net-to-RDF/OWL mapping (Gasevic's
+# "Petri net ontology", ScienceDirect S0950705106000165; a PNML-to-RDF/OWL
+# integration paper) -- none publish a persistent, dereferenceable namespace
+# or a fetchable ontology file (no w3id.org/GitHub-Pages-hosted .ttl/.owl
+# analogous to sBPMN at sbpmn.github.io/2.0/ontology.ttl or OCEDO at
+# w3id.org/ocedo/core#, both confirmed real and reused verbatim in
+# bpmn.ttl/log.ttl in this same directory). Per this session's rule, no real
+# public ontology exists to reuse here, so this file is authored fresh,
+# mirroring powl.ttl's fresh-authoring pattern and bar (standards-submission
+# quality SHACL, dcterms provenance per shape), minted under
+# https://wasm4pm-compat.rs/shapes/petri_net# since Petri nets as pm4py
+# models them are a niche pm4py-specific object graph (Place/Transition/Arc
+# with pm4py-specific properties dicts, stochastic/reset/inhibitor variants)
+# with no public standard covering this exact shape.
+#
+# Grounded exclusively in the real pm4py.objects.petri_net package (a real,
+# working reference implementation), per the catalog:
+#   - pm4py.objects.petri_net.obj: Marking, PetriNet (+ nested Place,
+#     Transition, Arc), InhibitorNet/InhibitorArc, ResetNet/ResetArc,
+#     ResetInhibitorNet
+#   - pm4py.objects.petri_net.stochastic.obj: StochasticPetriNet (+ nested
+#     Transition with firing weight)
+#   - pm4py.objects.petri_net.saw_net.obj: StochasticArcWeightNet (+ nested
+#     Arc with per-token-count probability map)
+#   - pm4py.objects.petri_net.data_petri_nets.data_marking: DataMarking
+#
+# Graph-populated (DERIVED) fields are excluded per the catalog instructions:
+# Place.in_arcs/out_arcs and Transition.in_arcs/out_arcs are populated by
+# graph traversal, not passed to a constructor -- excluded here. Arc,
+# Transition, Place self/cross-references (source/target) are id-referenced
+# (xsd:string) rather than nested sh:class, matching bpmn.ttl/powl.ttl's own
+# convention, to avoid circular shape references between PlaceShape,
+# TransitionShape, and ArcShape.
+#
+# InhibitorNet/ResetNet/ResetInhibitorNet add no new fields over PetriNet in
+# pm4py -- per the catalog, they are modeled as an `arcKind` enumerated value
+# on ArcShape ("Normal" | "Inhibitor" | "Reset") rather than as separate
+# NodeShapes, since the only real behavioral difference pm4py encodes is the
+# arc's own class (Arc vs InhibitorArc vs ResetArc), not new net-level or
+# arc-level primary fields.
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix pn:      <https://wasm4pm-compat.rs/shapes/petri_net#> .
+
+pn:MarkingShape a sh:NodeShape ;
+    rdfs:label "Marking" ;
+    dcterms:source "pm4py.objects.petri_net.obj.Marking (Counter subclass, line 27)" ;
+    sh:targetClass pn:Marking ;
+    sh:property
+        [ sh:path pn:place ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 0 ;
+          rdfs:comment "Id-ref to a Place; Marking is a multiset keyed by place." ] ,
+        [ sh:path pn:tokenCount ; sh:datatype xsd:nonNegativeInteger ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ;
+          rdfs:comment "Token count for the paired place (Counter value)." ] .
+
+pn:PetriNetShape a sh:NodeShape ;
+    rdfs:label "PetriNet" ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet (line 92)" ;
+    sh:targetClass pn:PetriNet ;
+    sh:property
+        [ sh:path pn:name ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path pn:place ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 1 ;
+          rdfs:comment "Id-refs to Place members of this net." ] ,
+        [ sh:path pn:transition ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 2 ;
+          rdfs:comment "Id-refs to Transition members of this net." ] ,
+        [ sh:path pn:arc ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 3 ;
+          rdfs:comment "Id-refs to Arc members of this net." ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 4 ;
+          rdfs:comment "Free-form properties dict, blank-node/opaque, not further shaped." ] .
+
+pn:PlaceShape a sh:NodeShape ;
+    rdfs:label "Place" ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.Place (line 93)" ;
+    sh:targetClass pn:Place ;
+    sh:property
+        [ sh:path pn:name ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] .
+# in_arcs/out_arcs are DERIVED (graph-populated by Arc construction, not
+# constructor parameters) -- excluded per the catalog instructions.
+
+pn:TransitionShape a sh:NodeShape ;
+    rdfs:label "Transition" ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.Transition (line 148)" ;
+    sh:targetClass pn:Transition ;
+    sh:property
+        [ sh:path pn:name ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path pn:label ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ;
+          rdfs:comment "Absent/null label denotes a silent (tau) transition." ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] .
+# in_arcs/out_arcs are DERIVED (graph-populated) -- excluded.
+
+pn:ArcShape a sh:NodeShape ;
+    rdfs:label "Arc" ;
+    dcterms:source "pm4py.objects.petri_net.obj.PetriNet.Arc (line 223); arcKind values fold in InhibitorArc/ResetArc (obj.py, no new fields beyond Arc)" ;
+    sh:targetClass pn:Arc ;
+    sh:property
+        [ sh:path pn:source ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ;
+          rdfs:comment "Id-ref to a Place or Transition (bipartite arc)." ] ,
+        [ sh:path pn:target ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ;
+          rdfs:comment "Id-ref to a Place or Transition (bipartite arc)." ] ,
+        [ sh:path pn:weight ; sh:datatype xsd:integer ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ;
+          rdfs:comment "Default 1 in pm4py." ] ,
+        [ sh:path pn:arcKind ; sh:datatype xsd:string ;
+          sh:in ("Normal" "Inhibitor" "Reset") ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 3 ;
+          rdfs:comment "Normal=Arc, Inhibitor=InhibitorArc, Reset=ResetArc -- pm4py encodes this as the arc's Python class, not a field." ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 4 ] .
+
+pn:StochasticTransitionShape a sh:NodeShape ;
+    rdfs:label "StochasticTransition" ;
+    dcterms:source "pm4py.objects.petri_net.stochastic.obj.StochasticPetriNet.Transition (stochastic/obj.py:28, extends PetriNet.Transition)" ;
+    sh:targetClass pn:StochasticTransition ;
+    sh:property
+        [ sh:path pn:name ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path pn:label ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path pn:stochasticWeight ; sh:datatype xsd:double ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 3 ;
+          rdfs:comment "Firing weight, default 1.0." ] .
+
+pn:StochasticArcWeightShape a sh:NodeShape ;
+    rdfs:label "StochasticArcWeight" ;
+    dcterms:source "pm4py.objects.petri_net.saw_net.obj.StochasticArcWeightNet.Arc (saw_net/obj.py:27, overrides Arc.weight as a token-count -> probability map)" ;
+    sh:targetClass pn:StochasticArcWeight ;
+    sh:property
+        [ sh:path pn:source ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path pn:target ; sh:datatype xsd:string ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path pn:arcKind ; sh:datatype xsd:string ;
+          sh:in ("Normal" "Inhibitor" "Reset") ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path pn:tokenCount ; sh:datatype xsd:nonNegativeInteger ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ;
+          rdfs:comment "Map key: token count this probability applies to." ] ,
+        [ sh:path pn:probability ; sh:datatype xsd:double ;
+          sh:minCount 1 ; sh:maxCount 1 ; sh:order 4 ;
+          rdfs:comment "Map value: probability for that token count, default {1: 1.0}." ] ,
+        [ sh:path pn:properties ; sh:minCount 0 ; sh:maxCount 1 ; sh:order 5 ] .
+
+pn:DataMarkingShape a sh:NodeShape ;
+    rdfs:label "DataMarking" ;
+    dcterms:source "pm4py.objects.petri_net.data_petri_nets.data_marking.DataMarking (line 25, extends Marking)" ;
+    sh:targetClass pn:DataMarking ;
+    sh:property
+        [ sh:path pn:place ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 0 ] ,
+        [ sh:path pn:tokenCount ; sh:datatype xsd:nonNegativeInteger ;
+          sh:minCount 0 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path pn:variableName ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 2 ;
+          rdfs:comment "data_dict key: variable/data assignment name." ] ,
+        [ sh:path pn:variableValue ; sh:datatype xsd:string ;
+          sh:minCount 0 ; sh:order 3 ;
+          rdfs:comment "data_dict value: assigned value (opaque, string-serialized)." ] .

@@ -1,0 +1,302 @@
+# The Heuristics Net Ontology (draft) -- authored fresh because a targeted
+# search (WebSearch: "heuristics_net RDF OWL ontology process mining
+# namespace") found no real, published, dereferenceable public RDF/OWL
+# ontology for the Heuristics Miner's heuristics_net process-model concept.
+# No candidate namespace or persistent URI surfaced (unlike sBPMN at
+# sbpmn.github.io/2.0/ontology.ttl or OCEDO at w3id.org/ocedo/core#, both
+# reused directly in sibling files in this directory). This is a niche
+# pm4py-specific concept with no public standard, so a domain-specific mint
+# is used, per the session's established rule.
+#
+# Grounded in pm4py.objects.heuristics_net (edge.py, node.py, obj.py) -- a
+# real, working reference implementation, not invented from field names
+# alone. Modeled after powl.ttl's own header/shape conventions in this same
+# directory as the standards-quality bar to match: dcterms metadata,
+# CC-BY 4.0, a w3id.org-pattern namespace intended for registration.
+#
+# There are no real Enum classes backing edge_type/node_type in pm4py --
+# both are informal string literals in the reference implementation, so
+# sh:in is used to enumerate the observed literal values rather than
+# minting an owl:Class for either.
+#
+# Competency questions this ontology must answer:
+#   CQ1: What are the dependency/frequency/performance values on an edge
+#        between two nodes of a heuristics net?
+#   CQ2: Which activities are start activities / end activities of the net,
+#        and how many times does each activity occur?
+#   CQ3: What are a node's input and output connections (as edges to/from
+#        other nodes)?
+#   CQ4: What DFG (directly-follows graph) and, optionally, performance DFG
+#        does a HeuristicsNet derive from?
+
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann:    <http://purl.org/vocab/vann/> .
+@prefix hnet:    <https://w3id.org/heuristics-net/core#> .
+
+<https://w3id.org/heuristics-net/core> a owl:Ontology ;
+    owl:versionIRI <https://w3id.org/heuristics-net/core/1.0.0> ;
+    dcterms:title "The Heuristics Net Ontology"@en ;
+    dcterms:description "An ontology describing Heuristics Miner heuristics-net process models -- nodes, edges, and the net container -- grounded in the pm4py.objects.heuristics_net reference implementation."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    dcterms:license <https://creativecommons.org/licenses/by/4.0> ;
+    vann:preferredNamespacePrefix "hnet" ;
+    vann:preferredNamespaceUri "https://w3id.org/heuristics-net/core#" ;
+    rdfs:comment "Draft, not yet registered on w3id.org. Authored to standards-submission quality per the OCEDO/sBPMN precedent (see log.ttl, bpmn.ttl in this same directory), and to the powl.ttl precedent for a niche pm4py-specific concept with no public ontology."@en .
+
+# --- classes ---------------------------------------------------------------
+
+hnet:HeuristicsNet a owl:Class ;
+    rdfs:label "Heuristics Net"@en ;
+    rdfs:comment "The heuristics-net process model produced by the Heuristics Miner: a directly-follows-graph-derived model with activities, start/end activities, activity occurrence counts, and (optionally) a performance DFG. Corresponds to pm4py's HeuristicsNet."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet" .
+
+hnet:Node a owl:Class ;
+    rdfs:label "Heuristics Net Node"@en ;
+    rdfs:comment "A single activity node within a heuristics net, carrying its own occurrence count, start/end-activity flags, and its input/output connections to other nodes. Corresponds to pm4py's Node."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node" .
+
+hnet:Edge a owl:Class ;
+    rdfs:label "Heuristics Net Edge"@en ;
+    rdfs:comment "A directed edge between two heuristics-net nodes, carrying the dependency measure, the raw directly-follows and repr(esentation) values, and display metadata. Corresponds to pm4py's Edge."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge" .
+
+# --- properties on hnet:HeuristicsNet ---------------------------------------
+
+hnet:netName a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "net name"@en ;
+    rdfs:comment "The name(s) of this heuristics net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.net_name" .
+
+hnet:dfgReference a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "DFG reference"@en ;
+    rdfs:comment "An identifying reference to the frequency directly-follows-graph this net was derived from. The DFG structure itself belongs to the dfg module (see dfg.ttl); only a reference is carried here to avoid a circular cross-module shape."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.dfg" .
+
+hnet:performanceDfgReference a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "performance DFG reference"@en ;
+    rdfs:comment "An identifying reference to the performance directly-follows-graph this net was derived from, if performance mining was used. Absent when no performance DFG was provided."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.performance_dfg" .
+
+hnet:activity a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "activity"@en ;
+    rdfs:comment "An activity label known to this net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.activities" .
+
+hnet:startActivity a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "start activity"@en ;
+    rdfs:comment "An activity label designated as a start activity of this net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.start_activities" .
+
+hnet:endActivity a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "end activity"@en ;
+    rdfs:comment "An activity label designated as an end activity of this net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.end_activities" .
+
+hnet:defaultEdgesColor a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "default edges color"@en ;
+    rdfs:comment "A default display color (hex string) for edges in this net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.default_edges_color" .
+
+hnet:hasActivityOccurrence a owl:ObjectProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range hnet:ActivityOccurrence ;
+    rdfs:label "has activity occurrence"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.activities_occurrences" .
+
+hnet:ActivityOccurrence a owl:Class ;
+    rdfs:label "Activity Occurrence"@en ;
+    rdfs:comment "An activity-label to occurrence-count pair for a heuristics net."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.activities_occurrences" .
+hnet:occurrenceActivity a owl:DatatypeProperty ; rdfs:domain hnet:ActivityOccurrence ; rdfs:range xsd:string .
+hnet:occurrenceCount    a owl:DatatypeProperty ; rdfs:domain hnet:ActivityOccurrence ; rdfs:range xsd:nonNegativeInteger .
+
+hnet:dfgWindow2Reference a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "window-2 DFG reference"@en ;
+    rdfs:comment "An identifying reference to the window-2 (look-two-back) directly-follows-graph used for loop-length-two dependency detection."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.dfg_window_2" .
+
+hnet:freqTripleReference a owl:DatatypeProperty ;
+    rdfs:domain hnet:HeuristicsNet ; rdfs:range xsd:string ;
+    rdfs:label "frequency triple reference"@en ;
+    rdfs:comment "An identifying reference to a frequency-triple entry (activity, activity, activity -> count) used in AND-measure computation."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.obj.HeuristicsNet.freq_triples" .
+
+# --- properties on hnet:Node -------------------------------------------------
+
+hnet:nodeName a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "node name"@en ;
+    rdfs:comment "The activity label this node represents."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.node_name" .
+
+hnet:nodeOccurrences a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:nonNegativeInteger ;
+    rdfs:label "node occurrences"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.node_occ" .
+
+hnet:isStartActivity a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:boolean ;
+    rdfs:label "is start activity"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.is_start_activity" .
+
+hnet:isEndActivity a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:boolean ;
+    rdfs:label "is end activity"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.is_end_activity" .
+
+hnet:nodeDefaultEdgesColor a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "node default edges color"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.default_edges_color" .
+
+hnet:nodeType a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "node type"@en ;
+    rdfs:comment "Informal string tag for the node's kind; pm4py has no real Enum backing this field."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.node_type" .
+
+hnet:nodeNetName a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "node net name"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.net_name" .
+
+hnet:belongsToNet a owl:ObjectProperty ;
+    rdfs:domain hnet:Node ; rdfs:range hnet:HeuristicsNet ;
+    rdfs:label "belongs to net"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.heuristics_net" .
+
+hnet:inputConnection a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "input connection"@en ;
+    rdfs:comment "An id reference to an incoming Edge, keyed by the source node. Id-referenced (not nested sh:class) to avoid a circular Node<->Edge shape, matching this directory's bpmn.ttl/powl.ttl convention."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.input_connections" .
+
+hnet:outputConnection a owl:DatatypeProperty ;
+    rdfs:domain hnet:Node ; rdfs:range xsd:string ;
+    rdfs:label "output connection"@en ;
+    rdfs:comment "An id reference to an outgoing Edge, keyed by the target node. Id-referenced for the same reason as inputConnection."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.node.Node.output_connections" .
+
+# `nodes_dictionary` (a possibly-null back-reference to the net's full node
+# dictionary) is redundant with `hnet:belongsToNet` plus the net's own node
+# set -- not separately modeled. `and_measures_in`, `and_measures_out`,
+# `loop_length_two`, `output_couples_and_measure` are all DERIVED
+# (recomputed from other Node/HeuristicsNet state) per pm4py's own
+# node.py -- excluded per the primary/constructor-data-only rule.
+
+# --- properties on hnet:Edge -------------------------------------------------
+
+hnet:startNode a owl:ObjectProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range hnet:Node ;
+    rdfs:label "start node"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.start_node" .
+
+hnet:endNode a owl:ObjectProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range hnet:Node ;
+    rdfs:label "end node"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.end_node" .
+
+hnet:dependencyValue a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:double ;
+    rdfs:label "dependency value"@en ;
+    rdfs:comment "The Heuristics Miner dependency measure for this edge."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.dependency_value" .
+
+hnet:dfgValue a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:double ;
+    rdfs:label "DFG value"@en ;
+    rdfs:comment "The raw directly-follows frequency (or performance) value backing this edge."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.dfg_value" .
+
+hnet:reprValue a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:double ;
+    rdfs:label "representation value"@en ;
+    rdfs:comment "The value used for this edge's visual representation (e.g. label/thickness), which may differ from dfg_value under performance mining."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.repr_value" .
+
+hnet:edgeLabel a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:string ;
+    rdfs:label "label"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.label" .
+
+hnet:reprColor a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:string ;
+    rdfs:label "representation color"@en ;
+    rdfs:comment "A hex color string used to render this edge."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.repr_color" .
+
+hnet:edgeType a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:string ;
+    rdfs:label "edge type"@en ;
+    rdfs:comment "Informal string tag distinguishing a frequency edge from a performance edge; pm4py has no real Enum backing this field."@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.edge_type" .
+
+hnet:edgeNetName a owl:DatatypeProperty ;
+    rdfs:domain hnet:Edge ; rdfs:range xsd:string ;
+    rdfs:label "edge net name"@en ;
+    dcterms:source "pm4py.objects.heuristics_net.edge.Edge.net_name" .
+
+# `repr_font_color` and `pen_width` are non-constructor, null-initialized
+# display fields set later by rendering code, not primary/constructor data
+# -- excluded per the primary/constructor-data-only rule.
+
+# --- SHACL cardinality/datatype shapes, layered on the OWL classes above ---
+
+hnet:HeuristicsNetShape a sh:NodeShape ;
+    sh:targetClass hnet:HeuristicsNet ;
+    sh:property
+        [ sh:path hnet:netName               ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path hnet:dfgReference           ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:performanceDfgReference; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:activity               ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path hnet:startActivity          ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path hnet:endActivity            ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path hnet:defaultEdgesColor      ; sh:datatype xsd:string ; sh:minCount 0 ] ,
+        [ sh:path hnet:hasActivityOccurrence  ; sh:class hnet:ActivityOccurrence ; sh:minCount 0 ] ,
+        [ sh:path hnet:dfgWindow2Reference    ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:freqTripleReference    ; sh:datatype xsd:string ; sh:minCount 0 ] .
+
+hnet:ActivityOccurrenceShape a sh:NodeShape ;
+    sh:targetClass hnet:ActivityOccurrence ;
+    sh:property
+        [ sh:path hnet:occurrenceActivity ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:occurrenceCount    ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ] .
+
+hnet:NodeShape a sh:NodeShape ;
+    sh:targetClass hnet:Node ;
+    sh:property
+        [ sh:path hnet:nodeName              ; sh:datatype xsd:string  ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:nodeOccurrences        ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:isStartActivity        ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:isEndActivity          ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:nodeDefaultEdgesColor  ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:nodeType               ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:nodeNetName            ; sh:datatype xsd:string  ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:belongsToNet           ; sh:class hnet:HeuristicsNet ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:inputConnection        ; sh:datatype xsd:string  ; sh:minCount 0 ] ,
+        [ sh:path hnet:outputConnection       ; sh:datatype xsd:string  ; sh:minCount 0 ] .
+
+hnet:EdgeShape a sh:NodeShape ;
+    sh:targetClass hnet:Edge ;
+    sh:property
+        [ sh:path hnet:startNode        ; sh:class hnet:Node ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:endNode          ; sh:class hnet:Node ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:dependencyValue  ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:dfgValue         ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:reprValue        ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:edgeLabel        ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:reprColor        ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:edgeType         ; sh:in ("frequency" "performance") ; sh:minCount 0 ; sh:maxCount 1 ] ,
+        [ sh:path hnet:edgeNetName      ; sh:datatype xsd:string ; sh:minCount 0 ; sh:maxCount 1 ] .

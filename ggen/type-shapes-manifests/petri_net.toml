@@ -1,0 +1,20 @@
+[project]
+name = "wasm4pm-compat-type-shapes-petri_net"
+version = "26.8.7"
+description = "ggen projection of the petri_net SHACL type-shape ontology into Rust"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ggen/ontology/type-shapes/petri_net.ttl"
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "rust-types-petri_net"
+query = { file = "ggen/queries/extract-type-shapes.rq" }
+template = { file = "ggen/templates/rust-types.rs.tera" }
+output_file = "src/petri_net_ontology.rs"
+mode = "Overwrite"

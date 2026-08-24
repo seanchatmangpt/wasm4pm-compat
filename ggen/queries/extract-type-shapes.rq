@@ -20,8 +20,8 @@ SELECT
   (GROUP_CONCAT(DISTINCT COALESCE(?inValue, ""); separator="|") AS ?inValues)
 WHERE {
   ?shape a sh:NodeShape ;
-         sh:targetClass ?targetClass ;
          sh:property ?prop .
+  OPTIONAL { ?shape sh:targetClass ?targetClass . }
 
   ?prop sh:path ?propPath .
   OPTIONAL { ?prop sh:datatype ?datatype . }

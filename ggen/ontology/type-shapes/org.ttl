@@ -1,0 +1,142 @@
+# The Org (Organizational Mining) Ontology (draft) -- authored fresh.
+#
+# A targeted search ("org RDF OWL ontology process mining namespace roles
+# SNA", "social network analysis org ontology OWL process mining") found
+# no real, published, dereferenceable public RDF/OWL ontology specifically
+# for pm4py's organizational-mining concepts (social network edges, role
+# assignment). Results were papers proposing ontology-driven social-network
+# approaches in the abstract, with no persistent URI or fetchable ontology
+# file -- not "exists" per this session's standing rule. Unlike sBPMN and
+# OCEDO (reused directly in sibling files bpmn.ttl / log.ttl), this
+# concept has no public standard to reuse.
+#
+# Authored fresh, grounded ONLY in pm4py.objects.org (sna/obj.py,
+# roles/obj.py) -- a real, working reference implementation -- not
+# invented from field names alone. Minted under a domain-specific
+# namespace because this is a niche pm4py-specific concept with no
+# public standard candidate.
+
+@prefix owl:     <http://www.w3.org/2002/07/owl#> .
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix org:     <https://wasm4pm-compat.rs/shapes/org#> .
+
+<https://wasm4pm-compat.rs/shapes/org> a owl:Ontology ;
+    dcterms:title "The Org (Organizational Mining) Ontology"@en ;
+    dcterms:description "An ontology describing pm4py organizational-mining structures: social network edges (SNA) and originator-role assignment (Role), grounded in pm4py.objects.org."@en ;
+    dcterms:creator "wasm4pm-compat contributors"@en ;
+    rdfs:comment "Draft, authored fresh after confirming no public RDF/OWL ontology exists for this concept (see header note above)."@en .
+
+# --- classes -----------------------------------------------------------
+
+org:SocialNetwork a owl:Class ;
+    rdfs:label "Social Network"@en ;
+    rdfs:comment "A weighted, optionally-directed graph of connections between resources (originators), as produced by SNA metrics (handover of work, working together, etc.). Corresponds to pm4py's SNA."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA" .
+
+org:SocialNetworkConnection a owl:Class ;
+    rdfs:label "Social Network Connection"@en ;
+    rdfs:comment "One weighted edge of a SocialNetwork: a (source resource, target resource) pair with its metric weight. pm4py stores this as a dict keyed by a 2-tuple of strings mapping to a float; modeled here as its own class because RDF has no native tuple-keyed-map primitive."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.connections" .
+
+org:Role a owl:Class ;
+    rdfs:label "Role"@en ;
+    rdfs:comment "A discovered organizational role: the set of activities performed together, and the relative importance of each originator (resource) to that role. Corresponds to pm4py's Role."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role" .
+
+org:RoleOriginatorImportance a owl:Class ;
+    rdfs:label "Role Originator Importance"@en ;
+    rdfs:comment "One entry of a Role's originator-importance map: a resource name paired with its importance score for that role. pm4py stores this as a dict[str, float]; modeled here as its own class for the same reason as SocialNetworkConnection."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role.originator_importance" .
+
+# --- properties on org:SocialNetwork ------------------------------------
+
+org:isDirected a owl:DatatypeProperty ;
+    rdfs:domain org:SocialNetwork ; rdfs:range xsd:boolean ;
+    rdfs:label "is directed"@en ;
+    rdfs:comment "Whether the social network's connections are directed (e.g. handover-of-work) or undirected (e.g. working-together)."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.is_directed" .
+
+org:hasConnection a owl:ObjectProperty ;
+    rdfs:domain org:SocialNetwork ; rdfs:range org:SocialNetworkConnection ;
+    rdfs:label "has connection"@en ;
+    rdfs:comment "One weighted edge belonging to this social network."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.connections" .
+
+# --- properties on org:SocialNetworkConnection --------------------------
+
+org:sourceResource a owl:DatatypeProperty ;
+    rdfs:domain org:SocialNetworkConnection ; rdfs:range xsd:string ;
+    rdfs:label "source resource"@en ;
+    rdfs:comment "The first element of the connection's (str, str) key tuple -- the originating resource."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.connections (tuple key, index 0)" .
+
+org:targetResource a owl:DatatypeProperty ;
+    rdfs:domain org:SocialNetworkConnection ; rdfs:range xsd:string ;
+    rdfs:label "target resource"@en ;
+    rdfs:comment "The second element of the connection's (str, str) key tuple -- the target resource."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.connections (tuple key, index 1)" .
+
+org:connectionWeight a owl:DatatypeProperty ;
+    rdfs:domain org:SocialNetworkConnection ; rdfs:range xsd:double ;
+    rdfs:label "connection weight"@en ;
+    rdfs:comment "The metric value (e.g. handover count, similarity score) for this edge."@en ;
+    dcterms:source "pm4py.objects.org.sna.obj.SNA.connections (dict value)" .
+
+# --- properties on org:Role ----------------------------------------------
+
+org:performsActivity a owl:DatatypeProperty ;
+    rdfs:domain org:Role ; rdfs:range xsd:string ;
+    rdfs:label "performs activity"@en ;
+    rdfs:comment "An activity name performed as part of this role."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role.activities" .
+
+org:hasOriginatorImportance a owl:ObjectProperty ;
+    rdfs:domain org:Role ; rdfs:range org:RoleOriginatorImportance ;
+    rdfs:label "has originator importance"@en ;
+    rdfs:comment "One resource's importance score for this role."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role.originator_importance" .
+
+# --- properties on org:RoleOriginatorImportance ---------------------------
+
+org:originator a owl:DatatypeProperty ;
+    rdfs:domain org:RoleOriginatorImportance ; rdfs:range xsd:string ;
+    rdfs:label "originator"@en ;
+    rdfs:comment "The resource (originator) name -- the dict key."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role.originator_importance (dict key)" .
+
+org:importance a owl:DatatypeProperty ;
+    rdfs:domain org:RoleOriginatorImportance ; rdfs:range xsd:double ;
+    rdfs:label "importance"@en ;
+    rdfs:comment "This originator's importance score for the role -- the dict value."@en ;
+    dcterms:source "pm4py.objects.org.roles.obj.Role.originator_importance (dict value)" .
+
+# --- SHACL cardinality/datatype shapes, layered on the OWL classes above --
+
+org:SocialNetworkShape a sh:NodeShape ;
+    sh:targetClass org:SocialNetwork ;
+    sh:property
+        [ sh:path org:isDirected ; sh:datatype xsd:boolean ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path org:hasConnection ; sh:class org:SocialNetworkConnection ; sh:minCount 0 ; sh:order 1 ] .
+
+org:SocialNetworkConnectionShape a sh:NodeShape ;
+    sh:targetClass org:SocialNetworkConnection ;
+    sh:property
+        [ sh:path org:sourceResource   ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path org:targetResource   ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path org:connectionWeight ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] .
+
+org:RoleShape a sh:NodeShape ;
+    sh:targetClass org:Role ;
+    sh:property
+        [ sh:path org:performsActivity        ; sh:datatype xsd:string ; sh:minCount 0 ; sh:order 0 ] ,
+        [ sh:path org:hasOriginatorImportance ; sh:class org:RoleOriginatorImportance ; sh:minCount 0 ; sh:order 1 ] .
+
+org:RoleOriginatorImportanceShape a sh:NodeShape ;
+    sh:targetClass org:RoleOriginatorImportance ;
+    sh:property
+        [ sh:path org:originator  ; sh:datatype xsd:string ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 0 ] ,
+        [ sh:path org:importance  ; sh:datatype xsd:double ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] .

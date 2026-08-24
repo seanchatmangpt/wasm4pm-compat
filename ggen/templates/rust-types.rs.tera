@@ -30,18 +30,38 @@
 pub struct {{ shape_name }} {
 {% for f in fields %}
 {% set field_name = f.propPath | split(pat="#") | last | split(pat="/") | last %}
+{% set sc = field_name | snake_case %}
+{% if sc in ["final", "type", "fn", "match", "loop", "move", "ref", "self", "Self", "struct", "trait", "impl", "enum", "mod", "use", "pub", "let", "mut", "const", "static", "return", "if", "else", "for", "while", "in", "as", "dyn", "where", "unsafe", "async", "await", "box", "crate", "extern", "true", "false", "abstract", "become", "do", "final", "macro", "override", "priv", "typeof", "unsized", "virtual", "yield", "try"] %}
+{% set rust_field = "r#" ~ sc %}
+{% else %}
+{% set rust_field = sc %}
+{% endif %}
+{% set xsd = f.datatype | default(value="http://www.w3.org/2001/XMLSchema#string") | split(pat="#") | last %}
+{% if xsd == "string" or xsd == "ID" or xsd == "dateTime" or xsd == "anyURI" %}
+{% set rust_type = "String" %}
+{% elif xsd == "boolean" %}
+{% set rust_type = "bool" %}
+{% elif xsd == "integer" or xsd == "int" or xsd == "long" %}
+{% set rust_type = "i64" %}
+{% elif xsd == "nonNegativeInteger" or xsd == "unsignedInt" or xsd == "unsignedLong" %}
+{% set rust_type = "u64" %}
+{% elif xsd == "double" or xsd == "float" or xsd == "decimal" %}
+{% set rust_type = "f64" %}
+{% else %}
+{% set rust_type = "String" %}
+{% endif %}
 {% if f.inValues %}
-    pub {{ field_name | snake_case }}: {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }},
+    pub {{ rust_field }}: {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }},
 {% elif f.nodeClass %}
-    pub {{ field_name | snake_case }}: Vec<String>,
+    pub {{ rust_field }}: Vec<String>,
 {% elif f.maxCount is defined and (f.maxCount == "1" or f.maxCount == 1) %}
 {% if f.minCount is defined and (f.minCount == "0" or f.minCount == 0) %}
-    pub {{ field_name | snake_case }}: Option<{{ f.datatype | default(value="http://www.w3.org/2001/XMLSchema#string") | split(pat="#") | last | replace(from="ID", to="String") | replace(from="string", to="String") | replace(from="boolean", to="bool") | replace(from="dateTime", to="String") }}>,
+    pub {{ rust_field }}: Option<{{ rust_type }}>,
 {% else %}
-    pub {{ field_name | snake_case }}: {{ f.datatype | default(value="http://www.w3.org/2001/XMLSchema#string") | split(pat="#") | last | replace(from="ID", to="String") | replace(from="string", to="String") | replace(from="boolean", to="bool") | replace(from="dateTime", to="String") }},
+    pub {{ rust_field }}: {{ rust_type }},
 {% endif %}
 {% else %}
-    pub {{ field_name | snake_case }}: Vec<String>,
+    pub {{ rust_field }}: Vec<String>,
 {% endif %}
 {% endfor %}
 }
@@ -54,7 +74,7 @@ pub struct {{ shape_name }} {
 pub enum {{ shape_name }}{{ field_name | title | replace(from=" ", to="") }} {
 {% for v in f.inValues | split(pat="|") %}
 {% if v %}
-    {{ v }},
+    {{ v | title | replace(from=" ", to="") }},
 {% endif %}
 {% endfor %}
 }

@@ -1,0 +1,20 @@
+[project]
+name = "wasm4pm-compat-type-shapes-trie"
+version = "26.8.7"
+description = "ggen projection of the trie SHACL type-shape ontology into Rust"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ggen/ontology/type-shapes/trie.ttl"
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "rust-types-trie"
+query = { file = "ggen/queries/extract-type-shapes.rq" }
+template = { file = "ggen/templates/rust-types.rs.tera" }
+output_file = "src/trie_ontology.rs"
+mode = "Overwrite"

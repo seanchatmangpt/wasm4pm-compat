@@ -1,0 +1,20 @@
+[project]
+name = "wasm4pm-compat-type-shapes-process_tree"
+version = "26.8.7"
+description = "ggen projection of the process_tree SHACL type-shape ontology into Rust"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ggen/ontology/type-shapes/process_tree.ttl"
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "rust-types-process_tree"
+query = { file = "ggen/queries/extract-type-shapes.rq" }
+template = { file = "ggen/templates/rust-types.rs.tera" }
+output_file = "src/process_tree_ontology.rs"
+mode = "Overwrite"

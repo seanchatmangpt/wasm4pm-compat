@@ -1,0 +1,58 @@
+# The DFG (Directly-Follows Graph) Ontology (draft) -- authored fresh.
+#
+# A targeted search ("directly-follows graph DFG process mining RDF OWL
+# ontology namespace", plus "dfg ontology namespace") found no real,
+# published, dereferenceable public RDF/OWL ontology for the DFG concept --
+# only papers discussing DFGs informally and generic OWL tutorials. Unlike
+# BPMN (sBPMN) and OCEL/OCED (OCEDO), reused directly in sibling files, no
+# such reusable ontology exists for DFG. Authored fresh here, grounded in
+# pm4py.objects.dfg.obj (a real, working reference implementation), not
+# invented from field names alone, per this session's established rule.
+#
+# A DFG is a minimal, extremely well-known process-mining shape: a weighted
+# directed graph over activity-name nodes, with start/end activity counters.
+# Domain-specific mint under https://wasm4pm-compat.rs/shapes/dfg# is
+# acceptable here since this is a niche pm4py-specific concept with no
+# public standard to defer to.
+#
+# Competency questions:
+#   CQ1: Which activity pairs directly follow one another, and how often?
+#   CQ2: Which activities start a case, and how often?
+#   CQ3: Which activities end a case, and how often?
+
+@prefix sh:      <http://www.w3.org/ns/shacl#> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix dfg:     <https://wasm4pm-compat.rs/shapes/dfg#> .
+
+# --- shapes ------------------------------------------------------------
+
+dfg:DirectlyFollowsGraphShape a sh:NodeShape ;
+    rdfs:label "Directly-Follows Graph"@en ;
+    rdfs:comment "A weighted directed graph over activity names, with start/end activity frequency counters. Corresponds to pm4py's DirectlyFollowsGraph (alias DFG)."@en ;
+    dcterms:source "pm4py.objects.dfg.obj.DirectlyFollowsGraph" ;
+    sh:targetClass dfg:DirectlyFollowsGraph ;
+    sh:property
+        [ sh:path dfg:edge           ; sh:class dfg:DirectlyFollowsEdge   ; sh:minCount 0 ; sh:order 1 ] ,
+        [ sh:path dfg:startActivity  ; sh:class dfg:ActivityCount         ; sh:minCount 0 ; sh:order 2 ] ,
+        [ sh:path dfg:endActivity    ; sh:class dfg:ActivityCount         ; sh:minCount 0 ; sh:order 3 ] .
+
+dfg:DirectlyFollowsEdgeShape a sh:NodeShape ;
+    rdfs:label "Directly-Follows Edge"@en ;
+    rdfs:comment "One (source activity, target activity) -> count entry of a DFG's graph Counter. Not a standalone pm4py class -- the Counter's key/value pair is reified here as a shape so the (str,str):int mapping is representable in RDF."@en ;
+    dcterms:source "pm4py.objects.dfg.obj.DirectlyFollowsGraph.graph (Counter[tuple[str,str]])" ;
+    sh:targetClass dfg:DirectlyFollowsEdge ;
+    sh:property
+        [ sh:path dfg:sourceActivity ; sh:datatype xsd:string            ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path dfg:targetActivity ; sh:datatype xsd:string            ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] ,
+        [ sh:path dfg:count          ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 3 ] .
+
+dfg:ActivityCountShape a sh:NodeShape ;
+    rdfs:label "Activity Count"@en ;
+    rdfs:comment "One activity -> count entry of either the start_activities or end_activities Counter. Not a standalone pm4py class -- reified here to represent the {str:int} mapping in RDF."@en ;
+    dcterms:source "pm4py.objects.dfg.obj.DirectlyFollowsGraph.{start_activities,end_activities} (Counter[str])" ;
+    sh:targetClass dfg:ActivityCount ;
+    sh:property
+        [ sh:path dfg:activityName ; sh:datatype xsd:string            ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 1 ] ,
+        [ sh:path dfg:count        ; sh:datatype xsd:nonNegativeInteger ; sh:minCount 1 ; sh:maxCount 1 ; sh:order 2 ] .

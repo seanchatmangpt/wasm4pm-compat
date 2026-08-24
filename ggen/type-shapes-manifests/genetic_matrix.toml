@@ -1,0 +1,20 @@
+[project]
+name = "wasm4pm-compat-type-shapes-genetic_matrix"
+version = "26.8.7"
+description = "ggen projection of the genetic_matrix SHACL type-shape ontology into Rust"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ggen/ontology/type-shapes/genetic_matrix.ttl"
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "rust-types-genetic_matrix"
+query = { file = "ggen/queries/extract-type-shapes.rq" }
+template = { file = "ggen/templates/rust-types.rs.tera" }
+output_file = "src/genetic_matrix_ontology.rs"
+mode = "Overwrite"
