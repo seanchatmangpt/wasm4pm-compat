@@ -4,6 +4,38 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Cycle 7 — 2026-08-24 — closed out, all parked (no unilateral execution)
+
+Ran via `errc-cycle` skill (`wf_fcb420b8-086`), scope: "real, unresolved
+items only." 6 categorized, 0 verified, 6 parked — every item this cycle
+turned out to require a user decision (architecture choice, design
+direction, or scope confirmation), not a bounded auto-fixable action:
+
+- **ELIMINATE** — cron job `4021d1dd`'s prompt framing may be stale
+  (already flagged cycles 3/5/6). Park reason: unilaterally
+  redirecting/stopping the user's own standing job was explicitly declined
+  three times already; needs the user's own call.
+- **REDUCE** — the 9 confirmed-but-not-actioned findings in
+  `docs/errc-loop/adversarial-review-2026-08-24.md`. Park reason: each
+  needs its own severity/ambiguity read before a fix vs. won't-fix call;
+  bundling would hide per-item judgment.
+- **RAISE** ×2 — typed id newtypes for `sh:class` references (design
+  direction, blast radius across all 15 clusters); struct-name-collision
+  naming convention across clusters (no live bug yet — premature to
+  invent a convention with nothing to verify it against).
+- **CREATE** ×2 — the cross-repo `~/wasm4pm` output blocker from the
+  Makefile.toml/ggen.toml fix above (needs a ggen-upgrade-vs-second-
+  manifest architecture decision, plus confirming the sibling repo's
+  breed files are actually stale before touching another repo);
+  formalizing the one-off 20-agent adversarial review into a repeatable
+  check (cadence/cost question, no pipeline change since the last pass to
+  verify against).
+
+**Recommendation:** nothing here is ready for unilateral execution. All 6
+items are logged for the user to pick a direction on, not re-parked
+indefinitely by default — each has a concrete proposed action above once
+a decision is made.
+
 ## Makefile.toml / ggen.toml path-scheme rewrite — 2026-08-24 — RESOLVED
 
 Was parked as "`Makefile.toml` still calls dead `--manifest`/`--rule` ggen
