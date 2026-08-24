@@ -1,0 +1,30 @@
+# Renders bpmn.ttl's SHACL shapes into src/bpmn_ontology.rs -- a first-class
+# sibling module (not a "generated/" subfolder), same doctrine as
+# src/witnesses.rs. Named bpmn_ontology.rs rather than bpmn.rs because
+# src/bpmn.rs is still the hand-written canon module (no big-bang cutover
+# yet, per docs/superpowers/specs/2026-08-24-reference-rdf-ggen-charter.md);
+# once the pipeline is proven this renders to src/bpmn.rs directly instead.
+#
+# Run from the repository root (see CLAUDE.md's ggen-CLI-gaps note for why):
+#   cp ggen/type-shapes-bpmn.toml ggen.toml && ggen sync run && rm ggen.toml
+
+[project]
+name = "wasm4pm-compat-type-shapes-bpmn"
+version = "26.8.7"
+description = "ggen projection of the bpmn SHACL type-shape ontology (reused from sBPMN) into Rust"
+authors = ["Sean Chatman"]
+license = "MIT OR Apache-2.0"
+
+[ontology]
+source = "ggen/ontology/type-shapes/bpmn.ttl"
+standard_only = false
+
+[generation]
+output_dir = "."
+
+[[generation.rules]]
+name = "rust-types-bpmn"
+query = { file = "ggen/queries/extract-type-shapes.rq" }
+template = { file = "ggen/templates/rust-types.rs.tera" }
+output_file = "src/bpmn_ontology.rs"
+mode = "Overwrite"

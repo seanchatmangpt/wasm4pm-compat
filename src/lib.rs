@@ -166,6 +166,12 @@ pub mod alignment;
 pub mod authority;
 /// BPMN model shape.
 pub mod bpmn;
+/// BPMN model shapes rendered from `ggen/ontology/type-shapes/bpmn.ttl` (reuses
+/// the real sBPMN ontology). Proves the ontology-first generation pipeline
+/// end to end; not yet the crate's canon BPMN surface (see `bpmn` above) —
+/// pending the strangler-fig rollout in
+/// `docs/superpowers/specs/2026-08-24-reference-rdf-ggen-charter.md`.
+pub mod bpmn_ontology;
 /// Causal net structural shapes (Heuristics Miner output — Weijters & Ribeiro 2011).
 pub mod causal_net;
 /// Causal consistency law: CausalChain, CausalLink, CausalConsistency, CausallyOrderedEvidence.
