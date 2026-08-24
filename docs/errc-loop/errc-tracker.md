@@ -4,6 +4,29 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Between cycles 5 and 6 — adversarial panel review (user-requested, not an ERRC cycle)
+
+User requested an adversarial multi-expert review ("post-AGI Dr. Wil van der
+Aalst et al., not one person") of the completed ontology/pipeline work.
+20-agent ultracode workflow (`wf_7a7a2507-ec2`): 5 independent expert
+lenses, every finding independently re-verified by a separate skeptical
+reader. 14 confirmed findings (0 blocking, 10 significant, 3 minor, 1
+cosmetic). Fixed the 5 systemic-root-cause ones same session (commit
+`146fe52`): two real template bugs (sh:class ignored maxCount, sh:in
+ignored minCount -- both silently discarding real SHACL cardinality
+constraints) plus 2 ontology-modeling inconsistencies (bpmn.ttl missing
+datatypes on 4 properties, powl.ttl's circular sh:class self-reference).
+All 15 clusters regenerated, 20/20 tests updated and passing. 9 further
+confirmed-but-not-actioned findings logged in
+`docs/errc-loop/adversarial-review-2026-08-24.md` with stated reasons,
+not silently dropped.
+
+This is exactly the kind of gap an ERRC cycle's own verify-phase should
+also be able to catch going forward -- cycle 6+ should treat "run an
+adversarial review pass on the generation pipeline" as a candidate
+REDUCE/CREATE item if the pipeline changes further, not just this one
+user-requested pass.
+
 ## Cycle 5 — 2026-08-24 — closed out
 
 Ran via `wf_3117cb19-5d6`, post-charter-execution (commit `120e473` had
