@@ -4,6 +4,21 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Cycle 3 — 2026-08-24 — closed out, nothing to auto-execute
+
+Ran via `wf_6a2d00be-83c`. 0 verified, 3 parked (same 3 as cycles 1–2,
+unchanged). Confirms this cycle's own prediction from cycle 2's close-out:
+the only open items left are the 3 that need a human decision. The
+workflow's own recommendation: resolve the DMEDI charter question first,
+since the other two parked items (11 clusters, pipeline wiring) both
+depend on it to avoid rework — brought to the user directly rather than
+looping again on the same unresolved backlog.
+
+**Cron job `4021d1dd` left running** — but further hourly firings will
+keep reporting this same "nothing to auto-execute" result until the user
+answers. Not stopping the job unilaterally (the user set it up), but
+flagging here so cycle 4+ doesn't re-derive this from scratch.
+
 ## Cycle 2 — 2026-08-24 — closed out
 
 Ran via `Workflow({scriptPath: errc-cycle, ...})` (`wf_b1a81b70-29b`),
