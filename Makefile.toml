@@ -100,83 +100,34 @@ args = ["build", "--no-default-features", "--features", "wasm4pm"]
 # ---------------------------------------------------------------------------
 # ggen provision
 #
-# NOTE (2026-08-24): --rule/--manifest below are NOT real flags on the
-# installed ggen CLI (v26.8.18) — `ggen sync run` only takes --dry-run/
-# --format/--select/--watch/--introspect/--structured-errors/--autonomic,
-# and has no per-rule selection at all (every rule in the resolved
-# ggen.toml renders together on every invocation). The `cwd = "ggen"` on
-# each task below is what actually makes ggen find ggen/ggen.toml (it
-# resolves ggen.toml from cwd only, no manifest-path argument exists) --
-# it is not incidental to the (broken) --manifest flag next to it. These
-# task bodies are stale and will fail as written until redesigned; see
-# CLAUDE.md's "ggen provision" section for the full finding and the
-# confirmed temp-root-level-ggen.toml workaround. Do not treat a green
-# `cargo make ggen-*` run as evidence these flags exist.
+# RESOLVED (2026-08-24): the installed ggen CLI (v26.8.18) has no
+# --manifest and no --rule flag, no per-rule selection at all (`ggen sync
+# run` renders EVERY [[generation.rules]] entry in the resolved ggen.toml
+# on every invocation), and resolves ggen.toml from its cwd only -- AND
+# (discovered this same turn) rejects any absolute `output_dir` /
+# `output_file` combo ([FM-WRITE-002] "path must be relative"). ggen/ggen.toml
+# used to set output_dir to an absolute repo path and assume cwd=ggen/ for
+# every relative query/template/ontology path -- both now incompatible with
+# the installed CLI. Fixed by rewriting every relative path in ggen/ggen.toml
+# to be repo-root-relative (ggen/ontology/..., ggen/queries/..., etc.) and
+# output_dir = "." (repo-root-relative, since ggen.toml must run from repo
+# root's own view once copied there). Since ggen resolves "ggen.toml" from
+# cwd only and there's no manifest-path flag, these tasks stage a temporary
+# copy at repo root, run, then remove it -- the same proven workaround this
+# session used throughout (see ~/.claude/skills/run-ggen/SKILL.md). The 5
+# sibling-~/wasm4pm-repo output_file values remain absolute by design --
+# those are real, intentional cross-repo output, untouched by this fix.
 # ---------------------------------------------------------------------------
 
 [tasks.ggen-sync]
-description = "Regenerate all artifacts (witnesses, fixtures, audit scripts, docs) from ontology"
-command = "ggen"
-args = ["sync", "--manifest", "ggen/ggen.toml"]
+description = "Regenerate ALL ggen-driven artifacts (witnesses x7, audit scripts, breed files) -- runs every rule in ggen/ggen.toml, per-rule selection is not supported by the installed CLI"
+command = "bash"
+args = ["-c", "cp ggen/ggen.toml ggen.toml && ggen sync run; rc=$?; rm -f ggen.toml; exit $rc"]
 
-[tasks.ggen-witnesses]
-description = "Render src/witnesses.rs from ontology via ggen (witness-markers rule)"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "witness-markers", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-dry]
-description = "Dry run — preview witness-markers render without writing"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "witness-markers", "--dry_run", "true", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-all]
-description = "Render all per-category witness modules (cognition, rdf, ai-llm, domain, workflow, breeds)"
-dependencies = [
-  "ggen-witnesses-cognition",
-  "ggen-witnesses-rdf",
-  "ggen-witnesses-ai-llm",
-  "ggen-witnesses-domain",
-  "ggen-witnesses-workflow",
-  "ggen-witnesses-breeds",
-]
-
-[tasks.ggen-witnesses-cognition]
-description = "Render src/witnesses_cognition.rs from witnesses-cognition.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "cognition-witnesses", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-rdf]
-description = "Render src/witnesses_rdf.rs from witnesses-rdf.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "rdf-witnesses", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-ai-llm]
-description = "Render src/witnesses_ai_llm.rs from witnesses-ai-llm.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "ai-llm-witnesses", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-domain]
-description = "Render src/witnesses_domain.rs from witnesses-domain.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "domain-witnesses", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-workflow]
-description = "Render src/witnesses_workflow.rs from witnesses-workflow.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "workflow-witnesses", "--manifest", "ggen.toml"]
-
-[tasks.ggen-witnesses-breeds]
-description = "Render src/witnesses_breeds.rs from breed-vocabulary.ttl"
-cwd = "ggen"
-command = "ggen"
-args = ["sync", "--rule", "cognition-breed-witnesses", "--manifest", "ggen.toml"]
+[tasks.ggen-sync-dry]
+description = "Dry run — preview the full ggen sync without writing"
+command = "bash"
+args = ["-c", "cp ggen/ggen.toml ggen.toml && ggen sync run --dry-run; rc=$?; rm -f ggen.toml; exit $rc"]
 
 # ---------------------------------------------------------------------------
 # CI aggregate

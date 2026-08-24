@@ -4,6 +4,56 @@ Scope: `wasm4pm-compat` becoming the reference RDF/ggen implementation for
 process-mining type shapes. Sourced from the current /loop directive
 (job `4021d1dd`, hourly) and this session's own work-in-progress.
 
+## Makefile.toml / ggen.toml path-scheme rewrite — 2026-08-24 — RESOLVED
+
+Was parked as "`Makefile.toml` still calls dead `--manifest`/`--rule` ggen
+flags" in Cycle 6 below. Consolidating the 8 broken `[tasks.ggen-*]` into
+`ggen-sync`/`ggen-sync-dry` surfaced two deeper, real, pre-existing bugs in
+`ggen/ggen.toml` itself — both now fixed:
+
+1. **`[inference]` rule `alive-gate`'s CONSTRUCT query lacked `ORDER BY`**
+   (`error[E0011]`) — contradicted `CLAUDE.md`'s stale claim this was
+   "fixed 2026-06-03... replaced with a file reference"; it was still an
+   inline, broken query. Fixed: added `ORDER BY ?s ?p ?o` before `LIMIT 1`.
+2. **`output_dir = "/Users/sac/wasm4pm-compat"` (absolute) is now rejected**
+   by the installed CLI (`[FM-WRITE-002] to: path must be relative`), and
+   every relative `source`/`query`/`template` path in the manifest was
+   written assuming cwd=`ggen/` — both incompatible with the installed
+   CLI's actual resolution rule (`ggen.toml` resolves paths relative to
+   itself, and it only resolves from cwd, no `--manifest` flag). Fixed:
+   rewrote every relative ontology/query/template path in `ggen/ggen.toml`
+   to be repo-root-relative (`ggen/ontology/...`, `ggen/queries/...`,
+   `ggen/templates/...`), set `output_dir = "."`, and changed
+   `Makefile.toml`'s `ggen-sync`/`ggen-sync-dry` tasks to stage a temporary
+   `ggen.toml` copy at repo root (the proven `cp ... && ggen sync run ...
+   && rm ...` workaround from `~/.claude/skills/run-ggen/SKILL.md`) instead
+   of `cd`-ing into `ggen/`.
+
+**New finding surfaced mid-fix, also now handled (not silently dropped):**
+the installed CLI additionally rejects **any** `output_file` outside the
+manifest's own project root — both absolute (`/Users/sac/wasm4pm/...`) and
+relative-traversal (`../wasm4pm/...`) forms fail
+`[FM-WRITE-002] ... contains a traversal component; it must stay inside the
+project root`. This affects the 5 rules that write into the sibling
+`~/wasm4pm` repo (`breed-ids`, `breed-registration`, `registry-json`,
+`paper-pointers-test`, `universal-anticheat`). **Cross-repo generation via
+a single ggen.toml is not supported by this CLI version at all** — this is
+a structural CLI capability regression from whatever version this manifest
+was originally written against, not a path-syntax bug fixable by more
+rewriting. Disabled those 5 rules in `ggen/ggen.toml` with a dated comment
+explaining why and how to re-enable (future ggen version restoring
+cross-project-root output, or a second manifest rooted at `~/wasm4pm`
+itself). **Logged here as open, not silently dropped** — if the sibling
+`~/wasm4pm` repo's breed files need regenerating, that now requires either
+a ggen version upgrade or a dedicated manifest run from `~/wasm4pm`.
+
+Verified: `cargo make ggen-sync-dry` and `cargo make ggen-sync` both
+succeed (all 13 remaining active rules render); `cargo make check-all`
+passes clean afterward; `git diff` on regenerated files (`src/witnesses.rs`,
+`audits/*.sh`) shows only cosmetic whitespace/newline churn, no semantic
+regression (confirmed via `cargo fmt` reverting `witnesses.rs` to byte-
+identical).
+
 ## Cycle 6 — 2026-08-24 — closed out
 
 Ran via `wf_aa0da59c-71a`. 2 verified (both executed, commit `7b704ee`),
