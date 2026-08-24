@@ -1,0 +1,15 @@
+error[E0308]: mismatched types
+  --> tests/ui/compile_fail/stochastic_transition_kind_conflated.rs:14:24
+   |
+14 |     accepts_timed_only(immediate);
+   |     ------------------ ^^^^^^^^^ expected `StochasticTransition<TimedTransition>`, found `StochasticTransition<...>`
+   |     |
+   |     arguments to this function are incorrect
+   |
+   = note: expected struct `StochasticTransition<TimedTransition>`
+              found struct `StochasticTransition<ImmediateTransition>`
+note: function defined here
+  --> tests/ui/compile_fail/stochastic_transition_kind_conflated.rs:8:4
+   |
+ 8 | fn accepts_timed_only(_t: StochasticTransition<TimedTransition>) {}
+   |    ^^^^^^^^^^^^^^^^^^ -----------------------------------------

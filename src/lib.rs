@@ -232,6 +232,10 @@ pub mod process_tree;
 pub mod receipt;
 /// Typestate tokens: `Raw`, `Parsed`, `Admitted`, `Refused`, `Projected`, …
 pub mod state;
+/// Status-driven system shapes: `StatusDrivenSystem`, `ActiveTransitionConstraint`,
+/// `TaskSuccessProbability` (Qi et al. 2025, closed-form/boundary task-success
+/// probability expressions).
+pub mod status_driven;
 /// Streaming evidence context law: online vs. offline collection markers and EventWindow.
 pub mod streaming;
 /// Temporal ordering and profile law surfaces.
