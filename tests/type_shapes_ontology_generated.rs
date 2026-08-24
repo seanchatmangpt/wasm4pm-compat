@@ -13,7 +13,9 @@ use wasm4pm_compat::ocpn_ontology::Arc as OcpnArc;
 use wasm4pm_compat::org_ontology::SocialNetworkConnection;
 use wasm4pm_compat::petri_net_ontology::{Arc as PetriArc, ArcArcKind};
 use wasm4pm_compat::process_tree_ontology::{ProcessTreeNode, ProcessTreeNodeOperator};
-use wasm4pm_compat::random_variables_ontology::{Normal, RandomVariable, RandomVariableVariantKind};
+use wasm4pm_compat::random_variables_ontology::{
+    Normal, RandomVariable, RandomVariableVariantKind,
+};
 use wasm4pm_compat::transition_system_ontology::Transition as TsTransition;
 use wasm4pm_compat::trie_ontology::Trie;
 

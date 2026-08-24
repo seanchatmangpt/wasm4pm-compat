@@ -204,6 +204,15 @@ pub mod genetic_matrix_ontology;
 pub mod heuristics_net_ontology;
 /// Zero-cost `#[repr(transparent)]` identifier wrappers.
 pub mod ids;
+/// Event/Trace/EventLog shapes rendered from `ggen/ontology/type-shapes/log.ttl`
+/// (reuses the real OCEDO ontology).
+pub mod log_ontology;
+/// Object/attribute/relation shapes rendered from
+/// `ggen/ontology/type-shapes/ocel.ttl` (reuses the real OCEDO ontology).
+pub mod ocel_ontology;
+/// POWL model shapes rendered from `ggen/ontology/type-shapes/powl.ttl`
+/// (authored fresh, grounded in `~/POWL/powl/objects/`).
+pub mod powl_ontology;
 /// Interop traits: import, export, round-trip claim plumbing.
 pub mod interop;
 /// Compile-time law kernel: `ConstParamTy` enums, bounds machinery, `ConditionCell`, `Between01`.
