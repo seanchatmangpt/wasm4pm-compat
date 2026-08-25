@@ -65,7 +65,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Sussman, Gerald Jay. \
+    /// Sussman, Gerald Jay. "A Computational Model of Skill Acquisition." MIT Artificial Intelligence Laboratory Technical Report AI TR-297, August 1973. Thesis Supervisor: Seymour A. Papert.
     AutoinstinctLearningPaper,
     "cognition/autoinstinct-learning",
     WitnessFamily::Paper,
@@ -74,7 +74,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Boden, M. A. (1977). Artificial Intelligence and Natural Man. New York: Basic Books. Chapter 6: \
+    /// Boden, M. A. (1977). Artificial Intelligence and Natural Man. New York: Basic Books. Chapter 6: "Programs That Model the Mind." [Conflict detection framework: neurosis as simultaneous maintenance of mutually incompatible beliefs, pp. 198–212.]
     AutoinstinctNeurosisPaper,
     "cognition/autoinstinct-neurosis",
     WitnessFamily::Paper,
@@ -272,7 +272,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// A. Newell and H. A. Simon, \
+    /// A. Newell and H. A. Simon, "GPS, A Program That Simulates Human Thought," RAND Corporation, P-2257, March 30, 1961 (Revised April 10, 1961). Presented at the Conference on Learning Automata, Karlsruhe, Germany, April 11–14, 1961.
     GpsPaper,
     "cognition/gps",
     WitnessFamily::Paper,
