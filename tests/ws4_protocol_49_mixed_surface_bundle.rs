@@ -1,0 +1,27 @@
+use wasm4pm_compat::prelude::*;
+#[test]
+fn mixed_surface_dispositions_can_close_bundle() {
+    let c = CapabilityContract::new(
+        "cap",
+        "https://e/c",
+        "d",
+        "in",
+        "out",
+        ConsequenceClass::Select,
+        AuthorityMode::None,
+        ReceiptPolicy::Optional,
+        "evt",
+    );
+    let b = ProtocolBundle {
+        protocol_id: "p".into(),
+        version: "1".into(),
+        capabilities: vec![c],
+        surfaces: vec![
+            SurfaceBinding::projected("cap", SurfaceKind::Cli, "d", "in", "out"),
+            SurfaceBinding::projected("cap", SurfaceKind::HttpApi, "d", "in", "out"),
+            SurfaceBinding::unsupported("cap", SurfaceKind::Mcp, "d", "not implemented"),
+            SurfaceBinding::refused("cap", SurfaceKind::A2a, "d", "POLICY", "not authorized"),
+        ],
+    };
+    assert!(b.validate().is_empty());
+}
