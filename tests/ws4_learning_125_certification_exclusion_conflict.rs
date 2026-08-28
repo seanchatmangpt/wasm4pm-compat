@@ -1,4 +1,6 @@
-use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping};
+use wasm4pm_compat::certification::{
+    CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping,
+};
 
 #[test]
 fn excluded_control_cannot_also_be_claimed_satisfied() {

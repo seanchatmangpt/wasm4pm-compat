@@ -1,4 +1,6 @@
-use wasm4pm_compat::authority::{AuthorityConstraint, AuthorityEnvelope, AuthorityRefusal, Capability};
+use wasm4pm_compat::authority::{
+    AuthorityConstraint, AuthorityEnvelope, AuthorityRefusal, Capability,
+};
 use wasm4pm_compat::receipt::Digest;
 use wasm4pm_compat::witness::Ocel20;
 

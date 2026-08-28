@@ -1,4 +1,6 @@
-use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping};
+use wasm4pm_compat::certification::{
+    CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping,
+};
 
 #[test]
 fn each_ungrounded_mapping_retains_its_own_refusal_evidence() {

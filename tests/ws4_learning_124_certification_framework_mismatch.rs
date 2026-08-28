@@ -1,4 +1,6 @@
-use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping};
+use wasm4pm_compat::certification::{
+    CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping,
+};
 
 #[test]
 fn mapping_from_another_framework_is_refused() {

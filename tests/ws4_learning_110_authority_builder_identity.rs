@@ -17,7 +17,10 @@ fn authority_builder_preserves_scope_and_attestation_identity() {
     .with_fairness_attestation("receipt:fairness:42");
 
     assert_eq!(envelope.scope, "case:42");
-    assert_eq!(envelope.data_minimization_note, "drop private extension fields");
+    assert_eq!(
+        envelope.data_minimization_note,
+        "drop private extension fields"
+    );
     assert_eq!(envelope.fairness_attestation_ref, "receipt:fairness:42");
     assert_eq!(envelope.validate(), Ok(()));
 }

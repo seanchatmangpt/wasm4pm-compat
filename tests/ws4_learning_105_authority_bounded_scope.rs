@@ -1,4 +1,6 @@
-use wasm4pm_compat::authority::{AuthorityConstraint, AuthorityEnvelope, AuthorityRefusal, Capability};
+use wasm4pm_compat::authority::{
+    AuthorityConstraint, AuthorityEnvelope, AuthorityRefusal, Capability,
+};
 use wasm4pm_compat::receipt::Digest;
 use wasm4pm_compat::witness::Ocel20;
 
@@ -10,5 +12,8 @@ fn bounded_scope_constraint_refuses_whitespace_scope() {
         vec![AuthorityConstraint::RequiresBoundedScope],
         "   ",
     );
-    assert_eq!(envelope.validate(), Err(vec![AuthorityRefusal::UnboundedScope]));
+    assert_eq!(
+        envelope.validate(),
+        Err(vec![AuthorityRefusal::UnboundedScope])
+    );
 }

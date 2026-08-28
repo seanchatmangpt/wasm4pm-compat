@@ -1,4 +1,6 @@
-use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework, ControlId, ControlMapping};
+use wasm4pm_compat::certification::{
+    CertificationEnvelope, CertificationFramework, ControlId, ControlMapping,
+};
 
 #[test]
 fn custom_framework_mapping_is_admitted_when_identity_matches() {

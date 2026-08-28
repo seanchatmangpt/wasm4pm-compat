@@ -2,7 +2,8 @@ use wasm4pm_compat::strict::{ProcessBoundary, ProcessBoundaryKind, StrictCheck, 
 
 #[test]
 fn export_boundary_accumulates_independent_contract_violations() {
-    let mut boundary = ProcessBoundary::fully_attested(ProcessBoundaryKind::ExportsFormat, "bad-export");
+    let mut boundary =
+        ProcessBoundary::fully_attested(ProcessBoundaryKind::ExportsFormat, "bad-export");
     boundary.exports_raw_evidence = true;
     boundary.has_witness = false;
     boundary.has_round_trip_fixture = false;

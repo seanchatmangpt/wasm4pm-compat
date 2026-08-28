@@ -1,4 +1,6 @@
-use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping};
+use wasm4pm_compat::certification::{
+    CertificationEnvelope, CertificationFramework, CertificationRefusal, ControlId, ControlMapping,
+};
 
 #[test]
 fn one_mapping_can_trigger_all_independent_certification_refusals() {
