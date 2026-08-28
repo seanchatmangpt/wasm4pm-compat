@@ -1,0 +1,14 @@
+{
+  "status": "ACTIVE",
+  "workstation": "WS4",
+  "project": 2,
+  "lane": "finish/merge-dag/learning-factory",
+  "repo": "seanchatmangpt/wasm4pm-compat",
+  "base": "1bcf846e27e296d8bc95a04a1c61477e91eaef31",
+  "branch": "agent/ws4-protocol-courts-20260827-20",
+  "work_keys": ["ws4.protocol.wire.51-70","ws4.protocol.validation.71-90","ws4.protocol.intent-do.91-100"],
+  "semantic_fingerprint_prefix": "wasm4pm-compat|protocol-court|ws4|20260827-20",
+  "planned_primary": 50,
+  "planned_reserve": 25,
+  "note": "Fresh invocation; prior WS4 01-50 fingerprints excluded. No generated surfaces edited."
+}
