@@ -1,4 +1,6 @@
 use wasm4pm_compat::prelude::*;
+use wasm4pm_compat::protocol::Intent;
+
 #[test]
 fn select_intent_accumulates_contract_and_subject_refusals() {
     let c = CapabilityContract::new(
