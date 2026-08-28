@@ -1,0 +1,15 @@
+{
+  "status": "ACTIVE",
+  "workstation": "WS4",
+  "project": 2,
+  "lane": "finish/merge-dag/learning-factory",
+  "repo": "seanchatmangpt/wasm4pm-compat",
+  "base": "cee0ea86bfcab54bd8007af0fd7e7dabdfd6eb47",
+  "branch": "agent/ws4-learning-101-150-20260828",
+  "work_keys": ["ws4.authority.101-110","ws4.strict.111-120","ws4.certification.121-130","ws4.receipt.131-140","ws4.alignment.141-150"],
+  "semantic_fingerprint_prefix": "wasm4pm-compat|ws4-learning|20260828",
+  "planned_primary": 50,
+  "planned_reserve": 25,
+  "prior_fingerprints_excluded": ["wasm4pm-compat|protocol-court|ws4|20260827","wasm4pm-compat|protocol-court|ws4|20260827-20"],
+  "note": "Structure-only courts; no generated projections edited; control commit excluded from semantic credit."
+}
