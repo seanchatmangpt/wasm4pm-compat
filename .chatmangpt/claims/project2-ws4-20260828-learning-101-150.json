@@ -1,15 +1,24 @@
 {
-  "status": "ACTIVE",
+  "status": "RELEASED",
   "workstation": "WS4",
   "project": 2,
   "lane": "finish/merge-dag/learning-factory",
   "repo": "seanchatmangpt/wasm4pm-compat",
   "base": "cee0ea86bfcab54bd8007af0fd7e7dabdfd6eb47",
   "branch": "agent/ws4-learning-101-150-20260828",
+  "semantic_head": "3e080b7a631ae20083d7256edff0ff44305d2f16",
+  "formatter_head": "32d2ba9afbeb8bffa89fdcff919b6230dbbb0313",
+  "qualifying_commits": 50,
   "work_keys": ["ws4.authority.101-110","ws4.strict.111-120","ws4.certification.121-130","ws4.receipt.131-140","ws4.alignment.141-150"],
   "semantic_fingerprint_prefix": "wasm4pm-compat|ws4-learning|20260828",
   "planned_primary": 50,
   "planned_reserve": 25,
+  "executed_original_primary": 40,
+  "substituted_from_reserve": 10,
+  "remaining_reserves": 15,
+  "substitution_reason": "ordinary receipt missing-field/chain cases were already covered by tests/receipt_shapes.rs; substituted receipt carrier/presence/non-validating boundary courts",
   "prior_fingerprints_excluded": ["wasm4pm-compat|protocol-court|ws4|20260827","wasm4pm-compat|protocol-court|ws4|20260827-20"],
-  "note": "Structure-only courts; no generated projections edited; control commit excluded from semantic credit."
+  "local_validation": "BLOCKED[LOCAL_GIT_NETWORK_DNS]",
+  "learning": ["authority pinning trims whitespace while receipt shape only checks nonempty carriage","strict replay and general PM-support claims are engine-growth fences","certification grounding is evidence-reference presence rather than downstream evidence validation","alignment admission checks grounding before sequence non-vacuity","rustfmt failure on semantic head was repaired by pinned repository formatter workflow"],
+  "note": "No generated projections edited; claim/control and formatter commits excluded from semantic credit."
 }
