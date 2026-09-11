@@ -370,14 +370,36 @@ pub mod economic_isa {
     impl EconomicOpcode {
         /// Every assigned v1 opcode, excluding the unknown sentinel.
         pub const ASSIGNED: [EconomicOpcode; 30] = [
-            Self::Quote, Self::Offer, Self::Bid, Self::Ask,
-            Self::Order, Self::Fill, Self::Sale, Self::Purchase,
-            Self::Invoice, Self::Pay, Self::Settle, Self::Refund,
-            Self::Ship, Self::Deliver, Self::Transfer,
-            Self::License, Self::Subscribe, Self::Renew, Self::Claim,
-            Self::Manufacture, Self::ProvideService, Self::Discover, Self::Prove, Self::Design,
-            Self::RecognizeRevenue, Self::AccrueReceivable, Self::RealizeValue,
-            Self::Authorize, Self::Attest, Self::Refuse,
+            Self::Quote,
+            Self::Offer,
+            Self::Bid,
+            Self::Ask,
+            Self::Order,
+            Self::Fill,
+            Self::Sale,
+            Self::Purchase,
+            Self::Invoice,
+            Self::Pay,
+            Self::Settle,
+            Self::Refund,
+            Self::Ship,
+            Self::Deliver,
+            Self::Transfer,
+            Self::License,
+            Self::Subscribe,
+            Self::Renew,
+            Self::Claim,
+            Self::Manufacture,
+            Self::ProvideService,
+            Self::Discover,
+            Self::Prove,
+            Self::Design,
+            Self::RecognizeRevenue,
+            Self::AccrueReceivable,
+            Self::RealizeValue,
+            Self::Authorize,
+            Self::Attest,
+            Self::Refuse,
         ];
 
         pub const fn byte(self) -> u8 {
@@ -498,12 +520,22 @@ pub mod economic_isa {
             DfCmAxis {
                 name: "economic_byte_state".into(),
                 description: Some("core/unknown/reserved/escape semantic state".into()),
-                variants: vec!["assigned".into(), "unknown".into(), "unassigned".into(), "escape".into()],
+                variants: vec![
+                    "assigned".into(),
+                    "unknown".into(),
+                    "unassigned".into(),
+                    "escape".into(),
+                ],
             },
             DfCmAxis {
                 name: "authority_plane".into(),
                 description: Some("BRCE authority separation".into()),
-                variants: vec!["observe".into(), "select".into(), "construct".into(), "do".into()],
+                variants: vec![
+                    "observe".into(),
+                    "select".into(),
+                    "construct".into(),
+                    "do".into(),
+                ],
             },
         ];
         let mut matrix = DfCmMatrix::new("economic-isa-v1-authority", axes);
@@ -632,15 +664,27 @@ mod tests {
     fn economic_isa_escape_is_explicit_and_non_escape_extensions_are_refused() {
         use economic_isa::*;
         assert_eq!(
-            EconomicFrame { opcode: ESCAPE, extension_id: Some(7) }.admit(),
+            EconomicFrame {
+                opcode: ESCAPE,
+                extension_id: Some(7)
+            }
+            .admit(),
             Ok(AdmittedEconomicFrame::Extension(7))
         );
         assert_eq!(
-            EconomicFrame { opcode: ESCAPE, extension_id: None }.admit(),
+            EconomicFrame {
+                opcode: ESCAPE,
+                extension_id: None
+            }
+            .admit(),
             Err(EconomicOpcodeRefusal::EscapeRequiresExtension)
         );
         assert_eq!(
-            EconomicFrame { opcode: EconomicOpcode::Pay.byte(), extension_id: Some(7) }.admit(),
+            EconomicFrame {
+                opcode: EconomicOpcode::Pay.byte(),
+                extension_id: Some(7)
+            }
+            .admit(),
             Err(EconomicOpcodeRefusal::UnexpectedExtension)
         );
     }
@@ -655,7 +699,10 @@ mod tests {
         for state in ["assigned", "unknown", "unassigned", "escape"] {
             let do_cell = matrix.find_cell(&[state, "do"]).unwrap();
             assert_eq!(do_cell.actual_standing, Standing::Refused);
-            assert_eq!(do_cell.refusal_reason.as_deref(), Some("OpcodeDoesNotConferActuationAuthority"));
+            assert_eq!(
+                do_cell.refusal_reason.as_deref(),
+                Some("OpcodeDoesNotConferActuationAuthority")
+            );
         }
     }
 }
