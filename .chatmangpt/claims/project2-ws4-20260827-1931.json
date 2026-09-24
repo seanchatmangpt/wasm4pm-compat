@@ -1,0 +1,21 @@
+{
+  "status": "RELEASED",
+  "workstation": "WS4",
+  "project": 2,
+  "lane": "finish/merge-dag/learning-factory",
+  "repo": "seanchatmangpt/wasm4pm-compat",
+  "base": "59f1e9a4abc8e24070d9b1b3e04fcdce464a657b",
+  "branch": "agent/ws4-protocol-courts-20260827",
+  "semantic_head": "f175dbd2791608718428408188127bd03b880418",
+  "qualifying_commits": 50,
+  "work_keys": [
+    "ws4.protocol.capability.01-10",
+    "ws4.protocol.surface.11-20",
+    "ws4.protocol.intent.21-30",
+    "ws4.protocol.do.31-40",
+    "ws4.protocol.orthogonality.41-50"
+  ],
+  "semantic_fingerprint_prefix": "wasm4pm-compat|protocol-court|ws4|20260827",
+  "pr": 30,
+  "note": "Tests only; structure-only doctrine preserved. Local checkout blocked by DNS. Exact semantic head has CI in progress/queued."
+}

@@ -1,0 +1,20 @@
+{
+  "status": "RELEASED",
+  "workstation": "WS4",
+  "project": 2,
+  "lane": "finish/merge-dag/learning-factory",
+  "repo": "seanchatmangpt/wasm4pm-compat",
+  "base": "1bcf846e27e296d8bc95a04a1c61477e91eaef31",
+  "branch": "agent/ws4-protocol-courts-20260827-20",
+  "semantic_head": "1b563b2a1f6dbc30753dda1fcf04dced0f6f9704",
+  "qualifying_commits": 50,
+  "work_keys": ["ws4.protocol.wire.51-70","ws4.protocol.validation.71-90","ws4.protocol.intent-do.91-100"],
+  "semantic_fingerprint_prefix": "wasm4pm-compat|protocol-court|ws4|20260827-20",
+  "planned_primary": 50,
+  "executed_primary": 50,
+  "substituted": 0,
+  "remaining_reserves": 25,
+  "local_validation": "BLOCKED[LOCAL_GIT_NETWORK_DNS]",
+  "learning": ["unknown projection short-circuits binding-specific checks","duplicate unknown projections retain duplicate-topology plus repeated unknown-identity evidence","explicit unsupported/refused/mixed four-surface bundles are dependency-closed"],
+  "note": "No generated surfaces edited; claim/control commits excluded from semantic credit."
+}

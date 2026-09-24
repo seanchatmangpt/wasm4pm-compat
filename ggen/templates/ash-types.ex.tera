@@ -1,4 +1,4 @@
-{# μ(AshTypeProjectionGroup*) -> Elixir Ash.Type.NewType modules. #}
+{# μ(AshTypeProjectionGroup*) -> Elixir Ash.Type.NewType modules. -#}
 # This file is a checked-in projection of ggen/ontology/ash-types.ttl.
 # Regenerate through ggen/ash-types.toml; do not add Ash semantics here that
 # are absent from the ontology.
@@ -14,9 +14,9 @@ defmodule Wasm4pmCompat.AshTypes do
   """
 
   @projection_rows [
-{% for row in sparql_results %}
+{% for row in sparql_results -%}
     {:wasm4pm_{{ row.rustType | snake_case }}, {{ row.elixirNamespace }}.{{ row.rustType }}, "{{ row.sourceModule }}", "{{ row.rustType }}", :{{ row.subtypeOf }}, :{{ row.projectionClass }}, :{{ row.sourceFeature | replace(from="-", to="_") }}},
-{% endfor %}
+{% endfor -%}
   ]
 
   @descriptors Enum.map(

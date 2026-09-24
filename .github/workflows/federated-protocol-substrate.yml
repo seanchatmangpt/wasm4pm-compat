@@ -1,0 +1,69 @@
+name: Federated Protocol Substrate
+
+on:
+  pull_request:
+    paths:
+      - 'src/protocol.rs'
+      - 'src/prelude.rs'
+      - 'tests/protocol_*.rs'
+      - 'docs/FEDERATED_PROTOCOL_SUBSTRATE.md'
+      - '.github/workflows/federated-protocol-substrate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: nightly-2026-06-22
+
+jobs:
+  protocol-type-law:
+    name: exact-head protocol type law
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout exact subject
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Assert exact subject
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${EXPECTED_SHA}"
+          test -s src/protocol.rs
+          test -s tests/protocol_substrate.rs
+          test -s tests/protocol_refusal_semantics.rs
+
+      - name: Install pinned Rust
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal
+          rustup override set "${RUST_TOOLCHAIN}"
+          rustc --version
+          cargo --version
+
+      - name: Execute protocol type and refusal courts
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo test --locked --test protocol_substrate --test protocol_refusal_semantics
+
+      - name: Assert compat remains structure-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq '(^|[^[:alnum:]_])(tokio::spawn|std::process::Command|Command::new|TcpListener|TcpStream)([^[:alnum:]_]|$)' src/protocol.rs; then
+            echo 'PROTOCOL_EXECUTION_LEAK_REFUSED' >&2
+            exit 65
+          fi
+          grep -q 'DoWithoutAuthority' src/protocol.rs
+          grep -q 'DoWithoutRequiredReceipt' src/protocol.rs
+          grep -q 'AmbientAuthorityOnSurface' src/protocol.rs
+          grep -q 'EmptyRefusalCode' src/protocol.rs

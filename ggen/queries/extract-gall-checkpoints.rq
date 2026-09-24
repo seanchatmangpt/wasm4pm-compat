@@ -1,13 +1,16 @@
 PREFIX compat: <https://chatmangpt.com/ns/wasm4pm-compat#>
-PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX earl: <http://www.w3.org/ns/earl#>
 
 SELECT ?rank ?code ?variant ?depends_on ?description
 WHERE {
-  ?checkpoint a compat:GallCheckpoint ;
+  ?checkpoint a earl:TestCriterion ;
+              dcterms:isPartOf compat:StandingLaw ;
+              dcterms:identifier ?code ;
+              dcterms:requires ?dependency ;
+              dcterms:description ?description ;
               compat:rank ?rank ;
-              compat:code ?code ;
-              compat:rustVariant ?variant ;
-              compat:dependsOnCode ?depends_on ;
-              skos:definition ?description .
+              compat:rustVariant ?variant .
+  ?dependency dcterms:identifier ?depends_on .
 }
 ORDER BY ?rank ?code
