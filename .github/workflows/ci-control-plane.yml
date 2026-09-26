@@ -85,7 +85,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal
+          # rust-src: trybuild .stderr fixtures cite $RUST/core/src/*.rs notes;
+          # without the component rustc omits them and 4 fixtures mismatch on CI
+          # only (rust-toolchain.toml already lists rust-src for local builds).
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal --component rust-src
           rustup override set "${RUST_TOOLCHAIN}"
       - name: Execute compatibility doctor contracts
         shell: bash
