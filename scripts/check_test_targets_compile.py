@@ -29,15 +29,36 @@ import sys
 from pathlib import Path
 
 
-def expected_targets(tests_dir: Path) -> set[str]:
-    """Stems of top-level ``tests/*.rs`` files (cargo autotests convention)."""
-    return {p.stem for p in tests_dir.glob("*.rs") if p.is_file()}
+def expected_targets(tests_dir: Path) -> dict[str, str]:
+    """Resolved source path -> stem of top-level ``tests/*.rs`` files.
+
+    Keyed by source path, not by target name: an explicit ``[[test]]`` entry may
+    register ``tests/orig.rs`` under another name (``name = "renamed"``), and a
+    ``[[test]]`` whose *name* equals a file stem may point at a different file
+    while that file stays unregistered. Matching by name gives a false refusal
+    in the first case and a false admission in the second.
+    """
+    return {str(p.resolve()): p.stem for p in tests_dir.glob("*.rs") if p.is_file()}
+
+
+def _resolve_keys(by_src: dict[str, str]) -> dict[str, str]:
+    """Resolve src_path keys once per distinct test target (not per JSON line)."""
+    return {str(Path(src).resolve()): value for src, value in by_src.items()}
 
 
 def parse_stream(lines):
-    """Return (compiled_test_targets, first_error_by_target) from cargo JSON."""
-    compiled: set[str] = set()
+    """Return (compiled, errors, upstream) from a cargo JSON message stream.
+
+    compiled: raw src_path -> target name for every test target that
+    produced a test-profile artifact. errors: resolved src_path -> first error of
+    that test target. upstream: "<kind>:<name>" -> first error of a non-test
+    target (e.g. the library), which explains why every test is missing.
+    Non-JSON lines, malformed JSON, non-dict payloads and duplicated or
+    reordered messages are tolerated (sets/first-wins), never crash the guard.
+    """
+    compiled: dict[str, str] = {}
     errors: dict[str, str] = {}
+    upstream: dict[str, str] = {}
     for raw in lines:
         raw = raw.strip()
         if not raw.startswith("{"):
@@ -46,22 +67,32 @@ def parse_stream(lines):
             msg = json.loads(raw)
         except json.JSONDecodeError:
             continue
-        target = msg.get("target") or {}
-        if "test" not in (target.get("kind") or []):
+        if not isinstance(msg, dict):
             continue
+        target = msg.get("target")
+        if not isinstance(target, dict):
+            continue
+        kinds = target.get("kind") or []
         name = target.get("name")
-        if not name:
+        key = target.get("src_path")
+        if not isinstance(name, str) or not name or not isinstance(key, str) or not key:
             continue
         reason = msg.get("reason")
-        if reason == "compiler-artifact" and (msg.get("profile") or {}).get("test"):
-            compiled.add(name)
-        elif reason == "compiler-message":
-            inner = msg.get("message") or {}
-            if inner.get("level") == "error" and name not in errors:
-                code = (inner.get("code") or {}).get("code") or ""
-                text = inner.get("message") or ""
-                errors[name] = f"{code} {text}".strip()
-    return compiled, errors
+        inner = msg.get("message") if reason == "compiler-message" else None
+        first_error = None
+        if isinstance(inner, dict) and inner.get("level") == "error":
+            code = (inner.get("code") or {}).get("code") or ""
+            first_error = f"{code} {inner.get('message') or ''}".strip()
+        if "test" not in kinds:
+            if first_error is not None:
+                upstream.setdefault(f"{'/'.join(kinds)}:{name}", first_error)
+            continue
+        profile = msg.get("profile") or {}
+        if reason == "compiler-artifact" and profile.get("test"):
+            compiled[key] = name
+        elif first_error is not None:
+            errors.setdefault(key, first_error)
+    return compiled, errors, upstream
 
 
 def run(manifest_path: Path, cargo_args: list[str]) -> int:
@@ -82,27 +113,34 @@ def run(manifest_path: Path, cargo_args: list[str]) -> int:
         *cargo_args,
     ]
     proc = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
-    compiled, errors = parse_stream(proc.stdout.splitlines())
-    if not compiled and not errors:
+    compiled, errors, upstream = parse_stream(proc.stdout.splitlines())
+    compiled, errors = _resolve_keys(compiled), _resolve_keys(errors)
+    if not compiled and not errors and not upstream:
         sys.stderr.write(proc.stderr[-4000:])
         print(f"BLOCKED(CARGO_NO_STREAM): exit={proc.returncode} cmd={' '.join(cmd)}", file=sys.stderr)
         return 2
-    missing = sorted(expected - compiled)
+    missing = sorted(stem for path, stem in expected.items() if path not in compiled)
     print(
         json.dumps(
             {
                 "law": "test-target-compile-closure",
                 "expected": len(expected),
-                "compiled": len(compiled & expected),
+                "compiled": len(expected.keys() & compiled.keys()),
                 "missing": missing,
+                "upstream_errors": sorted(upstream),
                 "cargo_exit": proc.returncode,
             },
             sort_keys=True,
         )
     )
     if missing or proc.returncode != 0:
+        by_stem = {expected[p]: e for p, e in errors.items() if p in expected}
+        fallback = "no test artifact produced"
+        if upstream:
+            first = sorted(upstream)[0]
+            fallback = f"blocked upstream by {first}: {upstream[first]}"
         for name in missing:
-            print(f"  FAIL {name}: {errors.get(name, 'no test artifact produced')}", file=sys.stderr)
+            print(f"  FAIL {name}: {by_stem.get(name, fallback)}", file=sys.stderr)
         if not missing:
             sys.stderr.write(proc.stderr[-4000:])
         print(
