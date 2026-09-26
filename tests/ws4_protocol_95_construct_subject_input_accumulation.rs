@@ -1,3 +1,4 @@
+use wasm4pm_compat::prelude::protocol::Intent;
 use wasm4pm_compat::prelude::*;
 #[test]
 fn construct_intent_accumulates_subject_and_input_refusals() {

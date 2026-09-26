@@ -1,3 +1,4 @@
+use wasm4pm_compat::prelude::protocol::Intent;
 use wasm4pm_compat::prelude::*;
 #[test]
 fn select_intent_preserves_exact_input_digest() {

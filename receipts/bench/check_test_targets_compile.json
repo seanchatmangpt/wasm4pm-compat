@@ -1,0 +1,45 @@
+{
+  "bench": "check_test_targets_compile",
+  "bound_20k_targets_s": 2.0,
+  "guard_warm": {
+    "cmd": "scripts/check_test_targets_compile.py -- --locked --all-features",
+    "exit": 0,
+    "median_s": 0.87,
+    "samples_s": [
+      0.755,
+      0.967,
+      0.87
+    ],
+    "verdict": "{\"cargo_exit\": 0, \"compiled\": 187, \"expected\": 187, \"law\": \"test-target-compile-closure\", \"missing\": [], \"upstream_errors\": []}"
+  },
+  "machine": "arm64",
+  "parse_stream": [
+    {
+      "lines": 374,
+      "lines_per_s": 87047,
+      "max_s": 0.00528,
+      "median_s": 0.004297,
+      "min_s": 0.001307,
+      "targets": 187
+    },
+    {
+      "lines": 4000,
+      "lines_per_s": 52499,
+      "max_s": 0.15463,
+      "median_s": 0.076192,
+      "min_s": 0.020704,
+      "targets": 2000
+    },
+    {
+      "lines": 40000,
+      "lines_per_s": 107091,
+      "max_s": 0.517346,
+      "median_s": 0.373512,
+      "min_s": 0.094266,
+      "targets": 20000
+    }
+  ],
+  "python": "3.14.3",
+  "system": "Darwin",
+  "within_bound": true
+}
