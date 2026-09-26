@@ -133,6 +133,10 @@ jobs:
               raise SystemExit(f"route fence drift: observed={observed!r}")
           print(json.dumps({"core": core, "vision2030": vision, "routes": routes}, indent=2))
           PY
+      - name: Test-target compile-closure guard
+        run: |
+          python3 -m unittest scripts.test_check_test_targets_compile
+          python3 scripts/check_test_targets_compile.py -- --locked --all-features
       - name: Unit and integration crown
         run: cargo test --locked --all-features --tests
       - name: PC-POWL2 contract crown
