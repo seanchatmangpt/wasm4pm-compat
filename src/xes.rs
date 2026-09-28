@@ -893,7 +893,10 @@ impl core::fmt::Display for XesExtensionPrefixWitness {
 
 /// The standard `lifecycle:transition` values defined in IEEE 1849-2016.
 ///
-/// XES defines a fixed alphabet for the `lifecycle:transition` attribute.
+/// The IEEE 1849-2016 lifecycle extension defines a fixed 13-value transitional
+/// model for the `lifecycle:transition` attribute: `schedule`, `assign`,
+/// `withdraw`, `reassign`, `start`, `suspend`, `resume`, `pi_abort`,
+/// `ate_abort`, `complete`, `autoskip`, `manualskip`, `unknown`.
 /// Events in a trace may carry a transition label indicating where in the
 /// activity lifecycle the event was recorded. An event with a `lifecycle:transition`
 /// value outside this alphabet is refused as
@@ -922,10 +925,10 @@ pub enum XesLifecycleTransition {
     Suspend,
     /// Work on the activity was resumed after suspension.
     Resume,
-    /// The activity is in progress (a progress update).
-    InProgress,
-    /// Execution of the activity was aborted.
-    Abort,
+    /// The activity instance was aborted (`pi_abort`, process-instance abort).
+    PiAbort,
+    /// The activity was aborted (`ate_abort`, activity-type-execution abort).
+    AteAbort,
     /// The activity reached a withdrawal state.
     Withdraw,
     /// The activity was completed normally.
@@ -938,8 +941,6 @@ pub enum XesLifecycleTransition {
     ManualSkip,
     /// Reassignment event — the responsible resource changed.
     Reassign,
-    /// The activity was explicitly planned.
-    Plan,
 }
 
 impl XesLifecycleTransition {
@@ -956,15 +957,14 @@ impl XesLifecycleTransition {
             XesLifecycleTransition::Start => "start",
             XesLifecycleTransition::Suspend => "suspend",
             XesLifecycleTransition::Resume => "resume",
-            XesLifecycleTransition::InProgress => "inprogress",
-            XesLifecycleTransition::Abort => "abort",
+            XesLifecycleTransition::PiAbort => "pi_abort",
+            XesLifecycleTransition::AteAbort => "ate_abort",
             XesLifecycleTransition::Withdraw => "withdraw",
             XesLifecycleTransition::Complete => "complete",
             XesLifecycleTransition::Unknown => "unknown",
             XesLifecycleTransition::AutoSkip => "autoskip",
             XesLifecycleTransition::ManualSkip => "manualskip",
             XesLifecycleTransition::Reassign => "reassign",
-            XesLifecycleTransition::Plan => "plan",
         }
     }
 
@@ -985,15 +985,14 @@ impl XesLifecycleTransition {
             "start" => Some(XesLifecycleTransition::Start),
             "suspend" => Some(XesLifecycleTransition::Suspend),
             "resume" => Some(XesLifecycleTransition::Resume),
-            "inprogress" => Some(XesLifecycleTransition::InProgress),
-            "abort" => Some(XesLifecycleTransition::Abort),
+            "pi_abort" => Some(XesLifecycleTransition::PiAbort),
+            "ate_abort" => Some(XesLifecycleTransition::AteAbort),
             "withdraw" => Some(XesLifecycleTransition::Withdraw),
             "complete" => Some(XesLifecycleTransition::Complete),
             "unknown" => Some(XesLifecycleTransition::Unknown),
             "autoskip" => Some(XesLifecycleTransition::AutoSkip),
             "manualskip" => Some(XesLifecycleTransition::ManualSkip),
             "reassign" => Some(XesLifecycleTransition::Reassign),
-            "plan" => Some(XesLifecycleTransition::Plan),
             _ => None,
         }
     }
@@ -1004,14 +1003,15 @@ impl XesLifecycleTransition {
     /// ```
     /// use wasm4pm_compat::xes::XesLifecycleTransition;
     /// assert!(XesLifecycleTransition::Complete.is_terminal());
-    /// assert!(XesLifecycleTransition::Abort.is_terminal());
+    /// assert!(XesLifecycleTransition::PiAbort.is_terminal());
     /// assert!(!XesLifecycleTransition::Start.is_terminal());
     /// ```
     pub const fn is_terminal(self) -> bool {
         matches!(
             self,
             XesLifecycleTransition::Complete
-                | XesLifecycleTransition::Abort
+                | XesLifecycleTransition::PiAbort
+                | XesLifecycleTransition::AteAbort
                 | XesLifecycleTransition::Withdraw
                 | XesLifecycleTransition::ManualSkip
                 | XesLifecycleTransition::AutoSkip

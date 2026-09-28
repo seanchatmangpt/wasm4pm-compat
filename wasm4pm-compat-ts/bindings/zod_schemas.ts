@@ -812,7 +812,10 @@ export type XesExtension = z.infer<typeof XesExtensionSchema>;
 export const XesLifecycleTransitionSchema = z.object({
     
   
-  "abort": z.string(),
+  "ate_abort": z.string(),
+
+  
+  "pi_abort": z.string(),
 
   
   "assign": z.string(),
@@ -823,14 +826,10 @@ export const XesLifecycleTransitionSchema = z.object({
   
   "complete": z.string(),
 
-  
-  "inprogress": z.string(),
 
   
   "manualskip": z.string(),
 
-  
-  "plan": z.string(),
 
   
   "reassign": z.string(),

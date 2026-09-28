@@ -10,7 +10,7 @@
 //!   - `XesToOcedProjectionShape` — projection descriptor (standard/with_case_type/all 4 accessors)
 //!   - `XesDeclaredExtensionLaw` — const law name/refusal/governs/description
 //!   - `XesExtensionPrefixWitness` — prefix authority (new/prefix/is_standard/standard_witnesses×4)
-//!   - `XesLifecycleTransition` — lifecycle alphabet (14 variants, as_str, parse)
+//!   - `XesLifecycleTransition` — lifecycle alphabet (13 variants, as_str, parse)
 //!   - `XesStandardPrefix` — 4 standard prefixes (as_str, parse)
 //!   - `XesRefusal` — 10 named structural laws + Display
 
