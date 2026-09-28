@@ -27,12 +27,12 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Alignment-based conformance checking (van Dongen, de Medeiros and Wen, 2008). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation.
+    /// Alignment-based conformance checking (Adriansyah, van Dongen and van der Aalst, 2011). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation.
     AlignmentPaper,
     "alignment-paper",
     WitnessFamily::Paper,
     "Alignment-Based Conformance Checking",
-    Some(2008)
+    Some(2011)
 );
 
 witness_marker!(

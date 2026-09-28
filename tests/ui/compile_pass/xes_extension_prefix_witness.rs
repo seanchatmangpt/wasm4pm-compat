@@ -1,7 +1,7 @@
-// Law: XesExtensionPrefixWitnessLaw — XesExtensionPrefixWitness is constructible as a const; four standard witnesses are accessible via standard_witnesses(); is_standard() identifies standard prefixes
+// Law: XesExtensionPrefixWitnessLaw — XesExtensionPrefixWitness is constructible as a const; seven standard witnesses are accessible via standard_witnesses(); is_standard() identifies standard prefixes
 // COMPILE-PASS: xes-extension-prefix-witness — proves XesExtensionPrefixWitness
 // is constructible as a const, exposes prefix() and is_standard(), and that the
-// four standard witnesses are accessible via standard_witnesses().
+// seven standard witnesses are accessible via standard_witnesses().
 use wasm4pm_compat::xes::XesExtensionPrefixWitness;
 
 const CONCEPT: XesExtensionPrefixWitness = XesExtensionPrefixWitness::new("concept");
@@ -27,9 +27,9 @@ fn main() {
     assert_eq!(CUSTOM.prefix(), "myext");
     assert!(!CUSTOM.is_standard());
 
-    // The four standard witnesses array has exactly 4 entries.
+    // The seven standard witnesses array has exactly 7 entries.
     let standards = XesExtensionPrefixWitness::standard_witnesses();
-    assert_eq!(standards.len(), 4);
+    assert_eq!(standards.len(), 7);
 
     // Display produces "xes-prefix:<prefix>".
     let s = format!("{CONCEPT}");

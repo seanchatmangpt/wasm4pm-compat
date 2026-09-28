@@ -858,7 +858,7 @@ impl XesExtensionPrefixWitness {
         self.prefix
     }
 
-    /// Whether this prefix is one of the four IEEE 1849-2016 standard prefixes.
+    /// Whether this prefix is one of the seven IEEE 1849-2016 standard extension prefixes.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
@@ -869,18 +869,21 @@ impl XesExtensionPrefixWitness {
         XesStandardPrefix::parse(self.prefix).is_some()
     }
 
-    /// The four standard extension prefix witnesses from IEEE 1849-2016.
+    /// The seven standard extension prefix witnesses from IEEE 1849-2016.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
-    /// assert_eq!(XesExtensionPrefixWitness::standard_witnesses().len(), 4);
+    /// assert_eq!(XesExtensionPrefixWitness::standard_witnesses().len(), 7);
     /// ```
-    pub const fn standard_witnesses() -> [XesExtensionPrefixWitness; 4] {
+    pub const fn standard_witnesses() -> [XesExtensionPrefixWitness; 7] {
         [
             XesExtensionPrefixWitness::new("concept"),
             XesExtensionPrefixWitness::new("time"),
             XesExtensionPrefixWitness::new("lifecycle"),
             XesExtensionPrefixWitness::new("org"),
+            XesExtensionPrefixWitness::new("cost"),
+            XesExtensionPrefixWitness::new("identity"),
+            XesExtensionPrefixWitness::new("semantic"),
         ]
     }
 }
@@ -925,15 +928,15 @@ pub enum XesLifecycleTransition {
     Suspend,
     /// Work on the activity was resumed after suspension.
     Resume,
-    /// The activity instance was aborted (`pi_abort`, process-instance abort).
+    /// The whole case (process instance) was aborted (`pi_abort`).
     PiAbort,
-    /// The activity was aborted (`ate_abort`, activity-type-execution abort).
+    /// The activity instance (activity task execution) was aborted (`ate_abort`).
     AteAbort,
-    /// The activity reached a withdrawal state.
+    /// The activity was withdrawn (scheduled/assigned work was taken back).
     Withdraw,
     /// The activity was completed normally.
     Complete,
-    /// An extra (unexpected) occurrence of the activity was recorded.
+    /// The lifecycle transition is not known (`unknown`).
     Unknown,
     /// The activity was autoskipped by the workflow engine.
     AutoSkip,
@@ -1050,11 +1053,12 @@ impl From<XesLifecycleTransition> for &'static str {
     }
 }
 
-/// The four standard XES extension prefixes defined in IEEE 1849-2016.
+/// The seven standard XES extension prefixes defined in IEEE 1849-2016.
 ///
-/// XES defines four standard extensions: `concept`, `time`, `lifecycle`, and
-/// `org`. These are the only prefixes that appear in the XES standard itself;
-/// custom extensions may declare additional prefixes. This enum names them at
+/// XES defines seven standard extensions: `concept`, `time`, `lifecycle`,
+/// `org`, `cost`, `identity`, and `semantic`. These are the only prefixes
+/// that appear in the XES standard itself; custom extensions may declare
+/// additional prefixes. This enum names them at
 /// the type level so code cannot confuse `concept:name` with `org:resource`
 /// by string comparison alone.
 ///
@@ -1067,6 +1071,9 @@ impl From<XesLifecycleTransition> for &'static str {
 /// assert_eq!(XesStandardPrefix::Time.as_str(), "time");
 /// assert_eq!(XesStandardPrefix::Lifecycle.as_str(), "lifecycle");
 /// assert_eq!(XesStandardPrefix::Org.as_str(), "org");
+/// assert_eq!(XesStandardPrefix::Cost.as_str(), "cost");
+/// assert_eq!(XesStandardPrefix::Identity.as_str(), "identity");
+/// assert_eq!(XesStandardPrefix::Semantic.as_str(), "semantic");
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum XesStandardPrefix {
@@ -1080,6 +1087,13 @@ pub enum XesStandardPrefix {
     /// `org` — organisational attributes (`org:resource`, `org:role`,
     /// `org:group`).
     Org,
+    /// `cost` — cost information (`cost:total`, `cost:amount`,
+    /// `cost:currency`, `cost:driver`, `cost:type`).
+    Cost,
+    /// `identity` — globally unique identifiers (`identity:id`).
+    Identity,
+    /// `semantic` — semantic annotations (`semantic:modelReference`).
+    Semantic,
 }
 
 impl XesStandardPrefix {
@@ -1095,6 +1109,9 @@ impl XesStandardPrefix {
             XesStandardPrefix::Time => "time",
             XesStandardPrefix::Lifecycle => "lifecycle",
             XesStandardPrefix::Org => "org",
+            XesStandardPrefix::Cost => "cost",
+            XesStandardPrefix::Identity => "identity",
+            XesStandardPrefix::Semantic => "semantic",
         }
     }
 
@@ -1113,22 +1130,28 @@ impl XesStandardPrefix {
             "time" => Some(XesStandardPrefix::Time),
             "lifecycle" => Some(XesStandardPrefix::Lifecycle),
             "org" => Some(XesStandardPrefix::Org),
+            "cost" => Some(XesStandardPrefix::Cost),
+            "identity" => Some(XesStandardPrefix::Identity),
+            "semantic" => Some(XesStandardPrefix::Semantic),
             _ => None,
         }
     }
 
-    /// All four standard prefixes in declaration order.
+    /// All seven standard prefixes in declaration order.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesStandardPrefix;
-    /// assert_eq!(XesStandardPrefix::all().len(), 4);
+    /// assert_eq!(XesStandardPrefix::all().len(), 7);
     /// ```
-    pub const fn all() -> [XesStandardPrefix; 4] {
+    pub const fn all() -> [XesStandardPrefix; 7] {
         [
             XesStandardPrefix::Concept,
             XesStandardPrefix::Time,
             XesStandardPrefix::Lifecycle,
             XesStandardPrefix::Org,
+            XesStandardPrefix::Cost,
+            XesStandardPrefix::Identity,
+            XesStandardPrefix::Semantic,
         ]
     }
 }

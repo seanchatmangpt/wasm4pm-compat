@@ -227,8 +227,8 @@ paper:AlignmentConformance2008
     rdfs:label "AlignmentConformance2008" ;
     paper:ledgerIndex 41 ;
     paper:title "Alignment-Based Conformance Checking" ;
-    paper:year 2008 ;
-    paper:authors "van Dongen, de Medeiros, Wen" ;
+    paper:year 2011 ;
+    paper:authors "Adriansyah, van Dongen, van der Aalst" ;
     paper:canonFamily "CONFORMANCE_ALIGNMENT" ;
     compat:coverageStatus "COVERED_BY_GRADUATION_BOUNDARY" ;
     compat:coveringModule "src/conformance.rs" ;

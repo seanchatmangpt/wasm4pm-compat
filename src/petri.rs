@@ -463,13 +463,14 @@ impl SoundnessProof {
 
 /// The subclass marker for Free-Choice Petri Nets vs. General Workflow Nets.
 ///
-/// Under Free-Choice nets (Desel 1995), soundness is decidable in polynomial time,
-/// whereas general WF-nets require PSPACE-complete complexity.
+/// Under Free-Choice nets (Desel & Esparza 1995; van der Aalst 1996), soundness is
+/// decidable in polynomial time, whereas for general WF-nets soundness is decidable
+/// (van der Aalst 1997) but computationally very hard (at least EXPSPACE-hard).
 #[derive(core::marker::ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
 pub enum FreeChoiceMarker {
     /// The net is structurally free-choice, enabling the polynomial-time soundness checking path.
     FreeChoice,
-    /// The net is general, requiring the PSPACE-complete soundness checking path.
+    /// The net is general, requiring the general (intractable) soundness checking path.
     General,
 }
 

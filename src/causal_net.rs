@@ -1,4 +1,10 @@
-//! Causal net structural shapes — Weijters & Ribeiro (2011) Heuristics Miner output.
+//! Causal net structural shapes — van der Aalst (2011) causal nets, as produced by
+//! the Flexible Heuristics Miner (Weijters & Ribeiro, 2011).
+//!
+//! The C-net formalism `(A, a_i, a_o, D, I, O)` — activities, unique start and
+//! end activity, dependency relation, and input/output binding sets (sets of
+//! sets: outer choice, inner conjunction) — is due to van der Aalst et al. (2011,
+//! Adriansyah / van Dongen / van der Aalst, cost-based fitness).
 //!
 //! A *causal net* (C-net) is a graph model produced by the Heuristics Miner
 //! algorithm (Weijters & Ribeiro, 2011). Unlike a Petri net, arcs in a C-net

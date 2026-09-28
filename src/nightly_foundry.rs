@@ -310,11 +310,28 @@ pub mod powl_law {
 
         /// Are `a` and `b` concurrent (neither precedes the other)?
         /// Paper: Kourani §3 — concurrency = absence of precedence in both directions.
-        #[inline]
+        ///
+        /// `≺` is a strict partial order, hence transitive: `edges` may be a
+        /// transitive reduction, so precedence is the *reachability* relation of
+        /// the edge set (`a ≺ b ≺ c` implies `a ≺ c`), not just direct edges.
         pub fn are_concurrent(&self, edges: &[OrderEdge], a: u32, b: u32) -> bool {
-            let ab = edges.iter().any(|e| e.before == a && e.after == b);
-            let ba = edges.iter().any(|e| e.before == b && e.after == a);
-            !ab && !ba
+            fn reaches(edges: &[OrderEdge], from: u32, to: u32) -> bool {
+                let mut seen: Vec<u32> = vec![from];
+                let mut stack: Vec<u32> = vec![from];
+                while let Some(u) = stack.pop() {
+                    for e in edges.iter().filter(|e| e.before == u) {
+                        if e.after == to {
+                            return true;
+                        }
+                        if !seen.contains(&e.after) {
+                            seen.push(e.after);
+                            stack.push(e.after);
+                        }
+                    }
+                }
+                false
+            }
+            !reaches(edges, a, b) && !reaches(edges, b, a)
         }
     }
 
@@ -550,6 +567,17 @@ mod tests {
         }];
         assert!(!p.are_concurrent(&edges, 1, 2)); // 1 ≺ 2: not concurrent
         assert!(p.are_concurrent(&edges, 1, 3)); // no edge: concurrent
+    }
+
+    #[test]
+    fn partial_concurrency_respects_transitivity() {
+        let p = powl_law::TypedNode::partial(0);
+        let edges = [
+            powl_law::OrderEdge { before: 1, after: 2 },
+            powl_law::OrderEdge { before: 2, after: 3 },
+        ];
+        assert!(!p.are_concurrent(&edges, 1, 3)); // 1 ≺ 2 ≺ 3 ⇒ 1 ≺ 3
+        assert!(!p.are_concurrent(&edges, 3, 1));
     }
 
     // evidence_law ────────────────────────────────────────────────────────────

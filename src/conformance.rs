@@ -72,17 +72,19 @@ impl TokenReplayResult {
         }
     }
 
-    /// The structural fitness ratio `(consumed - missing) / (produced + remaining)`,
-    /// NaN-safe and clamped to `[0, 1]`. This is the closed-form token-replay
-    /// fitness formula over counts an engine already produced — it derives no
-    /// alignment and replays no log itself.
+    /// The token-replay fitness of Rozinat & van der Aalst (2008),
+    /// `1/2 * (1 - missing/consumed) + 1/2 * (1 - remaining/produced)`,
+    /// NaN-safe and clamped to `[0, 1]`. A term whose denominator is zero
+    /// (no tokens consumed / produced) contributes as `1`. This is the
+    /// closed-form formula over counts an engine already produced — it derives
+    /// no alignment and replays no log itself.
     ///
     /// ```
     /// use wasm4pm_compat::conformance::TokenReplayResult;
     /// // Perfect replay: every produced token consumed, none missing/remaining.
     /// assert_eq!(TokenReplayResult::calculate_fitness(4, 4, 0, 0), 1.0);
-    /// // All consumed tokens were missing → zero fitness.
-    /// assert_eq!(TokenReplayResult::calculate_fitness(4, 4, 4, 0), 0.0);
+    /// // All consumed tokens were missing, none remaining → 1/2 * 0 + 1/2 * 1.
+    /// assert_eq!(TokenReplayResult::calculate_fitness(4, 4, 4, 0), 0.5);
     /// ```
     pub fn calculate_fitness(
         produced: usize,
@@ -90,11 +92,19 @@ impl TokenReplayResult {
         missing: usize,
         remaining: usize,
     ) -> f64 {
-        let denom = (produced + remaining).max(1) as f64;
-        let num = consumed.saturating_sub(missing) as f64;
-        // All inputs are usize, so num/denom is finite and in [0, +inf). No
-        // NaN is possible here, but clamping defensively keeps the invariant.
-        clamp_finite(num / denom, 0.0, 1.0)
+        let missing_term = if consumed == 0 {
+            1.0
+        } else {
+            1.0 - missing as f64 / consumed as f64
+        };
+        let remaining_term = if produced == 0 {
+            1.0
+        } else {
+            1.0 - remaining as f64 / produced as f64
+        };
+        // Counts are finite, so no NaN is possible; clamping keeps the invariant
+        // when missing > consumed or remaining > produced.
+        clamp_finite(0.5 * missing_term + 0.5 * remaining_term, 0.0, 1.0)
     }
 }
 
@@ -215,7 +225,8 @@ mod tests {
     #[test]
     fn test_token_replay_fitness() {
         let fitness = TokenReplayResult::calculate_fitness(100, 95, 5, 10);
-        assert!((fitness - 0.8181818).abs() < 0.001); // (95 - 5) / (100 + 10) = 90/110
+        // 1/2 * (1 - 5/95) + 1/2 * (1 - 10/100)
+        assert!((fitness - 0.9236842).abs() < 0.001);
     }
 
     #[test]

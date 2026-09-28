@@ -538,7 +538,7 @@ pub enum PredicateKind {
     ///
     /// OCPQ Section 4 BASIC_L — `E2O(event_var, object_var, qualifier?)`:
     /// asserts that the named event is related to the named object via an
-    /// optional qualifier (object-type or relation name). Structure-only: the
+    /// optional E2O qualifier (the label of the event-to-object relation, e.g. `places`). Structure-only: the
     /// variable names are strings; resolution against the log graduates to
     /// `wasm4pm`.
     ///
@@ -556,7 +556,7 @@ pub enum PredicateKind {
         event_var: String,
         /// The object variable name.
         object_var: String,
-        /// An optional qualifier (object type or relation label).
+        /// An optional E2O qualifier (the relation label, not an object type).
         qualifier: Option<String>,
     },
     /// An object-to-object relation predicate (O2O).

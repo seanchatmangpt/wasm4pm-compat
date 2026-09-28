@@ -243,7 +243,7 @@ witness_marker!(
     Some(2006)
 );
 witness_marker!(
-    /// Alignment-based conformance checking (van Dongen, de Medeiros & Wen, 2008).
+    /// Alignment-based conformance checking (Adriansyah, van Dongen & van der Aalst, 2011).
     ///
     /// Names the alignment approach to conformance — the authority behind
     /// optimal and heuristic alignments between an event log and a process
@@ -254,7 +254,7 @@ witness_marker!(
     "alignment-paper",
     WitnessFamily::Paper,
     "Alignment-Based Conformance Checking",
-    Some(2008)
+    Some(2011)
 );
 witness_marker!(
     /// Object-centric Petri nets — the notation authority.

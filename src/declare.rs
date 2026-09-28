@@ -41,9 +41,11 @@ pub enum DeclareTemplate {
     Precedence,
     /// Response + Precedence.
     Succession,
-    /// As Response, but target must occur after the LAST activation.
+    /// As Response, but between any two activations there must be a target
+    /// (each activation is followed by a target before the next activation).
     AlternateResponse,
-    /// As Precedence, but activation must immediately precede target.
+    /// As Precedence, but between any two targets there must be an activation
+    /// (each target is preceded by an activation not already used by another target).
     AlternatePrecedence,
     /// AlternateResponse + AlternatePrecedence.
     AlternateSuccession,
@@ -55,7 +57,9 @@ pub enum DeclareTemplate {
     ChainSuccession,
 
     // ── Binary negative templates (arity = 2) ────────────────────────────────
-    /// Activation and target must never both occur.
+    /// Target must never occur after activation (activation is never followed by
+    /// target, in any distance). Unlike `NotCoExistence`, both may occur if
+    /// target comes first.
     NotSuccession,
     /// Activation and target must never occur in immediate succession.
     NotChainSuccession,

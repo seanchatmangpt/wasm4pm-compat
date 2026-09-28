@@ -505,9 +505,9 @@ compat:AlignmentPaper
     compat:sourceFile "src/witness.rs" ;
     compat:witnessKey "alignment-paper" ;
     compat:witnessTitle "Alignment-Based Conformance Checking" ;
-    compat:witnessYear 2008 ;
+    compat:witnessYear 2011 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "Alignment-based conformance checking (van Dongen, de Medeiros and Wen, 2008). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation." .
+    compat:description "Alignment-based conformance checking (Adriansyah, van Dongen and van der Aalst, 2011). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation." .
 
 compat:OcPetriNets
     a compat:WitnessMarker ;

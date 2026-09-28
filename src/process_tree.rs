@@ -42,7 +42,6 @@ use crate::law::{IsTrue, ProcessTreeOperatorKind, Require};
 /// | Parallel  |       2       | concurrency of one is trivial    |
 /// | Loop      |       2       | do-body + redo-branch (Leemans)  |
 /// | Silent    |       0       | tau carries no children          |
-/// | Or        |       2       | inclusive choice of one is trivial |
 ///
 /// ```
 /// use wasm4pm_compat::process_tree::operator_minimum_arity;
@@ -71,7 +70,6 @@ pub const fn operator_minimum_arity(kind: ProcessTreeOperatorKind) -> usize {
 /// | Parallel  |   unbounded   | n-ary parallel composition           |
 /// | Loop      |       2       | exactly do-body + redo (Leemans)     |
 /// | Silent    |       0       | tau has no children                  |
-/// | Or        |   unbounded   | n-ary inclusive choice               |
 ///
 /// ```
 /// use wasm4pm_compat::process_tree::operator_maximum_arity;
@@ -399,7 +397,7 @@ impl ProcessTree {
     /// - [`ProcessTreeRefusal::MissingRoot`] — nodes present but no root declared
     /// - [`ProcessTreeRefusal::DanglingNodeReference`] — a child id is out of bounds
     /// - [`ProcessTreeRefusal::TauLeafWithChildren`] — Silent node has children
-    /// - [`ProcessTreeRefusal::BelowMinimumArity`] — Sequence/Xor/Parallel/Or with < 2 children
+    /// - [`ProcessTreeRefusal::BelowMinimumArity`] — Sequence/Xor/Parallel with < 2 children
     /// - [`ProcessTreeRefusal::InvalidArity`] — Loop with ≠ 2 children
     ///
     /// # Examples

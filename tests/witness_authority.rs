@@ -114,7 +114,7 @@ fn alpha_miner_metadata() {
 fn alignment_paper_metadata() {
     assert_eq!(AlignmentPaper::KEY, "alignment-paper");
     assert_eq!(AlignmentPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(AlignmentPaper::YEAR, Some(2008));
+    assert_eq!(AlignmentPaper::YEAR, Some(2011));
 }
 
 #[test]
