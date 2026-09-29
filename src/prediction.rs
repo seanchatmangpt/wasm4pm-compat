@@ -174,7 +174,8 @@ pub struct RiskScore;
 
 /// Witness: the problem's prediction target is a **compliance constraint check**.
 ///
-/// De Santis et al. (2026) introduce compliance-aware predictive process
+/// De Santis, Park, van der Aalst & Zanichelli (2026, CAiSE 2026,
+/// arXiv:2603.26948) introduce compliance-aware predictive process
 /// monitoring (PPM) where the prediction target is not an outcome label but a
 /// named compliance rule: "does this prefix comply with constraint C?". A
 /// `PredictionProblem<ComplianceTarget>` encodes the shape of such a problem.

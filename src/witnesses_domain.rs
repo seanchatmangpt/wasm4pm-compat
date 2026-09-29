@@ -153,7 +153,7 @@ witness_marker!(
     Blake3HashFunctionPaper,
     "domain/blake3-hash-function-2020",
     WitnessFamily::Paper,
-    "BLAKE3: One Function, Fast Everywhere (arXiv:2012.04616)",
+    "BLAKE3: One Function, Fast Everywhere",
     Some(2020)
 );
 

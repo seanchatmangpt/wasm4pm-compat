@@ -93,7 +93,7 @@ fn predictive_monitoring_family_metadata() {
 fn yawl_paper_metadata() {
     assert_eq!(YawlPaper::KEY, "yawl-paper");
     assert_eq!(YawlPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(YawlPaper::YEAR, Some(2004));
+    assert_eq!(YawlPaper::YEAR, Some(2005));
 }
 
 #[test]

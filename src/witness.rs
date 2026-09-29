@@ -159,7 +159,10 @@ witness_marker!(
     DeclareFamily, "declare-family", WitnessFamily::Paper, "Declare constraint family", Some(2007)
 );
 witness_marker!(
-    /// The predictive (business) process monitoring problem family.
+    /// The predictive (business) process monitoring problem family. A family
+    /// label, not one seminal paper; the year 2018 is anchored on the survey
+    /// Di Francescomarino, Ghidini, Maggi & Milani, *Predictive Process Monitoring
+    /// Methods: Which One Suits Me Best?* (BPM 2018, LNCS 11080).
     PredictiveMonitoringFamily,
     "predictive-monitoring-family",
     WitnessFamily::Paper,
@@ -180,7 +183,7 @@ witness_marker!(
     Wasm4pmBridge, "wasm4pm-bridge", WitnessFamily::InternalBridge, "wasm4pm graduation bridge", None
 );
 witness_marker!(
-    /// YAWL — Yet Another Workflow Language (van der Aalst & ter Hofstede, 2004).
+    /// YAWL — Yet Another Workflow Language (van der Aalst & ter Hofstede, Information Systems 30(4), 2005).
     ///
     /// Covers typed routing constructs (AND/XOR/OR split/join), cancellation
     /// regions, and multiple-instance tasks. An `Admission<T, YawlPaper>` is
@@ -189,7 +192,7 @@ witness_marker!(
     "yawl-paper",
     WitnessFamily::Paper,
     "YAWL: Yet Another Workflow Language",
-    Some(2004)
+    Some(2005)
 );
 witness_marker!(
     /// Hierarchical Decomposition of Separable WF-nets (Kourani et al., 2026).
@@ -271,7 +274,7 @@ witness_marker!(
     Some(2020)
 );
 witness_marker!(
-    /// Log Skeleton (Verbeek & Leemans, 2018).
+    /// Log Skeleton (Verbeek & de Carvalho, 2018).
     ///
     /// Names the Log Skeleton declarative model: a set of six relations
     /// (always-before, always-after, never-together, …) mined directly from
@@ -281,7 +284,7 @@ witness_marker!(
     LogSkeleton,
     "log-skeleton",
     WitnessFamily::Paper,
-    "Log Skeleton (Verbeek & Leemans)",
+    "Log Skeleton (Verbeek & de Carvalho)",
     Some(2018)
 );
 witness_marker!(
@@ -637,8 +640,8 @@ witness_marker!(
     /// `Admission<T, TimeAwareWitness>` — a temporal profile is a richer object
     /// than a bare ordering relation.
     ///
-    /// Grounded in: Stertz, Rinderle-Ma & Rinderle (2020) *Temporal Profile
-    /// Conformance Checking*; see also van der Aalst (2013) Process Cubes for
+    /// Grounded in: Stertz, Mangler & Rinderle-Ma (2020) *Temporal Conformance
+    /// Checking at Runtime based on Time-infused Process Models*; see also van der Aalst (2013) Process Cubes for
     /// the time dimension as a cube axis.
     ///
     /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`

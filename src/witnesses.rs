@@ -153,11 +153,11 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Log Skeleton declarative model (Verbeek and Leemans, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints.
+    /// Log Skeleton declarative model (Verbeek and de Carvalho, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints.
     LogSkeleton,
     "log-skeleton",
     WitnessFamily::Paper,
-    "Log Skeleton (Verbeek and Leemans)",
+    "Log Skeleton (Verbeek and de Carvalho)",
     Some(2018)
 );
 
@@ -270,7 +270,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// The predictive (business) process monitoring problem family.
+    /// The predictive (business) process monitoring problem family. A family label, not one seminal paper; the year 2018 is anchored on the survey Di Francescomarino, Ghidini, Maggi and Milani, Predictive Process Monitoring Methods: Which One Suits Me Best? (BPM 2018, LNCS 11080).
     PredictiveMonitoringFamily,
     "predictive-monitoring-family",
     WitnessFamily::Paper,
@@ -342,7 +342,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Rinderle-Ma and Rinderle (2020).
+    /// Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Mangler and Rinderle-Ma (2020), Temporal Conformance Checking at Runtime based on Time-infused Process Models.
     TemporalProfileWitness,
     "temporal-profile-witness",
     WitnessFamily::Paper,
@@ -432,10 +432,10 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, 2004). Typed routing constructs, cancellation regions, multiple-instance tasks.
+    /// YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, Information Systems 30(4), 2005). Typed routing constructs, cancellation regions, multiple-instance tasks.
     YawlPaper,
     "yawl-paper",
     WitnessFamily::Paper,
     "YAWL: Yet Another Workflow Language",
-    Some(2004)
+    Some(2005)
 );

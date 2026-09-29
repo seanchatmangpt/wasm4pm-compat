@@ -2,15 +2,19 @@
 //!
 //! This module represents the absolute topological boundaries of the POWL 2.0
 //! specification, as formally defined in:
-//! *Kourani & van der Aalst (2024/2026): Hierarchical Decomposition of Separable Workflow-Nets*.
+//! *Kourani, Park & van der Aalst (2025): Unlocking Non-Block-Structured
+//! Decisions: Inductive Mining with Choice Graphs* (arXiv:2505.07052, Def. 1-3) and
+//! *Kourani, Park & van der Aalst (2026): Hierarchical Decomposition of Separable
+//! Workflow-Nets* (arXiv:2602.15739, Def. 3.6-3.9).
 //!
-//! POWL 2.0 generalizes the rigid, block-structured `XOR` and `Loop` operators
-//! from POWL 1.0 into a unified **Choice Graph** (`γ(M₁, ..., Mₙ)`). This allows
-//! for the modeling of non-block-structured decisions and cycles, provided the
-//! underlying Workflow Net is strictly separable.
+//! POWL 2.0 replaces the block-structured exclusive-choice operator `×` of POWL 1.0
+//! (Kourani & van Zelst, BPM 2023) with a **Choice Graph**; the binary loop
+//! `↺(do, redo)` and strict partial orders are retained. Choice graphs allow
+//! non-block-structured decisions (cycles are permitted by the definition), and
+//! WF-net to POWL translation is guaranteed for safe and sound *separable* WF-nets.
 //!
-//! **Architectural Law**: Prior POWL 1.0 logic (Xor, Loop blocks) is strictly
-//! prohibited and structurally rejected from this codebase.
+//! **Architectural Law**: the POWL 1.0 `×` block is superseded by the choice graph
+//! in this module's AST.
 //!
 //! ## Formal Executable Doctests
 //!
@@ -144,7 +148,7 @@ pub struct Irreducible;
 /// graduates to `wasm4pm`. It records that the caller has asserted the invariant.
 /// The assertion gate is [`assert_acyclic`].
 ///
-/// Paper: Kourani et al. (2026) §3 — a POWL partial order `P(M⁺, ≺)` requires
+/// Paper: Kourani et al. (2025/2026) §3 — a POWL partial order `P(M⁺, ≺)` requires
 /// `≺` to be a strict partial order (irreflexive, asymmetric, transitive), which
 /// implies acyclicity.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -266,9 +270,10 @@ pub struct PowlNodeId(pub usize);
 /// runs*. It does NOT execute, replay, or unfold the operator.
 ///
 /// The [`PowlNodeKind::ChoiceGraph`] variant represents the POWL 2.0
-/// choice-graph operator (Kourani et al., 2026), which replaces the flat
-/// `Choice` and `Loop` operators with a directed-graph structure capable of
-/// expressing non-block-structured decisions and cycles.
+/// choice-graph operator (Kourani, Park & van der Aalst, arXiv:2505.07052,
+/// 2025), which replaces the exclusive-choice `×` operator (the loop `↺` is
+/// kept) with a directed-graph structure capable of expressing
+/// non-block-structured decisions.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PowlNodeKind {
     /// Unique Start boundary node.
@@ -282,10 +287,11 @@ pub enum PowlNodeKind {
 
     /// A partial order over child node ids; precedence lives in [`OrderEdge`]s.
     PartialOrder(Vec<PowlNodeId>),
-    /// A POWL 2.0 choice graph `γ = (N, E)` (Kourani et al., 2026 Def. 3.6).
+    /// A POWL 2.0 choice graph `γ = (N, E)` (Kourani et al., 2025 Def. 1;
+    /// restated as Def. 3.6 in arXiv:2602.15739).
     ///
-    /// The choice graph replaces the flat `×` (XOR) and `↺` (loop) operators
-    /// with a directed graph over decision nodes `X`, a unique start node `▷`
+    /// The choice graph replaces the flat `×` (XOR) operator (the `↺` loop
+    /// operator is kept) with a directed graph over decision nodes `X`, a unique start node `▷`
     /// (represented by the first element of `nodes` by convention), and a
     /// unique end node `□` (last element). Every node must lie on a connected
     /// path from start to end; structural disconnection is refused as
@@ -440,7 +446,7 @@ impl PowlChoiceNode {
 
 /// A typed loop node with its arity enforced as a const generic parameter.
 ///
-/// Paper: Kourani et al. (2026) §3 — a POWL loop `L(M₁, M₂)` has exactly
+/// Paper: Kourani et al. (2025/2026) §3 — a POWL loop `L(M₁, M₂)` has exactly
 /// **two** children: the mandatory `do` body (`M₁`) and the `redo` body (`M₂`).
 /// `TypedPowlLoopNode<_, 3>` does **not compile**: `ARITY == 2` is violated.
 ///
@@ -492,7 +498,7 @@ where
 
 /// The maximum lawful POWL composition nesting depth.
 ///
-/// Paper: Kourani et al. (2026) §3 — the recursive POWL decomposition `P(M⁺, ≺)`
+/// Paper: Kourani et al. (2025/2026) §3 — the recursive POWL decomposition `P(M⁺, ≺)`
 /// nests operators (partial orders, choices, loops) to a bounded depth; this
 /// constant fixes the **structural ceiling** on that nesting.
 ///
@@ -606,14 +612,14 @@ impl OrderEdge {
 
 /// A directed edge inside a [`PowlNodeKind::ChoiceGraph`].
 ///
-/// Kourani et al. (2026) Definition 3.6 introduces the choice graph
+/// Kourani et al. (2025) Definition 1 (Def. 3.6 in arXiv:2602.15739) introduces the choice graph
 /// `γ = (N, E)` where `N = X ∪ {▷, □}` and `E` is a set of directed arcs.
 /// Each `ChoiceGraphEdge` is one such arc: a directed step from one choice-graph
 /// node to another.
 ///
 /// This type is **structurally distinct** from [`OrderEdge`]: a
-/// `ChoiceGraphEdge` is a transition inside a choice graph (decision/cyclic
-/// logic), while an `OrderEdge` is a precedence constraint inside a partial
+/// `ChoiceGraphEdge` is a transition inside a choice graph (decision logic; cycles
+/// permitted), while an `OrderEdge` is a precedence constraint inside a partial
 /// order (scheduling logic). The types are not interchangeable at the call site;
 /// a function accepting `ChoiceGraphEdge` will not compile with `OrderEdge`.
 ///
@@ -1135,7 +1141,7 @@ pub enum PowlRefusal {
     /// A loop node is missing its mandatory `do` body — the first child of a
     /// POWL loop `L(M₁, M₂)` is the `do` body and must always be present.
     ///
-    /// Paper: Kourani et al. (2026) §3 — `L(M₁, M₂)` requires `M₁` (do body).
+    /// Paper: Kourani et al. (2025/2026) §3 — `L(M₁, M₂)` requires `M₁` (do body).
     LoopMissingDoBody,
     /// Projection to a process tree was requested for an
     /// [`Irreducible`] partial order that [`ExceedsProcessTree`].
@@ -1146,7 +1152,7 @@ pub enum PowlRefusal {
     /// A [`PowlNodeKind::ChoiceGraph`] is disconnected — at least one node is
     /// not on any connected path from the start node `▷` to the end node `□`.
     ///
-    /// Law: Kourani et al. (2026) Definition 3.6 — every node in a choice graph
+    /// Law: Kourani et al. (2025) Definition 1 (Def. 3.6 in arXiv:2602.15739) — every node in a choice graph
     /// must lie on a path from the unique start node to the unique end node.
     /// Connectivity verification graduates to `wasm4pm`; this refusal is raised
     /// when structural analysis finds a node unreachable from the declared start
@@ -1594,10 +1600,15 @@ impl core::fmt::Display for RefusedProjection {
     }
 }
 
-/// The eight POWL operator kinds (POWL8 — van der Aalst 2023 full set).
+/// The eight POWL operator/node kinds (crate-local "POWL8" naming).
 ///
-/// Variants beyond the original four (Sequence, XorChoice, Parallel, Loop) add
-/// StrictPartialOrder, ChoiceGraph, Silent, and Activity.
+/// POWL 1.0 (Kourani & van Zelst, BPM 2023) has exactly three control-flow
+/// constructs: exclusive choice `×`, binary loop `↺(do, redo)`, and strict
+/// partial order (of which sequence and parallel are special cases), plus
+/// activity and silent leaves. POWL 2.0 (Kourani, Park & van der Aalst 2025,
+/// arXiv:2505.07052, Def. 2) replaces `×` by the choice graph. `Sequence` and
+/// `Parallel` here are convenience kinds for total / empty partial orders, not
+/// original POWL operators.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Powl8Op {
     /// Strict sequential composition.

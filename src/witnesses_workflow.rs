@@ -104,11 +104,11 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Process Querying Methods — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework.
+    /// Process Querying: Enabling Business Intelligence through Query-Based Process Analytics — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework.
     ProcessQueryWitness,
     "workflow/process-querying-witness-2017",
     WitnessFamily::Paper,
-    "Process Querying Methods",
+    "Process Querying: Enabling Business Intelligence through Query-Based Process Analytics",
     Some(2017)
 );
 
@@ -131,12 +131,12 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Stochastic Conformance — Leemans, Syring & van der Aalst (2020): fitness/precision on stochastic nets.
+    /// Stochastic Conformance — Leemans, Syring & van der Aalst (2019): fitness/precision on stochastic nets.
     StochasticConformancePaper,
     "workflow/stochastic-conformance-2020",
     WitnessFamily::Paper,
-    "Stochastic Conformance Checking: Comparing Stochastic Process Models and Event Logs",
-    Some(2020)
+    "Earth Movers' Stochastic Conformance Checking",
+    Some(2019)
 );
 
 witness_marker!(

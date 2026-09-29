@@ -411,7 +411,7 @@ compat:PredictiveMonitoringFamily
     compat:witnessTitle "Predictive Process Monitoring family" ;
     compat:witnessYear 2018 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "The predictive (business) process monitoring problem family." .
+    compat:description "The predictive (business) process monitoring problem family. A family label, not one seminal paper; the year 2018 is anchored on the survey Di Francescomarino, Ghidini, Maggi and Milani, Predictive Process Monitoring Methods: Which One Suits Me Best? (BPM 2018, LNCS 11080)." .
 
 compat:ReceiptFamily
     a compat:WitnessMarker ;
@@ -450,9 +450,9 @@ compat:YawlPaper
     compat:sourceFile "src/witness.rs" ;
     compat:witnessKey "yawl-paper" ;
     compat:witnessTitle "YAWL: Yet Another Workflow Language" ;
-    compat:witnessYear 2004 ;
+    compat:witnessYear 2005 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, 2004). Typed routing constructs, cancellation regions, multiple-instance tasks." .
+    compat:description "YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, Information Systems 30(4), 2005). Typed routing constructs, cancellation regions, multiple-instance tasks." .
 
 compat:SeparableWfNetPaper
     a compat:WitnessMarker ;
@@ -526,10 +526,10 @@ compat:LogSkeleton
     compat:rustType "LogSkeleton" ;
     compat:sourceFile "src/witness.rs" ;
     compat:witnessKey "log-skeleton" ;
-    compat:witnessTitle "Log Skeleton (Verbeek and Leemans)" ;
+    compat:witnessTitle "Log Skeleton (Verbeek and de Carvalho)" ;
     compat:witnessYear 2018 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "Log Skeleton declarative model (Verbeek and Leemans, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints." .
+    compat:description "Log Skeleton declarative model (Verbeek and de Carvalho, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints." .
 
 compat:AlphaMiner
     a compat:WitnessMarker ;
@@ -722,7 +722,7 @@ compat:TemporalProfileWitness
     compat:witnessTitle "Temporal profile (AVG/STD per activity-pair — Stertz et al. 2020)" ;
     compat:witnessYear 2020 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Rinderle-Ma and Rinderle (2020)." .
+    compat:description "Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Mangler and Rinderle-Ma (2020), Temporal Conformance Checking at Runtime based on Time-infused Process Models." .
 
 compat:AffidavitReceiptChain
     a compat:WitnessMarker ;
