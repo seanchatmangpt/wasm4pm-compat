@@ -573,8 +573,14 @@ mod tests {
     fn partial_concurrency_respects_transitivity() {
         let p = powl_law::TypedNode::partial(0);
         let edges = [
-            powl_law::OrderEdge { before: 1, after: 2 },
-            powl_law::OrderEdge { before: 2, after: 3 },
+            powl_law::OrderEdge {
+                before: 1,
+                after: 2,
+            },
+            powl_law::OrderEdge {
+                before: 2,
+                after: 3,
+            },
         ];
         assert!(!p.are_concurrent(&edges, 1, 3)); // 1 ≺ 2 ≺ 3 ⇒ 1 ≺ 3
         assert!(!p.are_concurrent(&edges, 3, 1));
