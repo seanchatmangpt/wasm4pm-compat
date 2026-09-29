@@ -1584,7 +1584,7 @@ is not a real claim (`is_named()` returns false for empty fixture strings).
 ## Declare/OCPQ Law Packet — OCPQ Object Scope and Event Predicate
 
 **Paper family:** `OCPQ_QUERYING`
-**Sources:** OCPQ (Ghahfarokhi et al., 2024); van der Aalst (2019)
+**Sources:** OCPQ (Küsters & van der Aalst, 2025); van der Aalst (2019)
 
 ### OCPQ-object-scope
 
@@ -1641,7 +1641,7 @@ carry the `ExceedsProcessTree` marker — projection would silently lose languag
 ## Declare/OCPQ Law Packet — Relation Predicate
 
 **Paper family:** `OCPQ_QUERYING`
-**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+**Sources:** OCPQ (Küsters & van der Aalst, 2025)
 
 ### relation-predicate
 
@@ -1698,7 +1698,7 @@ outside this sub-class must be an explicit, named refusal — not a silent failu
 ## Declare/OCPQ Law Packet — Cardinality Bound Law
 
 **Paper family:** `OCPQ_QUERYING`
-**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+**Sources:** OCPQ (Küsters & van der Aalst, 2025)
 
 ### cardinality-bound-law
 
@@ -1752,7 +1752,7 @@ precondition; it cannot be forged externally.
 ## Declare/OCPQ Law Packet — Typed Child Set Law
 
 **Paper family:** `OCPQ_QUERYING`
-**Sources:** OCPQ (Ghahfarokhi et al., 2024)
+**Sources:** OCPQ (Küsters & van der Aalst, 2025)
 
 ### typed-child-set-law
 
