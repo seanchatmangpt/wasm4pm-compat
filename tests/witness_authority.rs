@@ -69,7 +69,7 @@ fn object_centric_petri_net_paper_metadata() {
 fn ocpq_paper_metadata() {
     assert_eq!(OcpqPaper::KEY, "ocpq-paper");
     assert_eq!(OcpqPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(OcpqPaper::YEAR, Some(2024));
+    assert_eq!(OcpqPaper::YEAR, Some(2025));
 }
 
 #[test]

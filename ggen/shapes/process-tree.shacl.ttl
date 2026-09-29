@@ -2,7 +2,7 @@
 # Part of wasm4pm-compat type-law covenant: arity constraints on ProcessTreeOperator
 #
 # These shapes validate:
-# - Loop operator has exactly 2 children (do-body + redo, per Leemans 2013)
+# - Loop operator has 2 (do, redo; Leemans IM) or 3 (do, redo, exit; pm4py/ProM) children
 # - Silent operator has 0 children
 # - Sequence, Xor, Parallel, Or have ≥2 children (1 child is trivial)
 # - All children are valid ProcessTreeNode instances
@@ -24,16 +24,16 @@ compat:ProcessTreeOperator_LoopShape
     a sh:NodeShape ;
     sh:targetNode compat:ProcessTreeOperator_Loop ;
     rdfs:label "Loop Operator Shape" ;
-    rdfs:comment "Loop operator (do-body + redo branch) must have exactly 2 children per Leemans 2013." ;
+    rdfs:comment "Loop operator (do-body + redo branch) must have 2 children (Leemans IM) or 3 with an exit child (pm4py/ProM)." ;
     sh:property compat:ProcessTreeLoop_hasChildProp .
 
 compat:ProcessTreeLoop_hasChildProp
     a sh:PropertyShape ;
     sh:path compat:hasChild ;
     sh:minCount 2 ;
-    sh:maxCount 2 ;
+    sh:maxCount 3 ;
     sh:nodeKind sh:IRI ;
-    sh:message "Loop operator must have exactly 2 children (do-body + redo branch). This is a non-negotiable invariant." .
+    sh:message "Loop operator must have 2 (do, redo) or 3 (do, redo, exit) children." .
 
 # ============================================================================
 # ProcessTreeOperator_Silent Node Shape

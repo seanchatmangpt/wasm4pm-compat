@@ -386,8 +386,8 @@ compat:OcpqPaper
     compat:rustType "OcpqPaper" ;
     compat:sourceFile "src/witness.rs" ;
     compat:witnessKey "ocpq-paper" ;
-    compat:witnessTitle "Object-Centric Process Querying" ;
-    compat:witnessYear 2024 ;
+    compat:witnessTitle "OCPQ: Object-Centric Process Querying and Constraints" ;
+    compat:witnessYear 2025 ;
     compat:witnessFamily compat:Paper ;
     compat:description "OCPQ — Object-Centric Process Querying." .
 
@@ -606,7 +606,7 @@ compat:WfNet2Powl
     compat:witnessTitle "WF-net to POWL 2.0 conversion (Kourani, Park and van der Aalst)" ;
     compat:witnessYear 2026 ;
     compat:witnessFamily compat:Paper ;
-    compat:description "WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definition 4.1 and Theorem 4.3 of the 2026 paper. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority)." .
+    compat:description "WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definitions 3.6 and 3.13 and Theorems 5.9 and 5.11 of arXiv:2602.15739. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority)." .
 
 compat:DivergenceWitness
     a compat:WitnessMarker ;

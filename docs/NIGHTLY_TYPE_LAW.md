@@ -1723,13 +1723,13 @@ The `Between01<NUM, DEN>` law from `src/law.rs` governs cardinality bounds when 
 ### POWL-to-process-tree boundary
 
 **Law concept:** The conversion from a WF-net to a POWL model (via Kourani et al.,
-2026 Theorem 4.3) requires the `SeparableWfNet` precondition. The resulting POWL
+2026 Theorems 5.9/5.11) requires the `SeparableWfNet` precondition. The resulting POWL
 model is certified by a `WfNet2PowlWitness` — a non-forgeable struct with a
 private seal. The subsequent projection from POWL to a process tree requires
 `TreeProjectable`. Together these form a two-step boundary: `WfNet → POWL` requires
 separability; `POWL → ProcessTree` requires projectability.
 
-**Paper:** Kourani, Park & van der Aalst (2026) Theorem 4.3: a separable WF-net
+**Paper:** Kourani, Park & van der Aalst (2026) Theorems 5.9/5.11: a separable WF-net
 can be converted to a POWL 2.0 model while preserving the process language. The
 `WfNet2PowlWitness` records that the conversion happened under the separability
 precondition; it cannot be forged externally.

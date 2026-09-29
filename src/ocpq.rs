@@ -129,7 +129,12 @@ impl<const KIND: OcpqScopeKind> ObjectScopeConst<KIND> {
 
 /// The structural sub-kind of an event predicate.
 ///
-/// OCPQ Section 3 defines three distinct event-predicate shapes:
+/// The crate names three distinct event-predicate shapes. These are **crate
+/// shapes, not paper terms**: Küsters & van der Aalst (arXiv:2506.11541, Section 4)
+/// define only the `BASIC_L` predicates E2O, O2O and TBE, and expressly leave
+/// data-attribute predicates undefined ("for brevity, we do not define further
+/// predicates"); the OCPQ tool supports such filters (Section 5) without naming
+/// them this way:
 /// - [`EventPredicateKind::ActivityEquals`] — the event activity label matches
 ///   a literal string.
 /// - [`EventPredicateKind::AttributeEquals`] — a named event attribute matches
@@ -154,7 +159,9 @@ pub enum EventPredicateKind {
 
 /// The structural sub-kind of an object predicate.
 ///
-/// OCPQ Section 3 defines two distinct object-predicate shapes:
+/// The crate names two distinct object-predicate shapes. As with
+/// [`EventPredicateKind`], these are **crate shapes, not paper terms**
+/// (OCPQ Section 4 `BASIC_L` has no attribute/type predicates):
 /// - [`ObjectPredicateKind::AttributeEquals`] — a named object attribute
 ///   matches a literal value.
 /// - [`ObjectPredicateKind::TypeEquals`] — the object's declared type matches
@@ -286,7 +293,7 @@ impl<const KIND: ObjectPredicateKind> TypedObjectPredicate<KIND> {
 
 /// The structural sub-kind of a relation predicate.
 ///
-/// OCPQ Section 4 (BASIC_L) defines three distinct relation predicate shapes:
+/// OCPQ Section 4 (`BASIC_L`, Definition 5 onward) defines exactly three predicate shapes:
 /// - [`RelationPredicateKind::E2O`] — event-to-object link (E2O).
 /// - [`RelationPredicateKind::O2O`] — object-to-object link (O2O).
 /// - [`RelationPredicateKind::TimeBetweenEvents`] — time-between-events (TBE).
@@ -495,13 +502,13 @@ impl ObjectScope {
 /// **Structure only**: records *what the predicate asserts*. It does NOT parse
 /// or evaluate the predicate.
 ///
-/// OCPQ Section 4 (BASIC_L) defines three typed relation predicate kinds:
+/// OCPQ Section 4 (`BASIC_L`) defines three predicate kinds:
 /// [`PredicateKind::E2ORelation`], [`PredicateKind::O2ORelation`], and
 /// [`PredicateKind::TimeBetweenEvents`]. These replace the opaque
 /// `Relation(String)` / `Temporal(String)` placeholders and name the three
 /// structurally distinct link types so they cannot be confused at the call site.
 ///
-/// Section 4 also introduces CHILD SET predicates:
+/// Section 4 also introduces the `CHILD SET` predicates (`CBS`, child-set-size):
 /// [`PredicateKind::ChildSetBound`] carries a named branch label with a count
 /// bound, distinguishing it from the anonymous [`PredicateKind::Cardinality`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -611,9 +618,10 @@ pub enum PredicateKind {
     },
     /// A CHILD SET BOUND predicate (CBS).
     ///
-    /// OCPQ Section 4 — `CBS(branch_label, n_min, n_max)`: asserts that a
-    /// parent node has between `n_min` and `n_max` child bindings satisfying
-    /// the branch named `branch_label`. Unlike [`PredicateKind::Cardinality`]
+    /// OCPQ Section 4 — `CBS(A, n_min, n_max)` (paper: child-set *size*
+    /// predicate over the child node reached by the edge labelled `A`): asserts
+    /// that a parent node has between `n_min` and `n_max` child bindings
+    /// satisfying the branch named `branch_label`. Unlike [`PredicateKind::Cardinality`]
     /// (which is an anonymous count bound), this variant is labelled: the
     /// branch name is structurally required.
     ///
@@ -851,8 +859,9 @@ pub enum OcpqRefusal {
     /// A [`PredicateKind::ChildSetBound`] had `min > max` or an empty
     /// `branch_label`.
     ///
-    /// Law: OCPQ Section 4 CBS(A, n_min, n_max) requires a non-empty branch
-    /// name and `n_min ≤ n_max`.
+    /// Law: OCPQ Section 4 CBS(A, n_min, n_max) is defined over a *named*
+    /// child-edge label `A` (crate: non-empty) and a size range
+    /// `n_min ≤ |S| ≤ n_max` (crate: `n_min ≤ n_max`, else unsatisfiable).
     InvalidChildSetBound,
     /// A [`ObjectScopeConst`] declared with [`OcpqScopeKind::SingleType`]
     /// contains zero or more than one declared object type.
@@ -867,7 +876,7 @@ pub enum OcpqRefusal {
     ConflictingPredicateKinds,
     /// A predicate references a variable not declared in the query's object scope.
     ///
-    /// Law: OCPQ Section 3 — every variable must be bound in the scope before use.
+    /// Law: OCPQ Section 4 (Definition 3, variable bindings) — predicates range over declared event/object variables; using an undeclared variable is refused (crate policy).
     UnboundVariable,
 }
 
@@ -898,7 +907,8 @@ impl core::fmt::Display for OcpqRefusal {
 /// a const-generic where-bound so that a violation is a **compile error**, not a
 /// runtime refusal.
 ///
-/// Law: OCPQ Section 4 — a cardinality predicate requires `min ≤ max`. There is
+/// Law: a cardinality/child-set bound requires `min ≤ max` (crate policy;
+/// OCPQ Section 4 CBS uses `n_min ≤ |S| ≤ n_max`). There is
 /// no runtime refusal path: the bound is wrong at authorship time, not at
 /// evaluation time.
 ///
@@ -996,8 +1006,9 @@ where
 /// `&'static str` naming the branch, so `ChildSetBoundConst<"items", 1, 5>` and
 /// `ChildSetBoundConst<"lines", 1, 5>` are **different types** at compile time.
 ///
-/// Law: OCPQ Section 4 CBS(A, n_min, n_max) — `n_min ≤ n_max`, non-empty branch
-/// label required. The const where-bound `Require<{ MIN <= MAX }>: IsTrue`
+/// Law: OCPQ Section 4 CBS(A, n_min, n_max) is a size range over the child
+/// set of edge label `A`; the crate requires `n_min ≤ n_max` and a non-empty branch
+/// label. The const where-bound `Require<{ MIN <= MAX }>: IsTrue`
 /// enforces this at the type level.
 ///
 /// ## Compile-time negative receipt

@@ -152,7 +152,7 @@ witness_marker!(
 );
 witness_marker!(
     /// OCPQ — Object-Centric Process Querying.
-    OcpqPaper, "ocpq-paper", WitnessFamily::Paper, "Object-Centric Process Querying", Some(2024)
+    OcpqPaper, "ocpq-paper", WitnessFamily::Paper, "OCPQ: Object-Centric Process Querying and Constraints", Some(2025)
 );
 witness_marker!(
     /// The Declare constraint-template family (declarative process modeling).
@@ -383,8 +383,8 @@ witness_marker!(
     /// WF-net → POWL 2.0 conversion authority (Kourani, Park & van der Aalst, 2026).
     ///
     /// Names the authority that governs lossless conversion of a *separable*
-    /// WF-net into a POWL 2.0 model via the decomposition theorem (Definition 4.1
-    /// and Theorem 4.3 of the 2026 paper). An `Admission<T, WfNet2Powl>` asserts
+    /// WF-net into a POWL 2.0 model via the decomposition algorithm (Definitions 3.6 and
+    /// 3.13, Theorems 5.9 and 5.11 of the 2026 paper, arXiv:2602.15739). An `Admission<T, WfNet2Powl>` asserts
     /// that the admitted value was produced by — or is compatible with — the
     /// Kourani 2026 WF-net→POWL conversion path.
     ///

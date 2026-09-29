@@ -7,9 +7,9 @@ use wasm4pm_compat::process_tree::{operator_minimum_arity, operator_maximum_arit
 use wasm4pm_compat::law::ProcessTreeOperatorKind;
 
 fn main() {
-    // Loop is exactly arity 2.
+    // Loop is arity 2 (IM/POWL do+redo) or 3 (pm4py/ProM do+redo+exit).
     assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Loop), 2);
-    assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Loop), 2);
+    assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Loop), 3);
 
     // Silent has no children.
     assert_eq!(operator_minimum_arity(ProcessTreeOperatorKind::Silent), 0);

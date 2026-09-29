@@ -229,8 +229,8 @@ witness_marker!(
     OcpqPaper,
     "ocpq-paper",
     WitnessFamily::Paper,
-    "Object-Centric Process Querying",
-    Some(2024)
+    "OCPQ: Object-Centric Process Querying and Constraints",
+    Some(2025)
 );
 
 witness_marker!(
@@ -378,7 +378,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definition 4.1 and Theorem 4.3 of the 2026 paper. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority).
+    /// WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definitions 3.6 and 3.13 and Theorems 5.9 and 5.11 of arXiv:2602.15739. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority).
     WfNet2Powl,
     "wfnet-to-powl",
     WitnessFamily::Paper,

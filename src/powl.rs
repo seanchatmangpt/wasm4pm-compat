@@ -1624,7 +1624,7 @@ pub enum Powl8Op {
 ///
 /// ## Paper
 ///
-/// Kourani, Park & van der Aalst (2026) — Theorem 4.3: a separable WF-net can
+/// Kourani, Park & van der Aalst (2026) — Theorems 5.9/5.11: a separable WF-net can
 /// be converted to a POWL 2.0 model while preserving the process language. This
 /// witness records that the conversion took place under the separability
 /// precondition (`SeparableWfNet`) and produced an equivalent POWL model.

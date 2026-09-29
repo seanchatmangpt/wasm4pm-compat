@@ -33,14 +33,20 @@ use crate::law::{IsTrue, ProcessTreeOperatorKind, Require};
 /// Returns the minimum child arity for a given [`ProcessTreeOperatorKind`].
 ///
 /// This is a **compile-time-observable** constant function. It encodes the
-/// structural arity law for each operator:
+/// structural arity law for each operator.
+///
+/// Loop is 2 or 3 children: the Inductive Miner papers (Leemans et al.) use the
+/// binary form `⟲(do, redo)` with an implicit tau exit, while the process-tree
+/// implementations in ProM and pm4py use the ternary form `(do, redo, exit)`
+/// (pm4py pads a 2-child loop to 3 with a tau exit when simulating). Both are
+/// admitted; see [`operator_maximum_arity`].
 ///
 /// | Operator  | Minimum arity | Law                              |
 /// |-----------|:-------------:|----------------------------------|
 /// | Sequence  |       2       | ordering over one element is trivial |
 /// | Xor       |       2       | choice between one is trivial    |
 /// | Parallel  |       2       | concurrency of one is trivial    |
-/// | Loop      |       2       | do-body + redo-branch (Leemans)  |
+/// | Loop      |       2       | do + redo (Leemans/IM binary form; pm4py drops a tau exit) |
 /// | Silent    |       0       | tau carries no children          |
 ///
 /// ```
@@ -68,13 +74,13 @@ pub const fn operator_minimum_arity(kind: ProcessTreeOperatorKind) -> usize {
 /// | Sequence  |   unbounded   | arbitrarily long sequences allowed   |
 /// | Xor       |   unbounded   | n-ary exclusive choice               |
 /// | Parallel  |   unbounded   | n-ary parallel composition           |
-/// | Loop      |       2       | exactly do-body + redo (Leemans)     |
+/// | Loop      |       3       | do, redo, exit (pm4py / ProM ternary form; IM emits tau exit) |
 /// | Silent    |       0       | tau has no children                  |
 ///
 /// ```
 /// use wasm4pm_compat::process_tree::operator_maximum_arity;
 /// use wasm4pm_compat::law::ProcessTreeOperatorKind;
-/// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Loop), 2);
+/// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Loop), 3);
 /// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Silent), 0);
 /// assert_eq!(operator_maximum_arity(ProcessTreeOperatorKind::Sequence), usize::MAX);
 /// ```
@@ -83,7 +89,7 @@ pub const fn operator_maximum_arity(kind: ProcessTreeOperatorKind) -> usize {
         ProcessTreeOperatorKind::Sequence => usize::MAX,
         ProcessTreeOperatorKind::Xor => usize::MAX,
         ProcessTreeOperatorKind::Parallel => usize::MAX,
-        ProcessTreeOperatorKind::Loop => 2,
+        ProcessTreeOperatorKind::Loop => 3,
         ProcessTreeOperatorKind::Silent => 0,
     }
 }
@@ -92,8 +98,11 @@ pub const fn operator_maximum_arity(kind: ProcessTreeOperatorKind) -> usize {
 
 /// A loop node with its arity encoded as a const generic parameter.
 ///
-/// Paper: Leemans (2013) inductive miner — a loop operator has exactly 2
-/// children: the `do` body and the `redo` branch.
+/// This is the **binary** loop form `⟲(do, redo)` used by the Inductive Miner
+/// papers (Leemans et al.) and by POWL's `↺(ψ1, ψ2)` operator, where the exit is
+/// implicit. The ternary `(do, redo, exit)` form used by ProM/pm4py process trees
+/// is admitted by [`ProcessTree::admit_shape`] (Loop arity 2 or 3) but has no
+/// typed node here.
 /// `TypedLoopNode<_, 3>` does **not compile**: `ARITY == 2` is violated.
 ///
 /// ```
@@ -322,7 +331,8 @@ pub enum ProcessTreeOperator {
     Xor,
     /// Concurrent / interleaved children (`+`).
     Parallel,
-    /// Loop: first child is the `do` body, second the `redo` body (`*`).
+    /// Loop (`*`): first child is the `do` body, second the `redo` body, optional
+    /// third the `exit` body (pm4py/ProM ternary form; absent = implicit tau exit).
     Loop,
     /// Silent leaf (tau) — observable-activity-free step.
     Silent,
@@ -398,7 +408,7 @@ impl ProcessTree {
     /// - [`ProcessTreeRefusal::DanglingNodeReference`] — a child id is out of bounds
     /// - [`ProcessTreeRefusal::TauLeafWithChildren`] — Silent node has children
     /// - [`ProcessTreeRefusal::BelowMinimumArity`] — Sequence/Xor/Parallel with < 2 children
-    /// - [`ProcessTreeRefusal::InvalidArity`] — Loop with ≠ 2 children
+    /// - [`ProcessTreeRefusal::InvalidArity`] — Loop with fewer than 2 or more than 3 children (do, redo[, exit])
     ///
     /// # Examples
     ///
@@ -448,7 +458,9 @@ impl ProcessTree {
                             }
                         }
                         ProcessTreeOperator::Loop => {
-                            if children.len() != 2 {
+                            // 2 = (do, redo) IM/POWL form; 3 = (do, redo, exit)
+                            // ProM/pm4py form.
+                            if !(2..=3).contains(&children.len()) {
                                 return Err(ProcessTreeRefusal::InvalidArity);
                             }
                         }
@@ -502,7 +514,7 @@ impl ProcessTree {
 #[non_exhaustive]
 pub enum ProcessTreeRefusal {
     /// An operator received the wrong number of children (e.g. a [`Loop`] with
-    /// other than two children).
+    /// fewer than two or more than three children).
     ///
     /// [`Loop`]: ProcessTreeOperator::Loop
     InvalidArity,
@@ -527,7 +539,7 @@ pub enum ProcessTreeRefusal {
     DanglingNodeReference,
     /// An operator node received fewer children than its minimum arity.
     ///
-    /// XOR, AND, and SEQ all require at least 2 children; Loop requires exactly 2.
+    /// XOR, AND, and SEQ all require at least 2 children; Loop requires 2 or 3 (do, redo[, exit]).
     BelowMinimumArity,
     /// Cycles were detected in the child-id graph — process trees are acyclic.
     CycleDetected,

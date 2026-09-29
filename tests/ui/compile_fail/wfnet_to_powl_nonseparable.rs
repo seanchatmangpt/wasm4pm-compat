@@ -1,10 +1,10 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
-// Law: SeparabilityNonForgeabilityLaw — SeparableWfNet cannot be constructed via struct literal; the private _seal field prevents forging a separability claim outside declare_separable (Kourani, Park & van der Aalst 2026 Theorem 4.3)
+// Law: SeparabilityNonForgeabilityLaw — SeparableWfNet cannot be constructed via struct literal; the private _seal field prevents forging a separability claim outside declare_separable (Kourani, Park & van der Aalst 2026 Theorems 5.9/5.11)
 
 // COMPILE-FAIL: Non-separable WF-net cannot be projected to POWL without named refusal
 //
-// Law: Kourani, Park & van der Aalst (2026) Theorem 4.3 — only a *separable*
+// Law: Kourani, Park & van der Aalst (2026) Theorems 5.9/5.11 — only a *separable*
 // WF-net can be converted to a POWL 2.0 model while preserving the process
 // language. The `SeparableWfNet<S>` wrapper is the sole type-level receipt of
 // separability; it is non-forgeable because its `_seal` field is private.

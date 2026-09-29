@@ -424,7 +424,7 @@ pub struct SeparableWfNet<
     /// Non-forgeable seal: this private field prevents constructing a
     /// separability claim via struct-literal syntax outside
     /// [`SeparableWfNet::declare_separable`] (Kourani, Park & van der Aalst
-    /// 2026, Theorem 4.3). Without it, a non-separable WF-net could be forged
+    /// 2026, Theorems 5.9/5.11). Without it, a non-separable WF-net could be forged
     /// into the POWL conversion path.
     _seal: (),
 }

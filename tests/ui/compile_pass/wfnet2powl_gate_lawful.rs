@@ -3,7 +3,7 @@
 // COMPILE-PASS: wfnet2powl_gate_lawful — SeparableWfNet can be converted to POWL
 // using the into_powl conversion gate.
 //
-// Law: Kourani, Park & van der Aalst (2026) Theorem 4.3 — separable WF-net
+// Law: Kourani, Park & van der Aalst (2026) Theorems 5.9/5.11 — separable WF-net
 // can be converted to POWL 2.0 preserving language. The conversion gate returning
 // WfNet2PowlWitness represents a proof that the model was generated from a separable
 // workflow net.

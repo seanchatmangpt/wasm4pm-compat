@@ -170,13 +170,19 @@ impl ObjectTypeCardinality {
 impl OCEL {
     // --- OCEDO formal layer:  L = (E, O, eval, oaval) ---------------------
     //
-    // Paper grounding (Latif et al., "Object-Centric Analysis of XES Event Logs",
-    // OCEDO meta-model, Fig. 1): an event has exactly one `time`, one event-type,
-    // 1..* event-attribute-values, and a qualified `*` reference to objects.
-    // An object has one object-type, 1..* object-attribute-values, and qualified
-    // from/to object-relations. OCPQ Def. 2 adds: every event has >=1 qualified
-    // object ref; objects carry qualified O2O refs; type/objects are time-stable;
-    // attribute values (oaval) vary per timestamp.
+    // Paper grounding: the OCED meta-model (TF-PM OCED standard effort) that
+    // Latif, Latif & Rahman, "Object-Centric Analysis of XES Event Logs:
+    // Integrating OCED Modeling with SPARQL Queries" (PROFES 2025,
+    // arXiv:2511.00693) reproduce as Fig. 1 (an image; the multiplicities below
+    // are read from that figure and are not restated in the paper's text):
+    // an event has exactly one `time`, one event-type, 1..* event-attribute-values,
+    // and a qualified `*` reference to objects. An object has one object-type,
+    // 1..* object-attribute-values, and qualified from/to object-relations.
+    // Küsters & van der Aalst, OCPQ (arXiv:2506.11541), Def. 2 adds: every event
+    // has >=1 qualified object ref; objects carry optional qualified O2O refs;
+    // type/objects are time-stable; attribute values (oaval) vary per timestamp.
+    // Note: the OCEL 2.0 specification's Def. 2 itself allows events without
+    // objects; the >=1 rule comes from OCPQ Def. 2 / the OCEL website prose.
 
     /// `E` — the set of events.
     ///
@@ -509,6 +515,16 @@ impl OCEL {
 // ── OCEL 2.0 object-centric types ─────────────────────────────────────────
 
 /// An attribute value in OCEL 2.0.
+///
+/// The OCEL 2.0 specification (ocel-standard.org; JSON/XML/SQLite formats)
+/// admits exactly five attribute types: `string`, `time` (ISO 8601),
+/// `integer`, `float` and `boolean`. Here `String`, `TimestampNs` (the `time`
+/// type, held as nanoseconds since the Unix epoch), `Integer`, `Float` and
+/// `Boolean` are the spec-conformant variants. `List`, `Map` and `Null` are
+/// **crate extensions beyond the specification**: the standard's exchange
+/// formats have no representation for them, so a log using them cannot be
+/// exported losslessly to OCEL 2.0 JSON/XML/SQLite (a missing value is simply an
+/// absent attribute in the standard).
 #[derive(Debug, Clone, PartialEq)]
 pub enum OcelAttributeValue {
     Integer(i64),
@@ -796,6 +812,19 @@ impl OcelLog {
         &self.changes
     }
 
+    /// Structural admission check for the log.
+    ///
+    /// Refuses a log with **no event-to-object link at all**
+    /// ([`OcelRefusal::EmptyEventObjectLinks`]) and any E2O link whose object is
+    /// absent ([`OcelRefusal::DanglingEventObjectLink`]).
+    ///
+    /// Note the non-empty-E2O rule is **crate admission policy** (the
+    /// object-centricity law), not a mandate of the OCEL 2.0 specification: the
+    /// spec's formal Definition 2 explicitly "allows for events without objects
+    /// or objects without events", and its JSON schema does not require
+    /// `relationships`. (The OCEL website prose and OCPQ Definition 2 do state
+    /// that every event has at least one object; this check is the weaker,
+    /// log-level form of that and is not per-event.)
     pub fn validate(&self) -> Result<(), OcelRefusal> {
         if self.e2o_links.is_empty() {
             return Err(OcelRefusal::EmptyEventObjectLinks);
@@ -814,7 +843,9 @@ impl OcelLog {
     ///
     /// Specifically checks Assumption 3 (exactly one reference object) and Assumption 5 (Locality Principle).
     ///
-    /// # Gianola (2026) Example 4: The Locality Principle Violation
+    /// # Locality Principle Violation (adapted from Gianola et al. 2026, Example 4)
+    ///
+    /// The paper's Example 4 uses a team/employee log (`create team t3` with `p1,p3` already in other teams); the scenario below is a minimal variant of the same shape.
     ///
     /// If an employee `p2` is already a member of team `t1`, an event creating a new team `t2`
     /// that includes `p2` forces an implicit deletion of `p2`'s relationship with `t1`. If the reference
@@ -910,7 +941,9 @@ impl OcelLog {
 pub enum OcelRefusal {
     /// An event-to-object link references an object not present in the log.
     DanglingEventObjectLink,
-    /// The log has no event-to-object links — violates object-centricity law.
+    /// The log has no event-to-object links — violates the crate's
+    /// object-centricity law (crate policy; OCEL 2.0 Def. 2 itself permits
+    /// events without objects).
     EmptyEventObjectLinks,
     /// Violates Gianola (2026) Assumption 3: An event must have at least one reference object.
     MissingReferenceObject,

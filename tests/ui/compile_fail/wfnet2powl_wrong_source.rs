@@ -1,11 +1,11 @@
 #![feature(adt_const_params)]
 #![allow(incomplete_features)]
-// Law: WfNet2PowlSourceLaw — a bare PetriNet cannot enter the WF-net→POWL conversion gate; the gate requires SeparableWfNet, not a plain net with no soundness or separability marker (Kourani, Park & van der Aalst 2026 Theorem 4.3)
+// Law: WfNet2PowlSourceLaw — a bare PetriNet cannot enter the WF-net→POWL conversion gate; the gate requires SeparableWfNet, not a plain net with no soundness or separability marker (Kourani, Park & van der Aalst 2026 Theorems 5.9/5.11)
 
 // COMPILE-FAIL: WfNet2PowlSourceLaw — a plain PetriNet (non-WF-net) cannot
 // be passed through the WF-net to POWL conversion gate.
 //
-// Law: Kourani, Park & van der Aalst (2026) Theorem 4.3 — the WF-net to POWL
+// Law: Kourani, Park & van der Aalst (2026) Theorems 5.9/5.11 — the WF-net to POWL
 // 2.0 conversion requires a *separable WF-net*, not a bare PetriNet. A plain
 // PetriNet has neither the WF-net soundness marker (WfNetConst) nor the
 // separability marker (SeparableWfNet). Passing it to the conversion gate
@@ -16,7 +16,7 @@ use wasm4pm_compat::law::SoundnessState;
 use wasm4pm_compat::petri::{Marking, PetriNet, SeparableWfNet};
 use wasm4pm_compat::powl::WfNet2PowlWitness;
 
-/// Structural gate: only a SeparableWfNet satisfies the Theorem 4.3
+/// Structural gate: only a SeparableWfNet satisfies the Theorems 5.9/5.11
 /// precondition for WF-net → POWL 2.0 conversion.
 fn wfnet_to_powl_gate<const S: SoundnessState>(
     _separable: SeparableWfNet<S>,
