@@ -1,4 +1,4 @@
-// Law: XesExtensionPrefixDeclarationLaw — XesExtension requires non-empty name/prefix/uri; a log with only declared prefixes passes XesLog::validate() (IEEE 1849-2016 §5.2)
+// Law: XesExtensionPrefixDeclarationLaw — XesExtension carries name/prefix/uri (validate() requires a non-empty prefix); a log with only declared prefixes passes XesLog::validate() (crate policy; XES 2.0 §2.6 extensions)
 // COMPILE-PASS: xes-extension-prefix-declaration law — proves that XesExtension
 // constructs with name/prefix/uri, exposes each field via accessor, and that a
 // log carrying only declared prefixes passes XesLog::validate().

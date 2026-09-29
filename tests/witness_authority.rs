@@ -69,7 +69,7 @@ fn object_centric_petri_net_paper_metadata() {
 fn ocpq_paper_metadata() {
     assert_eq!(OcpqPaper::KEY, "ocpq-paper");
     assert_eq!(OcpqPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(OcpqPaper::YEAR, Some(2024));
+    assert_eq!(OcpqPaper::YEAR, Some(2025));
 }
 
 #[test]
@@ -93,7 +93,7 @@ fn predictive_monitoring_family_metadata() {
 fn yawl_paper_metadata() {
     assert_eq!(YawlPaper::KEY, "yawl-paper");
     assert_eq!(YawlPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(YawlPaper::YEAR, Some(2004));
+    assert_eq!(YawlPaper::YEAR, Some(2005));
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn alpha_miner_metadata() {
 fn alignment_paper_metadata() {
     assert_eq!(AlignmentPaper::KEY, "alignment-paper");
     assert_eq!(AlignmentPaper::FAMILY, WitnessFamily::Paper);
-    assert_eq!(AlignmentPaper::YEAR, Some(2008));
+    assert_eq!(AlignmentPaper::YEAR, Some(2011));
 }
 
 #[test]

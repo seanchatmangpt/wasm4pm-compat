@@ -101,7 +101,7 @@ compat:QleverSparqlEnginePaper
     a compat:WitnessMarker ;
     compat:rustType     "QleverSparqlEnginePaper" ;
     compat:witnessKey   "rdf/qlever-sparql-engine-cikm-2017" ;
-    compat:witnessTitle "QLever: A High-Performance SPARQL Engine (CIKM 2017)" ;
+    compat:witnessTitle "QLever: A Query Engine for Efficient SPARQL+Text Search (CIKM 2017)" ;
     compat:witnessYear  2017 ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "rdf" ;

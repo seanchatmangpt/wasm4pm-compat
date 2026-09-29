@@ -241,7 +241,7 @@ impl<Unit> Default for TimeDelta<Unit> {
 
 /// A deviation score in standard deviations from the temporal profile mean.
 ///
-/// Grounded in Stertz et al. (2020), conformance checking computes a Z-score
+/// Grounded in Stertz, Mangler & Rinderle-Ma (2020, arXiv:2008.07262), conformance checking computes a Z-score
 /// representing the time distance deviation.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct ZScore(pub f64);

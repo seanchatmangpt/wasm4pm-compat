@@ -1418,7 +1418,7 @@ hook:Pnml (PNML, 2004)
 hook:WfNetSoundnessPaper (van der Aalst 1998)
 hook:PowlPaper (Kourani & van Zelst 2023)
 hook:ObjectCentricPetriNetPaper (van der Aalst & Berti 2020)
-hook:OcpqPaper (Küsters & vdA 2024)
+hook:OcpqPaper (Küsters & vdA 2025)
 hook:DeclareFamily (declarative 2007)
 hook:InductiveMinerPaper (Leemans 2013)
 

@@ -486,7 +486,7 @@ witness_marker!(
     QleverSparqlEnginePaper,
     "rdf/qlever-sparql-engine-cikm-2017",
     WitnessFamily::Paper,
-    "QLever: A High-Performance SPARQL Engine (CIKM 2017)",
+    "QLever: A Query Engine for Efficient SPARQL+Text Search (CIKM 2017)",
     Some(2017)
 );
 

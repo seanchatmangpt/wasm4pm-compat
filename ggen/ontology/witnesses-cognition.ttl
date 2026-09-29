@@ -162,7 +162,7 @@ compat:SituationCalculusPaper
     a compat:WitnessMarker ;
     compat:rustType     "SituationCalculusPaper" ;
     compat:witnessKey   "cognition/situation-calculus-1991" ;
-    compat:witnessTitle "A Logic for Default Reasoning (Situation Calculus)" ;
+    compat:witnessTitle "The Frame Problem in the Situation Calculus: A Simple Solution (Sometimes) and a Completeness Result for Goal Regression" ;
     compat:witnessYear  1991 ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "cognition" ;
@@ -412,7 +412,7 @@ compat:DendralPaper
     a compat:WitnessMarker ;
     compat:rustType     "DendralPaper" ;
     compat:witnessKey   "cognition/dendral-1971" ;
-    compat:witnessTitle "Applications of Artificial Intelligence for Chemical Inference" ;
+    compat:witnessTitle "On Generality and Problem Solving: A Case Study Using the DENDRAL Program" ;
     compat:witnessYear  1971 ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "cognition" ;

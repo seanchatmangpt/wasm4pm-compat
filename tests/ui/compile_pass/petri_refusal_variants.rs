@@ -9,6 +9,7 @@ fn main() {
         PetriRefusal::MissingFinalMarking,
         PetriRefusal::DeadTransition,
         PetriRefusal::UnsafeNet,
+        PetriRefusal::InitialFinalMarkingOverlap,
         PetriRefusal::UnboundedNet,
         PetriRefusal::ObjectTypeNotPreserved,
         PetriRefusal::InvalidVariableArc,

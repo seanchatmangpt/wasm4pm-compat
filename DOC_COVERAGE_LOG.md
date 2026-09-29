@@ -665,7 +665,7 @@ Priority 1 — `xes` module: XES import path — last gap before bijective cover
   - `XesToOcedProjectionShape`: standard/with_case_type/projection_name/case_object_type/activity_attribute_key/timestamp_attribute_key
   - `XesDeclaredExtensionLaw`: NAME/REFUSAL_VARIANT/governs/description/Display
   - `XesExtensionPrefixWitness`: new/prefix/is_standard/standard_witnesses (concept,time,lifecycle,org)/Display
-  - `XesLifecycleTransition`: Complete/Start/Schedule/Unknown as_str + parse (14 variants, parse("notavalue")=None)
+  - `XesLifecycleTransition`: Complete/Start/Schedule/Unknown as_str + parse (13 variants, parse("notavalue")=None)
   - `XesStandardPrefix`: Concept.as_str()="concept", parse("time")=Some(Time), parse("unknown")=None
   - `XesRefusal`: all 10 variants with Display "XES refused by law: <Name>"
 - **Link:** README.md and CLAUDE.md updated

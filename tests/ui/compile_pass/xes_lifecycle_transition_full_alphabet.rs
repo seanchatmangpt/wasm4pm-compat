@@ -1,6 +1,6 @@
-// Law: XesLifecycleTransitionFullAlphabetLaw — XesLifecycleTransition names the full IEEE 1849-2016 standard alphabet (14 variants); as_str()/parse() round-trip and is_terminal() is correct
+// Law: XesLifecycleTransitionFullAlphabetLaw — XesLifecycleTransition names the full IEEE 1849-2016 standard alphabet (13 variants); as_str()/parse() round-trip and is_terminal() is correct
 // COMPILE-PASS: xes-lifecycle-transition-full-alphabet — proves XesLifecycleTransition
-// names the full IEEE 1849-2016 standard alphabet (14 variants), that as_str()
+// names the full IEEE 1849-2016 standard alphabet (13 variants), that as_str()
 // is consistent with parse(), and that is_terminal() identifies the terminal states.
 use wasm4pm_compat::xes::XesLifecycleTransition;
 
@@ -12,17 +12,16 @@ fn main() {
         XesLifecycleTransition::Start,
         XesLifecycleTransition::Suspend,
         XesLifecycleTransition::Resume,
-        XesLifecycleTransition::InProgress,
-        XesLifecycleTransition::Abort,
+        XesLifecycleTransition::PiAbort,
+        XesLifecycleTransition::AteAbort,
         XesLifecycleTransition::Withdraw,
         XesLifecycleTransition::Complete,
         XesLifecycleTransition::Unknown,
         XesLifecycleTransition::AutoSkip,
         XesLifecycleTransition::ManualSkip,
         XesLifecycleTransition::Reassign,
-        XesLifecycleTransition::Plan,
     ];
-    assert_eq!(all.len(), 14);
+    assert_eq!(all.len(), 13);
     for v in all {
         let s = v.as_str();
         assert_eq!(XesLifecycleTransition::parse(s), Some(v));
@@ -30,7 +29,8 @@ fn main() {
 
     // Terminal states.
     assert!(XesLifecycleTransition::Complete.is_terminal());
-    assert!(XesLifecycleTransition::Abort.is_terminal());
+    assert!(XesLifecycleTransition::PiAbort.is_terminal());
+    assert!(XesLifecycleTransition::AteAbort.is_terminal());
     assert!(XesLifecycleTransition::Withdraw.is_terminal());
     assert!(XesLifecycleTransition::ManualSkip.is_terminal());
     assert!(XesLifecycleTransition::AutoSkip.is_terminal());

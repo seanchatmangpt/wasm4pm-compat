@@ -2,7 +2,7 @@
 // named law that implements Witness with correct metadata, and that it is
 // non-interchangeable with DeclareConstraints at the type level.
 //
-// Law: Verbeek & Leemans (2018) — Log Skeleton declarative model. LogSkeleton
+// Law: Verbeek & de Carvalho (2018) — Log Skeleton declarative model. LogSkeleton
 // names the six-relation model (always-before, always-after, never-together, …)
 // mined directly from an event log. An Admission<T, LogSkeleton> is a different
 // type from Admission<T, DeclareConstraints> — both are declarative but name
@@ -20,7 +20,7 @@ fn accept_any_witness<W: Witness>(_: std::marker::PhantomData<W>) {
 fn main() {
     // LogSkeleton carries the correct metadata.
     assert_eq!(LogSkeleton::KEY, "log-skeleton");
-    assert_eq!(LogSkeleton::TITLE, "Log Skeleton (Verbeek & Leemans)");
+    assert_eq!(LogSkeleton::TITLE, "Log Skeleton (Verbeek & de Carvalho)");
     assert_eq!(LogSkeleton::YEAR, Some(2018));
     assert_eq!(LogSkeleton::FAMILY, WitnessFamily::Paper);
 

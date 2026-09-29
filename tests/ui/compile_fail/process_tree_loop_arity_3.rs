@@ -1,7 +1,7 @@
 #![feature(generic_const_exprs)]
 #![allow(incomplete_features)]
 // COMPILE-FAIL: Process tree arity law — TypedLoopNode<_,3> violates ARITY == 2.
-// Law: A loop operator in the Leemans inductive miner has exactly 2 children:
+// Law: The binary loop in the Leemans inductive miner / POWL has 2 children:
 // the do-body and the redo-branch. ARITY must equal 2.
 use wasm4pm_compat::process_tree::TypedLoopNode;
 

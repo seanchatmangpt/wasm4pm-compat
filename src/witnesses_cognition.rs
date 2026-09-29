@@ -198,7 +198,7 @@ witness_marker!(
     DendralPaper,
     "cognition/dendral-1971",
     WitnessFamily::Paper,
-    "Applications of Artificial Intelligence for Chemical Inference",
+    "On Generality and Problem Solving: A Case Study Using the DENDRAL Program",
     Some(1971)
 );
 
@@ -468,7 +468,7 @@ witness_marker!(
     SituationCalculusPaper,
     "cognition/situation-calculus-1991",
     WitnessFamily::Paper,
-    "A Logic for Default Reasoning (Situation Calculus)",
+    "The Frame Problem in the Situation Calculus: A Simple Solution (Sometimes) and a Completeness Result for Goal Regression",
     Some(1991)
 );
 

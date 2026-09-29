@@ -8,7 +8,7 @@
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** a soundness checker or token-replay engine. The soundness *witness*
+//! - **Not** a soundness checker (state-space / short-circuit analysis) or a token-replay engine. The soundness *witness*
 //!   is issued by a proof token; this crate never *computes* soundness, fires a
 //!   transition, or explores a marking graph.
 //!
@@ -58,6 +58,11 @@ pub enum PetriRefusal {
     MissingFinalMarking,
     DeadTransition,
     UnsafeNet,
+    /// The initial and final markings put tokens on a common place. A WF-net
+    /// (van der Aalst 1998) has a source place `i` and a distinct sink place
+    /// `o`, with initial marking `[i]` and final marking `[o]`, so the two
+    /// markings are disjoint. This is **not** a safeness violation.
+    InitialFinalMarkingOverlap,
     UnboundedNet,
     ObjectTypeNotPreserved,
     InvalidVariableArc,
@@ -72,6 +77,7 @@ impl fmt::Display for PetriRefusal {
             PetriRefusal::MissingFinalMarking => "MissingFinalMarking",
             PetriRefusal::DeadTransition => "DeadTransition",
             PetriRefusal::UnsafeNet => "UnsafeNet",
+            PetriRefusal::InitialFinalMarkingOverlap => "InitialFinalMarkingOverlap",
             PetriRefusal::UnboundedNet => "UnboundedNet",
             PetriRefusal::ObjectTypeNotPreserved => "ObjectTypeNotPreserved",
             PetriRefusal::InvalidVariableArc => "InvalidVariableArc",
@@ -89,7 +95,10 @@ impl std::error::Error for PetriRefusal {}
 /// Typestate marker: soundness has been asserted (not verified by replay).
 pub struct SoundnessClaimed;
 
-/// Typestate marker: soundness has been witnessed by token replay.
+/// Typestate marker: soundness has been witnessed by a proof token issued by a
+/// soundness decision procedure (state-space or short-circuit liveness/boundedness
+/// analysis, van der Aalst 1997/1998). Token replay is a conformance technique
+/// and does not establish soundness.
 pub struct SoundnessWitnessed;
 
 /// Default typestate: no soundness claim has been made yet.
@@ -103,7 +112,8 @@ pub type Unchecked = SoundnessUnknown;
 /// The typestate parameter `S` tracks soundness evidence:
 /// - `WfNet<SoundnessUnknown>` — no soundness claim made
 /// - `WfNet<SoundnessClaimed>` — caller asserted soundness via `claim_sound()`
-/// - `WfNet<SoundnessWitnessed>` — soundness verified by token replay
+/// - `WfNet<SoundnessWitnessed>` — soundness witnessed by a proof token from a
+///   soundness decision procedure (not by token replay)
 pub struct WfNet<S = SoundnessUnknown> {
     net: PetriNet,
     final_marking: Marking,
@@ -337,10 +347,15 @@ impl InitialFinalMarkingPair {
             final_marking,
         }
     }
+    /// Checks the workflow-net marking shape: initial (`[i]`) and final (`[o]`)
+    /// markings must be disjoint because a WF-net's source and sink places are
+    /// distinct (van der Aalst 1998). Overlap is refused as
+    /// [`PetriRefusal::InitialFinalMarkingOverlap`]. Safeness/boundedness is a
+    /// behavioural property and is not checked here.
     pub fn validate(&self) -> Result<(), PetriRefusal> {
         for (p_init, t_init) in self.initial.tokens() {
             if *t_init > 0 && self.final_marking.tokens_on(p_init) > 0 {
-                return Err(PetriRefusal::UnsafeNet);
+                return Err(PetriRefusal::InitialFinalMarkingOverlap);
             }
         }
         Ok(())
@@ -424,7 +439,7 @@ pub struct SeparableWfNet<
     /// Non-forgeable seal: this private field prevents constructing a
     /// separability claim via struct-literal syntax outside
     /// [`SeparableWfNet::declare_separable`] (Kourani, Park & van der Aalst
-    /// 2026, Theorem 4.3). Without it, a non-separable WF-net could be forged
+    /// 2026, Theorems 5.9/5.11). Without it, a non-separable WF-net could be forged
     /// into the POWL conversion path.
     _seal: (),
 }
@@ -463,13 +478,14 @@ impl SoundnessProof {
 
 /// The subclass marker for Free-Choice Petri Nets vs. General Workflow Nets.
 ///
-/// Under Free-Choice nets (Desel 1995), soundness is decidable in polynomial time,
-/// whereas general WF-nets require PSPACE-complete complexity.
+/// Under Free-Choice nets (Desel & Esparza 1995; van der Aalst 1996), soundness is
+/// decidable in polynomial time, whereas for general WF-nets soundness is decidable
+/// (van der Aalst 1997) but computationally very hard (at least EXPSPACE-hard).
 #[derive(core::marker::ConstParamTy, PartialEq, Eq, Clone, Copy, Debug, Hash)]
 pub enum FreeChoiceMarker {
     /// The net is structurally free-choice, enabling the polynomial-time soundness checking path.
     FreeChoice,
-    /// The net is general, requiring the PSPACE-complete soundness checking path.
+    /// The net is general, requiring the general (intractable) soundness checking path.
     General,
 }
 
@@ -754,8 +770,10 @@ impl Event {
 
 /// A Branching Process (occurrence net) of a Petri net.
 ///
-/// Under Murata 1989, the branching process is acyclic, and every condition
-/// has at most one incoming event. The type parameter `Net` binds the branching
+/// Following Nielsen, Plotkin & Winskel (1981) and Engelfriet (1991), a
+/// branching process is an acyclic occurrence net in which every condition
+/// has at most one incoming event. (Murata 1989 is the reference for the
+/// underlying Petri-net rules, not for branching processes.) The type parameter `Net` binds the branching
 /// process to the original Petri net type, enforcing type safety.
 #[derive(Debug, Clone, PartialEq)]
 pub struct BranchingProcess<Net = PetriNet> {
@@ -801,7 +819,7 @@ impl<Net> Default for BranchingProcess<Net> {
 
 /// An Unfolding Prefix of a branching process.
 ///
-/// Under Murata 1989 and McMillan 1992, the unfolding prefix is a finite complete prefix
+/// Following McMillan (1992) (finite complete prefix, building on Engelfriet 1991), the unfolding prefix is a finite complete prefix
 /// containing cut-off event designations that truncates infinite execution sequences.
 #[derive(Debug, Clone, PartialEq)]
 pub struct UnfoldingPrefix<Net = PetriNet> {

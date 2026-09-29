@@ -8,8 +8,17 @@ use std::fmt;
 
 // ── DeclareTemplate ───────────────────────────────────────────────────────────
 
-/// A DECLARE constraint template — the 22 canonical templates from
-/// van der Aalst et al. covering existence, ordering, and mutual-exclusion laws.
+/// A DECLARE constraint template — 24 templates from the Declare language
+/// (Pesic & van der Aalst 2006, as extended by the DeclareMiner / Declare Maps
+/// line of work, Di Ciccio & Mecella) covering existence, choice, ordering and
+/// mutual-exclusion laws.
+///
+/// This is a **subset** of the templates in the literature and in tooling such
+/// as Declare4Py: the cardinality-parameterised `Existence(n)` / `Absence(n)`
+/// families are represented only up to n = 3, and `Exactly`, `End`, and the
+/// negative `NotResponse` / `NotPrecedence` / `NotChainResponse` /
+/// `NotChainPrecedence` templates are not modelled. There is no fixed
+/// "canonical 22": template inventories differ between tools.
 ///
 /// `Copy` is intentional: templates are freely moved into constraint structs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -30,6 +39,14 @@ pub enum DeclareTemplate {
     /// Activity must occur at most twice.
     Absence3,
 
+    // ── Binary choice templates (arity = 2) ──────────────────────────────────
+    /// At least one of activation or target must occur (both may occur).
+    Choice,
+    /// Exactly one of activation or target must occur (not both). A choice
+    /// template — it is **not** in the negative-relation group, and
+    /// [`DeclareTemplate::is_negative`] returns `false` for it.
+    ExclusiveChoice,
+
     // ── Binary positive templates (arity = 2) ────────────────────────────────
     /// If activation occurs, target must occur (in any order).
     RespondedExistence,
@@ -41,9 +58,11 @@ pub enum DeclareTemplate {
     Precedence,
     /// Response + Precedence.
     Succession,
-    /// As Response, but target must occur after the LAST activation.
+    /// As Response, but between any two activations there must be a target
+    /// (each activation is followed by a target before the next activation).
     AlternateResponse,
-    /// As Precedence, but activation must immediately precede target.
+    /// As Precedence, but between any two targets there must be an activation
+    /// (each target is preceded by an activation not already used by another target).
     AlternatePrecedence,
     /// AlternateResponse + AlternatePrecedence.
     AlternateSuccession,
@@ -55,14 +74,16 @@ pub enum DeclareTemplate {
     ChainSuccession,
 
     // ── Binary negative templates (arity = 2) ────────────────────────────────
-    /// Activation and target must never both occur.
+    /// Target must never occur after activation (activation is never followed by
+    /// target, in any distance). Unlike `NotCoExistence`, both may occur if
+    /// target comes first.
     NotSuccession,
     /// Activation and target must never occur in immediate succession.
     NotChainSuccession,
     /// Activation and target must not both occur.
     NotCoExistence,
-    /// Exactly one of activation or target must occur.
-    ExclusiveChoice,
+    /// If activation occurs, target must never occur (before or after).
+    NotRespondedExistence,
 }
 
 impl DeclareTemplate {
@@ -88,6 +109,7 @@ impl DeclareTemplate {
                 | DeclareTemplate::Absence2
                 | DeclareTemplate::Absence3
                 | DeclareTemplate::NotCoExistence
+                | DeclareTemplate::NotRespondedExistence
                 | DeclareTemplate::NotSuccession
                 | DeclareTemplate::NotChainSuccession
         )

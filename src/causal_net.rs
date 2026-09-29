@@ -1,9 +1,21 @@
-//! Causal net structural shapes — Weijters & Ribeiro (2011) Heuristics Miner output.
+//! Causal net structural shapes — van der Aalst (2011) causal nets, as produced by
+//! the Flexible Heuristics Miner (Weijters & Ribeiro, 2011).
 //!
-//! A *causal net* (C-net) is a graph model produced by the Heuristics Miner
-//! algorithm (Weijters & Ribeiro, 2011). Unlike a Petri net, arcs in a C-net
-//! carry *dependency measures* (floating-point scores in [0, 1]) that reflect
-//! the observed causal strength between activities in an event log.
+//! The C-net formalism `(A, a_i, a_o, D, I, O)` — activities, unique start and
+//! end activity, dependency relation, and input/output binding sets (sets of
+//! sets: outer choice, inner conjunction) — is due to van der Aalst, Adriansyah
+//! & van Dongen, "Causal Nets: A Modeling Language Tailored towards Process
+//! Discovery" (CONCUR 2011). The formal C-net carries **no** numeric scores.
+//!
+//! The Flexible Heuristics Miner (Weijters & Ribeiro, 2011) produces causal-net
+//! style dependency graphs annotated with *dependency measures*. In the
+//! Heuristics Miner (Weijters, van der Aalst & de Medeiros 2006) the raw measure
+//! `a ⇒ b = (|a>b| − |b>a|) / (|a>b| + |b>a| + 1)` lies strictly between −1 and
+//! 1, while the length-one and length-two loop measures lie in `[0, 1)`. This
+//! module stores only the **retained** (non-negative) measures of an
+//! already-thresholded graph, so it validates scores against `[0, 1]`; a
+//! negative raw measure names a dependency in the reverse direction and is not
+//! a valid retained arc score here.
 //!
 //! Each task in a C-net is associated with a set of *input bindings* and a set
 //! of *output bindings* — structured conjunctions and disjunctions of
@@ -39,7 +51,9 @@ use crate::law::{Between01, IsTrue, Require};
 // ── DependencyMeasure ─────────────────────────────────────────────────────────
 
 /// An arc dependency measure: the causal strength between two activities,
-/// represented as a rational fraction in `[0, 1]` at the type level.
+/// represented as a rational fraction in `[0, 1]` at the type level. This is the
+/// range of a *retained* (non-negative) Heuristics Miner measure; the raw
+/// `a ⇒ b` measure ranges over `(-1, 1)` (Weijters et al. 2006, Eq. 1).
 ///
 /// Under nightly features `generic_const_exprs` and `adt_const_params`,
 /// this type guarantees at compile-time that the measure is in the range `[0, 1]`.
@@ -47,9 +61,12 @@ use crate::law::{Between01, IsTrue, Require};
 ///
 /// ## Paper
 ///
-/// Weijters & Ribeiro (2011) — Section 2 (dependency measure formulae).
+/// Weijters, van der Aalst & de Medeiros (2006) — Eq. 1 (dependency measure);
+/// Weijters & Ribeiro (2011) — Flexible Heuristics Miner.
 ///
 /// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
 /// use wasm4pm_compat::causal_net::DependencyMeasure;
 /// let dm: DependencyMeasure<4, 5> = DependencyMeasure::new();
 /// assert_eq!(dm.num(), 4);
@@ -273,7 +290,7 @@ impl CausalBinding {
 pub enum CausalNetRefusal {
     /// A task has an empty/missing activity label.
     MissingActivity,
-    /// An arc or loop has a dependency measure score outside the valid range [0, 1].
+    /// An arc or loop has a dependency measure score outside the valid retained-measure range [0, 1].
     InvalidDependencyScore,
     /// The graph is structurally disconnected (isolated tasks that are not
     /// referenced in any dependency arcs or short loops).

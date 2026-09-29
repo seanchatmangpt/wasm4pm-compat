@@ -129,7 +129,7 @@ Type law lives in **public modules**, not in a single foundry appendix:
 - **`src/law.rs`** — `ConstParamTy` enum set, `Assert`/`IsTrue`/`Require` bounds machinery, `ConditionCell<BITS>`, `Between01<NUM, DEN>`. This is the compile-time law kernel.
 - **`src/petri.rs`** — typed bipartite arc types, `WfNetConst<SOUNDNESS>` with non-forgeable witness path.
 - **`src/conformance.rs`** — `Metric<KIND, NUM, DEN>` with `Between01` bounds.
-- **`src/process_tree.rs`** — `TypedLoopNode<ARITY>` with `Require<{ ARITY == 2 }>: IsTrue`.
+- **`src/process_tree.rs`** — `TypedLoopNode<ARITY>` with `Require<{ ARITY == 2 }>: IsTrue` (binary IM/POWL loop form; `admit_shape` and `operator_*_arity` admit Loop arity 2 or 3, the latter being the pm4py/ProM `(do, redo, exit)` form).
 - **`src/powl.rs`** — `TreeProjectable` sealed trait, `assert_tree_projectable`.
 - **`src/formats.rs`** — `LossyFormatExport` requiring a non-optional loss report.
 - **`src/strict.rs`** — `ExportBoundaryConst<HAS_WITNESS, HAS_ROUND_TRIP>` const-generic type.
@@ -227,12 +227,12 @@ Runnable examples in `examples/` (run with `cargo run --example <name>`):
 | `workflow_typestate` | (none) | `BranchToken<T,S>` Pending→Running→Completed, `ParallelWorkflow::split`, `JoinPoint` join_success / join_canceled_b, zero-size verification |
 | `object_lifecycle_phases` | (none) | `ObjectLifecyclePhase` ×5 Display, `LifecycledObject::new`, 5 type aliases; transition methods blocked by nightly E0391 |
 | `interop_boundary_grammar` | (none) | `Pm4pyShape` (7 tags), `FilterShape`, `SummaryShape`, `ConformanceTriple`, `ArtifactGrounding`, `InteropRefusal` (5 named laws), `check_filter_shape`, `OcelToXesProjection` + `XesToOcedProjection`, `FilterShapeConst<IS_OC>`, `GraduationCandidate` |
-| `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (5 kinds), `TypedLoopNode/XorNode/AndNode/SeqNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
+| `process_tree_shape` | (none) | `operator_minimum/maximum_arity` (5 kinds; Loop = 2..=3, do/redo[/exit]), `TypedLoopNode/XorNode/AndNode/SeqNode` (arity law), `ProcessTree::admit_shape()`, `ProcessTreeRefusal` (9 named laws) |
 | `ids_typed_identifiers` | (none) | `TypedId` sealed trait (`is_zero`, `raw_value`), `ObjectTypeName<K>` + `EventTypeName<K>` string-backed names, `id_of::<T>(raw)` phantom-typed constructor, `NewFromRaw`, `From`/`Into`/`FromStr` for all 8 id kinds |
 | `temporal_order_shapes` | (none) | `TemporalOrder` (4 variants, Display, Copy, Hash), `TemporalProfile<Trace>` zero-cost shape, `TemporalOrderWitness` + `SojournTimeWitness` markers, `TimeAwareEvidence<T,Order>` wrapper (new/into_inner, distinct types per Order context) |
 | `diagnostic_surface` | (none) | `CompatDiagnostic` (9 named law violations, Display → `[Error]`/`[Info]`, Copy, Hash), `DiagnosticSeverity` (Error/Warning/Info, Display) |
 | `nightly_foundry_surfaces` | (none) | `petri_law` (Marking, PreMatrix enabling, PostMatrix firing), `powl_law` (TypedNode<KIND> 5 variants, OrderEdge), `evidence_law` (EvidenceKind raw/"admitted" via specialization), `token_law` (SIMD enabled_4/8 + fire_4), `families_match_simd` |
-| `xes_interchange_grammar` | (none) | All 12 pub items: CaseCentricMarker, XesExtension, XesEvent, XesTraceAttributes, XesTrace, XesLog (validate + 10 named XesRefusal laws), XesToOcedProjectionShape, XesDeclaredExtensionLaw, XesExtensionPrefixWitness, XesLifecycleTransition (14 variants), XesStandardPrefix (4 prefixes), XesRefusal |
+| `xes_interchange_grammar` | (none) | All 12 pub items: CaseCentricMarker, XesExtension, XesEvent, XesTraceAttributes, XesTrace, XesLog (validate + 10 named XesRefusal laws), XesToOcedProjectionShape, XesDeclaredExtensionLaw, XesExtensionPrefixWitness, XesLifecycleTransition (13 variants), XesStandardPrefix (7 prefixes), XesRefusal |
 | `ocel_to_conformance_pipeline` | (none) | **Cross-product:** `OcelLog` → `ObjectCentricDfg` → `ConformanceResult` → `ReceiptEnvelope` — four-module pipeline composition |
 | `strict_boundary_claim` | `strict` | `ProcessBoundary` declaration, `StrictCheck`, named violations: `MissingLossPolicy`, `MissingRefusalPath` |
 | `graduation_candidate` | `wasm4pm` | `GraduateToWasm4pm` bridge, `GraduationCandidate` grounded vs ungrounded |

@@ -2,7 +2,7 @@
 // distinct named law that implements Witness with correct metadata, and that
 // it is non-interchangeable with WfNetSoundnessPaper at the type level.
 //
-// Law: van Dongen, de Medeiros & Wen (2008) — alignment-based conformance
+// Law: Adriansyah, van Dongen & van der Aalst (2011) — alignment-based conformance
 // checking. An Admission<T, AlignmentPaper> is a different type from
 // Admission<T, WfNetSoundnessPaper> — conformance-checking authority is
 // orthogonal to structural soundness authority. This fixture proves the
@@ -20,7 +20,7 @@ fn main() {
         AlignmentPaper::TITLE,
         "Alignment-Based Conformance Checking"
     );
-    assert_eq!(AlignmentPaper::YEAR, Some(2008));
+    assert_eq!(AlignmentPaper::YEAR, Some(2011));
     assert_eq!(AlignmentPaper::FAMILY, WitnessFamily::Paper);
 
     // AlignmentPaper satisfies the Witness bound.

@@ -91,7 +91,7 @@ paper:YAWL2004
     rdfs:label "YAWL2004" ;
     paper:ledgerIndex 36 ;
     paper:title "YAWL: Yet Another Workflow Language" ;
-    paper:year 2004 ;
+    paper:year 2005 ;
     paper:authors "van der Aalst, ter Hofstede" ;
     paper:canonFamily "WORKFLOW_PATTERNS_BPMN" ;
     compat:coverageStatus "COVERED_BY_TYPE" ;
@@ -227,8 +227,8 @@ paper:AlignmentConformance2008
     rdfs:label "AlignmentConformance2008" ;
     paper:ledgerIndex 41 ;
     paper:title "Alignment-Based Conformance Checking" ;
-    paper:year 2008 ;
-    paper:authors "van Dongen, de Medeiros, Wen" ;
+    paper:year 2011 ;
+    paper:authors "Adriansyah, van Dongen, van der Aalst" ;
     paper:canonFamily "CONFORMANCE_ALIGNMENT" ;
     compat:coverageStatus "COVERED_BY_GRADUATION_BOUNDARY" ;
     compat:coveringModule "src/conformance.rs" ;
@@ -302,9 +302,9 @@ paper:TemporalProfileConformance2020
     a compat:PaperCoverage ;
     rdfs:label "TemporalProfileConformance2020" ;
     paper:ledgerIndex 65 ;
-    paper:title "Temporal Profile Conformance Checking" ;
+    paper:title "Temporal Conformance Checking at Runtime based on Time-infused Process Models" ;
     paper:year 2020 ;
-    paper:authors "Stertz, Rinderle-Ma, Rinderle" ;
+    paper:authors "Stertz, Mangler, Rinderle-Ma" ;
     paper:canonFamily "CONFORMANCE_ALIGNMENT" ;
     compat:coverageStatus "COVERED_BY_TYPE" ;
     compat:coveringModule "src/temporal.rs" ;

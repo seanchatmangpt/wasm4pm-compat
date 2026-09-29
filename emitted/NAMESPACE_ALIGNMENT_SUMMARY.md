@@ -75,7 +75,7 @@ sh:         http://www.w3.org/ns/shacl#
 | `ocel:` | `http://purl.org/ocel/2.0/ontology#` | OCEL 2.0 | Emerging | **IMPORT when published** |
 | `bpmn:` | `http://www.omg.org/spec/BPMN/2.0.2/ontology#` | BPMN 2.0 RDF | In-progress | **IMPORT when OMG stabilizes** |
 | `powl:` | `http://purl.org/powl/2.0/ontology#` | POWL 2.0 | Emerging | **IMPORT when published** |
-| `ocpq:` | `http://purl.org/ocpq/ontology#` | OCPQ 2024 | Emerging | **IMPORT when published** |
+| `ocpq:` | `http://purl.org/ocpq/ontology#` | OCPQ 2025 | Emerging | **IMPORT when published** |
 | (already in use) | `http://purl.org/dc/terms/` | Dublin Core | Stable | **Extend usage** |
 
 **Recommendation:** Define prefixes now in `wasm4pm-compat.ttl` as `@prefix` declarations; enable `owl:imports` when external standards publish RDF ontologies.
@@ -160,7 +160,7 @@ sh:         http://www.w3.org/ns/shacl#
 |----------|---|---|---|
 | **BPMN 2.0 RDF** | OMG spec in-progress | MONITOR: OMG Modeling & Ontology SIG for RDF publication | 12–18 months |
 | **POWL 2.0 RDF** | Authors developing spec | COORDINATE: Contact Kourani, van Zelst for RDF ontology | 6–12 months |
-| **OCPQ RDF** | Spec is new (2024) | MONITOR: Author publications for RDF binding | 12–24 months |
+| **OCPQ RDF** | Spec is new (2025) | MONITOR: Author publications for RDF binding | 12–24 months |
 
 ### Import Priority 3: PERMANENT LOCAL (No RDF Standard)
 | Standard/Structure | Reason | Action |

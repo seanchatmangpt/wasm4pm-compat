@@ -27,12 +27,12 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Alignment-based conformance checking (van Dongen, de Medeiros and Wen, 2008). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation.
+    /// Alignment-based conformance checking (Adriansyah, van Dongen and van der Aalst, 2011). Optimal and heuristic alignments between event log and process model. Graduate to wasm4pm for actual alignment computation.
     AlignmentPaper,
     "alignment-paper",
     WitnessFamily::Paper,
     "Alignment-Based Conformance Checking",
-    Some(2008)
+    Some(2011)
 );
 
 witness_marker!(
@@ -153,11 +153,11 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Log Skeleton declarative model (Verbeek and Leemans, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints.
+    /// Log Skeleton declarative model (Verbeek and de Carvalho, 2018). Six relations: always-before, always-after, never-together, etc. Distinct from DeclareConstraints.
     LogSkeleton,
     "log-skeleton",
     WitnessFamily::Paper,
-    "Log Skeleton (Verbeek and Leemans)",
+    "Log Skeleton (Verbeek and de Carvalho)",
     Some(2018)
 );
 
@@ -229,8 +229,8 @@ witness_marker!(
     OcpqPaper,
     "ocpq-paper",
     WitnessFamily::Paper,
-    "Object-Centric Process Querying",
-    Some(2024)
+    "OCPQ: Object-Centric Process Querying and Constraints",
+    Some(2025)
 );
 
 witness_marker!(
@@ -270,7 +270,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// The predictive (business) process monitoring problem family.
+    /// The predictive (business) process monitoring problem family. A family label, not one seminal paper; the year 2018 is anchored on the survey Di Francescomarino, Ghidini, Maggi and Milani, Predictive Process Monitoring Methods: Which One Suits Me Best? (BPM 2018, LNCS 11080).
     PredictiveMonitoringFamily,
     "predictive-monitoring-family",
     WitnessFamily::Paper,
@@ -342,7 +342,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Rinderle-Ma and Rinderle (2020).
+    /// Temporal profile authority — full temporal profile (statistical distribution of time distances between activity pairs) computed and attached. Grounded in Stertz, Mangler and Rinderle-Ma (2020), Temporal Conformance Checking at Runtime based on Time-infused Process Models.
     TemporalProfileWitness,
     "temporal-profile-witness",
     WitnessFamily::Paper,
@@ -378,7 +378,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definition 4.1 and Theorem 4.3 of the 2026 paper. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority).
+    /// WF-net to POWL 2.0 conversion authority (Kourani, Park and van der Aalst, 2026). Definitions 3.6 and 3.13 and Theorems 5.9 and 5.11 of arXiv:2602.15739. Distinct from SeparableWfNetPaper (separability subclass) and PowlPaper (language authority).
     WfNet2Powl,
     "wfnet-to-powl",
     WitnessFamily::Paper,
@@ -432,10 +432,10 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, 2004). Typed routing constructs, cancellation regions, multiple-instance tasks.
+    /// YAWL — Yet Another Workflow Language (van der Aalst and ter Hofstede, Information Systems 30(4), 2005). Typed routing constructs, cancellation regions, multiple-instance tasks.
     YawlPaper,
     "yawl-paper",
     WitnessFamily::Paper,
     "YAWL: Yet Another Workflow Language",
-    Some(2004)
+    Some(2005)
 );

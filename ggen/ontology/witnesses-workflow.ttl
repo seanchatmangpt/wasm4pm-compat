@@ -11,11 +11,11 @@ compat:StochasticConformancePaper
     a compat:WitnessMarker ;
     compat:rustType     "StochasticConformancePaper" ;
     compat:witnessKey   "workflow/stochastic-conformance-2020" ;
-    compat:witnessTitle "Stochastic Conformance Checking: Comparing Stochastic Process Models and Event Logs" ;
-    compat:witnessYear  2020 ;
+    compat:witnessTitle "Earth Movers' Stochastic Conformance Checking" ;
+    compat:witnessYear  2019 ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "workflow" ;
-    compat:description  "Stochastic Conformance — Leemans, Syring & van der Aalst (2020): fitness/precision on stochastic nets." .
+    compat:description  "Stochastic Conformance — Leemans, Syring & van der Aalst (2019): fitness/precision on stochastic nets." .
 
 compat:ComplianceAwarePredictivePaper
     a compat:WitnessMarker ;
@@ -212,9 +212,9 @@ compat:ProcessQueryWitness
     a compat:WitnessMarker ;
     compat:rustType     "ProcessQueryWitness" ;
     compat:witnessKey   "workflow/process-querying-witness-2017" ;
-    compat:witnessTitle "Process Querying Methods" ;
+    compat:witnessTitle "Process Querying: Enabling Business Intelligence through Query-Based Process Analytics" ;
     compat:witnessYear  2017 ;
     compat:witnessFamily compat:Paper ;
     compat:paperCategory "workflow" ;
-    compat:description  "Process Querying Methods — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework." .
+    compat:description  "Process Querying: Enabling Business Intelligence through Query-Based Process Analytics — Polyvyanyy, Ouyang, Barros & van der Aalst (2017): behavioral/structural query framework." .
 

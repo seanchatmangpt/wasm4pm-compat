@@ -160,7 +160,7 @@ names the constraint-template authority.
 ### OCPQ (Object-Centric Process Querying)
 
 A query language for asking structural questions about object-centric process models.
-Introduced in the OCPQ paper (2024). In this crate, the `ocpq` module carries the
+Introduced in the OCPQ paper (Küsters & van der Aalst, 2025). In this crate, the `ocpq` module carries the
 query shape; the `OcpqPaper` witness names the authority.
 
 ### Petri net

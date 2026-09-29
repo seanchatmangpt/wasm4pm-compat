@@ -11,11 +11,12 @@
 //! Choice Graphs represent a generalization of block-structured choice operators
 //! (such as the standard `Choice` variant). Standard process trees and POWL models
 //! typically enforce block-structured decisions (single-entry, single-exit choices).
-//! Choice Graphs relax this constraint by allowing a directed acyclic graph (DAG)
-//! of sub-models, unlocking the representation and mining of non-block-structured
-//! decisions.
+//! Choice Graphs relax this constraint by allowing a directed graph of sub-models
+//! with a unique start and end node (cycles are permitted by Definition 1; the
+//! paper's discovery algorithm mines only acyclic choice graphs), unlocking the
+//! representation and mining of non-block-structured decisions.
 //!
-//! According to Kourani, Park, and van der Aalst (2025), "Unlocking Non-Block-Structured
+//! According to Kourani, Park, and van der Aalst (2025; arXiv May 2025), "Unlocking Non-Block-Structured
 //! Decisions: Inductive Mining with Choice Graphs" (arXiv:2505.07052), this operator
 //! enables inductive mining techniques to discover more precise models from event logs
 //! containing non-trivial decision patterns, while remaining sound and structurally clear.

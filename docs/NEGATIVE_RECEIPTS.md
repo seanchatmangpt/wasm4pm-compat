@@ -278,10 +278,10 @@ no assertion, no test assertion.
 | `separable_wfnet_rejected` | SeparabilityPreconditionLaw — bare WfNetConst does not carry separability marker (Kourani et al. 2026, Definition 4.1) |
 | `wfnet_claimed_as_witnessed` | WfNetConst<{SoundnessState::Claimed}> cannot be passed where SoundnessWitnessed required |
 | `wfnet_forged_soundness` | WfNetSoundnessNonForgeabilityLaw — WfNetConst<Witnessed> cannot be constructed via struct literal |
-| `wfnet_to_powl_nonseparable` | SeparabilityNonForgeabilityLaw — non-separable WF-net cannot project to POWL (Theorem 4.3) |
+| `wfnet_to_powl_nonseparable` | SeparabilityNonForgeabilityLaw — non-separable WF-net cannot project to POWL (Theorems 5.9/5.11) |
 | `wfnet_unknown_as_claimed` | WfNetConst<{SoundnessState::Unknown}> cannot be passed where Claimed required |
-| `wfnet2powl_precondition_rejected` | WfNet2PowlPreconditionLaw — plain WfNetConst does not satisfy SeparableWfNet precondition (Theorem 4.3) |
-| `wfnet2powl_wrong_source` | WfNet2PowlSourceLaw — bare PetriNet cannot enter WF-net→POWL gate; requires SeparableWfNet (Theorem 4.3) |
+| `wfnet2powl_precondition_rejected` | WfNet2PowlPreconditionLaw — plain WfNetConst does not satisfy SeparableWfNet precondition (Theorems 5.9/5.11) |
+| `wfnet2powl_wrong_source` | WfNet2PowlSourceLaw — bare PetriNet cannot enter WF-net→POWL gate; requires SeparableWfNet (Theorems 5.9/5.11) |
 
 ### POWL (13 fixtures)
 

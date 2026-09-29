@@ -3,10 +3,19 @@
 //! Kourani, Park, van der Aalst, "Unlocking Non-Block-Structured Decisions:
 //! Inductive Mining with Choice Graphs."
 //!
-//! A Choice Graph is a directed acyclic graph with a unique Start node (no
-//! incoming edges) and a unique End node (no outgoing edges) such that every
-//! node lies on at least one Start→End path. Interior nodes are either inline
-//! activities or references to a sub-model in a `PowlArena`.
+//! A Choice Graph `(N, E)` has a unique Start node (no incoming edges) and a
+//! unique End node (no outgoing edges) such that every node lies on at least
+//! one Start→End path. Interior nodes are either inline activities or
+//! references to a sub-model in a `PowlArena`.
+//!
+//! **Cycles are allowed.** Definition 1 of the paper does not require
+//! acyclicity: `E ⊆ N × N` is an arbitrary binary relation subject to the
+//! unique-start, unique-end and every-node-on-a-path conditions. Only the
+//! paper's *discovery algorithm* mines acyclic choice graphs (its "acyclicity
+//! requirement" on choice-graph cuts, Definition 5); the conclusion states that
+//! "POWL 2.0 itself allows for more general decision structures" and leaves
+//! cyclic choice graphs to future discovery work. This implementation therefore
+//! accepts cyclic graphs.
 
 use serde::{Deserialize, Serialize};
 
@@ -113,7 +122,8 @@ impl ChoiceGraph {
             }
         }
 
-        // 4. Acyclicity: REMOVED/Relaxed to model cyclic loops
+        // 4. Acyclicity is NOT required by Definition 1 (only by the paper's
+        //    discovery algorithm), so cycles are permitted.
 
         // 5. Every node on some Start→End path.
         // Reachable from Start (forward) ∩ reachable to End (backward).

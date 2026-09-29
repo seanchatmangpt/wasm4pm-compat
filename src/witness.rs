@@ -152,14 +152,17 @@ witness_marker!(
 );
 witness_marker!(
     /// OCPQ — Object-Centric Process Querying.
-    OcpqPaper, "ocpq-paper", WitnessFamily::Paper, "Object-Centric Process Querying", Some(2024)
+    OcpqPaper, "ocpq-paper", WitnessFamily::Paper, "OCPQ: Object-Centric Process Querying and Constraints", Some(2025)
 );
 witness_marker!(
     /// The Declare constraint-template family (declarative process modeling).
     DeclareFamily, "declare-family", WitnessFamily::Paper, "Declare constraint family", Some(2007)
 );
 witness_marker!(
-    /// The predictive (business) process monitoring problem family.
+    /// The predictive (business) process monitoring problem family. A family
+    /// label, not one seminal paper; the year 2018 is anchored on the survey
+    /// Di Francescomarino, Ghidini, Maggi & Milani, *Predictive Process Monitoring
+    /// Methods: Which One Suits Me Best?* (BPM 2018, LNCS 11080).
     PredictiveMonitoringFamily,
     "predictive-monitoring-family",
     WitnessFamily::Paper,
@@ -180,7 +183,7 @@ witness_marker!(
     Wasm4pmBridge, "wasm4pm-bridge", WitnessFamily::InternalBridge, "wasm4pm graduation bridge", None
 );
 witness_marker!(
-    /// YAWL — Yet Another Workflow Language (van der Aalst & ter Hofstede, 2004).
+    /// YAWL — Yet Another Workflow Language (van der Aalst & ter Hofstede, Information Systems 30(4), 2005).
     ///
     /// Covers typed routing constructs (AND/XOR/OR split/join), cancellation
     /// regions, and multiple-instance tasks. An `Admission<T, YawlPaper>` is
@@ -189,7 +192,7 @@ witness_marker!(
     "yawl-paper",
     WitnessFamily::Paper,
     "YAWL: Yet Another Workflow Language",
-    Some(2004)
+    Some(2005)
 );
 witness_marker!(
     /// Hierarchical Decomposition of Separable WF-nets (Kourani et al., 2026).
@@ -243,7 +246,7 @@ witness_marker!(
     Some(2006)
 );
 witness_marker!(
-    /// Alignment-based conformance checking (van Dongen, de Medeiros & Wen, 2008).
+    /// Alignment-based conformance checking (Adriansyah, van Dongen & van der Aalst, 2011).
     ///
     /// Names the alignment approach to conformance — the authority behind
     /// optimal and heuristic alignments between an event log and a process
@@ -254,7 +257,7 @@ witness_marker!(
     "alignment-paper",
     WitnessFamily::Paper,
     "Alignment-Based Conformance Checking",
-    Some(2008)
+    Some(2011)
 );
 witness_marker!(
     /// Object-centric Petri nets — the notation authority.
@@ -271,7 +274,7 @@ witness_marker!(
     Some(2020)
 );
 witness_marker!(
-    /// Log Skeleton (Verbeek & Leemans, 2018).
+    /// Log Skeleton (Verbeek & de Carvalho, 2018).
     ///
     /// Names the Log Skeleton declarative model: a set of six relations
     /// (always-before, always-after, never-together, …) mined directly from
@@ -281,7 +284,7 @@ witness_marker!(
     LogSkeleton,
     "log-skeleton",
     WitnessFamily::Paper,
-    "Log Skeleton (Verbeek & Leemans)",
+    "Log Skeleton (Verbeek & de Carvalho)",
     Some(2018)
 );
 witness_marker!(
@@ -383,8 +386,8 @@ witness_marker!(
     /// WF-net → POWL 2.0 conversion authority (Kourani, Park & van der Aalst, 2026).
     ///
     /// Names the authority that governs lossless conversion of a *separable*
-    /// WF-net into a POWL 2.0 model via the decomposition theorem (Definition 4.1
-    /// and Theorem 4.3 of the 2026 paper). An `Admission<T, WfNet2Powl>` asserts
+    /// WF-net into a POWL 2.0 model via the decomposition algorithm (Definitions 3.6 and
+    /// 3.13, Theorems 5.9 and 5.11 of the 2026 paper, arXiv:2602.15739). An `Admission<T, WfNet2Powl>` asserts
     /// that the admitted value was produced by — or is compatible with — the
     /// Kourani 2026 WF-net→POWL conversion path.
     ///
@@ -637,8 +640,8 @@ witness_marker!(
     /// `Admission<T, TimeAwareWitness>` — a temporal profile is a richer object
     /// than a bare ordering relation.
     ///
-    /// Grounded in: Stertz, Rinderle-Ma & Rinderle (2020) *Temporal Profile
-    /// Conformance Checking*; see also van der Aalst (2013) Process Cubes for
+    /// Grounded in: Stertz, Mangler & Rinderle-Ma (2020) *Temporal Conformance
+    /// Checking at Runtime based on Time-infused Process Models*; see also van der Aalst (2013) Process Cubes for
     /// the time dimension as a cube axis.
     ///
     /// Structure-only authority label; see [`Witness`]. Graduate to `wasm4pm`

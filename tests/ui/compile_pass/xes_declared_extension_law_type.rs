@@ -1,6 +1,6 @@
-// Law: XesDeclaredExtensionLawTypeLaw — XesDeclaredExtensionLaw names the IEEE 1849-2016 §5.2 declared-extension prefix law as a type-level constant with stable NAME and REFUSAL_VARIANT
+// Law: XesDeclaredExtensionLawTypeLaw — XesDeclaredExtensionLaw names the declared-extension prefix law (crate policy grounded in XES extensions, XES 2.0 §2.6) as a type-level constant with stable NAME and REFUSAL_VARIANT
 // COMPILE-PASS: xes-declared-extension-law-type — proves XesDeclaredExtensionLaw
-// names the IEEE 1849-2016 §5.2 declared-extension prefix law as a type-level
+// names the declared-extension prefix law (crate policy grounded in XES extensions, XES 2.0 §2.6) as a type-level
 // constant, exposes NAME, REFUSAL_VARIANT, governs(), and description().
 use wasm4pm_compat::xes::{XesDeclaredExtensionLaw, XesRefusal};
 

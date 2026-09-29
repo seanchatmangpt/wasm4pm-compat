@@ -1,4 +1,4 @@
-// Law: OcelAttributeValueListLaw — OcelAttributeValue::List is a first-class OCEL 2.0 attribute variant; heterogeneous list attributes are constructible and structurally sound
+// Law: OcelAttributeValueListLaw — OcelAttributeValue::List is a crate extension variant (not one of the five OCEL 2.0 spec attribute types); heterogeneous list attributes are constructible and structurally sound
 // COMPILE-PASS: OcelAttributeValue::List — list-valued OCEL attributes are lawfully constructed.
 use wasm4pm_compat::ocel::OcelAttributeValue;
 

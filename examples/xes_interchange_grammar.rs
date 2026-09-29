@@ -9,9 +9,9 @@
 //!   - `XesLog` — complete XES log (new/name/extensions/traces/validate)
 //!   - `XesToOcedProjectionShape` — projection descriptor (standard/with_case_type/all 4 accessors)
 //!   - `XesDeclaredExtensionLaw` — const law name/refusal/governs/description
-//!   - `XesExtensionPrefixWitness` — prefix authority (new/prefix/is_standard/standard_witnesses×4)
-//!   - `XesLifecycleTransition` — lifecycle alphabet (14 variants, as_str, parse)
-//!   - `XesStandardPrefix` — 4 standard prefixes (as_str, parse)
+//!   - `XesExtensionPrefixWitness` — prefix authority (new/prefix/is_standard/standard_witnesses×7)
+//!   - `XesLifecycleTransition` — lifecycle alphabet (13 variants, as_str, parse)
+//!   - `XesStandardPrefix` — 7 standard prefixes (as_str, parse)
 //!   - `XesRefusal` — 10 named structural laws + Display
 
 use wasm4pm_compat::xes::{
@@ -252,7 +252,7 @@ fn main() {
     assert!(CONCEPT.is_standard());
     assert!(!XesExtensionPrefixWitness::new("custom").is_standard());
     let stdw = XesExtensionPrefixWitness::standard_witnesses();
-    assert_eq!(stdw.len(), 4);
+    assert_eq!(stdw.len(), 7);
     let prefixes: Vec<&str> = stdw.iter().map(|w| w.prefix()).collect();
     assert!(prefixes.contains(&"concept"));
     assert!(prefixes.contains(&"time"));

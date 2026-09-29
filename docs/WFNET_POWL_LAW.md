@@ -1,17 +1,19 @@
 # WFNET_POWL_LAW — WF-net to POWL Conversion
 
-> Theorem 4.3 of Kourani, Park & van der Aalst (2026): a WF-net can be
-> converted to POWL if and only if it is separable. Separability cannot
-> be forged — it is a non-forgeable witness.
+> Theorems 5.9 (correctness) and 5.11 (completeness) of Kourani, Park & van der
+> Aalst (2026, arXiv:2602.15739): every safe and sound *separable* WF-net is
+> converted to a language-equivalent POWL 2.0 model. The paper does not claim
+> the converse ("only if"); this crate gates on separability as a conservative
+> precondition. Separability cannot be forged — it is a non-forgeable witness.
 
 ---
 
 ## The theorem
 
-**Theorem 4.3** (Kourani, Park & van der Aalst 2026):
-Every *separable* WF-net has a semantics-preserving POWL representation.
-Non-separable WF-nets have no such representation — they exceed what
-block-structured partial orders can express.
+**Theorems 5.9/5.11** (Kourani, Park & van der Aalst 2026):
+Every safe and sound *separable* WF-net converts to a language-equivalent
+POWL 2.0 model (Thm 5.11, completeness; Thm 5.9, correctness of the result).
+Non-separable WF-nets fall outside the paper's guarantee (e.g. its Figure 2).
 
 This crate encodes the theorem's precondition as a type-level gate:
 the WF-net→POWL conversion function requires `SeparableWfNet<S>`, not
@@ -84,7 +86,7 @@ outside the petri module.
 | `wfnet_claimed_as_witnessed.rs` | WfNetConst<Claimed> cannot be passed where Witnessed is required |
 | `wfnet_unknown_as_claimed.rs` | WfNetConst<Unknown> cannot be passed where Claimed is required |
 | `separable_wfnet_rejected.rs` | Bare WfNetConst does not carry the separability marker — SeparabilityPreconditionLaw |
-| `wfnet2powl_precondition_rejected.rs` | Plain WfNetConst does not satisfy SeparableWfNet precondition — Theorem 4.3 gate |
+| `wfnet2powl_precondition_rejected.rs` | Plain WfNetConst does not satisfy SeparableWfNet precondition — Theorems 5.9/5.11 gate |
 | `wfnet2powl_wrong_source.rs` | Bare PetriNet cannot enter WF-net→POWL gate — WfNet2PowlSourceLaw |
 
 ---
@@ -127,7 +129,7 @@ PetriNet (bare)
         │
         └─ SeparableWfNet<S>        ← separability claim (non-forgeable)
                 │
-                ▼ convert_to_powl()    (Theorem 4.3 gate)
+                ▼ convert_to_powl()    (Theorems 5.9/5.11 gate)
                 │
                 ├─ Powl<ProcessTreeProjectable>   ← can project to process tree
                 └─ Powl<ExceedsProcessTree>        ← partial orders exceed block structure

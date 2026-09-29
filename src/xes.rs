@@ -13,8 +13,18 @@
 //!
 //! ## Structure only
 //!
-//! [`crate::xes::XesLog::validate`] is a *shape* check: required interchange keys are
-//! present, extensions are well-formed. It does **not** parse a `.xes` file
+//! [`crate::xes::XesLog::validate`] is a *shape* check: the interchange keys this
+//! crate requires are present, extensions carry a prefix. Note that IEEE
+//! 1849-2016 / XES 2.0 itself predefines no mandatory attributes (`concept:name`
+//! lives in the optional *Concept* extension, XES 2.0 definition §2.5/§4.1), so
+//! the `concept:name` requirements are **crate admission policy**, not standard
+//! mandates.
+//!
+//! Attribute values are held as strings: XES's typed attribute set (`string`,
+//! `date`, `int`, `float`, `boolean`, `id`, plus the collection types `list`
+//! and `container`, XES 2.0 definition §2.2) is *not* retained, so the type tag
+//! and nested child attributes of a source document are erased. Graduate to
+//! `wasm4pm` when typed attribute values or nested attributes must survive. It does **not** parse a `.xes` file
 //! (that is an import engine), discover a model, or check conformance — those
 //! graduate to `wasm4pm`. Admission of a raw XES *document* into this typed
 //! shape is the job of the `formats` import contracts; this module is the
@@ -120,8 +130,10 @@ impl XesExtension {
 /// The interchange-critical key is `concept:name` (the activity). Helpers expose
 /// the standard keys; arbitrary keys are accessible via [`crate::xes::XesEvent::attribute`].
 ///
-/// Missing required keys is a structural defect, refused as
-/// [`crate::xes::XesRefusal::MissingConceptName`] at validation time.
+/// A missing `concept:name` is refused as
+/// [`crate::xes::XesRefusal::MissingConceptName`] at validation time. That is
+/// crate admission policy: the standard predefines no mandatory attributes
+/// (`concept:name` belongs to the optional Concept extension).
 ///
 /// Structure-only: it holds attributes verbatim; it does not interpret them.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
@@ -329,8 +341,9 @@ impl XesExtensionNamespace for crate::multiperspective::DataPerspective {
 /// Trace-level attributes in a XES log (attributes on the `<trace>` element).
 ///
 /// In IEEE 1849-2016, a `<trace>` element may carry arbitrary key/value
-/// attributes alongside its events. The `concept:name` is the required
-/// case identifier; additional attributes (e.g. `cost:total`, `org:group`)
+/// attributes alongside its events. The `concept:name` is the conventional
+/// case identifier (Concept extension; required by this crate's
+/// [`crate::xes::XesLog::validate`], not by the standard); additional attributes (e.g. `cost:total`, `org:group`)
 /// may annotate the case as a whole.
 ///
 /// `XesTraceAttributes` is a separate type from [`crate::xes::XesEvent`] attributes to
@@ -435,9 +448,11 @@ impl XesTraceAttributes {
 
 /// A XES trace: a `concept:name`-identified, ordered sequence of [`crate::xes::XesEvent`]s.
 ///
-/// Traces without name are structurally invalid, refused as
+/// Traces without name are refused as
 /// [`crate::xes::XesRefusal::MissingTraceName`]; an empty trace as
-/// [`crate::xes::XesRefusal::EmptyTrace`].
+/// [`crate::xes::XesRefusal::EmptyTrace`]. Both are crate admission policy:
+/// XES 2.0 lets a trace be unnamed (`concept:name` is optional) and lets it
+/// contain zero events.
 ///
 /// Structure-only: it preserves event order verbatim and mines nothing.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -506,8 +521,9 @@ impl XesTrace {
 
 /// A complete XES log: declared extensions plus `concept:name`-identified traces.
 ///
-/// [`crate::xes::XesLog::validate`] checks interchange shape: extensions are well-formed,
-/// the log names itself, traces and events carry required `concept:name` keys.
+/// [`crate::xes::XesLog::validate`] checks interchange shape: extensions carry a
+/// prefix, the log names itself, traces and events carry `concept:name` keys
+/// (crate admission policy; the standard treats `concept:name` as optional).
 /// It is not a `.xes` parser and runs no analysis.
 ///
 /// Structure-only: an admitted `XesLog` is interchange-ready and graduates to
@@ -565,8 +581,9 @@ impl XesLog {
     ///
     /// Checks, in order:
     /// - the log names itself ([`crate::xes::XesRefusal::MissingLogName`]);
-    /// - every extension has a non-empty name, prefix, and URI
-    ///   ([`crate::xes::XesRefusal::InvalidExtension`]);
+    /// - every extension has a non-empty prefix
+    ///   ([`crate::xes::XesRefusal::InvalidExtension`]); the extension `name`
+    ///   and `uri` are stored but **not** checked here;
     /// - the log has at least one trace ([`crate::xes::XesRefusal::NoTraces`]);
     /// - every trace names itself ([`crate::xes::XesRefusal::MissingTraceName`]) and is
     ///   non-empty ([`crate::xes::XesRefusal::EmptyTrace`]);
@@ -746,9 +763,11 @@ impl XesToOcedProjectionShape {
 /// The XES declared-extension law — every namespaced attribute key must
 /// reference a prefix declared in the log's `<extension>` elements.
 ///
-/// IEEE 1849-2016 §5.2 states that every attribute key containing a `:` must
-/// consist of a declared-extension prefix followed by `:` and a local name.
-/// This is the *declared-extension law*: undeclared prefixes are not permitted.
+/// XES extensions (XES 2.0 definition §2.6, the basis of IEEE 1849-2016)
+/// declare a `prefix` that is prepended (with `:`) to the keys of the attributes
+/// the extension defines. The standard does not expressly forbid other keys that
+/// contain a `:`; refusing an undeclared prefix is this crate's stricter
+/// *declared-extension law* (admission policy), not a quoted clause.
 ///
 /// `XesDeclaredExtensionLaw` is the *name* of this law as a type, so that
 /// refusal reasons and diagnostic messages can reference it without a string
@@ -798,8 +817,9 @@ impl XesDeclaredExtensionLaw {
     /// assert!(!XesDeclaredExtensionLaw::description().is_empty());
     /// ```
     pub const fn description() -> &'static str {
-        "IEEE 1849-2016 §5.2: every namespaced attribute key (prefix:local) \
-         must reference an extension prefix declared in the log header."
+        "crate policy grounded in XES extensions (XES 2.0 definition §2.6, IEEE \
+         1849-2016): every namespaced attribute key (prefix:local) must \
+         reference an extension prefix declared in the log header."
     }
 }
 
@@ -858,7 +878,7 @@ impl XesExtensionPrefixWitness {
         self.prefix
     }
 
-    /// Whether this prefix is one of the four IEEE 1849-2016 standard prefixes.
+    /// Whether this prefix is one of the seven IEEE 1849-2016 standard extension prefixes.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
@@ -869,18 +889,21 @@ impl XesExtensionPrefixWitness {
         XesStandardPrefix::parse(self.prefix).is_some()
     }
 
-    /// The four standard extension prefix witnesses from IEEE 1849-2016.
+    /// The seven standard extension prefix witnesses from IEEE 1849-2016.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesExtensionPrefixWitness;
-    /// assert_eq!(XesExtensionPrefixWitness::standard_witnesses().len(), 4);
+    /// assert_eq!(XesExtensionPrefixWitness::standard_witnesses().len(), 7);
     /// ```
-    pub const fn standard_witnesses() -> [XesExtensionPrefixWitness; 4] {
+    pub const fn standard_witnesses() -> [XesExtensionPrefixWitness; 7] {
         [
             XesExtensionPrefixWitness::new("concept"),
             XesExtensionPrefixWitness::new("time"),
             XesExtensionPrefixWitness::new("lifecycle"),
             XesExtensionPrefixWitness::new("org"),
+            XesExtensionPrefixWitness::new("cost"),
+            XesExtensionPrefixWitness::new("identity"),
+            XesExtensionPrefixWitness::new("semantic"),
         ]
     }
 }
@@ -893,7 +916,10 @@ impl core::fmt::Display for XesExtensionPrefixWitness {
 
 /// The standard `lifecycle:transition` values defined in IEEE 1849-2016.
 ///
-/// XES defines a fixed alphabet for the `lifecycle:transition` attribute.
+/// The IEEE 1849-2016 lifecycle extension defines a fixed 13-value transitional
+/// model for the `lifecycle:transition` attribute: `schedule`, `assign`,
+/// `withdraw`, `reassign`, `start`, `suspend`, `resume`, `pi_abort`,
+/// `ate_abort`, `complete`, `autoskip`, `manualskip`, `unknown`.
 /// Events in a trace may carry a transition label indicating where in the
 /// activity lifecycle the event was recorded. An event with a `lifecycle:transition`
 /// value outside this alphabet is refused as
@@ -922,15 +948,15 @@ pub enum XesLifecycleTransition {
     Suspend,
     /// Work on the activity was resumed after suspension.
     Resume,
-    /// The activity is in progress (a progress update).
-    InProgress,
-    /// Execution of the activity was aborted.
-    Abort,
-    /// The activity reached a withdrawal state.
+    /// The whole case (process instance) was aborted (`pi_abort`).
+    PiAbort,
+    /// The activity instance (activity task execution) was aborted (`ate_abort`).
+    AteAbort,
+    /// The activity was withdrawn (scheduled/assigned work was taken back).
     Withdraw,
     /// The activity was completed normally.
     Complete,
-    /// An extra (unexpected) occurrence of the activity was recorded.
+    /// The lifecycle transition is not known (`unknown`).
     Unknown,
     /// The activity was autoskipped by the workflow engine.
     AutoSkip,
@@ -938,8 +964,6 @@ pub enum XesLifecycleTransition {
     ManualSkip,
     /// Reassignment event — the responsible resource changed.
     Reassign,
-    /// The activity was explicitly planned.
-    Plan,
 }
 
 impl XesLifecycleTransition {
@@ -956,15 +980,14 @@ impl XesLifecycleTransition {
             XesLifecycleTransition::Start => "start",
             XesLifecycleTransition::Suspend => "suspend",
             XesLifecycleTransition::Resume => "resume",
-            XesLifecycleTransition::InProgress => "inprogress",
-            XesLifecycleTransition::Abort => "abort",
+            XesLifecycleTransition::PiAbort => "pi_abort",
+            XesLifecycleTransition::AteAbort => "ate_abort",
             XesLifecycleTransition::Withdraw => "withdraw",
             XesLifecycleTransition::Complete => "complete",
             XesLifecycleTransition::Unknown => "unknown",
             XesLifecycleTransition::AutoSkip => "autoskip",
             XesLifecycleTransition::ManualSkip => "manualskip",
             XesLifecycleTransition::Reassign => "reassign",
-            XesLifecycleTransition::Plan => "plan",
         }
     }
 
@@ -985,15 +1008,14 @@ impl XesLifecycleTransition {
             "start" => Some(XesLifecycleTransition::Start),
             "suspend" => Some(XesLifecycleTransition::Suspend),
             "resume" => Some(XesLifecycleTransition::Resume),
-            "inprogress" => Some(XesLifecycleTransition::InProgress),
-            "abort" => Some(XesLifecycleTransition::Abort),
+            "pi_abort" => Some(XesLifecycleTransition::PiAbort),
+            "ate_abort" => Some(XesLifecycleTransition::AteAbort),
             "withdraw" => Some(XesLifecycleTransition::Withdraw),
             "complete" => Some(XesLifecycleTransition::Complete),
             "unknown" => Some(XesLifecycleTransition::Unknown),
             "autoskip" => Some(XesLifecycleTransition::AutoSkip),
             "manualskip" => Some(XesLifecycleTransition::ManualSkip),
             "reassign" => Some(XesLifecycleTransition::Reassign),
-            "plan" => Some(XesLifecycleTransition::Plan),
             _ => None,
         }
     }
@@ -1004,14 +1026,15 @@ impl XesLifecycleTransition {
     /// ```
     /// use wasm4pm_compat::xes::XesLifecycleTransition;
     /// assert!(XesLifecycleTransition::Complete.is_terminal());
-    /// assert!(XesLifecycleTransition::Abort.is_terminal());
+    /// assert!(XesLifecycleTransition::PiAbort.is_terminal());
     /// assert!(!XesLifecycleTransition::Start.is_terminal());
     /// ```
     pub const fn is_terminal(self) -> bool {
         matches!(
             self,
             XesLifecycleTransition::Complete
-                | XesLifecycleTransition::Abort
+                | XesLifecycleTransition::PiAbort
+                | XesLifecycleTransition::AteAbort
                 | XesLifecycleTransition::Withdraw
                 | XesLifecycleTransition::ManualSkip
                 | XesLifecycleTransition::AutoSkip
@@ -1050,11 +1073,12 @@ impl From<XesLifecycleTransition> for &'static str {
     }
 }
 
-/// The four standard XES extension prefixes defined in IEEE 1849-2016.
+/// The seven standard XES extension prefixes defined in IEEE 1849-2016.
 ///
-/// XES defines four standard extensions: `concept`, `time`, `lifecycle`, and
-/// `org`. These are the only prefixes that appear in the XES standard itself;
-/// custom extensions may declare additional prefixes. This enum names them at
+/// XES defines seven standard extensions: `concept`, `time`, `lifecycle`,
+/// `org`, `cost`, `identity`, and `semantic`. These are the only prefixes
+/// that appear in the XES standard itself; custom extensions may declare
+/// additional prefixes. This enum names them at
 /// the type level so code cannot confuse `concept:name` with `org:resource`
 /// by string comparison alone.
 ///
@@ -1067,6 +1091,9 @@ impl From<XesLifecycleTransition> for &'static str {
 /// assert_eq!(XesStandardPrefix::Time.as_str(), "time");
 /// assert_eq!(XesStandardPrefix::Lifecycle.as_str(), "lifecycle");
 /// assert_eq!(XesStandardPrefix::Org.as_str(), "org");
+/// assert_eq!(XesStandardPrefix::Cost.as_str(), "cost");
+/// assert_eq!(XesStandardPrefix::Identity.as_str(), "identity");
+/// assert_eq!(XesStandardPrefix::Semantic.as_str(), "semantic");
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum XesStandardPrefix {
@@ -1080,6 +1107,13 @@ pub enum XesStandardPrefix {
     /// `org` — organisational attributes (`org:resource`, `org:role`,
     /// `org:group`).
     Org,
+    /// `cost` — cost information (`cost:total`, `cost:amount`,
+    /// `cost:currency`, `cost:driver`, `cost:type`).
+    Cost,
+    /// `identity` — globally unique identifiers (`identity:id`).
+    Identity,
+    /// `semantic` — semantic annotations (`semantic:modelReference`).
+    Semantic,
 }
 
 impl XesStandardPrefix {
@@ -1095,6 +1129,9 @@ impl XesStandardPrefix {
             XesStandardPrefix::Time => "time",
             XesStandardPrefix::Lifecycle => "lifecycle",
             XesStandardPrefix::Org => "org",
+            XesStandardPrefix::Cost => "cost",
+            XesStandardPrefix::Identity => "identity",
+            XesStandardPrefix::Semantic => "semantic",
         }
     }
 
@@ -1113,22 +1150,28 @@ impl XesStandardPrefix {
             "time" => Some(XesStandardPrefix::Time),
             "lifecycle" => Some(XesStandardPrefix::Lifecycle),
             "org" => Some(XesStandardPrefix::Org),
+            "cost" => Some(XesStandardPrefix::Cost),
+            "identity" => Some(XesStandardPrefix::Identity),
+            "semantic" => Some(XesStandardPrefix::Semantic),
             _ => None,
         }
     }
 
-    /// All four standard prefixes in declaration order.
+    /// All seven standard prefixes in declaration order.
     ///
     /// ```
     /// use wasm4pm_compat::xes::XesStandardPrefix;
-    /// assert_eq!(XesStandardPrefix::all().len(), 4);
+    /// assert_eq!(XesStandardPrefix::all().len(), 7);
     /// ```
-    pub const fn all() -> [XesStandardPrefix; 4] {
+    pub const fn all() -> [XesStandardPrefix; 7] {
         [
             XesStandardPrefix::Concept,
             XesStandardPrefix::Time,
             XesStandardPrefix::Lifecycle,
             XesStandardPrefix::Org,
+            XesStandardPrefix::Cost,
+            XesStandardPrefix::Identity,
+            XesStandardPrefix::Semantic,
         ]
     }
 }
@@ -1171,17 +1214,17 @@ impl From<XesStandardPrefix> for &'static str {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum XesRefusal {
-    /// The log declares no `concept:name`.
+    /// The log declares no `concept:name` (crate policy; optional in the standard).
     MissingLogName,
     /// An extension declaration is malformed (e.g. empty prefix).
     InvalidExtension,
     /// The log contains no traces.
     NoTraces,
-    /// A trace declares no `concept:name` (case id).
+    /// A trace declares no `concept:name` (case id; crate policy).
     MissingTraceName,
     /// A trace contains no events.
     EmptyTrace,
-    /// An event lacks the interchange-required `concept:name` key.
+    /// An event lacks the `concept:name` key this crate requires (optional in the standard).
     MissingConceptName,
     /// A `time:timestamp` value is malformed where a timestamp was required.
     InvalidTimestamp,

@@ -34,7 +34,7 @@ fn main() {
         (ProcessTreeOperatorKind::Sequence, 2, usize::MAX),
         (ProcessTreeOperatorKind::Xor, 2, usize::MAX),
         (ProcessTreeOperatorKind::Parallel, 2, usize::MAX),
-        (ProcessTreeOperatorKind::Loop, 2, 2),
+        (ProcessTreeOperatorKind::Loop, 2, 3),
         (ProcessTreeOperatorKind::Silent, 0, 0),
     ];
     for (kind, expected_min, expected_max) in &cases {
@@ -65,7 +65,7 @@ fn main() {
     // ── Part 2: Typed operator nodes — compile-time arity law ─────────────────
     println!("\nPart 2: Typed operator nodes (arity enforced by type law)");
 
-    // TypedLoopNode: ARITY must == 2 (Leemans do-body + redo-branch)
+    // TypedLoopNode: ARITY must == 2 (binary IM/POWL form: do-body + redo-branch)
     let loop_node: TypedLoopNode<[&str; 2], 2> = TypedLoopNode::new(["do-body", "redo-branch"]);
     assert_eq!(loop_node.children, ["do-body", "redo-branch"]);
     println!(
@@ -178,12 +178,12 @@ fn main() {
     );
     println!("  ✓ Sequence with 1 child → BelowMinimumArity");
 
-    // InvalidArity — Loop with 3 children
-    let mut loop_bad = ProcessTree::new();
-    loop_bad.nodes.push(ProcessTreeNode::Activity("a".into()));
-    loop_bad.nodes.push(ProcessTreeNode::Activity("b".into()));
-    loop_bad.nodes.push(ProcessTreeNode::Activity("c".into()));
-    loop_bad.nodes.push(ProcessTreeNode::Operator {
+    // Loop with 3 children (do, redo, exit) is the pm4py/ProM form → admitted
+    let mut loop_ok = ProcessTree::new();
+    loop_ok.nodes.push(ProcessTreeNode::Activity("a".into()));
+    loop_ok.nodes.push(ProcessTreeNode::Activity("b".into()));
+    loop_ok.nodes.push(ProcessTreeNode::Activity("c".into()));
+    loop_ok.nodes.push(ProcessTreeNode::Operator {
         operator: ProcessTreeOperator::Loop,
         children: vec![
             ProcessTreeNodeId(0),
@@ -191,12 +191,31 @@ fn main() {
             ProcessTreeNodeId(2),
         ],
     });
-    loop_bad.root = Some(ProcessTreeNodeId(3));
+    loop_ok.root = Some(ProcessTreeNodeId(3));
+    assert_eq!(loop_ok.admit_shape(), Ok(()));
+    println!("  ✓ Loop with 3 children (do, redo, exit) → admitted");
+
+    // InvalidArity — Loop with 4 children
+    let mut loop_bad = ProcessTree::new();
+    loop_bad.nodes.push(ProcessTreeNode::Activity("a".into()));
+    loop_bad.nodes.push(ProcessTreeNode::Activity("b".into()));
+    loop_bad.nodes.push(ProcessTreeNode::Activity("c".into()));
+    loop_bad.nodes.push(ProcessTreeNode::Activity("d".into()));
+    loop_bad.nodes.push(ProcessTreeNode::Operator {
+        operator: ProcessTreeOperator::Loop,
+        children: vec![
+            ProcessTreeNodeId(0),
+            ProcessTreeNodeId(1),
+            ProcessTreeNodeId(2),
+            ProcessTreeNodeId(3),
+        ],
+    });
+    loop_bad.root = Some(ProcessTreeNodeId(4));
     assert_eq!(
         loop_bad.admit_shape(),
         Err(ProcessTreeRefusal::InvalidArity)
     );
-    println!("  ✓ Loop with 3 children → InvalidArity");
+    println!("  ✓ Loop with 4 children → InvalidArity");
 
     // Display strings contain the law name
     let refusals: &[ProcessTreeRefusal] = &[
