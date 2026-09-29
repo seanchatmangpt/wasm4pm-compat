@@ -65,6 +65,8 @@ use crate::law::{Between01, IsTrue, Require};
 /// Weijters & Ribeiro (2011) — Flexible Heuristics Miner.
 ///
 /// ```
+/// # #![feature(generic_const_exprs)]
+/// # #![allow(incomplete_features)]
 /// use wasm4pm_compat::causal_net::DependencyMeasure;
 /// let dm: DependencyMeasure<4, 5> = DependencyMeasure::new();
 /// assert_eq!(dm.num(), 4);
