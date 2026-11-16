@@ -46,3 +46,32 @@ fn empty_e2o_is_refused_by_its_named_law() {
     let refusal = LinkedOcel::admit(Evidence::raw(empty)).expect_err("empty E2O must refuse");
     assert_eq!(refusal.reason, OcelRefusal::EmptyEventObjectLinks);
 }
+
+#[test]
+fn locality_violation_json_is_refused_by_its_named_law() {
+    // Fixture shape of wasm4pm-compat-ts/test/fixtures/ocel/
+    // ocel_v2_mutation_locality.json (RFC 3339 times): e2 re-points p2's team
+    // reference from t1 to t2, an implicit deletion of (t1, p2).
+    use wasm4pm_compat::ocel::validate_ocel_locality_json;
+    let violating = r#"{
+        "eventTypes": [{"name": "create team"}],
+        "objectTypes": [{"name": "team"}, {"name": "employee"}],
+        "events": [
+            {"id": "e1", "type": "create team", "time": "2024-06-09T00:00:00Z",
+             "relationships": [{"objectId": "t1", "qualifier": "team"},
+                               {"objectId": "p2", "qualifier": "employee"}]},
+            {"id": "e2", "type": "create team", "time": "2024-06-09T00:01:00Z",
+             "relationships": [{"objectId": "t2", "qualifier": "team"},
+                               {"objectId": "p2", "qualifier": "employee"}]}
+        ],
+        "objects": [{"id": "t1", "type": "team"},
+                    {"id": "t2", "type": "team"},
+                    {"id": "p2", "type": "employee"}]
+    }"#;
+    let err = validate_ocel_locality_json(violating, "team", "employee")
+        .expect_err("locality violation must refuse");
+    assert!(
+        err.to_string().ends_with("law:ViolatesLocalityPrinciple"),
+        "unexpected refusal: {err}"
+    );
+}

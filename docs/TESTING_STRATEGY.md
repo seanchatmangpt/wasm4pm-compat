@@ -38,7 +38,7 @@ The rule: **doctests teach usage, trybuild proves law.**
 ./scripts/audit/audit_crown_gate_all.sh
 ```
 
-Runs all 21 audit scripts. Hard failures (engine creep, unsealed refusals, missing
+Runs all 23 audit scripts. Hard failures (engine creep, unsealed refusals, missing
 features) exit 1. Soft warnings (annotation gaps, unmatched pass/fail pairs) exit 0.
 
 ## What is NOT tested here

@@ -29,7 +29,7 @@
     {
       "id": "e_1",
       "type": "create order",
-      "time": 1717891200000,
+      "time": "2024-06-09T00:00:00Z",
       "attributes": [
         { "name": "channel", "value": { "String": "web" } }
       ],
@@ -40,7 +40,7 @@
     {
       "id": "e_2",
       "type": "pick item",
-      "time": 1717891260000,
+      "time": "2024-06-09T00:01:00Z",
       "attributes": [
         { "name": "picker", "value": { "String": "alice" } }
       ],
@@ -55,7 +55,7 @@
       "id": "o_1",
       "type": "order",
       "attributes": [
-        { "name": "total", "value": { "Float": 299.99 }, "time": 1717891200000 }
+        { "name": "total", "value": { "Float": 299.99 }, "time": "2024-06-09T00:00:00Z" }
       ],
       "relationships": []
     },

@@ -13,10 +13,10 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`MoveKind`]: the three move classes from alignment theory.
-//! - [`AlignmentClaim`]: a claimed move sequence grounded to a process
+//! - [`MoveKind`](crate::alignment::MoveKind): the three move classes from alignment theory.
+//! - [`AlignmentClaim`](crate::alignment::AlignmentClaim): a claimed move sequence grounded to a process
 //!   reference, with move-kind counts (never costs).
-//! - [`AlignmentRefusal`]: first-class, specifically named refusals.
+//! - [`AlignmentRefusal`](crate::alignment::AlignmentRefusal): first-class, specifically named refusals.
 //!
 //! ## What this module is **NOT**
 //!

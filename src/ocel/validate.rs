@@ -182,3 +182,48 @@ pub fn validate(
 
     ValidationReport::from_errors(errors)
 }
+
+/// Convenience wrapper around [`validate`] with no cardinality constraints:
+/// runs the full OCEDO/OCPQ invariant set (`DUPLICATE_*`, `UNDECLARED_*`,
+/// `E2O_EMPTY`, `DANGLING_*`) over a parsed [`OCEL`] document.
+///
+/// ## What this IS
+///
+/// - The zero-configuration validation entry point for a JSON-parsed
+///   [`OCEL`] — the report step of the `parse → validate → admit` chain
+///   (`admit_ocel_v2_json` is the admission step).
+///
+/// ## What this is **NOT**
+///
+/// - **Not** an admission boundary. A `valid` report does not admit anything;
+///   the typed `Raw → Admitted` door remains [`LinkedOcel`](crate::ocel::LinkedOcel) (reached via
+///   `admit_ocel_v2_json`).
+/// - **Not** cardinality-aware. Pass constraints explicitly to [`validate`].
+///
+/// Structure-only; graduate to `wasm4pm` for execution-grade checking.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::ocel::{validate_ocel, OCEL, OCELEvent, OCELObject, OCELRelationship, OCELType};
+///
+/// let ocel = OCEL {
+///     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+///     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+///     events: vec![OCELEvent {
+///         id: "e1".into(),
+///         event_type: "place".into(),
+///         time: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z").unwrap(),
+///         attributes: vec![],
+///         relationships: vec![OCELRelationship { object_id: "o1".into(), qualifier: "affected".into() }],
+///     }],
+///     objects: vec![OCELObject { id: "o1".into(), object_type: "order".into(), attributes: vec![], relationships: vec![] }],
+/// };
+/// let report = validate_ocel(&ocel);
+/// assert!(report.valid);
+/// assert!(report.errors.is_empty());
+/// ```
+#[must_use]
+pub fn validate_ocel(ocel: &OCEL) -> ValidationReport {
+    validate(ocel, &HashMap::new())
+}

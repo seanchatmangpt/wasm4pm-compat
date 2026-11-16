@@ -493,7 +493,7 @@ pub struct DurativeAction {
     pub effects: Vec<PddlEffect>,
 }
 
-/// A timed initial literal: (at <time> <literal>) in the problem :init.
+/// A timed initial literal: `(at <time> <literal>)` in the problem :init.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimedLiteral {
     pub time: f64,

@@ -11,9 +11,14 @@ WHERE {
           compat:witnessKey   ?witnessKey ;
           compat:witnessTitle ?witnessTitle .
 
-  OPTIONAL { ?marker compat:witnessYear   ?witnessYear }
-  OPTIONAL { ?marker compat:witnessFamily ?witnessFamily }
-  OPTIONAL { ?marker compat:description  ?description }
+  # OPTIONAL columns re-bound via COALESCE: every row must bind every column
+  # (ggen 26.10.11 fills unbound columns silently from the previous row).
+  OPTIONAL { ?marker compat:witnessYear   ?yearRaw }
+  OPTIONAL { ?marker compat:witnessFamily ?familyRaw }
+  OPTIONAL { ?marker compat:description  ?descriptionRaw }
+  BIND(COALESCE(?yearRaw, "") AS ?witnessYear)
+  BIND(COALESCE(?familyRaw, "") AS ?witnessFamily)
+  BIND(COALESCE(?descriptionRaw, "") AS ?description)
 
   BIND("workflow" AS ?categoryId)
   BIND("Process Mining/Workflow" AS ?categoryLabel)

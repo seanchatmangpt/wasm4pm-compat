@@ -22,7 +22,7 @@
 //! `--diagnostic-format json` output carries in each diagnostic's `error`
 //! object (e.g. `"Resolver"`, `"Semconv"`, `"LegacyRegistryManifest"`) — not an
 //! invented or bare "InvalidInput" string. Diagnostic kinds this module has not
-//! seen are preserved verbatim via [`WeaverRefusalReason::Other`] rather than
+//! seen are preserved verbatim via a catch-all `WeaverRefusalReason` variant rather than
 //! dropped, so a real refusal is never silently coerced into a fixed enum that
 //! cannot represent it.
 //!

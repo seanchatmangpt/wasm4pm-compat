@@ -372,7 +372,7 @@ Validation receipts are immutable attestations:
 
 - **Crate:** `wasm4pm-compat`
 - **Nightly requirement:** See `CLAUDE.md`
-- **Type law surfaces:** See `NIGHTLY_TYPE_LAW.md`
+- **Type law surfaces:** See `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md`
 - **Feature model:** See `Cargo.toml [features]` section
 - **Agent role:** AGENT_9_VALIDATION (this system)
 

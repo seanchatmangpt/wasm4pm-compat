@@ -12,7 +12,9 @@ Pacific Conference on Business Process Management, LNBIP 159.
 
 ## Doctrine
 
-The product is CodeManufactory; RevOps is merely proof that CodeManufactory works.
+The process cube doctrine is structural: partition, then compare. Analysis
+units are named cells of a multi-dimensional log partition, and every analytic
+claim is a comparison between two cells.
 
 ---
 
@@ -154,7 +156,7 @@ When slicing by time, the `TemporalOrder`, `TemporalProfile`, and temporal witne
 types from `src/temporal.rs` provide the structural vocabulary for what
 time-aware evidence looks like inside a time-sliced cell.
 
-See also `docs/NIGHTLY_TYPE_LAW.md` §82 for the full law-packet crosswalk.
+See also `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md` §82 for the full law-packet crosswalk.
 
 ---
 

@@ -5,6 +5,61 @@ semver ranges while in the `0.1.x` series.
 
 ---
 
+## v26.10.12 — npm publish surface, OCEL v2 admission chain, compat-ocel WIT world
+
+**Status:** ALIVE
+**Date:** 2026-10-12
+
+### Summary
+
+Crate version aligns to `26.10.12` across the root manifest, the versioned
+ggen manifests (`ggen/ash-types.toml`, `ggen/ggen_gymact.toml`), the Elixir
+binding, and the Zod integration example.
+
+### Added
+
+- npm publish surface: `@wasm4pm/compat-ts` extension package and
+  `@wasm4pm/compat-wasm` package, with a GitHub Actions release pipeline
+  (`.github/workflows/npm-release.yml`).
+- OCEL v2 parse/validate/admit chain: `ocel_to_log`, `admit_ocel_v2_json`,
+  and `validate_ocel` (extended `src/ocel.rs` + `src/ocel/validate.rs`).
+- `ggen/wit/compat-ocel.wit` — WIT world describing the compat OCEL surface.
+- Fixture-backed TypeScript test surface for the OCEL v2 chain
+  (`wasm4pm-compat-ts/test/ocel-v2-fixture.test.ts` + fixtures).
+
+### Post-audit additions
+
+- Fence repair: removed engine logic from `src/dfg.rs` — `discover_ocel_dfg`
+  (DFG discovery/mining) plus the uncalled `extract_ocel_variants`,
+  `dfg_fitness`, `dfg_precision` (conformance metrics). Structure-only fence
+  per CLAUDE.md invariant; algorithms graduate to `wasm4pm`
+  (`wasm4pm::discovery::discover_ocel_dfg_pure`). DFG structure types
+  (`DfgNode`, `DfgEdge`, `DfgWeight`, `Dfg`, `DfgRefusal`,
+  `ObjectCentricDfg`) are unchanged. Guard added:
+  `tests/fence_no_discovery.rs`; `scripts/audit_no_engine_creep.sh` widened to
+  `(discover|mine|replay|align)` declaration compounds.
+- Prelude protocol single-inclusion fix: removed the `#[path]` dual-compile
+  setup that produced two distinct protocol types depending on inclusion path.
+- Loss accounting for the OCEL → `OcelLog` lift: `OcelToLogProjection` with a
+  `LossPolicy` and itemized `LossReport`; `ocel_to_log` deprecated in favor of
+  the projection path.
+- RFC3339 time standardization across fixtures and schemas.
+- `@wasm4pm/compat-wasm` now ships the real jco-compiled component (`dist/`,
+  `@bytecodealliance/preview2-shim` dependency, wasm inside the tarball); law
+  string/wasm-refusal tests 8/8 passing (`npm test` in
+  `wasm4pm-compat-wasm/`).
+- Zod schema strengthening: `OcelLog`-region `z.any()` count to 0, `OCELSchema`
+  converged with the TS surface, union types tightened.
+- `LICENSE-MIT` now ships in both npm tarballs.
+- Rustdoc warnings reduced 549 → 0.
+- crates.io metadata completed: `cargo publish --dry-run` exit 0
+  (1257 files, 3.0MiB).
+- Locality law wired as a dedicated opt-in gate:
+  `validate_ocel_locality_json` (`src/ocel.rs`) is exported as
+  `ocelV2.validateOcelLocality` and refuses the locality mutation fixture
+  with `ViolatesLocalityPrinciple` (admit remains structural-only; the
+  original gap is receipted in `docs/jira/v26.10.12/002`).
+
 ## v26.8.7 — structural claim modules, gymact-rs sidecar, GatedAdmit ALIVE gate
 
 **Status:** ALIVE

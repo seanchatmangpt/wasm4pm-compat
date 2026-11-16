@@ -138,11 +138,34 @@ interface types {
     allow-loss-with-report,
   }
 
+  // Mirror of wasm4pm_compat::strict::ProcessBoundaryKind (src/strict.rs).
+  enum boundary-kind {
+    emits-events,
+    emits-object-relations,
+    imports-format,
+    exports-format,
+    claims-conformance,
+    claims-receipt,
+    claims-replay,
+    claims-process-mining-support,
+    claims-certification-coverage,
+  }
+
+  // Mirror of wasm4pm_compat::strict::ProcessBoundary attestations. The booleans
+  // are attestations the host asserts; check-strict-boundary cross-references
+  // them against the obligations implied by `kind`.
   record process-boundary {
-    kind: string,
+    kind: boundary-kind,
     name: string,
     has-witness: bool,
-    has-round-trip: bool,
+    has-round-trip-fixture: bool,
+    has-loss-policy: bool,
+    has-refusal-path: bool,
+    has-conformance-fields: bool,
+    has-receipt-shape: bool,
+    has-certification-mapping: bool,
+    exports-raw-evidence: bool,
+    hidden-pm-growth: bool,
   }
 
   record witness-info {
@@ -244,14 +267,13 @@ interface loss {
 interface strict {
   use types.{process-boundary};
 
-  variant strict-violation {
-    missing-witness-marker(string),
-    missing-loss-policy(string),
-    missing-round-trip(string),
-    hidden-process-mining-growth(string),
-  }
-
-  check-strict-boundary: func(boundary: process-boundary) -> result<bool, strict-violation>;
+  // Mirror of wasm4pm_compat::strict::StrictCheck::check() — collects ALL named
+  // violations at once. Err = the list of stable law strings
+  // (StrictViolation::law()), e.g. ["MissingLossPolicy", "MissingRefusalPath"].
+  // Full law set (9): MissingWitness, MissingRoundTripFixture, MissingLossPolicy,
+  // RawEvidenceExported, MissingRefusalPath, MissingConformanceFields,
+  // MissingReceiptShape, HiddenProcessMiningGrowth, MissingCertificationMapping.
+  check-strict-boundary: func(boundary: process-boundary) -> result<bool, list<string>>;
 }
 
 interface graduation {

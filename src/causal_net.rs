@@ -49,7 +49,13 @@ use crate::law::{Between01, IsTrue, Require};
 ///
 /// Weijters & Ribeiro (2011) — Section 2 (dependency measure formulae).
 ///
-/// ```
+/// ```ignore
+/// // Ignored (documented reason, per the crate's doctest rule): the
+/// // Require<{ ... }>: IsTrue where-clauses compile here as in-library, but an
+/// // external doctest crate cannot name the anonymous const projections
+/// // ({constant#N}) under nightly generic_const_exprs, so rustc cannot prove
+/// // Assert<true> from outside. The law itself is exercised by the in-crate
+/// // type tests and by DependencyMeasure<2, 1>'s compile-fail receipt.
 /// use wasm4pm_compat::causal_net::DependencyMeasure;
 /// let dm: DependencyMeasure<4, 5> = DependencyMeasure::new();
 /// assert_eq!(dm.num(), 4);

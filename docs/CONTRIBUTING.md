@@ -143,7 +143,7 @@ Follow this checklist when adding a new module or extending an existing one:
 
 ## How to add a paper to the ledger
 
-1. Open `PAPER_COVERAGE_LEDGER.md` (at the repo root).
+1. Open `docs/PAPER_COVERAGE_LEDGER.md`.
 2. Add a row with: paper number, citation, year, core contribution, and coverage
    status (`type-surface`, `witness-only`, `planned`).
 3. If the paper defines a structural law (e.g. a new model class, a new constraint

@@ -1,11 +1,11 @@
 [package]
 name = "wasm4pm-compat"
-version = "26.8.7"
+version = "26.10.12"
 edition = "2021"
-description = "Minimal paper-complete, feature-capped Rust process-evidence crate. Start with compatibility. Graduate to execution."
+description = "Structure-only process type foundry: typed, paper-complete schemas for event logs, OCEL, XES, BPMN, Petri nets, POWL, and conformance. Start with compatibility. Graduate to execution."
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/seanchatmangpt/wasm4pm-compat"
-keywords = ["process-mining", "ocel", "event-log", "evidence", "conformance"]
+keywords = ["process-mining", "ocel", "xes", "bpmn", "event-logs"]
 categories = ["science", "data-structures"]
 readme = "README.md"
 documentation = "https://docs.rs/wasm4pm-compat"
@@ -32,7 +32,6 @@ exclude = [
   "OCEL_AUDIT_REPORT.md",
   "GGEN_ECOSYSTEM_*.md",
   "CONSTRUCT8_PROJECT_CONTRACTS.md",
-  "WASM4PM-COMPAT-PRD-ARD.md",
   "GAP_007_*.md",
   "ORIGINAL_REQUEST.md",
   "NIGHTLY_TYPE_LAW.md",
@@ -53,6 +52,10 @@ exclude = [
   "examples/illustrative/**",
   "bindings/**",
   "wasm4pm-compat-ts/**",
+  "wasm4pm-compat-wasm/**",
+  "V2030.1.1-PRD-ARD.md",
+  "definition-of-done.toml",
+  "ecosystem/**",
   "**/node_modules/**",
   "**/*.backup",
   # Repo-internal tooling/reports/agent-instruction dirs never needed by a

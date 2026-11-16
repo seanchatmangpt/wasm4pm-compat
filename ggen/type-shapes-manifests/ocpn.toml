@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-compat-type-shapes-ocpn"
-version = "26.8.7"
+version = "26.10.12"
 description = "ggen projection of the ocpn SHACL type-shape ontology into Rust"
 authors = ["Sean Chatman"]
 license = "MIT OR Apache-2.0"

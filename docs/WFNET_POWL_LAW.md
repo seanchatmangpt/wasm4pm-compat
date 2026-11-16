@@ -14,16 +14,19 @@ Non-separable WF-nets have no such representation — they exceed what
 block-structured partial orders can express.
 
 This crate encodes the theorem's precondition as a type-level gate:
-the WF-net→POWL conversion function requires `SeparableWfNet<S>`, not
-a bare `WfNetConst<S>`.
+the WF-net→POWL conversion function (`SeparableWfNet::into_powl`) requires
+`SeparableWfNet<S, FC>`, not a bare `WfNetConst<S, FC>`.
 
 ---
 
 ## The separability marker
 
 ```rust
-pub struct SeparableWfNet<S> {
-    pub(crate) net: WfNetConst<S>,
+pub struct SeparableWfNet<
+    const S: SoundnessState,
+    const FC: FreeChoiceMarker = { FreeChoiceMarker::General },
+> {
+    pub net: WfNetConst<S, FC>,
     _seal: (),              // private — prevents struct-literal forgery
 }
 ```
@@ -127,7 +130,7 @@ PetriNet (bare)
         │
         └─ SeparableWfNet<S>        ← separability claim (non-forgeable)
                 │
-                ▼ convert_to_powl()    (Theorem 4.3 gate)
+                ▼ SeparableWfNet::into_powl()   (Theorem 4.3 gate)
                 │
                 ├─ Powl<ProcessTreeProjectable>   ← can project to process tree
                 └─ Powl<ExceedsProcessTree>        ← partial orders exceed block structure

@@ -23,9 +23,14 @@ WHERE {
   BIND(CONCAT("cognition/", REPLACE(?breedId, "_", "-")) AS ?witnessKey)
   BIND(?breedLabel AS ?witnessTitle)
   BIND("Paper" AS ?witnessFamily)
-  BIND(IF(STRLEN(?citation) > 120, CONCAT(SUBSTR(?citation, 1, 117), "..."), ?citation) AS ?description)
+  # Full citation, no truncation: the old 120-char SUBSTR cap was what forced
+  # hand-patches in src/witnesses_breeds.rs; ggen 26.10.11 renders escaped
+  # quotes correctly (verified this session), so the cap is retired.
+  BIND(?citation AS ?description)
 
-  # Year: optional override via compat:witnessYear; defaults to empty (None)
-  OPTIONAL { ?b compat:witnessYear ?witnessYear }
+  # Year: optional override via compat:witnessYear; defaults to empty (None).
+  # COALESCE re-bind: partial OPTIONAL binding fills forward on ggen 26.10.11.
+  OPTIONAL { ?b compat:witnessYear ?yearRaw }
+  BIND(COALESCE(?yearRaw, "") AS ?witnessYear)
 }
 ORDER BY ?breedId

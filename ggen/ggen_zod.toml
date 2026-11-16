@@ -1,28 +1,26 @@
 [project]
 name = "wasm4pm-zod-gen"
 version = "26.6.23"
-description = "Zod generation manifest"
+description = "Zod generation manifest (standalone alternative to the zod-schemas rule in ggen/ggen.toml). Invoke the same way: cp ggen/ggen_zod.toml ggen.toml && ggen sync run (cwd-only manifest resolution, repo-root-relative paths)."
 authors = ["Sean Chatman"]
 license = "MIT"
 
 [ontology]
-source = "ontology/wasm4pm-compat.ttl"
-# removing additional to avoid duplicate load errors
-additional = []
+source = "ggen/ontology/zod-types.ttl"
+imports = ["ggen/ontology/zod-types.ttl"]
 standard_only = false
 
 [generation]
-output_dir = "/Users/sac/wasm4pm-compat"
+output_dir = "."
 
 [[generation.rules]]
 name = "zod-schemas"
-query = { file = "queries/extract-zod-schemas.rq" }
-template = { file = "templates/zod-schemas.ts.tera" }
-output_file = "examples/zod_integration/zod_schemas.ts"
+query = { file = "ggen/queries/extract-zod-schemas.rq" }
+template = { file = "ggen/templates/zod-schemas.ts.tera" }
+output_file = "wasm4pm-compat-ts/bindings/zod_schemas.ts"
 mode = "Overwrite"
 
 [inference]
-enabled = true
 rules = [
-  { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } LIMIT 1" }
+  { name = "alive-gate", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } ORDER BY ?s ?p ?o LIMIT 1" }
 ]

@@ -7,7 +7,7 @@ A compile-fail fixture is a **negative receipt**: it proves that the type system
 a structurally invalid construction. The law is sealed at compile time — no runtime check,
 no assertion, no test assertion.
 
-**Current count:** 221 compile-fail fixtures (as of 2026-06-25)
+**Current count:** 238 compile-fail fixtures (as of 2026-10-12)
 **Crown target:** >= 160 (already exceeded)
 
 ---

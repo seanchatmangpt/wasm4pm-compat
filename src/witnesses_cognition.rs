@@ -1,3 +1,5 @@
+
+
 //! Cognition Breed witness markers — compiled from `ontology/witnesses-cognition.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` tagged
@@ -11,7 +13,9 @@
 //! Structure-only authority labels. Graduate to `wasm4pm` when the
 //! paper's algorithm must actually execute.
 
+
 use crate::witness::WitnessFamily;
+
 
 witness_marker!(
     /// Abductive IBE — Harman (1965): inference to the best explanation.
@@ -534,3 +538,4 @@ witness_marker!(
     "Generalization as Search",
     Some(1982)
 );
+

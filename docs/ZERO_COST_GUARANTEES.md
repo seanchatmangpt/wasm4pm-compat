@@ -23,13 +23,16 @@ There are three distinct zero-cost claims in this crate:
 ## Evidence<T, State, W>
 
 `Evidence<T, State, W>` (defined in `src/evidence.rs`) is the universal carrier.
-It has three fields:
+It has four fields — three public, plus a private zero-sized `_seal` field that
+enforces the one-way-door constructor law (external struct literals are an
+`E0451` compile error):
 
 ```rust
 pub struct Evidence<T, State: EvidenceState, W> {
     pub value: T,
     pub state: PhantomData<State>,
     pub witness: PhantomData<W>,
+    _seal: (), // private; non-forgeable constructor seal
 }
 ```
 

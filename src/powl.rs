@@ -344,7 +344,7 @@ impl<W> PowlNode<W> {
 /// branch is a no-op that degrades to a plain sequence and is refused as
 /// [`PowlRefusal::InvalidChoice`]. An empty branch list is also refused.
 ///
-/// This struct is distinct from the [`Choice`] witness marker: [`Choice`]
+/// This struct is distinct from the `Choice` witness marker: `Choice`
 /// records the *kind* of a [`PowlNode`] at the type level; `PowlChoiceNode`
 /// is the concrete value that carries the branch list.
 ///
@@ -513,7 +513,7 @@ pub const MAX_POWL_DEPTH: usize = 8;
 /// A POWL composition whose nesting depth is encoded as a const generic.
 ///
 /// `DEPTH` records the declared composition-nesting depth of the wrapped
-/// [`Inner`] shape. The `where` clause refuses, at compile time, any depth that
+/// `Inner` shape. The `where` clause refuses, at compile time, any depth that
 /// exceeds [`MAX_POWL_DEPTH`]: `PowlComposition<_, 9>` does **not compile**.
 ///
 /// ## Paper

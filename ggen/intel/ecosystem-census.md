@@ -1,5 +1,9 @@
 # Ecosystem Census: wasm4pm-compat Projection Manufacturing
 
+> **Staleness/archival note (2026-10-12):** point-in-time snapshot. `NIGHTLY_TYPE_LAW.md`
+> references in the body now live at `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md`.
+> Body content preserved as captured; paths are not live.
+
 **Date:** 2026-06-01  
 **Scope:** Rust tools, crates, features, documentation surfaces, and external ecosystem components relevant to wasm4pm-compat type-law projection manufacturing (WASM/TypeScript boundary, OCEL/XES/BPMN interop, process-evidence graduation)  
 **Purpose:** Authoritative inventory of all tools, crates, documentation sources, and capability bridges that inform projection manufacturing architecture, feature gating, and type-law surface design.

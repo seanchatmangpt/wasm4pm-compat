@@ -1,4 +1,4 @@
-# wasm4pm-compat v26.8.7 — Process Intelligence Compatibility Core
+# wasm4pm-compat v26.10.12 — Process Intelligence Compatibility Core
 
 ![nightly-only](https://img.shields.io/badge/toolchain-nightly--only-orange)
 ![no-unsafe](https://img.shields.io/badge/unsafe-forbid%28unsafe__code%29-red)
@@ -10,7 +10,7 @@
 
 ## Version Alignment
 
-The logical system version, target specification, and documented release standard for this codebase is `26.8.7`. All API behaviors, validation logic, and diagnostic receipts in this repository are designed to conform to the **`wasm4pm-compat v26.8.7`** standard. The root crate, workspace subcrates, and derived manifests are all natively configured to `26.8.7`.
+The logical system version, target specification, and documented release standard for this codebase is `26.10.12`. All API behaviors, validation logic, and diagnostic receipts in this repository are designed to conform to the **`wasm4pm-compat v26.10.12`** standard. The root crate, workspace subcrates, and derived manifests are all natively configured to `26.10.12`.
 
 ---
 
@@ -77,7 +77,7 @@ Transitions between states consume the carrier struct by-value (`self`), prevent
 
 ### Builder Ergonomics
 
-Structure construction stays terse without weakening the type law. `PowlBuilder` is a fluent arena builder for POWL models — `PowlBuilder::new().atom("a").silent("τ").partial_order(…).choice(…).loop_node(…).choice_graph(…)` — terminated by a checked `build()` that returns a named `PowlRefusal` on malformed input (or `build_unchecked()` when the shape is already known lawful). The same pattern appears across the canon (`Event::new(…)`, `Trace::from_events(…)`, `EventLog::from_traces(…)`), so building evidence reads naturally while every illegal shape remains a typed refusal rather than a panic.
+Structure construction stays terse without weakening the type law. `PowlBuilder` is a fluent arena builder for POWL models — `PowlBuilder::new().atom("a").silent("τ").partial_order(…).choice_graph(…)` — terminated by a checked `build()` that returns a named `PowlRefusal` on malformed input (or `build_unchecked()` when the shape is already known lawful). The same pattern appears across the canon (`Event::new(…)`, `Trace::from_events(…)`, `EventLog::from_traces(…)`), so building evidence reads naturally while every illegal shape remains a typed refusal rather than a panic.
 
 ---
 
@@ -89,7 +89,7 @@ Because witnesses are part of the type signature, `Evidence<T, Admitted, Ocel20>
 
 ### Bibliography Coverage
 
-`src/witnesses.rs` (ggen-rendered) carries **271 paper witness markers** spanning every major process mining sub-discipline — discovery algorithms, conformance checking, object-centric formalisms, POWL, temporal logic, and predictive monitoring. Each marker exposes four `const` metadata fields: `KEY` (a short bibliographic slug), `TITLE`, `YEAR`, and `FAMILY`.
+The witness registry (`src/witness.rs` plus the ggen-rendered `src/witnesses*.rs` modules) carries **537 witness markers** — 503 of them `WitnessFamily::Paper` — spanning every major process mining sub-discipline — discovery algorithms, conformance checking, object-centric formalisms, POWL, temporal logic, and predictive monitoring. Each marker exposes four `const` metadata fields: `KEY` (a short bibliographic slug), `TITLE`, `YEAR`, and `FAMILY`.
 
 A compile-time uniqueness proof (`witness_law` module) asserts that no two witnesses share a `KEY`. Adding a duplicate key fails the build with a named law violation rather than silently shadowing the existing marker.
 
@@ -109,16 +109,16 @@ Current named refusal laws by domain:
 
 | Domain | Named refusal variants |
 |---|---|
-| **OCEL** | `DanglingEventObjectLink`, `DuplicateObjectId`, `UnqualifiedObjectRelation` |
-| **WF-net** | `MissingFinalMarking`, `UnsoundWfNet`, `DeadTransition` |
-| **XES** | `MissingConceptName`, `NonMonotonicTimestamps` |
-| **POWL** | `CyclicPartialOrder`, `DanglingOperatorChild`, `InvalidChoiceArity { declared, required_min }`, `CycleDetected` |
+| **OCEL** | `DanglingEventObjectLink`, `EmptyEventObjectLinks`, `MissingReferenceObject` |
+| **WF-net** (`PetriRefusal`) | `MissingInitialMarking`, `MissingFinalMarking`, `DeadTransition` |
+| **XES** (`XesRefusal`) | `MissingLogName`, `EmptyTrace`, `MissingConceptName` |
+| **POWL** | `CyclicPartialOrder`, `InvalidChoiceArity { declared, required_min }`, `LoopMissingDoBody` |
 | **Declare** | `MissingTarget`, `InvalidTemplateArity`, `EmptyObjectScope`, `SynchronizationViolation`, `MissingActivation` |
-| **Causal Net** | `InvalidBinding`, `MissingInputPlace`, `MissingOutputPlace`, `CycleDetected` |
-| **Process Tree** | `InvalidArity`, `MissingDoBody` |
-| **OCPQ** | `FlatteningRequired`, `EmptyObjectTypeList`, `SynchronizationRequiresMultipleTypes`, `ScopeMismatch` |
+| **Causal Net** | `MissingActivity`, `InvalidDependencyScore`, `DisconnectedGraph` |
+| **Process Tree** | `InvalidArity`, `CycleDetected`, `DanglingNodeReference` |
+| **OCPQ** | `FlatteningRequired`, `MissingObjectScope`, `UnboundVariable` |
 | **Conformance** | `FitnessUnavailable`, `GeneralizationUnavailable`, `SimplicityUnavailable` |
-| **Receipt** | `MissingDigest`, `BrokenChainLink(u32)`, `EmptyChain`, `MissingWitness` |
+| **Receipt** | `MissingDigest`, `BrokenChainLink(usize)`, `EmptyChain`, `MissingWitness` |
 
 All refusal variants are `PartialEq + Eq`, enabling structural equality assertions in tests (`assert_eq!(r, DeclareRefusal::MissingTarget)`) rather than Display-string substring searches.
 
@@ -187,13 +187,42 @@ There are no per-format features (e.g., no `ocel` or `xes` flags). The entire ca
 
 ## TypeScript Sidecar
 
-TypeScript bindings and Zod schemas live in the `wasm4pm-compat-ts` sidecar crate rather than in this crate. The separation enforces the "not a TypeScript/Zod generator" invariant: the compat core defines type law; the sidecar exposes it to TypeScript consumers. Refer to the sidecar crate for schema generation, round-trip covenants, and `bindings/zod_schemas.ts`.
+TypeScript bindings and Zod schemas live in the `wasm4pm-compat-ts` sidecar crate rather than in this crate. The separation enforces the "not a TypeScript/Zod generator" invariant: the compat core defines type law; the sidecar exposes it to TypeScript consumers. Refer to the sidecar crate for schema generation, round-trip covenants, and `wasm4pm-compat-ts/bindings/zod_schemas.ts`.
+
+### npm Packages (v26.10.12)
+
+Two npm packages expose this crate's type law to TypeScript/JavaScript consumers:
+
+```bash
+npm install @wasm4pm/compat-ts @wasm4pm/compat-wasm
+```
+
+**`@wasm4pm/compat-ts`** — the Zod shape law. Root import re-exports the ggen-generated schemas and their inferred types; the `./zod_schemas` subpath binds the bindings file directly:
+
+```ts
+import { OcelLogSchema } from '@wasm4pm/compat-ts';
+import { XesLogSchema } from '@wasm4pm/compat-ts/zod_schemas';
+```
+
+**`@wasm4pm/compat-wasm`** — OCEL v2 parse/validate/structural admission via the compiled WASM component (`jco`-generated, synchronous API). `admitOcelJson` returns `"admitted"` on success and throws with the named refusal law on violation:
+
+```ts
+import { ocelV2 } from '@wasm4pm/compat-wasm/compat-ocel';
+
+try {
+  const verdict = ocelV2.admitOcelJson(json); // "admitted" or throws
+} catch (e) {
+  // e's payload/message carries the named law, e.g. DanglingEventObjectLink
+}
+```
+
+Fence: shape law + named refusals only — no engine logic. Discovery, conformance checking, replay, and alignment graduate to `wasm4pm`.
 
 ---
 
 ## ggen Ecosystem Projection
 
-`ggen` (the generative provision compiler) operates as a provision instrument that translates ontologies (e.g., `wasm4pm-compat.ttl` defining the 271 canonical paper witnesses across all process mining families) and manifests into Rust source definitions, witness registries (`src/witnesses.rs`), and negative verification fixtures.
+`ggen` (the generative provision compiler) operates as a provision instrument that translates ontologies (e.g., the `ggen/ontology/*.ttl` graphs defining the canonical witness registry — 537 markers, 503 paper-family) and manifests into Rust source definitions, witness registries (`src/witnesses.rs`), and negative verification fixtures.
 
 `wasm4pm-compat` serves as the target type-law court; it does not depend on `ggen` code or runtimes.
 
@@ -211,7 +240,7 @@ The `graduation-boundary-map` ggen rule maps each `GraduationReason` variant to 
 
 ### Compile-Fail Fixtures
 
-The ALIVE gate (`cargo make alive`) runs 217 compile-fail fixtures and 406 compile-pass fixtures. Compile-fail fixtures use the **function-parameter pattern** to create typed values without calling `pub(crate)` constructors:
+The ALIVE gate (`cargo make alive`) runs 238 compile-fail fixtures and 418 compile-pass fixtures. Compile-fail fixtures use the **function-parameter pattern** to create typed values without calling `pub(crate)` constructors:
 
 ```rust
 // Law: Evidence<T, Admitted, Xes1849> cannot be passed where Evidence<T, Admitted, Ocel20> is required.
@@ -264,9 +293,9 @@ cargo make ci
 # Anti-cheat gate
 just anti-cheat-gate
 
-# ggen provision (render src/witnesses.rs from ontology)
-cargo make ggen-witnesses
-cargo make ggen-witnesses-dry   # preview without writing
+# ggen provision (render src/witnesses*.rs from ontology)
+cargo make ggen-sync
+cargo make ggen-sync-dry   # preview without writing
 
 # Run a single test by name
 cargo test --all-features <test_name>
@@ -342,7 +371,7 @@ The documentation for `wasm4pm-compat` is organized according to the [Diátaxis]
     *   [Preparing for a Crates.io Release](docs/how-to/prepare-crates-io-publish.md) - Release preparation steps.
 *   **Research & Reports**:
     *   [Process Theory Alignment](research/process-theory-alignment.md) - Mathematical alignment with literature.
-    *   [Verification Report](docs/reports/v26.6.13-verification-report.md) - Status of mandatory verification gates.
+    *   [Verification Report](archive/pre-v26.6.14/docs/reports/v26.6.13-verification-report.md) - Status of mandatory verification gates (archived, pre-v26.6.14).
 
 ---
 

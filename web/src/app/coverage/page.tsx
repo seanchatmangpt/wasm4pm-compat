@@ -57,7 +57,7 @@ async function getCoverageLog(): Promise<{
   lastIteration: string;
 }> {
   const content = await readFile(
-    join(CRATE_ROOT, "DOC_COVERAGE_LOG.md"),
+    join(CRATE_ROOT, "docs/archive/pre-v26.10.12/DOC_COVERAGE_LOG.md"),
     "utf-8"
   );
   const bijectiveComplete = content.includes("BIJECTIVE COVERAGE STATUS: COMPLETE");

@@ -159,7 +159,7 @@ closed).
   `tests/ui/compile_pass/` and `tests/ui/compile_fail/`.
 - A law surface in `src/law.rs`, `src/petri.rs`, `src/conformance.rs`, etc.
   that has a compile-pass fixture but no compile-fail fixture (or vice versa).
-- The type-law crosswalk in `docs/NIGHTLY_TYPE_LAW.md` has a row with a missing
+- The type-law crosswalk in `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md` has a row with a missing
   pass or fail fixture column.
 
 **Why this matters:** A pass fixture alone proves the door is open; it does not

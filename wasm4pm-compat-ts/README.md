@@ -5,13 +5,24 @@ domain type law. These schemas are author-time generated from the compat
 ontology via `ggen` (`wasm4pm-compat/ggen`, query `extract-zod-schemas.rq` +
 template `zod-schemas.ts.tera`) — see `./bindings/zod_schemas.ts`.
 
-49 exported `*Schema` consts (plus matching `z.infer<>` types), including
+109 exported `*Schema` consts (plus matching `z.infer<>` types), including
 `ConformanceResultSchema`, `ConformanceVerdictSchema`, `BpmnProcessSchema`,
 `PetriNetSchema`, `ArcSchema`, `CompatDiagnosticSchema`, and the rest of the
 compat domain.
 
 Schemas are zod **v3 and v4 compatible** (`z.record` is emitted with explicit
 key + value types).
+
+**Boundary**: this package is shape law only — typed schemas and inferred
+types for the compat domain. It contains no engine logic (no discovery,
+conformance computation, replay, or alignment); those graduate to `wasm4pm`.
+
+Schemas are importable either from the root entry point (as above) or
+directly via the `./zod_schemas` subpath:
+
+```ts
+import { ConformanceResultSchema } from '@wasm4pm/compat-ts/zod_schemas';
+```
 
 ## Install
 

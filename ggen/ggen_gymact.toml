@@ -13,7 +13,7 @@
 
 [project]
 name = "gymact-rs-gen"
-version = "26.8.7"
+version = "26.10.12"
 description = "Rust projection of the GymAct public-semantic execution profile"
 authors = ["Sean Chatman"]
 license = "MIT"

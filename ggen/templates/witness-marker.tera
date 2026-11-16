@@ -1,14 +1,14 @@
-{# witness-marker.tera — Constitutional Equation: witnesses.rs = mu(wasm4pm-compat.ttl, WitnessMarker*) #}
-{# Generates idiomatic witness_marker!() calls — indistinguishable from hand-written code.  #}
-{# There is no "generated" folder. This IS the source. The ontology is the spec; this is compiled output. #}
-{# #}
-{# Input variables (from SPARQL): #}
-{#   rustType      — CamelCase Rust name, e.g. "Ocel20"                          #}
-{#   witnessKey    — stable lowercase key, e.g. "ocel-2.0"                       #}
-{#   witnessTitle  — human-facing title, e.g. "OCEL 2.0"                         #}
-{#   witnessYear   — Option<u16>, e.g. "2023" or "" (empty = None)               #}
-{#   witnessFamily — URI, e.g. "https://wasm4pm-compat.rs/ontology#Paper"        #}
-{#   description   — one-line doc string                                          #}
+{# witness-marker.tera — Constitutional Equation: witnesses.rs = mu(wasm4pm-compat.ttl, WitnessMarker*) -#}
+{# Generates idiomatic witness_marker!() calls — indistinguishable from hand-written code.  -#}
+{# There is no "generated" folder. This IS the source. The ontology is the spec; this is compiled output. -#}
+{# -#}
+{# Input variables (from SPARQL): -#}
+{#   rustType      — CamelCase Rust name, e.g. "Ocel20"                          -#}
+{#   witnessKey    — stable lowercase key, e.g. "ocel-2.0"                       -#}
+{#   witnessTitle  — human-facing title, e.g. "OCEL 2.0"                         -#}
+{#   witnessYear   — Option<u16>, e.g. "2023" or "" (empty = None)               -#}
+{#   witnessFamily — URI, e.g. "https://wasm4pm-compat.rs/ontology#Paper"        -#}
+{#   description   — one-line doc string                                          -#}
 //! Witness marker declarations — compiled from `wasm4pm-compat.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` instance in the ontology.

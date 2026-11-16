@@ -8,10 +8,10 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`DataQualityDimension`]: the named quality dimensions a claim can cover.
-//! - [`DataQualityClaim`]: which dimensions are claimed, grounded to a log
+//! - [`DataQualityDimension`](crate::data_quality::DataQualityDimension): the named quality dimensions a claim can cover.
+//! - [`DataQualityClaim`](crate::data_quality::DataQualityClaim): which dimensions are claimed, grounded to a log
 //!   reference.
-//! - [`DataQualityRefusal`]: first-class, specifically named refusals.
+//! - [`DataQualityRefusal`](crate::data_quality::DataQualityRefusal): first-class, specifically named refusals.
 //!
 //! ## What this module is **NOT**
 //!

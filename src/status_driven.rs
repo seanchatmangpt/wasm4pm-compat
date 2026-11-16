@@ -6,8 +6,8 @@
 //!
 //! - The **shape** of a status-driven system: a finite set of named `Status`
 //!   states, and the subset of transitions between them that are *active*
-//!   (permitted) at any given moment — [`StatusDrivenSystem`].
-//! - [`TaskSuccessProbability`] — a `Between01`-bounded metric type for the
+//!   (permitted) at any given moment — [`StatusDrivenSystem`](crate::status_driven::StatusDrivenSystem).
+//! - [`TaskSuccessProbability`](crate::status_driven::TaskSuccessProbability) — a `Between01`-bounded metric type for the
 //!   probability that a task reaches a success status, structurally distinct
 //!   from any other `[0, 1]` metric in this crate ([`crate::law::Between01`]
 //!   siblings like `StochasticArcWeight`, `DependencyMeasure`).

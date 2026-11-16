@@ -1,40 +1,29 @@
-# wasm4pm-compat Zod Integration Example
+# zod_integration
 
-This directory contains a full example of how to use **auto-generated Zod schemas** to validate process mining evidence in TypeScript.
+**Unshipped demo directory.** Not part of the published package — examples and
+integration sketches only.
 
-## Architecture
+## Schema source of truth
 
-1.  **Source of Truth**: The `ggen/ontology/` directory defines the structural laws of process evidence (Rust types).
-2.  **Generation**: The `ggen` tool queries the ontology and renders Zod schemas into `bindings/zod_schemas.ts`.
-3.  **Validation**: Frontend applications use these Zod schemas to ensure data received from APIs or WASM boundaries conforms to the `wasm4pm-compat` standard.
+Canonical schemas live at `../bindings/zod_schemas.ts` (ggen-generated from
+`zod-types.ttl`). This directory does **not** maintain its own copy: the local
+`zod_schemas.ts` is a re-export shim (`export * from '../bindings/zod_schemas'`)
+plus the two aggregate schemas the generator does not emit (`EventLogSchema`,
+`PetriNetSchema`), composed from canonical parts.
 
-## Generated Schemas
+## Wire format
 
-The following types are exported from `bindings/zod_schemas.ts`:
-- `EventLog`, `Trace`, `Event`
-- `OcelLog`, `OcelEvent`, `OcelObject`
-- `PetriNet`, `Place`, `Transition`, `Arc`
+`time` fields are RFC3339 strings (e.g. `2024-06-09T00:00:00Z`), matching the
+canonical schema. The hand copy's `z.union([z.number(), z.string()])` variant is
+retired — do not reintroduce epoch-millis times in fixtures here.
 
-## Setup
+## Run
+
+The `npm` scripts in `package.json` assume ts-node with the directory's own
+deps; they are convenience sketches. Typecheck with:
 
 ```bash
-# From the project root, ensure schemas are generated
-# (This uses the ggen minimal manifest for Zod)
-ggen sync --manifest ggen_zod.toml
-
-# Navigate to the example
-cd examples/zod_integration
-
-# Install dependencies
-npm install
-
-# Run the demo
-npm start
+npx tsc -p tsconfig.json --noEmit
 ```
 
-## Why Zod?
-
-While TypeScript provides compile-time safety, **Zod provides runtime safety**. 
-In process mining, when data crosses boundaries (e.g., from a Python backend to a Web frontend), we must ensure that the structural invariants (like having at least one object reference in an OCEL event) are maintained. 
-
-By generating Zod schemas directly from the same ontology that drives the Rust core, we achieve **End-to-End Type Law Enforcement**.
+(module resolution walks up to the root `node_modules` for `zod`/`typescript`.)

@@ -11,7 +11,9 @@ SELECT ?witnessKey ?witnessFamily ?witnessYear
 WHERE {
   ?marker a compat:WitnessMarker ;
           compat:witnessKey ?witnessKey .
-  OPTIONAL { ?marker compat:witnessFamily ?witnessFamily . }
-  OPTIONAL { ?marker compat:witnessYear   ?witnessYear . }
+  OPTIONAL { ?marker compat:witnessFamily ?familyRaw . }
+  OPTIONAL { ?marker compat:witnessYear   ?yearRaw . }
+  BIND(COALESCE(?familyRaw, "") AS ?witnessFamily)
+  BIND(COALESCE(?yearRaw, "") AS ?witnessYear)
 }
 ORDER BY ?witnessKey

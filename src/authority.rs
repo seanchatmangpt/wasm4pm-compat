@@ -9,18 +9,18 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`Capability`]: a witness-tagged, digest-pinned capability descriptor.
-//! - [`AuthorityConstraint`]: named, structural policy predicates a capability's
+//! - [`Capability`](crate::authority::Capability): a witness-tagged, digest-pinned capability descriptor.
+//! - [`AuthorityConstraint`](crate::authority::AuthorityConstraint): named, structural policy predicates a capability's
 //!   use must satisfy.
-//! - [`AuthorityEnvelope`]: a capability bundled with the constraints that scope
+//! - [`AuthorityEnvelope`](crate::authority::AuthorityEnvelope): a capability bundled with the constraints that scope
 //!   it.
-//! - [`AuthorityRefusal`]: first-class, specifically named refusals.
-//! - [`GatedAdmit`]: composes with [`crate::admission::Admit`] to require an
+//! - [`AuthorityRefusal`](crate::authority::AuthorityRefusal): first-class, specifically named refusals.
+//! - [`GatedAdmit`](crate::authority::GatedAdmit): composes with [`crate::admission::Admit`] to require an
 //!   envelope to structurally validate *before* `admit` is attempted.
 //!
 //! ## What this module is **NOT**
 //!
-//! - **Not** a policy engine. [`AuthorityEnvelope::validate`] checks *presence*
+//! - **Not** a policy engine. [`AuthorityEnvelope::validate`](crate::authority::AuthorityEnvelope) checks *presence*
 //!   and *shape* of declared constraints, never runtime authorization, identity,
 //!   or trust decisions.
 //! - **Not** an actuator. Nothing here performs a consequential action; it only
@@ -264,7 +264,7 @@ impl core::fmt::Display for AuthorityRefusal {
 ///
 /// This trait never replaces [`crate::admission::Admit`]; it wraps it. An
 /// implementor supplies [`GatedAdmit::envelope`] and gets
-/// [`GatedAdmit::admit_gated`] for free, which refuses with
+/// `admit_gated` blanket method for free, which refuses with
 /// [`AuthorityRefusal`]s before ever constructing the
 /// [`crate::evidence::Evidence`] that `Admit::admit` would consume.
 pub trait GatedAdmit: crate::admission::Admit {

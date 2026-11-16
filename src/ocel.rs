@@ -3,8 +3,8 @@
 //! ## What this module IS
 //!
 //! - The structural shape of an OCEL 2.0 log: events, objects, E2O/O2O links,
-//!   and object changes, plus the named admission laws ([`OcelRefusal`]) and the
-//!   sole concrete admitter [`LinkedOcel`] that enforces them through the typed
+//!   and object changes, plus the named admission laws ([`OcelRefusal`](crate::ocel::OcelRefusal)) and the
+//!   sole concrete admitter [`LinkedOcel`](crate::ocel::LinkedOcel) that enforces them through the typed
 //!   one-way door.
 //!
 //! ## What this module is **NOT**
@@ -23,6 +23,10 @@ pub mod intake;
 pub mod scope;
 pub mod validate;
 
+pub use validate::validate_ocel;
+
+use crate::admission::Admit;
+use crate::loss::{LossPolicy, LossReport, Project};
 use chrono::{DateTime, FixedOffset};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -936,7 +940,7 @@ impl std::fmt::Display for OcelRefusal {
 impl std::error::Error for OcelRefusal {}
 
 /// The sanctioned `Raw → Admitted` boundary for an [`OcelLog`], judged against
-/// the [`Ocel20`] authority.
+/// the [`Ocel20`](crate::witness::Ocel20) authority.
 ///
 /// ## What this IS
 ///
@@ -1006,6 +1010,600 @@ impl crate::admission::Admit for LinkedOcel {
             Err(reason) => Err(crate::admission::Refusal::new(reason)),
         }
     }
+}
+
+/// Named refusal variants for the one-shot OCEL 2.0 JSON admission path
+/// ([`admit_ocel_v2_json`]). Every variant names a specific law — there is no
+/// bare `InvalidInput` catch-all on this boundary.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum OcelV2AdmissionRefusal {
+    /// The input is not well-formed OCEL 2.0 JSON (`ocel-v2:parse:invalid-json`).
+    Parse(String),
+    /// The JSON parsed but cannot yet be lifted structurally
+    /// (`ocel-v2:bridge:unsupported-shape`). Reserved for future bridge laws.
+    Bridge(String),
+    /// The lifted log violates an [`OcelLog`] structural law; the inner
+    /// [`OcelRefusal`] law string is carried verbatim (`ocel-v2:law:<LAW>`).
+    Law(OcelRefusal),
+}
+
+impl std::fmt::Display for OcelV2AdmissionRefusal {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            OcelV2AdmissionRefusal::Parse(detail) => {
+                write!(f, "ocel-v2:parse:invalid-json: {detail}")
+            }
+            OcelV2AdmissionRefusal::Bridge(detail) => {
+                write!(f, "ocel-v2:bridge:unsupported-shape: {detail}")
+            }
+            OcelV2AdmissionRefusal::Law(law) => write!(f, "ocel-v2:law:{law}"),
+        }
+    }
+}
+
+impl std::error::Error for OcelV2AdmissionRefusal {}
+
+/// Shape marker for the serde JSON-shaped OCEL 2.0 document side of the lift.
+///
+/// Use as the `From` shape of a [`LossReport`] for the [`OcelLog`] lift.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::LossReport;
+/// use wasm4pm_compat::ocel::{OcelToLogLoss, OcelLogShape, OcelV2JsonShape};
+///
+/// let _report: LossReport<OcelV2JsonShape, OcelLogShape, OcelToLogLoss> =
+///     LossReport::new(
+///         wasm4pm_compat::loss::ProjectionName("ocel-v2-lift-to-ocel-log"),
+///         wasm4pm_compat::loss::LossPolicy::AllowLossWithReport,
+///         OcelToLogLoss::default(),
+///     );
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OcelV2JsonShape {}
+
+/// Shape marker for the crate-native [`OcelLog`] side of the lift.
+///
+/// Use as the `To` shape of a [`LossReport`] for the OCEL 2.0 JSON lift.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::ocel::{OcelToLogLoss, OcelLogShape, OcelV2JsonShape};
+///
+/// fn report_shape(
+///     r: &wasm4pm_compat::loss::LossReport<OcelV2JsonShape, OcelLogShape, OcelToLogLoss>,
+/// ) -> (usize, usize) {
+///     (
+///         r.lost.dropped_event_attribute_values,
+///         r.lost.dropped_object_change_timestamps,
+///     )
+/// }
+///
+/// assert_eq!(
+///     report_shape(&wasm4pm_compat::loss::LossReport::new(
+///         wasm4pm_compat::loss::ProjectionName("ocel-v2-lift-to-ocel-log"),
+///         wasm4pm_compat::loss::LossPolicy::AllowNamedProjection,
+///         OcelToLogLoss::default(),
+///     )),
+///     (0, 0)
+/// );
+/// ```
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum OcelLogShape {}
+
+/// The itemized, named record of what the [`OcelLog`] lift discarded.
+///
+/// Each field is a distinct named loss category — the lift's loss is auditable
+/// per category, never as a single opaque count.
+///
+/// - `dropped_event_attribute_values`: event attribute values have no carrier
+///   on [`OcelEvent`] (only id/activity/timestamp).
+/// - `dropped_object_change_timestamps`: the JSON `time` field is an RFC-3339
+///   instant; [`ObjectChange`] carries an optional crate nanosecond offset, so
+///   the instant is dropped.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct OcelToLogLoss {
+    /// Event attribute values discarded by the lift.
+    pub dropped_event_attribute_values: usize,
+    /// Object-change timestamps discarded by the lift.
+    pub dropped_object_change_timestamps: usize,
+}
+
+impl core::fmt::Display for OcelToLogLoss {
+    /// Formats the two named loss categories for diagnostics.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::OcelToLogLoss;
+    ///
+    /// let loss = OcelToLogLoss {
+    ///     dropped_event_attribute_values: 3,
+    ///     dropped_object_change_timestamps: 1,
+    /// };
+    /// assert_eq!(
+    ///     format!("{}", loss),
+    ///     "dropped_event_attribute_values=3, dropped_object_change_timestamps=1"
+    /// );
+    /// ```
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(
+            f,
+            "dropped_event_attribute_values={}, dropped_object_change_timestamps={}",
+            self.dropped_event_attribute_values, self.dropped_object_change_timestamps
+        )
+    }
+}
+
+/// The named refusal raised when the lift is run under
+/// [`LossPolicy::RefuseLoss`] and would drop evidence.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum OcelToLogRefusal {
+    /// Loss was forbidden and the lift would have dropped evidence. The
+    /// category counts are recoverable from
+    /// [`OcelToLogProjection::would_drop`].
+    LossForbidden,
+}
+
+impl core::fmt::Display for OcelToLogRefusal {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            OcelToLogRefusal::LossForbidden => {
+                write!(
+                    f,
+                    "ocel-v2-lift:loss-forbidden: the OCEL → OcelLog lift drops event \
+                     attribute values and/or object-change timestamps; use \
+                     LossPolicy::AllowLossWithReport (or AllowNamedProjection) to authorize it"
+                )
+            }
+        }
+    }
+}
+
+impl std::error::Error for OcelToLogRefusal {}
+
+/// The named OCEL 2.0 JSON → [`OcelLog`] projection descriptor.
+///
+/// Implements [`Project`]: the only sanctioned path through the lossy lift.
+/// Under [`LossPolicy::RefuseLoss`] it refuses by name when evidence would be
+/// dropped; otherwise it returns a [`LossReport`] itemizing
+/// [`OcelToLogLoss`].
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::loss::{LossPolicy, Project};
+/// use wasm4pm_compat::ocel::{OcelToLogProjection, OCEL, OCELType};
+///
+/// let ocel = OCEL {
+///     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+///     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+///     events: vec![],
+///     objects: vec![],
+/// };
+/// let report = OcelToLogProjection { ocel: &ocel }
+///     .project(LossPolicy::AllowLossWithReport)
+///     .unwrap();
+/// assert_eq!(report.lost.dropped_event_attribute_values, 0); // nothing to drop
+/// assert_eq!(report.lost.dropped_object_change_timestamps, 0);
+/// ```
+pub struct OcelToLogProjection<'a> {
+    /// The source document to lift.
+    pub ocel: &'a OCEL,
+}
+
+impl OcelToLogProjection<'_> {
+    /// The stable [`ProjectionName`](crate::loss::ProjectionName) of this projection.
+    pub const PROJECTION_NAME: crate::loss::ProjectionName =
+        crate::loss::ProjectionName("ocel-v2-lift-to-ocel-log");
+
+    /// Counts, by name, what a lift of this document would discard — without
+    /// running it.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use wasm4pm_compat::ocel::{OcelToLogProjection, OCEL, OCELEvent, OCELEventAttribute,
+    ///     OCELObject, OCELObjectAttribute, OCELType, OCELAttributeValue};
+    ///
+    /// # let ocel = OCEL {
+    /// #     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+    /// #     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+    /// #     events: vec![OCELEvent {
+    /// #         id: "e1".into(),
+    /// #         event_type: "place".into(),
+    /// #         time: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z").unwrap(),
+    /// #         attributes: vec![OCELEventAttribute {
+    /// #             name: "amount".into(),
+    /// #             value: OCELAttributeValue::String("42".into()),
+    /// #         }],
+    /// #         relationships: vec![],
+    /// #     }],
+    /// #     objects: vec![OCELObject {
+    /// #         id: "o1".into(),
+    /// #         object_type: "order".into(),
+    /// #         attributes: vec![OCELObjectAttribute {
+    /// #             name: "status".into(),
+    /// #             value: OCELAttributeValue::String("open".into()),
+    /// #             time: chrono::DateTime::parse_from_rfc3339("2026-01-02T00:00:00Z").unwrap(),
+    /// #         }],
+    /// #         relationships: vec![],
+    /// #     }],
+    /// # };
+    /// let loss = OcelToLogProjection { ocel: &ocel }.would_drop();
+    /// assert_eq!(loss.dropped_event_attribute_values, 1);
+    /// assert_eq!(loss.dropped_object_change_timestamps, 1);
+    /// ```
+    #[must_use]
+    pub fn would_drop(&self) -> OcelToLogLoss {
+        OcelToLogLoss {
+            dropped_event_attribute_values: self
+                .ocel
+                .events
+                .iter()
+                .map(|e| e.attributes.len())
+                .sum(),
+            dropped_object_change_timestamps: self
+                .ocel
+                .objects
+                .iter()
+                .map(|o| o.attributes.len())
+                .sum(),
+        }
+    }
+}
+
+impl Project for OcelToLogProjection<'_> {
+    type From = OcelV2JsonShape;
+    type To = OcelLogShape;
+    type Lost = OcelToLogLoss;
+    type Reason = OcelToLogRefusal;
+
+    fn project(
+        self,
+        policy: LossPolicy,
+    ) -> Result<LossReport<Self::From, Self::To, Self::Lost>, Self::Reason> {
+        let lost = self.would_drop();
+        let lossy =
+            lost.dropped_event_attribute_values > 0 || lost.dropped_object_change_timestamps > 0;
+        if lossy && policy.is_refusing() {
+            return Err(OcelToLogRefusal::LossForbidden);
+        }
+        Ok(LossReport::new(Self::PROJECTION_NAME, policy, lost))
+    }
+}
+
+/// The lawful, policy-gated OCEL 2.0 → [`OcelLog`] lift.
+///
+/// This is the only sanctioned way to run the mechanical lift that drops
+/// evidence. It requires an explicit [`LossPolicy`] decided **before** loss
+/// occurs:
+///
+/// - [`LossPolicy::RefuseLoss`] returns [`OcelToLogRefusal::LossForbidden`]
+///   (carrying the named loss counts) whenever any event attribute value or
+///   object-change timestamp would be dropped; a lossless document lifts
+///   vacuously.
+/// - [`LossPolicy::AllowNamedProjection`] permits the loss under the named
+///   projection [`OcelToLogProjection::PROJECTION_NAME`].
+/// - [`LossPolicy::AllowLossWithReport`] permits the loss and returns an
+///   itemized [`LossReport`] whose `lost` value names each category and its
+///   count ([`OcelToLogLoss`]).
+///
+/// The returned [`OcelLog`] is identical to the (deprecated)
+/// [`ocel_to_log`] output; the difference is that the loss is either refused
+/// or travels on the record instead of being disclosed in prose only.
+///
+/// Structure-only; graduate to `wasm4pm` when the lifted log must be executed.
+///
+/// # Examples
+///
+/// Lawful reporting path — the loss is itemized by name:
+///
+/// ```
+/// use wasm4pm_compat::loss::LossPolicy;
+/// use wasm4pm_compat::ocel::{ocel_to_log_with_policy, OCEL, OCELEvent, OCELEventAttribute,
+///     OCELObject, OCELRelationship, OCELType, OCELAttributeValue};
+///
+/// let ocel = OCEL {
+///     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+///     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+///     events: vec![OCELEvent {
+///         id: "e1".into(),
+///         event_type: "place".into(),
+///         time: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z").unwrap(),
+///         attributes: vec![OCELEventAttribute {
+///             name: "amount".into(),
+///             value: OCELAttributeValue::String("42".into()),
+///         }],
+///         relationships: vec![OCELRelationship { object_id: "o1".into(), qualifier: "affected".into() }],
+///     }],
+///     objects: vec![OCELObject {
+///         id: "o1".into(),
+///         object_type: "order".into(),
+///         attributes: vec![],
+///         relationships: vec![],
+///     }],
+/// };
+/// let (log, report) =
+///     ocel_to_log_with_policy(&ocel, LossPolicy::AllowLossWithReport).unwrap();
+/// assert_eq!(log.events().len(), 1);
+/// // The dropped event attribute value is accounted for by name, not in prose.
+/// assert_eq!(report.lost.dropped_event_attribute_values, 1);
+/// assert_eq!(report.lost.dropped_object_change_timestamps, 0);
+/// assert_eq!(report.projection.as_str(), "ocel-v2-lift-to-ocel-log");
+/// ```
+///
+/// Refusal path — [`LossPolicy::RefuseLoss`] names the refusal instead of
+/// dropping evidence:
+///
+/// ```
+/// use wasm4pm_compat::loss::LossPolicy;
+/// use wasm4pm_compat::ocel::{ocel_to_log_with_policy, OCEL, OCELEvent, OCELEventAttribute,
+///     OCELObject, OCELType, OCELAttributeValue, OcelToLogRefusal};
+///
+/// # let ocel = OCEL {
+/// #     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+/// #     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+/// #     events: vec![OCELEvent {
+/// #         id: "e1".into(),
+/// #         event_type: "place".into(),
+/// #         time: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z").unwrap(),
+/// #         attributes: vec![OCELEventAttribute {
+/// #             name: "amount".into(),
+/// #             value: OCELAttributeValue::String("42".into()),
+/// #         }],
+/// #         relationships: vec![],
+/// #     }],
+/// #     objects: vec![],
+/// # };
+/// let err = ocel_to_log_with_policy(&ocel, LossPolicy::RefuseLoss).unwrap_err();
+/// assert_eq!(err, OcelToLogRefusal::LossForbidden);
+/// assert!(err.to_string().contains("ocel-v2-lift"));
+/// ```
+#[allow(clippy::type_complexity)]
+pub fn ocel_to_log_with_policy(
+    ocel: &OCEL,
+    policy: LossPolicy,
+) -> Result<
+    (
+        OcelLog,
+        LossReport<OcelV2JsonShape, OcelLogShape, OcelToLogLoss>,
+    ),
+    OcelToLogRefusal,
+> {
+    let report = OcelToLogProjection { ocel }.project(policy)?;
+    let log = ocel_to_log_unaccounted(ocel);
+    Ok((log, report))
+}
+
+/// The mechanical lift body, shared by both entry points. Performs no loss
+/// accounting of its own — callers must go through [`ocel_to_log_with_policy`]
+/// (or the deprecated [`ocel_to_log`] compatibility wrapper).
+fn ocel_to_log_unaccounted(ocel: &OCEL) -> OcelLog {
+    let objects: Vec<Object> = ocel
+        .objects
+        .iter()
+        .map(|o| Object::new(&o.id, &o.object_type))
+        .collect();
+
+    let events: Vec<OcelEvent> = ocel
+        .events
+        .iter()
+        .map(|e| OcelEvent::new(&e.id, &e.event_type))
+        .collect();
+
+    let e2o_links: Vec<EventObjectLink> = ocel
+        .events
+        .iter()
+        .flat_map(|e| {
+            e.relationships
+                .iter()
+                .map(|r| EventObjectLink::new(&e.id, &r.object_id).qualified(&r.qualifier))
+        })
+        .collect();
+
+    let o2o_links: Vec<ObjectObjectLink> = ocel
+        .objects
+        .iter()
+        .flat_map(|o| {
+            o.relationships
+                .iter()
+                .map(|r| ObjectObjectLink::new(&o.id, &r.object_id).qualified(&r.qualifier))
+        })
+        .collect();
+
+    let changes: Vec<ObjectChange> = ocel
+        .objects
+        .iter()
+        .flat_map(|o| {
+            o.attributes
+                .iter()
+                .map(|a| ObjectChange::new(&o.id, &a.name, &a.value.to_string()))
+        })
+        .collect();
+
+    OcelLog::new(objects, events, e2o_links, o2o_links, changes)
+}
+
+/// Compatibility wrapper over [`ocel_to_log_with_policy`] running under
+/// [`LossPolicy::AllowLossWithReport`] and discarding the report.
+///
+/// ## Why this exists
+///
+/// The raw lift drops event attribute values and object-change timestamps.
+/// That loss is now itemized by [`ocel_to_log_with_policy`]; this wrapper
+/// cannot hand the report back without breaking its (frozen) signature, so it
+/// is **deprecated**: callers should migrate to the policy-taking variant.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::ocel::{ocel_to_log, OCEL, OCELEvent, OCELObject, OCELRelationship, OCELType};
+///
+/// # let ocel = OCEL {
+/// #     event_types: vec![OCELType { name: "place".into(), attributes: vec![] }],
+/// #     object_types: vec![OCELType { name: "order".into(), attributes: vec![] }],
+/// #     events: vec![OCELEvent {
+/// #         id: "e1".into(),
+/// #         event_type: "place".into(),
+/// #         time: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z").unwrap(),
+/// #         attributes: vec![],
+/// #         relationships: vec![OCELRelationship { object_id: "o1".into(), qualifier: "affected".into() }],
+/// #     }],
+/// #     objects: vec![OCELObject {
+/// #         id: "o1".into(),
+/// #         object_type: "order".into(),
+/// #         attributes: vec![],
+/// #         relationships: vec![],
+/// #     }],
+/// # };
+/// let log = ocel_to_log(&ocel);
+/// assert_eq!(log.events().len(), 1);
+/// assert_eq!(log.events()[0].activity(), "place");
+/// assert!(log.validate().is_ok()); // lawful input lifts to a lawful log
+/// ```
+#[deprecated(
+    since = "26.10.0",
+    note = "this lift drops event attribute values and object-change timestamps; use \
+            ocel_to_log_with_policy with an explicit LossPolicy so the loss is refused or reported"
+)]
+#[must_use]
+#[allow(deprecated)]
+pub fn ocel_to_log(ocel: &OCEL) -> OcelLog {
+    let _ = ocel_to_log_with_policy(ocel, LossPolicy::AllowLossWithReport);
+    ocel_to_log_unaccounted(ocel)
+}
+
+/// One-shot OCEL 2.0 JSON admission: parse (`serde_json`) → [`ocel_to_log`] →
+/// [`LinkedOcel::admit`].
+///
+/// ## What this IS
+///
+/// - The single-call entry point for the WASM surface: bytes in, admitted
+///   [`OcelLog`] out, with a named-law [`OcelV2AdmissionRefusal`] on every
+///   failure path (`ocel-v2:parse:invalid-json`, `ocel-v2:bridge:unsupported-
+///   shape`, or `ocel-v2:law:<LAW>` carrying the inner [`OcelRefusal`] string
+///   verbatim).
+///
+/// ## What this is **NOT**
+///
+/// - **Not** a full OCEDO/OCPQ validator. [`LinkedOcel::admit`] enforces the two
+///   [`OcelLog`] structural laws (non-empty E2O, no dangling E2O) only; run
+///   [`validate::validate_ocel`] for the complete report.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::ocel::admit_ocel_v2_json;
+///
+/// let json = r#"{
+///     "eventTypes": [{"name": "place"}],
+///     "objectTypes": [{"name": "order"}],
+///     "events": [{"id": "e1", "type": "place", "time": "2026-01-01T00:00:00Z",
+///                 "relationships": [{"objectId": "o1", "qualifier": "affected"}]}],
+///     "objects": [{"id": "o1", "type": "order"}]
+/// }"#;
+/// let admitted = admit_ocel_v2_json(json).expect("lawful OCEL 2.0 JSON");
+/// assert_eq!(admitted.value.events().len(), 1);
+///
+/// // Malformed JSON is refused by name, not by a bare catch-all.
+/// let err = admit_ocel_v2_json("{not json").unwrap_err();
+/// assert!(err.to_string().starts_with("ocel-v2:parse:invalid-json"));
+/// ```
+pub fn admit_ocel_v2_json(
+    json: &str,
+) -> Result<crate::admission::Admission<OcelLog, crate::witness::Ocel20>, OcelV2AdmissionRefusal> {
+    let ocel: OCEL =
+        serde_json::from_str(json).map_err(|e| OcelV2AdmissionRefusal::Parse(e.to_string()))?;
+    // The lift's loss (event attribute values, object-change timestamps) is
+    // authorized here under AllowLossWithReport; the report is intentionally
+    // dropped as this one-shot surface carries only the admitted log.
+    let (log, _report) = ocel_to_log_with_policy(&ocel, LossPolicy::AllowLossWithReport)
+        .expect("AllowLossWithReport never refuses");
+    let raw =
+        crate::evidence::Evidence::<OcelLog, crate::state::Raw, crate::witness::Ocel20>::raw(log);
+    LinkedOcel::admit(raw).map_err(|r| OcelV2AdmissionRefusal::Law(r.reason))
+}
+
+/// One-shot OCEL 2.0 JSON locality admission: parse (`serde_json`) →
+/// [`ocel_to_log_with_policy`] → [`OcelLog::validate_gianola_2026_locality`].
+///
+/// ## What this IS
+///
+/// - The JSON-surface entry point for the Gianola et al. (2026) dynamic-
+///   relationship laws (Assumption 3: exactly one reference object of type
+///   `reference_type` per event; Assumption 5: the Locality Principle — an
+///   event must not implicitly re-point a `child_type` object from one
+///   reference object to another). Every failure path carries a named-law
+///   [`OcelV2AdmissionRefusal`] (`ocel-v2:parse:invalid-json` or
+///   `ocel-v2:law:<OcelRefusal law>` verbatim, e.g. `ocel-v2:law:
+///   ViolatesLocalityPrinciple`).
+///
+/// ## What this is **NOT**
+///
+/// - **Not** the general admission gate. [`admit_ocel_v2_json`] enforces the
+///   structural E2O laws; this function enforces only the locality pair, on
+///   top of a loss-accounted lift.
+///
+/// # Examples
+///
+/// ```
+/// use wasm4pm_compat::ocel::validate_ocel_locality_json;
+///
+/// let json = r#"{
+///     "eventTypes": [{"name": "create team"}],
+///     "objectTypes": [{"name": "team"}, {"name": "employee"}],
+///     "events": [
+///         {"id": "e1", "type": "create team", "time": "2024-06-09T00:00:00Z",
+///          "relationships": [{"objectId": "t1", "qualifier": "team"},
+///                            {"objectId": "p2", "qualifier": "employee"}]},
+///         {"id": "e2", "type": "create team", "time": "2024-06-09T00:01:00Z",
+///          "relationships": [{"objectId": "t1", "qualifier": "team"},
+///                            {"objectId": "p2", "qualifier": "employee"}]}
+///     ],
+///     "objects": [{"id": "t1", "type": "team"},
+///                 {"id": "p2", "type": "employee"}]
+/// }"#;
+/// // p2 stays under the same team reference — lawful.
+/// validate_ocel_locality_json(json, "team", "employee")
+///     .expect("stable reference is lawful");
+///
+/// // Re-pointing p2 from t1 to t2 implicitly deletes (t1, p2): refused by name.
+/// let violating = r#"{
+///     "eventTypes": [{"name": "create team"}],
+///     "objectTypes": [{"name": "team"}, {"name": "employee"}],
+///     "events": [
+///         {"id": "e1", "type": "create team", "time": "2024-06-09T00:00:00Z",
+///          "relationships": [{"objectId": "t1", "qualifier": "team"},
+///                            {"objectId": "p2", "qualifier": "employee"}]},
+///         {"id": "e2", "type": "create team", "time": "2024-06-09T00:01:00Z",
+///          "relationships": [{"objectId": "t2", "qualifier": "team"},
+///                            {"objectId": "p2", "qualifier": "employee"}]}
+///     ],
+///     "objects": [{"id": "t1", "type": "team"},
+///                 {"id": "t2", "type": "team"},
+///                 {"id": "p2", "type": "employee"}]
+/// }"#;
+/// let err = validate_ocel_locality_json(violating, "team", "employee")
+///     .unwrap_err();
+/// assert!(err.to_string().ends_with("law:ViolatesLocalityPrinciple"));
+/// ```
+pub fn validate_ocel_locality_json(
+    json: &str,
+    reference_type: &str,
+    child_type: &str,
+) -> Result<(), OcelV2AdmissionRefusal> {
+    let ocel: OCEL =
+        serde_json::from_str(json).map_err(|e| OcelV2AdmissionRefusal::Parse(e.to_string()))?;
+    // Same loss accounting as `admit_ocel_v2_json`: the lift's loss
+    // (event attribute values, object-change timestamps) is authorized under
+    // AllowLossWithReport; this surface carries only the law verdict.
+    let (log, _report) = ocel_to_log_with_policy(&ocel, LossPolicy::AllowLossWithReport)
+        .expect("AllowLossWithReport never refuses");
+    log.validate_gianola_2026_locality(reference_type, child_type)
+        .map_err(OcelV2AdmissionRefusal::Law)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]

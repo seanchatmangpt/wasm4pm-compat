@@ -11,7 +11,7 @@ executes every script and exits 1 if any hard-fail script fails.
 
 | Script | Exit behavior | What it checks |
 |--------|---------------|----------------|
-| `audit_crosswalk_links.sh` | exit 0 (soft warn) | NIGHTLY_TYPE_LAW.md table rows have type + pass fixture + fail fixture columns; warns on incomplete rows |
+| `audit_crosswalk_links.sh` | exit 0 (soft warn) | `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md` table rows have type + pass fixture + fail fixture columns; warns on incomplete rows (script copies: `scripts/audit_crosswalk_links.sh` and `scripts/audit/audit_crosswalk_links.sh`) |
 | `audit_doctest_disabled.sh` | exit 1 (hard fail) | Cargo.toml [lib] section has `doctest = false`; fails if missing — prevents doctest storm from nightly features |
 | `audit_features.sh` | exit 1 (hard fail) | Cargo.toml has exactly `[formats, strict, wasm4pm]` features; fails if `nightly` feature exists or any expected feature is missing |
 | `audit_graduation_boundaries.sh` | exit 1 (hard fail) | GRADUATION_BOUNDARIES.md exists and src/lib.rs exports no execution engine APIs (Miner/Checker/Replayer/Aligner); fails if engine API found |
@@ -25,6 +25,7 @@ executes every script and exits 1 if any hard-fail script fails.
 | `audit_paper_law_ledger.sh` | exit 1 (hard fail) | docs/PAPER_COVERAGE_LEDGER.md has no outstanding `MISSING_TYPE_LAW` entries; fails if any remain (outside the allowed header context) |
 | `audit_pass_fail_pairs.sh` | exit 0 (soft warn) | For each compile-fail fixture, checks if a corresponding compile-pass fixture exists; reports unmatched pairs but does not fail |
 | `audit_projection_loss.sh` | exit 1 (hard fail) | src/loss.rs has `LossPolicy`, `ProjectionName`, and `LossReport`; fails if any of the three are missing |
+| `audit_projection_safety.sh` | exit 1 (hard fail) | Projection safety: type distinctness (FormatKind vs LossPolicy), `ProjectionName` is `&'static str`, LossReport generics consistency, `LossyFormatExport` mandatory for lossy ops, compile-fail fixtures cover projection-safety gaps; fails on any gap |
 | `audit_receipt_chain.sh` | exit 1 (hard fail) | src/receipt.rs has `ReceiptEnvelope` with `witness`, `digest`, and `replay_hint` fields; fails if any field is missing |
 | `audit_stderr_quality.sh` | exit 0 (soft warn) | For each `.stderr` file, checks it contains `"error[E"` (a real Rust error code); warns if empty or missing error code |
 | `audit_trybuild_receipts.sh` | exit 1 (hard fail) | Every compile-fail `.rs` fixture has a matching `.stderr` receipt file; fails if any `.rs` is missing its `.stderr` |

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# audit_crosswalk_links.sh — check NIGHTLY_TYPE_LAW.md rows have type+pass+fail.
+# audit_crosswalk_links.sh — check docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md rows have type+pass+fail.
 # Parses table rows and warns on incomplete rows. Exit 0 (soft warn).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-CROSSWALK="$REPO_ROOT/NIGHTLY_TYPE_LAW.md"
+CROSSWALK="$REPO_ROOT/docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md"
 
 if [[ ! -f "$CROSSWALK" ]]; then
     echo "FAIL: NIGHTLY_TYPE_LAW.md not found at $CROSSWALK"

@@ -1,3 +1,4 @@
+
 //! Witness marker declarations — compiled from `wasm4pm-compat.ttl`.
 //!
 //! Every entry here is derived from a `compat:WitnessMarker` instance in the ontology.
@@ -7,6 +8,7 @@
 //! from the ontology, one defines the trait. Neither is second-class.
 
 use crate::witness::WitnessFamily;
+
 
 witness_marker!(
     /// Checked affidavit receipt chain.
@@ -439,3 +441,4 @@ witness_marker!(
     "YAWL: Yet Another Workflow Language",
     Some(2004)
 );
+

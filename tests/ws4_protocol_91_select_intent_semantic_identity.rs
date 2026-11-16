@@ -12,6 +12,6 @@ fn select_intent_binds_contract_semantic_digest() {
         ReceiptPolicy::Optional,
         "evt",
     );
-    let i = Intent::<SelectPhase>::try_new(&c, SubjectRef::new("s", "sd"), "id").unwrap();
+    let i = ProtocolIntent::<SelectPhase>::try_new(&c, SubjectRef::new("s", "sd"), "id").unwrap();
     assert_eq!(i.semantic_digest(), "sem-d");
 }

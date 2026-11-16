@@ -1,3 +1,4 @@
+#![cfg(feature = "formats")]
 use wasm4pm_compat::arazzo::{ArazzoDescription, AsyncAction, SourceDescriptionType};
 
 #[test]

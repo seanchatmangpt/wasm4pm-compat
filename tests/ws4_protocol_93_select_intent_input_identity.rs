@@ -12,6 +12,7 @@ fn select_intent_preserves_exact_input_digest() {
         ReceiptPolicy::Optional,
         "evt",
     );
-    let i = Intent::<SelectPhase>::try_new(&c, SubjectRef::new("s", "sd"), "input-d").unwrap();
+    let i =
+        ProtocolIntent::<SelectPhase>::try_new(&c, SubjectRef::new("s", "sd"), "input-d").unwrap();
     assert_eq!(i.input_digest(), "input-d");
 }

@@ -72,7 +72,7 @@ Two fixtures prove the rejection of unlawful paths:
 |---------|-----------|
 | `interop_ocel_to_xes_projection.rs` | Lawful OCEL→XES projection with `AllowLossWithReport` and `ProjectionName` compiles |
 | `interop_ocel_to_xes_projection_const.rs` | Const-projection surface compiles with the bridge trait |
-| `ocel_to_xes_with_named_projection.rs` | Named `ProjectionName("ocel-flatten-to-xes:by-case")` projection compiles |
+| `ocel_to_xes_with_named_projection.rs` | Named `ProjectionName("ocel-flatten-to-xes:by-order")` projection compiles |
 | `formats_accept_lossy_ocel_to_xes.rs` | `accept_lossy` boundary accepts OCEL→XES with full loss report |
 
 ---
@@ -82,10 +82,12 @@ Two fixtures prove the rejection of unlawful paths:
 The canonical projection name for this transformation is:
 
 ```
-ProjectionName("ocel-flatten-to-xes:by-case")
+ProjectionName("ocel-flatten-to-xes:by-case-type")
 ```
 
-The suffix `:by-case` names the case-selection strategy. If a different
+This is the canonical `OcelToXesProjection::PROJECTION_NAME` const in
+`src/interop.rs`. The suffix `:by-case-type` names the case-selection strategy
+(flatting by the `case_type` object attribute). If a different
 case-selection strategy is used (e.g., `:by-item`), it must use a distinct
 `ProjectionName` — the name encodes the strategy, not just the formats.
 
@@ -94,12 +96,14 @@ case-selection strategy is used (e.g., `:by-item`), it must use a distinct
 ## Loss report shape
 
 ```rust
-LossReport<OcelShape, XesShape, Vec<DroppedEventObjectLink>>
+LossReport<OcelShape, XesShape, Vec<String>>
 ```
 
 - `projection` — the `ProjectionName` naming this transformation
 - `policy` — `AllowLossWithReport` (or `AllowNamedProjection` for lightweight mode)
-- `lost` — the enumerated `DroppedEventObjectLink` values discarded in this run
+- `lost` — the dropped event-to-object links, enumerated as `String`
+  descriptions (the interop projection surfaces use `type Lost = Vec<String>`;
+  there is no dedicated `DroppedEventObjectLink` item type in this crate)
 
 Under `AllowNamedProjection`, items need not be enumerated, but the
 `ProjectionName` is still required.

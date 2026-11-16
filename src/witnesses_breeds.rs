@@ -1,3 +1,4 @@
+
 //! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
 //!
 //! Every entry here is derived from a `compat:CognitionBreed` instance in the ontology.
@@ -10,8 +11,9 @@
 
 use crate::witness::WitnessFamily;
 
+
 witness_marker!(
-    /// Harman, G. H. (1965). The Inference to the Best Explanation. The Philosophical Review, 74(1), 88–95. Thagard, P. R. (...
+    /// Harman, G. H. (1965). The Inference to the Best Explanation. The Philosophical Review, 74(1), 88–95. Thagard, P. R. (1978). The Best Explanation: Criteria for Theory Choice. The Journal of Philosophy, 75(2), 76–92.
     AbductiveIbePaper,
     "cognition/abductive-ibe",
     WitnessFamily::Paper,
@@ -20,7 +22,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Kakas, A. C., Kowalski, R. A., & Toni, F. (1992). Abductive Logic Programming. Journal of Logic and Computation, 2(6)...
+    /// Kakas, A. C., Kowalski, R. A., & Toni, F. (1992). Abductive Logic Programming. Journal of Logic and Computation, 2(6), 719–770.
     AbductiveLpPaper,
     "cognition/abductive-lp",
     WitnessFamily::Paper,
@@ -29,7 +31,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Anderson, J. R., & Lebiere, C. (1998). Lawrence Erlbaum Associates. Chapter 3 (the activation equation A_i = B_i + Σ_...
+    /// Anderson, J. R., & Lebiere, C. (1998). Lawrence Erlbaum Associates. Chapter 3 (the activation equation A_i = B_i + Σ_j W_j·S_ji) and Chapter 9 (cognitive arithmetic: retrieval of addition facts).
     ActRPaper,
     "cognition/act-r",
     WitnessFamily::Paper,
@@ -56,7 +58,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Gelfond, M., & Lifschitz, V. (1988). The Stable Model Semantics for Logic Programming. In: Proceedings of the Fifth I...
+    /// Gelfond, M., & Lifschitz, V. (1988). The Stable Model Semantics for Logic Programming. In: Proceedings of the Fifth International Conference and Symposium on Logic Programming (ICLP/SLP 1988), MIT Press, pp. 1070–1080.
     AspPaper,
     "cognition/asp",
     WitnessFamily::Paper,
@@ -83,7 +85,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Schank, R. C. (1972). Conceptual dependency: A theory of natural language understanding. Cognitive Psychology, 3(4), ...
+    /// Schank, R. C. (1972). Conceptual dependency: A theory of natural language understanding. Cognitive Psychology, 3(4), 552–631. https://doi.org/10.1016/0010-0285(72)90022-9
     AutoinstinctSemanticsPaper,
     "cognition/autoinstinct-semantics",
     WitnessFamily::Paper,
@@ -92,7 +94,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Marr, D., & Poggio, T. (1976). Cooperative computation of stereo disparity. Science, 194(4262), 283–287. https://doi....
+    /// Marr, D., & Poggio, T. (1976). Cooperative computation of stereo disparity. Science, 194(4262), 283–287. https://doi.org/10.1126/science.968816
     AutoinstinctVisionPaper,
     "cognition/autoinstinct-vision",
     WitnessFamily::Paper,
@@ -110,7 +112,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Konieczny, S., & Pino Pérez, R. (2002). Merging Information Under Constraints: A Logical Framework. Journal of Logic ...
+    /// Konieczny, S., & Pino Pérez, R. (2002). Merging Information Under Constraints: A Logical Framework. Journal of Logic and Computation, 12(5), 773–808.
     BeliefMergingPaper,
     "cognition/belief-merging",
     WitnessFamily::Paper,
@@ -119,7 +121,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// A. Aamodt, E. Plaza (1994). Case-Based Reasoning: Foundational Issues, Methodological Variations, and System Approach...
+    /// A. Aamodt, E. Plaza (1994). Case-Based Reasoning: Foundational Issues, Methodological Variations, and System Approaches. AI Communications, IOS Press, Vol. 7, No. 1, pp. 39–59.
     CbrPaper,
     "cognition/cbr",
     WitnessFamily::Paper,
@@ -137,7 +139,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Jaffar, J., & Lassez, J.-L. (1987). Constraint Logic Programming. In: Proceedings of the 14th ACM SIGACT-SIGPLAN Symp...
+    /// Jaffar, J., & Lassez, J.-L. (1987). Constraint Logic Programming. In: Proceedings of the 14th ACM SIGACT-SIGPLAN Symposium on Principles of Programming Languages (POPL 1987), pp. 111–119.
     ClpPaper,
     "cognition/clp",
     WitnessFamily::Paper,
@@ -146,7 +148,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Adele E. Goldberg (1995). Constructions: A Construction Grammar Approach to Argument Structure. University of Chicago...
+    /// Adele E. Goldberg (1995). Constructions: A Construction Grammar Approach to Argument Structure. University of Chicago Press.
     ConstructionGrammarPaper,
     "cognition/construction-grammar",
     WitnessFamily::Paper,
@@ -173,7 +175,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Clarke, E. M., Emerson, E. A., & Sistla, A. P. (1986). ACM Transactions on Programming Languages and Systems, 8(2), 2...
+    /// Clarke, E. M., Emerson, E. A., & Sistla, A. P. (1986). ACM Transactions on Programming Languages and Systems, 8(2), 244-263.
     CtlCheckPaper,
     "cognition/ctl-check",
     WitnessFamily::Paper,
@@ -200,7 +202,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Feigenbaum, E. A., Buchanan, B. G., & Lederberg, J. (1971). On generality and problem solving: A case study using the...
+    /// Feigenbaum, E. A., Buchanan, B. G., & Lederberg, J. (1971). On generality and problem solving: A case study using the DENDRAL program. Stanford Artificial Intelligence Project Memo AIM-131, Computer Science Department Report CS176. Stanford University.
     DendralPaper,
     "cognition/dendral",
     WitnessFamily::Paper,
@@ -209,7 +211,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Baader, F., Brandt, S., & Lutz, C. (2005). Pushing the EL Envelope. In: Proceedings of the 19th International Joint C...
+    /// Baader, F., Brandt, S., & Lutz, C. (2005). Pushing the EL Envelope. In: Proceedings of the 19th International Joint Conference on Artificial Intelligence (IJCAI 2005), pp. 364–369.
     DescriptionLogicPaper,
     "cognition/description-logic",
     WitnessFamily::Paper,
@@ -218,7 +220,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Mitchell, T. M., Keller, R. M., & Kedar-Cabelli, S. T. (1986). Explanation-Based Generalization: A Unifying View. Mac...
+    /// Mitchell, T. M., Keller, R. M., & Kedar-Cabelli, S. T. (1986). Explanation-Based Generalization: A Unifying View. Machine Learning, 1(1), 47-80.
     EblPaper,
     "cognition/ebl",
     WitnessFamily::Paper,
@@ -227,7 +229,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Weizenbaum, J. (1966). ELIZA—A computer program for the study of natural language communication between man and machi...
+    /// Weizenbaum, J. (1966). ELIZA—A computer program for the study of natural language communication between man and machine. Communications of the ACM, 9(1), 36–45. https://doi.org/10.1145/365153.365168
     ElizaPaper,
     "cognition/eliza",
     WitnessFamily::Paper,
@@ -236,7 +238,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Tulving, E. (1983). Oxford University Press (Ch. 7: encoding specificity and temporal organisation). Nuxoll, A. M., &...
+    /// Tulving, E. (1983). Oxford University Press (Ch. 7: encoding specificity and temporal organisation). Nuxoll, A. M., & Laird, J. E. (2007). Proceedings of AAAI 2007, 1560-1565 (cue-based retrieval of the best partially-matching episode).
     EpisodicMemoryPaper,
     "cognition/episodic-memory",
     WitnessFamily::Paper,
@@ -254,7 +256,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Minsky, M. (1974). A Framework for Representing Knowledge. MIT AI Laboratory Memo 306. Reprinted in Winston (Ed.), Th...
+    /// Minsky, M. (1974). A Framework for Representing Knowledge. MIT AI Laboratory Memo 306. Reprinted in Winston (Ed.), The Psychology of Computer Vision, 1975.
     FramesInheritancePaper,
     "cognition/frames-inheritance",
     WitnessFamily::Paper,
@@ -263,7 +265,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Mamdani, E. H., & Assilian, S. (1975). An Experiment in Linguistic Synthesis with a Fuzzy Logic Controller. Internati...
+    /// Mamdani, E. H., & Assilian, S. (1975). An Experiment in Linguistic Synthesis with a Fuzzy Logic Controller. International Journal of Man-Machine Studies, 7(1), 1-13.
     FuzzyLogicPaper,
     "cognition/fuzzy-logic",
     WitnessFamily::Paper,
@@ -281,7 +283,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Erman, L. D., Hayes-Roth, F., Lesser, V. R., and Reddy, D. R. (1980). The Hearsay-II speech-understanding system: Int...
+    /// Erman, L. D., Hayes-Roth, F., Lesser, V. R., and Reddy, D. R. (1980). The Hearsay-II speech-understanding system: Integrating knowledge to resolve uncertainty. ACM Computing Surveys, 12(2), 213–253.
     HearsayPaper,
     "cognition/hearsay",
     WitnessFamily::Paper,
@@ -290,7 +292,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Nau, D., Au, T.-C., Ilghami, O., Kuter, U., Murdock, J. W., Wu, D., & Yaman, F. (2003). SHOP2: An HTN Planning System...
+    /// Nau, D., Au, T.-C., Ilghami, O., Kuter, U., Murdock, J. W., Wu, D., & Yaman, F. (2003). SHOP2: An HTN Planning System. Journal of Artificial Intelligence Research, 20, 379-404.
     HtnPlanningPaper,
     "cognition/htn-planning",
     WitnessFamily::Paper,
@@ -308,7 +310,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Havelund, K., & Rosu, G. (2001). Monitoring Programs Using Rewriting. Proceedings of ASE 2001 (16th IEEE Internationa...
+    /// Havelund, K., & Rosu, G. (2001). Monitoring Programs Using Rewriting. Proceedings of ASE 2001 (16th IEEE International Conference on Automated Software Engineering), 135-143.
     LtlMonitorPaper,
     "cognition/ltl-monitor",
     WitnessFamily::Paper,
@@ -326,7 +328,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Bellman, R. (1957). Dynamic Programming. Princeton University Press. (Functional equation / principle of optimality, ...
+    /// Bellman, R. (1957). Dynamic Programming. Princeton University Press. (Functional equation / principle of optimality, Chapter III; successive-approximation solution, Chapter IV.)
     MdpPaper,
     "cognition/mdp",
     WitnessFamily::Paper,
@@ -353,7 +355,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Shortliffe, E. H., & Buchanan, B. G. (1975). A model of inexact reasoning in medicine. Mathematical Biosciences, 23(3...
+    /// Shortliffe, E. H., & Buchanan, B. G. (1975). A model of inexact reasoning in medicine. Mathematical Biosciences, 23(3–4), 351–379. Reprinted as Chapter 11 in: Buchanan, B. G., & Shortliffe, E. H. (Eds.), Rule-Based Expert Systems. Addison-Wesley, 1984.
     MycinPaper,
     "cognition/mycin",
     WitnessFamily::Paper,
@@ -362,7 +364,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Hayes, P. J. (1979). In D. Michie (Ed.), Expert Systems in the Micro-Electronic Age. Edinburgh University Press. Haye...
+    /// Hayes, P. J. (1979). In D. Michie (Ed.), Expert Systems in the Micro-Electronic Age. Edinburgh University Press. Hayes, P. J. (1985). In J. R. Hobbs & R. C. Moore (Eds.), Formal Theories of the Commonsense World (pp. 71-107). Ablex.
     NaivePhysicsPaper,
     "cognition/naive-physics",
     WitnessFamily::Paper,
@@ -380,7 +382,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// McAllester, D., & Rosenblitt, D. (1991). Systematic Nonlinear Planning. In: Proceedings of the Ninth National Confere...
+    /// McAllester, D., & Rosenblitt, D. (1991). Systematic Nonlinear Planning. In: Proceedings of the Ninth National Conference on Artificial Intelligence (AAAI-91), pp. 634–639.
     PartialOrderPlanPaper,
     "cognition/partial-order-plan",
     WitnessFamily::Paper,
@@ -389,7 +391,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Leslie Pack Kaelbling, Michael L. Littman and Anthony R. Cassandra (1998). Planning and acting in partially observabl...
+    /// Leslie Pack Kaelbling, Michael L. Littman and Anthony R. Cassandra (1998). Planning and acting in partially observable stochastic domains. Artificial Intelligence 101(1-2):99-134.
     PomdpPaper,
     "cognition/pomdp",
     WitnessFamily::Paper,
@@ -443,7 +445,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Schank, R. C., & Abelson, R. P. (1977). Scripts, Plans, Goals and Understanding: An Inquiry into Human Knowledge Stru...
+    /// Schank, R. C., & Abelson, R. P. (1977). Scripts, Plans, Goals and Understanding: An Inquiry into Human Knowledge Structures. Lawrence Erlbaum Associates.
     ScriptSamPaper,
     "cognition/script-sam",
     WitnessFamily::Paper,
@@ -452,7 +454,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Reiter, R. (1991). In V. Lifschitz (Ed.), Artificial Intelligence and Mathematical Theory of Computation: Papers in H...
+    /// Reiter, R. (1991). In V. Lifschitz (Ed.), Artificial Intelligence and Mathematical Theory of Computation: Papers in Honor of John McCarthy (pp. 359-380). Academic Press.
     SituationCalculusPaper,
     "cognition/situation-calculus",
     WitnessFamily::Paper,
@@ -461,7 +463,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Laird, J. E., Newell, A., & Rosenbloom, P. S. (1987). Soar: An architecture for general intelligence. Artificial Inte...
+    /// Laird, J. E., Newell, A., & Rosenbloom, P. S. (1987). Soar: An architecture for general intelligence. Artificial Intelligence, 33(1), 1–64. https://doi.org/10.1016/0004-3702(87)90050-6
     SoarPaper,
     "cognition/soar",
     WitnessFamily::Paper,
@@ -470,7 +472,7 @@ witness_marker!(
 );
 
 witness_marker!(
-    /// Fikes, R. E., & Nilsson, N. J. (1971). STRIPS: A new approach to the application of theorem proving to problem solvin...
+    /// Fikes, R. E., & Nilsson, N. J. (1971). STRIPS: A new approach to the application of theorem proving to problem solving. Artificial Intelligence, 2(3–4), 189–208.
     StripsPaper,
     "cognition/strips",
     WitnessFamily::Paper,
@@ -504,3 +506,4 @@ witness_marker!(
     "VersionSpace",
     None
 );
+

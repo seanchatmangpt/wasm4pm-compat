@@ -9,28 +9,28 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`ProcessDeltaKind`]: a first-class, named vocabulary of the ways an
+//! - [`ProcessDeltaKind`](crate::process_delta::ProcessDeltaKind): a first-class, named vocabulary of the ways an
 //!   observed execution step can relate to an admitted process — conformant,
 //!   or one of several specifically named deviation classes (including
-//!   deliberately *unresolved* classes like [`ProcessDeltaKind::IncompleteTrace`]
-//!   and [`ProcessDeltaKind::TelemetryGap`], so that incomplete evidence is
+//!   deliberately *unresolved* classes like [`ProcessDeltaKind::IncompleteTrace`](crate::process_delta::ProcessDeltaKind)
+//!   and [`ProcessDeltaKind::TelemetryGap`](crate::process_delta::ProcessDeltaKind), so that incomplete evidence is
 //!   never silently promoted into a conformance verdict).
-//! - [`ProcessDelta`]: pairs a [`ProcessDeltaKind`] with an optional witness
+//! - [`ProcessDelta`](crate::process_delta::ProcessDelta): pairs a [`ProcessDeltaKind`](crate::process_delta::ProcessDeltaKind) with an optional witness
 //!   naming the process model it is claimed against.
-//! - [`ProcessDeltaRefusal`]: first-class, specifically named refusals.
+//! - [`ProcessDeltaRefusal`](crate::process_delta::ProcessDeltaRefusal): first-class, specifically named refusals.
 //!
 //! ## What this module is **NOT**
 //!
 //! - **Not** a correlator, a conformance checker, or a streaming engine. It
 //!   never inspects an [`crate::streaming::EventWindow`], never computes a
-//!   delta from live events, and never decides *which* [`ProcessDeltaKind`]
+//!   delta from live events, and never decides *which* [`ProcessDeltaKind`](crate::process_delta::ProcessDeltaKind)
 //!   applies to a real trace.
 //!
 //! ## Graduation
 //!
 //! Computing an actual delta from live/streamed events — i.e. running
 //! correlation and incremental conformance checking over an
-//! [`crate::streaming::EventWindow`] to *produce* a [`ProcessDelta`] — is a
+//! [`crate::streaming::EventWindow`] to *produce* a [`ProcessDelta`](crate::process_delta::ProcessDelta) — is a
 //! `wasm4pm` job. This module only states and refuses the delta *problem
 //! shape*, following the same discipline as [`crate::prediction::PredictionProblem`].
 

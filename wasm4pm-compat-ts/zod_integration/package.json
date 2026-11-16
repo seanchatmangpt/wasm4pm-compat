@@ -1,10 +1,10 @@
 {
   "name": "wasm4pm-zod-example",
-  "version": "26.6.9",
+  "version": "26.10.12",
   "description": "Example using ggen-generated Zod schemas for wasm4pm-compat",
   "main": "main.ts",
   "dependencies": {
-    "zod": "^3.23.0"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "typescript": "^5.4.0",

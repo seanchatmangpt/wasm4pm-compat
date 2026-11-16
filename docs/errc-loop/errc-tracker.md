@@ -16,7 +16,7 @@ direction, or scope confirmation), not a bounded auto-fixable action:
   redirecting/stopping the user's own standing job was explicitly declined
   three times already; needs the user's own call.
 - **REDUCE** — the 9 confirmed-but-not-actioned findings in
-  `docs/errc-loop/adversarial-review-2026-08-24.md`. Park reason: each
+  `docs/archive/pre-v26.10.12/errc-loop/adversarial-review-2026-08-24.md`. Park reason: each
   needs its own severity/ambiguity read before a fix vs. won't-fix call;
   bundling would hide per-item judgment.
 - **RAISE** ×2 — typed id newtypes for `sh:class` references (design
@@ -121,7 +121,7 @@ constraints) plus 2 ontology-modeling inconsistencies (bpmn.ttl missing
 datatypes on 4 properties, powl.ttl's circular sh:class self-reference).
 All 15 clusters regenerated, 20/20 tests updated and passing. 9 further
 confirmed-but-not-actioned findings logged in
-`docs/errc-loop/adversarial-review-2026-08-24.md` with stated reasons,
+`docs/archive/pre-v26.10.12/errc-loop/adversarial-review-2026-08-24.md` with stated reasons,
 not silently dropped.
 
 This is exactly the kind of gap an ERRC cycle's own verify-phase should

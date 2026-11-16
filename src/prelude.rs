@@ -17,8 +17,7 @@
 #[path = "pc_powl2.rs"]
 pub mod pc_powl2;
 
-#[path = "protocol.rs"]
-pub mod protocol;
+pub use crate::protocol;
 
 pub use pc_powl2::{
     AssertionRef, AuthorizationEnvelope, CertificateClaim, CertifiedPowl, CommutationWitness,

@@ -272,6 +272,9 @@ pub mod process_tree;
 /// `ggen/ontology/type-shapes/process_tree.ttl` (authored fresh, grounded
 /// in `pm4py.objects.process_tree.obj`).
 pub mod process_tree_ontology;
+/// Federated protocol substrate — capability contracts, surface projections,
+/// and receipts (structure only — see `docs/FEDERATED_PROTOCOL_SUBSTRATE.md`).
+pub mod protocol;
 /// Random-variable/stochastic-distribution shapes rendered from
 /// `ggen/ontology/type-shapes/random_variables.ttl` (authored fresh,
 /// grounded in `pm4py.objects.random_variables`).

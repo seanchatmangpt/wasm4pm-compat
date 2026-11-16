@@ -6,16 +6,26 @@ PREFIX rdfs:   <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX compat: <https://wasm4pm-compat.rs/ontology#>
 PREFIX zod:    <https://wasm4pm-compat.rs/zod#>
 
-SELECT DISTINCT ?typeName ?fieldName ?fieldType ?isOptional ?isArray ?isEnum ?isUnion
+SELECT DISTINCT ?typeName ?fieldName ?fieldType ?isOptional ?isArray ?isEnum ?isUnion ?isDefaulted
 WHERE {
   ?type compat:rustType ?typeName .
   ?type zod:hasField ?field .
   ?field zod:fieldName ?fieldName .
   
-  OPTIONAL { ?field zod:fieldType ?fieldType . }
-  OPTIONAL { ?field zod:isOptional ?isOptional . }
-  OPTIONAL { ?field zod:isArray    ?isArray . }
-  OPTIONAL { ?type  zod:isEnum     ?isEnum . }
-  OPTIONAL { ?type  zod:isUnion    ?isUnion . }
+  # OPTIONAL columns re-bound via COALESCE: every row must bind every column
+  # (ggen 26.10.11 fills unbound columns silently from the previous row —
+  # witness class: .optional() vs .default([]) misrender).
+  OPTIONAL { ?field zod:fieldType ?fieldTypeRaw . }
+  OPTIONAL { ?field zod:isOptional ?isOptionalRaw . }
+  OPTIONAL { ?field zod:isArray    ?isArrayRaw . }
+  OPTIONAL { ?field zod:isDefaulted ?isDefaultedRaw . }
+  OPTIONAL { ?type  zod:isEnum     ?isEnumRaw . }
+  OPTIONAL { ?type  zod:isUnion    ?isUnionRaw . }
+  BIND(COALESCE(?fieldTypeRaw, "") AS ?fieldType)
+  BIND(COALESCE(?isOptionalRaw, false) AS ?isOptional)
+  BIND(COALESCE(?isArrayRaw, false) AS ?isArray)
+  BIND(COALESCE(?isDefaultedRaw, false) AS ?isDefaulted)
+  BIND(COALESCE(?isEnumRaw, false) AS ?isEnum)
+  BIND(COALESCE(?isUnionRaw, false) AS ?isUnion)
 }
 ORDER BY ?typeName ?fieldName

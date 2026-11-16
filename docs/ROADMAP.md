@@ -1,8 +1,8 @@
 # Roadmap
 
-## Current: `PAPERLAW_CROWN_ALIVE_005` (v26.6.23)
+## Current: `PAPERLAW_CROWN_ALIVE_005` (last sealed at v26.6.23; crate now at v26.10.12)
 
-Sealed/tagged. 217 compile-fail + 408 compile-pass receipts; 271-paper corpus
+Last sealed milestone below. Sealed/tagged. 217 compile-fail + 408 compile-pass receipts; 271-paper corpus
 (436 unique witness keys, compile-time uniqueness proof); MIRI clean (no UB);
 exactly three public features; zero runtime dependencies.
 

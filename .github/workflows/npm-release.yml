@@ -1,0 +1,157 @@
+# Gate-gated publish per docs/jira/v26.10.12/001-npm-publish-pipeline.md.
+# Publish steps fire only on v* tags; NPM_TOKEN is this repo's first workflow secret.
+name: NPM Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  RUST_TOOLCHAIN: nightly-2026-06-22
+  CARGO_TERM_COLOR: always
+
+jobs:
+  release:
+    name: release/npm/compat-ts+compat-wasm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+
+      - name: Install pinned toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install "${RUST_TOOLCHAIN}" --profile minimal --component rustfmt,clippy
+          rustup override set "${RUST_TOOLCHAIN}"
+          rustup target add wasm32-wasip1
+
+      - name: Install cargo-make
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo install cargo-make --locked
+
+      - name: Gate (cargo make ci)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo make ci
+
+      - name: Install component tooling
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo install wit-bindgen-cli --locked
+          cargo install wasm-tools --locked
+          npm install -g @bytecodealliance/jco@1.24.3
+
+      # The component crate is NOT in this repo. Release prep requires vendoring
+      # the wasm4pm-compat-component checkout into ./component/ before tagging
+      # (e.g. `rsync -a --exclude target ../wasm4pm-compat-component/ component/`).
+      # CI cannot reach the sibling checkout, so a missing vendor dir fails fast
+      # here instead of at cargo build with a confusing path error.
+      - name: Vendor component crate (release-prep prerequisite, fail-fast)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -d component ]; then
+            echo "ERROR: component/ is missing from the release tree." >&2
+            echo "This workflow builds the wasm4pm-compat-component crate from a" >&2
+            echo "vendored ./component/ directory. Before pushing a v* tag, vendor it:" >&2
+            echo "  rsync -a --exclude target ../wasm4pm-compat-component/ component/" >&2
+            echo "then commit component/ (or convert to a git subtree) and re-tag." >&2
+            exit 1
+          fi
+          [ -f component/Cargo.toml ] || { echo "ERROR: component/Cargo.toml missing" >&2; exit 1; }
+
+      - name: Build OCEL wasm component
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd component
+          cargo build --release --target wasm32-wasip1
+          wasm-tools component new \
+            target/wasm32-wasip1/release/wasm4pm_compat_component.wasm \
+            --adapt wasi_snapshot_preview1="$(npm root -g)/@bytecodealliance/jco/lib/wasi_snapshot_preview1.reactor.wasm" \
+            -o ../component.wasm
+          wasm-tools validate ../component.wasm
+
+      - name: Transpile component (jco)
+        shell: bash
+        run: |
+          set -euo pipefail
+          jco transpile component.wasm -o wasm4pm-compat-wasm/dist --name compat-ocel
+          # jco does not copy the component binary into dist; the generated JS
+          # instantiates the core modules, but the package ships the full
+          # component alongside them.
+          cp component.wasm wasm4pm-compat-wasm/dist/compat-ocel.wasm
+          ls -la wasm4pm-compat-wasm/dist/
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Test wasm4pm-compat-ts
+        shell: bash
+        working-directory: wasm4pm-compat-ts
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+
+      - name: Test compat-wasm
+        shell: bash
+        working-directory: wasm4pm-compat-wasm
+        run: |
+          set -euo pipefail
+          npm ci
+          npm test
+
+      - name: Publish dry-run gate (compat-ts)
+        shell: bash
+        working-directory: wasm4pm-compat-ts
+        run: |
+          set -euo pipefail
+          npm publish --dry-run --access public
+
+      - name: Publish dry-run gate (compat-wasm)
+        shell: bash
+        working-directory: wasm4pm-compat-wasm
+        run: |
+          set -euo pipefail
+          npm publish --dry-run --access public
+
+      - name: Publish compat-ts
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        working-directory: wasm4pm-compat-ts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm publish --access public
+
+      - name: Publish compat-wasm
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        working-directory: wasm4pm-compat-wasm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          npm publish --access public

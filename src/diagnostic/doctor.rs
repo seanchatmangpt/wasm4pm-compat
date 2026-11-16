@@ -9,7 +9,7 @@
 //!
 //! It does **not** discover models, execute conformance, replay evidence, mutate
 //! the repository, or award `ALIVE`. Its strongest self-issued standing is
-//! [`DoctorStanding::PartialAlive`]; exact-tree `ALIVE` remains external.
+//! [`DoctorStanding::PartialAlive`](crate::diagnostic::doctor::DoctorStanding::PartialAlive); exact-tree `ALIVE` remains external.
 
 use crate::diagnostic::{CompatDiagnostic, DiagnosticSeverity};
 use crate::hash::{blake3_string, canonical_json};

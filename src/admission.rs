@@ -311,7 +311,7 @@ where
 /// private, so a `RuntimeSeal` can only be minted through a verified flow —
 /// either the public [`RuntimeSeal::from_verified_chain`] (which consumes a
 /// [`ChainProof`] minted by [`recompute_and_match`]) or, in-crate, via
-/// [`RuntimeSeal::from_chain`].
+/// `RuntimeSeal::from_chain` (crate-private).
 ///
 /// Structure-only: it records *that a chain digest was computed and matched*,
 /// not that any cryptographic authority verified it. Graduate to `wasm4pm`.
@@ -386,7 +386,7 @@ impl<T, W> SealedAdmission<T, W> {
     /// Seals the admission into [`crate::state::Admitted`] evidence — the only
     /// public bridge from a sealed verdict to carried `Admitted` evidence for a
     /// chain-sealed witness. Calls the unchanged pub(crate)
-    /// [`Evidence::sealed`] primitive.
+    /// `Evidence::sealed` (crate-private) primitive.
     ///
     /// # Examples
     ///

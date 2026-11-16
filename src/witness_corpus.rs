@@ -1,3 +1,4 @@
+
 //! Corpus-integrity proof — every witness KEY in the bibliography is unique.
 //!
 //! ## What this module IS

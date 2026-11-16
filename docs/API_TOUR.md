@@ -143,14 +143,14 @@ use wasm4pm_compat::powl::{PowlBuilder, PowlRefusal};
 let model = PowlBuilder::new()
     .atom("a")
     .atom("b")
-    .choice("c", &["a", "b"])
+    .choice_graph("c", &["a", "b"], &[("a", "c"), ("b", "c")])
     .build();
 assert!(model.is_ok());
 
 // A choice with a single branch is refused — by name, not by panic.
 let bad = PowlBuilder::new()
     .atom("a")
-    .choice("c", &["a"])
+    .choice_graph("c", &["a"], &[("a", "c")])
     .build();
 assert!(matches!(bad, Err(PowlRefusal::InvalidChoiceArity { .. })));
 ```

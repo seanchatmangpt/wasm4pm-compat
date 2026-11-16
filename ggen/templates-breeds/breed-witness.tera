@@ -1,11 +1,11 @@
-{# breed-witness.tera — renders src/witnesses_cognition.rs from CognitionBreed instances #}
-{# Variables (from extract-breed-witnesses.rq):                                         #}
-{#   rustType     — e.g. "AbductiveIbePaper"                                            #}
-{#   witnessKey   — e.g. "cognition/abductive-ibe"                                      #}
-{#   witnessTitle — e.g. "AbductiveIbe"                                                 #}
-{#   witnessYear  — e.g. "1965" or "" (empty = None)                                   #}
-{#   witnessFamily — e.g. "Paper"                                                       #}
-{#   description  — citation text (truncated)                                           #}
+{# breed-witness.tera — renders src/witnesses_cognition.rs from CognitionBreed instances -#}
+{# Variables (from extract-breed-witnesses.rq):                                         -#}
+{#   rustType     — e.g. "AbductiveIbePaper"                                            -#}
+{#   witnessKey   — e.g. "cognition/abductive-ibe"                                      -#}
+{#   witnessTitle — e.g. "AbductiveIbe"                                                 -#}
+{#   witnessYear  — e.g. "1965" or "" (empty = None)                                   -#}
+{#   witnessFamily — e.g. "Paper"                                                       -#}
+{#   description  — citation text (truncated)                                           -#}
 //! Cognition breed witness markers — compiled from `breed-vocabulary.ttl`.
 //!
 //! Every entry here is derived from a `compat:CognitionBreed` instance in the ontology.

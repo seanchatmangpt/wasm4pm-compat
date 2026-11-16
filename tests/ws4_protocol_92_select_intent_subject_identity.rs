@@ -12,8 +12,12 @@ fn select_intent_preserves_exact_subject() {
         ReceiptPolicy::Optional,
         "evt",
     );
-    let i = Intent::<SelectPhase>::try_new(&c, SubjectRef::new("subject", "subject-d"), "input-d")
-        .unwrap();
+    let i = ProtocolIntent::<SelectPhase>::try_new(
+        &c,
+        SubjectRef::new("subject", "subject-d"),
+        "input-d",
+    )
+    .unwrap();
     assert_eq!(i.subject().subject_id, "subject");
     assert_eq!(i.subject().subject_digest, "subject-d");
 }

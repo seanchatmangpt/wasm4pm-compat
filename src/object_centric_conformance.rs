@@ -10,12 +10,12 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`ObjectTypeConformance`]: one conformance-dimension claim scoped to one
+//! - [`ObjectTypeConformance`](crate::object_centric_conformance::ObjectTypeConformance): one conformance-dimension claim scoped to one
 //!   object type, reusing [`crate::interop::ConformanceTriple`] rather than
 //!   duplicating its fields.
-//! - [`ObjectCentricConformanceClaim`]: a set of per-object-type claims,
+//! - [`ObjectCentricConformanceClaim`](crate::object_centric_conformance::ObjectCentricConformanceClaim): a set of per-object-type claims,
 //!   grounded to a log reference.
-//! - [`ObjectCentricConformanceRefusal`]: first-class, specifically named
+//! - [`ObjectCentricConformanceRefusal`](crate::object_centric_conformance::ObjectCentricConformanceRefusal): first-class, specifically named
 //!   refusals.
 //!
 //! ## What this module is **NOT**

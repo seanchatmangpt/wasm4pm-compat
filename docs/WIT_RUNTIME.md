@@ -103,3 +103,29 @@ Higher-leverage next targets (pure / structure-only, easy WIT shapes):
   via the adapter) — heavier than a pure component. A `wasm32-unknown-unknown` +
   no-WASI build could shrink it, but wasip1 was the frictionless path here.
 - Neither the component crate nor `dist/` is published; this is a proof + recipe.
+
+## Surface drift ledger (2026-10-12)
+
+- `ggen/wit/compat-all.wit`'s `strict` interface was refreshed to mirror the
+  **current** `src/strict.rs` surface (V11 divergence closed): `boundary-kind` is
+  now the full 9-variant enum (adds `claims-replay`,
+  `claims-process-mining-support`, `claims-certification-coverage` — was
+  `kind: string`), `process-boundary` carries all 11 attestation fields (adds
+  `has-refusal-path`, `has-conformance-fields`, `has-receipt-shape`,
+  `has-certification-mapping`, `exports-raw-evidence`, `hidden-pm-growth`;
+  `has-round-trip` renamed `has-round-trip-fixture`), and `check-strict-boundary`
+  returns `result<bool, list<string>>` — the full set of named law strings, not a
+  single 4-variant `strict-violation`. File remains **hand-maintained** (same
+  provenance as above); `wasm-tools component wit ggen/wit/compat-all.wit` exits 0
+  after the refresh.
+- The component implements world `wasm4pm:compat-proof` (in the sibling crate
+  `../wasm4pm-compat-component/wit/world.wit`), exporting two interfaces:
+  `strict` (check-strict-boundary) and `ocel-v2` (parse/validate/admit). Not the
+  `compat-all` world — the component is the minimal runtime-proof slice.
+- `ggen/wit/compat-ocel.wit` is the OCEL reference WIT for the `ocel-v2` surface.
+- The old `ggen/templates/wasm4pm-compat.wit.tera` template remains unwired and
+  unrenderable (unbound `FEATURES` Tera variable with a `.contains(...)` filter —
+  the Tera defect noted above); `compat-all.wit` stays hand-rendered.
+- Building the component from `../wasm4pm-compat-component/` requires
+  `RUSTUP_TOOLCHAIN=nightly-2026-06-22` at build time (the compat crate is
+  nightly-only; pin the toolchain env var for the wasm32-wasip1 build).

@@ -1,6 +1,6 @@
 [project]
 name = "wasm4pm-compat-ash-types"
-version = "26.8.7"
+version = "26.10.12"
 description = "ggen projection of wasm4pm-compat public value carriers into Elixir Ash.Type modules"
 authors = ["Sean Chatman"]
 license = "MIT OR Apache-2.0"

@@ -7,17 +7,17 @@
 //!
 //! ## What this module IS
 //!
-//! - **Family-gated proof tokens**: [`StandardWitness`] and [`PaperWitness`]
+//! - **Family-gated proof tokens**: [`StandardWitness`](crate::witness_law::StandardWitness) and [`PaperWitness`](crate::witness_law::PaperWitness)
 //!   are only constructible for witnesses whose `FAMILY` matches. Wrong family
 //!   → compile error via sealed trait, not a runtime panic.
-//! - **Self-citation prevention**: [`CoCitedKey<T, K1, K2>`] uses `str_eq` as
+//! - **Self-citation prevention**: [`CoCitedKey<T, K1, K2>`](crate::witness_law::CoCitedKey) uses `str_eq` as
 //!   a const generic bound — `CoCitedKey<T, "ocel-2.0", "ocel-2.0">` fails to
 //!   compile. This is the first use of string-level law in a const generic bound
 //!   in the process-mining ecosystem.
-//! - **Family-as-const-param**: [`FamilyGated<F>`] uses [`WitnessFamily`] directly
+//! - **Family-as-const-param**: [`FamilyGated<F>`](crate::witness_law::FamilyGated) uses [`WitnessFamily`] directly
 //!   as an `adt_const_params` const generic — the first use of a domain-specific
 //!   semantic enum as a const param in the process-mining ecosystem.
-//! - **Const helper fns**: [`family_eq`] and [`str_eq`] are `const fn`s usable
+//! - **Const helper fns**: [`family_eq`](crate::witness_law::family_eq) and [`str_eq`](crate::witness_law::str_eq) are `const fn`s usable
 //!   in `const { assert!(...) }` blocks and `generic_const_exprs` bounds.
 //!
 //! ## What this module is NOT

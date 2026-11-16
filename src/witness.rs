@@ -100,7 +100,7 @@ macro_rules! witness_marker {
     ($(#[$meta:meta])* $name:ident, $key:literal, $family:expr, $title:literal, $year:expr) => {
         $(#[$meta])*
         ///
-        /// Structure-only authority label; see [`Witness`]. Graduate to
+        /// Structure-only authority label; see [`Witness`](crate::witness::Witness). Graduate to
         /// `wasm4pm` when this authority must be *verified*, not merely *named*.
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub enum $name {}

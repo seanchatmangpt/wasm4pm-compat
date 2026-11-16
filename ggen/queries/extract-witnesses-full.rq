@@ -16,9 +16,17 @@ WHERE {
   # Exclude per-category witnesses — those are rendered into witnesses_<category>.rs modules.
   FILTER NOT EXISTS { ?marker compat:paperCategory ?_cat . }
 
-  OPTIONAL { ?marker compat:witnessYear    ?witnessYear . }
-  OPTIONAL { ?marker compat:witnessFamily  ?witnessFamily . }
-  OPTIONAL { ?marker compat:paperReference ?paperReference . }
-  OPTIONAL { ?marker compat:description   ?description . }
+  # OPTIONAL columns are re-bound via COALESCE below so EVERY row binds EVERY
+  # column explicitly. ggen 26.10.11 fills unbound columns forward from the
+  # previous row (silent wrong values) — never leave a template-consumed column
+  # partially bound. See run-ggen skill, Gotchas note 3.
+  OPTIONAL { ?marker compat:witnessYear    ?yearRaw . }
+  OPTIONAL { ?marker compat:witnessFamily  ?familyRaw . }
+  OPTIONAL { ?marker compat:paperReference ?paperReferenceRaw . }
+  OPTIONAL { ?marker compat:description   ?descriptionRaw . }
+  BIND(COALESCE(?yearRaw, "") AS ?witnessYear)
+  BIND(COALESCE(?familyRaw, "") AS ?witnessFamily)
+  BIND(COALESCE(?paperReferenceRaw, "") AS ?paperReference)
+  BIND(COALESCE(?descriptionRaw, "") AS ?description)
 }
 ORDER BY ?rustType

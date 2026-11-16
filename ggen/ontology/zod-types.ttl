@@ -26,6 +26,11 @@ zod:isArray a rdf:Property ;
     rdfs:label "isArray" ;
     rdfs:range xsd:boolean .
 
+zod:isDefaulted a rdf:Property ;
+    rdfs:label "isDefaulted" ;
+    rdfs:comment "Rust serde(default) field: the JSON key may be absent; zod renders .default([]) (array fields only) so the parsed output type stays defined." ;
+    rdfs:range xsd:boolean .
+
 # --- Helper definitions for inner types ---
 
 zod:Event compat:rustType "Event" .
@@ -77,6 +82,18 @@ zod:XesExtension compat:rustType "XesExtension" .
 # Evidence
 zod:Evidence compat:rustType "Evidence" .
 
+# EvidenceState — the 7 lifecycle states (src/state.rs:216-254).
+# Enum values are carried as fieldName rows; zod:isEnum selects z.enum rendering.
+zod:EvidenceState compat:rustType "EvidenceState" ;
+                  zod:isEnum true ;
+                  zod:hasField [ zod:fieldName "Raw" ] ;
+                  zod:hasField [ zod:fieldName "Parsed" ] ;
+                  zod:hasField [ zod:fieldName "Admitted" ] ;
+                  zod:hasField [ zod:fieldName "Refused" ] ;
+                  zod:hasField [ zod:fieldName "Projected" ] ;
+                  zod:hasField [ zod:fieldName "Exportable" ] ;
+                  zod:hasField [ zod:fieldName "Receipted" ] .
+
 # Loss
 zod:LossReport compat:rustType "LossReport" .
 zod:NamedLoss compat:rustType "NamedLoss" .
@@ -89,7 +106,7 @@ zod:CompatDiagnostic compat:rustType "CompatDiagnostic" .
 
 # Evidence
 zod:Evidence zod:hasField [ zod:fieldName "inner" ; zod:fieldType "any" ] ;
-             zod:hasField [ zod:fieldName "state" ; zod:fieldType "string" ] ;
+             zod:hasField [ zod:fieldName "state" ; zod:fieldType "EvidenceState" ] ;
              zod:hasField [ zod:fieldName "witness" ; zod:fieldType "string" ] .
 
 # BPMN
@@ -151,49 +168,79 @@ zod:Event zod:hasField [ zod:fieldName "activity" ; zod:fieldType "string" ] ;
 zod:Trace zod:hasField [ zod:fieldName "id" ; zod:fieldType "string" ] ;
           zod:hasField [ zod:fieldName "events" ; zod:fieldType "Event" ; zod:isArray true ] .
 
-compat:EventLog zod:hasField [ zod:fieldName "traces" ; zod:fieldType "Trace" ; zod:isArray true ] ;
-                zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "Record<string, string>" ] .
+# EventLog mirrors src/event_log.rs:160-169 serde surface: attributes is
+# Vec<Attribute{key,value,own_attributes}> (not a string record); the four
+# trailing fields are Option<Vec<..>> -> optional arrays. rustType declared here
+# (identical triple also lives in wasm4pm-compat.ttl — DISTINCT-safe under the
+# full-manifest merge) so the standalone ggen_zod.toml manifest binds the block.
+compat:EventLog compat:rustType "EventLog" ;
+                zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "Attribute" ; zod:isArray true ] ;
+                zod:hasField [ zod:fieldName "traces" ; zod:fieldType "Trace" ; zod:isArray true ] ;
+                zod:hasField [ zod:fieldName "extensions" ; zod:fieldType "EventLogExtension" ; zod:isArray true ; zod:isOptional true ] ;
+                zod:hasField [ zod:fieldName "classifiers" ; zod:fieldType "EventLogClassifier" ; zod:isArray true ; zod:isOptional true ] ;
+                zod:hasField [ zod:fieldName "global_trace_attrs" ; zod:fieldType "Attribute" ; zod:isArray true ; zod:isOptional true ] ;
+                zod:hasField [ zod:fieldName "global_event_attrs" ; zod:fieldType "Attribute" ; zod:isArray true ; zod:isOptional true ] .
 
-# OCEL
+# OCEL — models the OCEL v2 SERDE WIRE SHAPE (src/ocel.rs:32-113 serde renames).
+# Wire keys are camelCase as serialized: eventTypes/objectTypes, "type",
+# objectId; time is the serde wire form: RFC3339 string
+# (chrono DateTime<FixedOffset> serializes to_rfc3339).
 zod:OcelEvent zod:hasField [ zod:fieldName "id" ; zod:fieldType "string" ] ;
               zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] ;
-              zod:hasField [ zod:fieldName "time" ; zod:fieldType "any" ] ;
-              zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelEventAttribute" ; zod:isArray true ] ;
-              zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OcelRelationship" ; zod:isArray true ] .
+              zod:hasField [ zod:fieldName "time" ; zod:fieldType "string" ] ;
+              zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelEventAttribute" ; zod:isArray true ; zod:isDefaulted true ] ;
+              zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OcelRelationship" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:OcelObject zod:hasField [ zod:fieldName "id" ; zod:fieldType "string" ] ;
                zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] ;
-               zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelObjectAttribute" ; zod:isArray true ] .
+               zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelObjectAttribute" ; zod:isArray true ; zod:isDefaulted true ] ;
+               zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OcelRelationship" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:OcelType zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
-             zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelTypeAttribute" ; zod:isArray true ] .
+             zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OcelTypeAttribute" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:OcelTypeAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
                       zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] .
 
 zod:OcelEventAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
-                       zod:hasField [ zod:fieldName "value" ; zod:fieldType "any" ] .
+                       zod:hasField [ zod:fieldName "value" ; zod:fieldType "OcelAttributeValue" ] .
 
 zod:OcelObjectAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
-                        zod:hasField [ zod:fieldName "value" ; zod:fieldType "any" ] ;
-                        zod:hasField [ zod:fieldName "time" ; zod:fieldType "any" ] .
+                        zod:hasField [ zod:fieldName "value" ; zod:fieldType "OcelAttributeValue" ] ;
+                        zod:hasField [ zod:fieldName "time" ; zod:fieldType "string" ] .
 
 zod:OcelRelationship zod:hasField [ zod:fieldName "objectId" ; zod:fieldType "string" ] ;
                      zod:hasField [ zod:fieldName "qualifier" ; zod:fieldType "string" ] .
 
-zod:OcelAttributeValue zod:hasField [ zod:fieldName "value" ; zod:fieldType "any" ] .
+# OCELAttributeValue — serde untagged enum (src/ocel.rs:512-524):
+# Integer(i64)|Float(f64)|Boolean(bool)|Time(RFC3339 string)|String|Null.
+# Zod union of the wire primitives; members are union arms (fieldName only,
+# no fieldType), rendered by the template's isUnion branch.
+zod:OcelAttributeValue compat:rustType "OcelAttributeValue" ;
+                       zod:isUnion true ;
+                       zod:hasField [ zod:fieldName "boolean" ] ;
+                       zod:hasField [ zod:fieldName "null" ] ;
+                       zod:hasField [ zod:fieldName "number" ] ;
+                       zod:hasField [ zod:fieldName "string" ] .
 
-compat:OcelLog zod:hasField [ zod:fieldName "eventTypes" ; zod:fieldType "OcelType" ; zod:isArray true ] ;
+# rustType declared here (also declared in wasm4pm-compat.ttl:966 — identical
+# triple, DISTINCT-safe under the full-manifest merge) so the standalone
+# ggen_zod.toml manifest (zod-types.ttl only) still binds the OcelLog block.
+compat:OcelLog compat:rustType "OcelLog" ;
+                zod:hasField [ zod:fieldName "eventTypes" ; zod:fieldType "OcelType" ; zod:isArray true ] ;
                 zod:hasField [ zod:fieldName "objectTypes" ; zod:fieldType "OcelType" ; zod:isArray true ] ;
-                zod:hasField [ zod:fieldName "events" ; zod:fieldType "OcelEvent" ; zod:isArray true ] ;
-                zod:hasField [ zod:fieldName "objects" ; zod:fieldType "OcelObject" ; zod:isArray true ] .
+                zod:hasField [ zod:fieldName "events" ; zod:fieldType "OcelEvent" ; zod:isArray true ; zod:isDefaulted true ] ;
+                zod:hasField [ zod:fieldName "objects" ; zod:fieldType "OcelObject" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:ObjectTypeCardinality zod:hasField [ zod:fieldName "object_type" ; zod:fieldType "string" ] ;
                           zod:hasField [ zod:fieldName "min_occurrence" ; zod:fieldType "number" ] ;
                           zod:hasField [ zod:fieldName "max_occurrence" ; zod:fieldType "number" ; zod:isOptional true ] .
 
 # Petri Net
-compat:PetriNet zod:hasField [ zod:fieldName "places" ; zod:fieldType "Place" ; zod:isArray true ] ;
+# rustType declared here (also in wasm4pm-compat.ttl:982 — DISTINCT-safe under
+# the full-manifest merge) so the standalone ggen_zod.toml manifest binds the block.
+compat:PetriNet compat:rustType "PetriNet" ;
+                zod:hasField [ zod:fieldName "places" ; zod:fieldType "Place" ; zod:isArray true ] ;
                 zod:hasField [ zod:fieldName "transitions" ; zod:fieldType "Transition" ; zod:isArray true ] ;
                 zod:hasField [ zod:fieldName "arcs" ; zod:fieldType "Arc" ; zod:isArray true ] .
 
@@ -237,12 +284,22 @@ zod:ConformanceResult zod:hasField [ zod:fieldName "fitness" ; zod:fieldType "nu
                       zod:hasField [ zod:fieldName "fitting_traces" ; zod:fieldType "number" ] ;
                       zod:hasField [ zod:fieldName "deviating_traces" ; zod:fieldType "number" ] .
 
-# Governance
-zod:Receipt zod:hasField [ zod:fieldName "model_id" ; zod:fieldType "string" ] ;
-            zod:hasField [ zod:fieldName "final_hash_chain" ; zod:fieldType "string" ] ;
+# Governance — Receipt mirrors src/receipt.rs:1530-1545 serde surface exactly:
+# model_id/final_hash_chain are [u8;32], authority_signature is [u8;64] with
+# signature_serde (JSON arrays of numbers), timestamp_epoch is u64; verdict is
+# the ConformanceVerdict enum {PerfectAlignment, FitnessDeficit,
+# DeadlockEncountered}.
+zod:Receipt zod:hasField [ zod:fieldName "model_id" ; zod:fieldType "number" ; zod:isArray true ] ;
+            zod:hasField [ zod:fieldName "final_hash_chain" ; zod:fieldType "number" ; zod:isArray true ] ;
+            zod:hasField [ zod:fieldName "authority_signature" ; zod:fieldType "number" ; zod:isArray true ] ;
+            zod:hasField [ zod:fieldName "timestamp_epoch" ; zod:fieldType "number" ] ;
             zod:hasField [ zod:fieldName "verdict" ; zod:fieldType "ConformanceVerdict" ] .
 
-zod:ConformanceVerdict zod:hasField [ zod:fieldName "is_perfect" ; zod:fieldType "boolean" ] .
+zod:ConformanceVerdict compat:rustType "ConformanceVerdict" ;
+    zod:isEnum true ;
+    zod:hasField [ zod:fieldName "PerfectAlignment" ] ;
+    zod:hasField [ zod:fieldName "FitnessDeficit" ] ;
+    zod:hasField [ zod:fieldName "DeadlockEncountered" ] .
 
 # Loss
 zod:LossReport zod:hasField [ zod:fieldName "projection" ; zod:fieldType "string" ] ;
@@ -459,36 +516,58 @@ zod:NumericEffect compat:rustType "NumericEffect" .
 zod:NumericExpr compat:rustType "NumericExpr" .
 zod:NumericOp compat:rustType "NumericOp" .
 zod:OCEL compat:rustType "OCEL" .
-zod:OCEL zod:hasField [ zod:fieldName "event_types" ; zod:fieldType "OCELType" ; zod:isArray true ] ;
-    zod:hasField [ zod:fieldName "object_types" ; zod:fieldType "OCELType" ; zod:isArray true ] ;
-    zod:hasField [ zod:fieldName "events" ; zod:fieldType "OCELEvent" ; zod:isArray true ] ;
-    zod:hasField [ zod:fieldName "objects" ; zod:fieldType "OCELObject" ; zod:isArray true ] .
+# OCEL* family — mirrors the SAME serde wire shape as the Ocel* family above
+# (src/ocel.rs:32-113), so the previously-stubbed types render fully and the
+# OCELSchema/OcelLogSchema pair converges. Field names are the serde wire keys:
+# eventTypes/objectTypes, "type", objectId, RFC3339 string times.
+zod:OCEL zod:hasField [ zod:fieldName "eventTypes" ; zod:fieldType "OCELType" ; zod:isArray true ] ;
+    zod:hasField [ zod:fieldName "objectTypes" ; zod:fieldType "OCELType" ; zod:isArray true ] ;
+    zod:hasField [ zod:fieldName "events" ; zod:fieldType "OCELEvent" ; zod:isArray true ; zod:isDefaulted true ] ;
+    zod:hasField [ zod:fieldName "objects" ; zod:fieldType "OCELObject" ; zod:isArray true ; zod:isDefaulted true ] .
 
-zod:OCELAttributeValue compat:rustType "OCELAttributeValue" .
+# OCELAttributeValue — same serde untagged enum as OcelAttributeValue
+# (src/ocel.rs:512-524): union of number|boolean|string|null.
+zod:OCELAttributeValue compat:rustType "OCELAttributeValue" ;
+    zod:isUnion true ;
+    zod:hasField [ zod:fieldName "boolean" ] ;
+    zod:hasField [ zod:fieldName "null" ] ;
+    zod:hasField [ zod:fieldName "number" ] ;
+    zod:hasField [ zod:fieldName "string" ] .
+
 zod:OCELEvent compat:rustType "OCELEvent" .
+zod:OCELEvent zod:hasField [ zod:fieldName "id" ; zod:fieldType "string" ] ;
+    zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] ;
+    zod:hasField [ zod:fieldName "time" ; zod:fieldType "string" ] ;
+    zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OCELEventAttribute" ; zod:isArray true ; zod:isDefaulted true ] ;
+    zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OCELRelationship" ; zod:isArray true ; zod:isDefaulted true ] .
+
 zod:OCELEventAttribute compat:rustType "OCELEventAttribute" .
 zod:OCELEventAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
     zod:hasField [ zod:fieldName "value" ; zod:fieldType "OCELAttributeValue" ] .
 
 zod:OCELObject compat:rustType "OCELObject" .
 zod:OCELObject zod:hasField [ zod:fieldName "id" ; zod:fieldType "string" ] ;
-    zod:hasField [ zod:fieldName "object_type" ; zod:fieldType "string" ] ;
-    zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OCELObjectAttribute" ; zod:isArray true ] ;
-    zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OCELRelationship" ; zod:isArray true ] .
+    zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] ;
+    zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OCELObjectAttribute" ; zod:isArray true ; zod:isDefaulted true ] ;
+    zod:hasField [ zod:fieldName "relationships" ; zod:fieldType "OCELRelationship" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:OCELObjectAttribute compat:rustType "OCELObjectAttribute" .
+zod:OCELObjectAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
+    zod:hasField [ zod:fieldName "value" ; zod:fieldType "OCELAttributeValue" ] ;
+    zod:hasField [ zod:fieldName "time" ; zod:fieldType "string" ] .
+
 zod:OCELRecord compat:rustType "OCELRecord" .
 zod:OCELRelationship compat:rustType "OCELRelationship" .
-zod:OCELRelationship zod:hasField [ zod:fieldName "object_id" ; zod:fieldType "string" ] ;
+zod:OCELRelationship zod:hasField [ zod:fieldName "objectId" ; zod:fieldType "string" ] ;
     zod:hasField [ zod:fieldName "qualifier" ; zod:fieldType "string" ] .
 
 zod:OCELType compat:rustType "OCELType" .
 zod:OCELType zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
-    zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OCELTypeAttribute" ; zod:isArray true ] .
+    zod:hasField [ zod:fieldName "attributes" ; zod:fieldType "OCELTypeAttribute" ; zod:isArray true ; zod:isDefaulted true ] .
 
 zod:OCELTypeAttribute compat:rustType "OCELTypeAttribute" .
 zod:OCELTypeAttribute zod:hasField [ zod:fieldName "name" ; zod:fieldType "string" ] ;
-    zod:hasField [ zod:fieldName "value_type" ; zod:fieldType "string" ] .
+    zod:hasField [ zod:fieldName "type" ; zod:fieldType "string" ] .
 
 zod:ObservedStep compat:rustType "ObservedStep" .
 zod:ObservedStep zod:hasField [ zod:fieldName "ordinal" ; zod:fieldType "number" ] ;

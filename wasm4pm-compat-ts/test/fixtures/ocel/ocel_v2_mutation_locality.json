@@ -1,0 +1,72 @@
+{
+  "eventTypes": [
+    {
+      "name": "create team",
+      "attributes": []
+    }
+  ],
+  "objectTypes": [
+    {
+      "name": "team",
+      "attributes": []
+    },
+    {
+      "name": "employee",
+      "attributes": []
+    }
+  ],
+  "events": [
+    {
+      "id": "e1",
+      "type": "create team",
+      "time": "2024-06-09T00:00:00Z",
+      "attributes": [],
+      "relationships": [
+        {
+          "objectId": "t1",
+          "qualifier": "team"
+        },
+        {
+          "objectId": "p2",
+          "qualifier": "employee"
+        }
+      ]
+    },
+    {
+      "id": "e2",
+      "type": "create team",
+      "time": "2024-06-09T00:01:00Z",
+      "attributes": [],
+      "relationships": [
+        {
+          "objectId": "t2",
+          "qualifier": "team"
+        },
+        {
+          "objectId": "p2",
+          "qualifier": "employee"
+        }
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "t1",
+      "type": "team",
+      "attributes": [],
+      "relationships": []
+    },
+    {
+      "id": "t2",
+      "type": "team",
+      "attributes": [],
+      "relationships": []
+    },
+    {
+      "id": "p2",
+      "type": "employee",
+      "attributes": [],
+      "relationships": []
+    }
+  ]
+}

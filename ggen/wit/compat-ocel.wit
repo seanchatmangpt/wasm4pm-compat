@@ -1,0 +1,40 @@
+// Hand-maintained per docs/WIT_RUNTIME.md pattern (the .wit.tera template is not
+// ggen-wired). JSON-string boundary preserves named refusal laws verbatim across
+// FFI: Ok/Err payloads are exact Display strings from wasm4pm_compat::ocel and
+// wasm4pm_compat::admission::LinkedOcel, not re-mirrored record shapes (three
+// divergent OCEL wire shapes exist — OCEL serde struct, OcelLog admission struct,
+// compat-all.wit's flattened ocel-log — so string FFI avoids mirroring all three).
+// Backed by wasm4pm_compat::ocel + admission::LinkedOcel. v26.10.12.
+
+package wasm4pm:compat@1.0.0;
+
+interface ocel-v2 {
+  // Parse an OCEL 2.0 JSON document. Ok = canonical echo/ack, Err = parse error detail.
+  parse-ocel-json: func(json: string) -> result<string, string>;
+
+  // Structural validation; mirrors wasm4pm_compat::ocel::validate::ValidationReport
+  // codes (E2O_EMPTY, DANGLING_E2O, DANGLING_O2O, UNDECLARED_EVENT_TYPE,
+  // UNDECLARED_OBJECT_TYPE, DUPLICATE_EVENT_ID, DUPLICATE_OBJECT_ID,
+  // CARDINALITY_MIN, CARDINALITY_MAX).
+  record validation-issue {
+    code: string,
+    message: string,
+  }
+
+  validate-ocel-json: func(json: string) -> list<validation-issue>;
+
+  // Admission. Err = the exact named law string (DanglingEventObjectLink |
+  // EmptyEventObjectLinks | MissingReferenceObject | MultipleReferenceObjects |
+  // ViolatesLocalityPrinciple, from wasm4pm_compat::ocel::OcelRefusal Display).
+  admit-ocel-json: func(json: string) -> result<string, string>;
+
+  // Gianola (2026) locality gate — opt-in, separate from admit (admit stays
+  // structural-only). Err = the exact named law string
+  // (ocel-v2:law:<OcelRefusal Display>), e.g. ViolatesLocalityPrinciple.
+  // Backed by wasm4pm_compat::ocel::validate_ocel_locality_json.
+  validate-ocel-locality: func(json: string, reference-type: string, child-type: string) -> result<_, string>;
+}
+
+world compat-ocel {
+  export ocel-v2;
+}

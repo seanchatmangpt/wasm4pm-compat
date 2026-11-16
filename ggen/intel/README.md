@@ -1,5 +1,9 @@
 # Ecosystem Intelligence — wasm4pm-compat Projection Manufacturing
 
+> **Staleness/archival note (2026-10-12):** this is a point-in-time snapshot. Paths like
+> `NIGHTLY_TYPE_LAW.md` in the body now live at `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md`.
+> Body content is preserved as captured; do not treat its paths as live.
+
 This directory contains authoritative ecosystem census documentation for the wasm4pm-compat type-law projection manufacturing pipeline.
 
 ## Documents

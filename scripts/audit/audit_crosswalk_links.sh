@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# audit_crosswalk_links.sh — check docs/NIGHTLY_TYPE_LAW.md exists and has rows
+# audit_crosswalk_links.sh — check docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md exists and has rows
 # with pipe separators. Warn if fewer than 20 rows. Exit 0.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DOC="docs/NIGHTLY_TYPE_LAW.md"
+DOC="docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md"
 
 if [[ ! -f "$DOC" ]]; then
   echo "  WARN  $DOC not found"

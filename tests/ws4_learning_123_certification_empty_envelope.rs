@@ -1,3 +1,4 @@
+#![cfg(feature = "strict")]
 use wasm4pm_compat::certification::{CertificationEnvelope, CertificationFramework};
 
 #[test]

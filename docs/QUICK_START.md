@@ -29,11 +29,11 @@ channel = "nightly"
 
 ```toml
 [dependencies]
-wasm4pm-compat = "26.6.23"
+wasm4pm-compat = "26.10.12"
 # Optional: enable strict boundary judgment
-# wasm4pm-compat = { version = "26.6.23", features = ["strict"] }
+# wasm4pm-compat = { version = "26.10.12", features = ["strict"] }
 # Optional: enable the wasm4pm graduation bridge
-# wasm4pm-compat = { version = "26.6.23", features = ["wasm4pm"] }
+# wasm4pm-compat = { version = "26.10.12", features = ["wasm4pm"] }
 ```
 
 The `formats` feature is on by default. It adds import/export contracts, round-trip

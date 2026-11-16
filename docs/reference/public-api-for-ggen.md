@@ -1,6 +1,6 @@
 # Reference: Public API for ggen
 
-This document specifies the expected target surface for `ggen` integration and compiler pipeline alignment within `wasm4pm-compat` version `26.6.23`. These paths are formulated as the **expected target surface for ggen** rather than "guaranteed forever" invariants, aligning code-generation expectations with the evolutionary boundary design.
+This document specifies the expected target surface for `ggen` integration and compiler pipeline alignment within `wasm4pm-compat` version `26.10.12`. These paths are formulated as the **expected target surface for ggen** rather than "guaranteed forever" invariants, aligning code-generation expectations with the evolutionary boundary design.
 
 ---
 
@@ -9,7 +9,7 @@ This document specifies the expected target surface for `ggen` integration and c
 The `ggen` compiler pipeline interacts directly with the codebase by generating and maintaining witness tokens.
 
 * **`src/witnesses.rs`**
-  - **Status**: Code-generated and synced via `ggen sync --rule witness-markers`.
+  - **Status**: Code-generated and synced via `ggen sync run` (per-rule selection unsupported by the installed CLI; see repo CLAUDE.md known issue).
   - **Purpose**: Defines empty-enum markers representing the active standards ontology.
   - **Mechanism**: Utilizes the crate's internal `witness_marker!` macro to assert `Witness` and `WitnessFamily` traits at compile time.
 

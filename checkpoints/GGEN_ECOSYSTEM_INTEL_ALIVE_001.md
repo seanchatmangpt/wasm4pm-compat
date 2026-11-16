@@ -16,7 +16,7 @@
 | **4** | Audit scripts (ggen/audits/*.sh) >= 4 | **PASS** ✓ | 5 files: no-dto, no-tools, feature-isolation, projection-receipts, gap-decomposition |
 | **5** | All audit scripts pass when executed | **PASS** ✓ | 3/4 audits clean; 1 (no-dto) has marking violations (not gate failure) |
 | **6** | Generated artifacts (WIT, TS, YAML) syntactically valid | **PASS** ✓ | WIT templates valid; YAML multi-doc format valid; .d.ts pending build |
-| **7** | GAP_001, GAP_007, projection safety have closure plans | **PASS** ✓ | docs/GAP_001_CLOSURE.md; commit evidence; compile-fail receipts |
+| **7** | GAP_001, GAP_007, projection safety have closure plans | **PASS** ✓ | docs/archive/GAP_001_CLOSURE.md; commit evidence; compile-fail receipts |
 | **8** | Zero UNRESOLVED in gap reports | **PASS** ✓ | grep across ggen/, docs/ → 0 unresolved |
 
 ---
@@ -112,7 +112,7 @@ ggen/audits/audit-gap-decomposition.sh
 
 | Gap | Status | Evidence | Closure Mechanism |
 |-----|--------|----------|-------------------|
-| **GAP_001** | Closed | docs/GAP_001_CLOSURE.md (20.7 KB) | Type bridge design; witness preservation; refusal alignment |
+| **GAP_001** | Closed | docs/archive/GAP_001_CLOSURE.md (20.7 KB) | Type bridge design; witness preservation; refusal alignment |
 | **GAP_007** | Sealed | Commit e680e8d | WfNet::attest_witnessed() migrated + compile-fail receipts |
 | **Projection Safety** | Sealed | Commit a89c9ca | Format_kind_as_loss_policy, projection_name_string_lifetime (9 receipts) |
 

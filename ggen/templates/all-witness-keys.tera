@@ -1,7 +1,7 @@
-{# all-witness-keys.tera — renders src/witness_corpus.rs.                          #}
-{# Compile-time corpus-integrity proof: every witness KEY across all categories    #}
-{# must be unique. Closes the KEY-collision hole that SPARQL dedup alone misses.    #}
-{# Variables per row: witnessKey, witnessFamily (URI), witnessYear (or "").         #}
+{# all-witness-keys.tera — renders src/witness_corpus.rs.                          -#}
+{# Compile-time corpus-integrity proof: every witness KEY across all categories    -#}
+{# must be unique. Closes the KEY-collision hole that SPARQL dedup alone misses.    -#}
+{# Variables per row: witnessKey, witnessFamily (URI), witnessYear (or "").         -#}
 //! Corpus-integrity proof — every witness KEY in the bibliography is unique.
 //!
 //! ## What this module IS

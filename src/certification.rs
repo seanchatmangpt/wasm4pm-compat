@@ -9,14 +9,14 @@
 //!
 //! ## What this module **IS**
 //!
-//! - [`ControlId`]: a named control identifier, carried not interpreted.
-//! - [`CertificationFramework`]: named external frameworks a mapping targets.
-//! - [`ControlMapping`]: ties one [`ControlId`] under one
-//!   [`CertificationFramework`] to the named evidence references that ground
+//! - [`ControlId`](crate::certification::ControlId): a named control identifier, carried not interpreted.
+//! - [`CertificationFramework`](crate::certification::CertificationFramework): named external frameworks a mapping targets.
+//! - [`ControlMapping`](crate::certification::ControlMapping): ties one [`ControlId`](crate::certification::ControlId) under one
+//!   [`CertificationFramework`](crate::certification::CertificationFramework) to the named evidence references that ground
 //!   it.
-//! - [`CertificationEnvelope`]: a bundle of [`ControlMapping`]s plus named
+//! - [`CertificationEnvelope`](crate::certification::CertificationEnvelope): a bundle of [`ControlMapping`](crate::certification::ControlMapping)s plus named
 //!   exclusions.
-//! - [`CertificationRefusal`]: first-class, specifically named refusals.
+//! - [`CertificationRefusal`](crate::certification::CertificationRefusal): first-class, specifically named refusals.
 //!
 //! ## What this module is **NOT**
 //!
@@ -28,7 +28,7 @@
 //! ## Graduation
 //!
 //! Continuously evaluating whether an observed process satisfies a mapped
-//! control — i.e. binding [`ControlMapping`] to real observed conformance
+//! control — i.e. binding [`ControlMapping`](crate::certification::ControlMapping) to real observed conformance
 //! evidence over time — is a `wasm4pm` job. This module only states and
 //! refuses the certification-mapping *shape*.
 

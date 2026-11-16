@@ -1,5 +1,8 @@
 # Day 3 Kind Closure Receipt
 
+> **Post-release archival note (2026-10-12):** foundation docs cited below moved to
+> `docs/archive/pre-v26.10.12/` — paths in the body are point-in-time.
+
 **Date:** 2026-06-03 (session 2)
 **Branch:** `fix/debt-markers-and-gap-close`
 **Controlling equation:** D₃ = Close_K(A)

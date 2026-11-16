@@ -129,27 +129,19 @@ output_file = "audits/{{ moduleName }}.sh"
 mode = "Overwrite"
 
 # ---------------------------------------------------------------------------
-# Rule: zod-schemas — KEEP DISABLED (2026-06-13, gap-closure decision)
-# Capability MOVED to the sidecar. NOT a provision-chain break.
-#
-# No missing variables: the SELECT in queries/extract-zod-schemas.rq
-# (typeName, fieldName, fieldType, isOptional, isArray, isEnum, isUnion) is a
-# strict SUPERSET of what templates/zod-schemas.ts.tera consumes (row.typeName,
-# row.fieldName, row.fieldType, row.isArray, row.isOptional). last_type is
-# template-local; loop.first is a Tera built-in. So GGEN-TPL-001 does NOT apply
-# and the original "Failed to render" rationale was never about this pair.
-#
-# The real reason to keep it off is LAYER + AUTHORITY:
-#   - The stated output target (bindings/zod_schemas.ts under the compat crate
-#     root) no longer exists — there is no /Users/sac/wasm4pm-compat/bindings/.
-#   - TS/Zod bindings were relocated to the wasm4pm-compat-ts sidecar, which now
-#     owns wasm4pm-compat-ts/bindings/zod_schemas.ts (+ zod_integration/).
-#   - Re-enabling here would render a DO-NOT-EDIT TS artifact into a wrong/absent
-#     layer root (GGEN-YIELD-001 LAYER_VIOLATION) and create COMPETING_AUTHORITY
-#     (GGEN-YIELD-004) against the sidecar that already authors that file.
-# If zod generation is wanted, port this query+template into the
-# wasm4pm-compat-ts sidecar's ggen manifest — not the compat crate.
-#
+# Rule: zod-schemas — ENABLED (2026-10-12, lane W-B)
+# Renders wasm4pm-compat-ts/bindings/zod_schemas.ts from zod-types.ttl
+# (OCEL v2 serde wire shape + EvidenceState enum). Repo-root-relative paths;
+# invoke via `cp ggen/ggen.toml ggen.toml && ggen sync run` (cwd-only manifest
+# resolution). Standalone alternative: ggen/ggen_zod.toml.
+# ---------------------------------------------------------------------------
+[[generation.rules]]
+name = "zod-schemas"
+query = { file = "ggen/queries/extract-zod-schemas.rq" }
+template = { file = "ggen/templates/zod-schemas.ts.tera" }
+output_file = "wasm4pm-compat-ts/bindings/zod_schemas.ts"
+mode = "Overwrite"
+
 # open-ontologies-integration:
 # DISABLED — query/template are RECONCILED (2026-06-13, gap-closure decision),
 # but the rule remains intentionally disabled for STRUCTURAL reasons, not an

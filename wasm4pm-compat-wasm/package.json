@@ -1,0 +1,48 @@
+{
+  "name": "@wasm4pm/compat-wasm",
+  "version": "26.10.12",
+  "description": "jco-generated TypeScript wrappers over the wasm4pm compat-ocel WebAssembly component (OCEL v2 parse/validate/structural admission).",
+  "type": "module",
+  "keywords": [
+    "ocel",
+    "process-mining",
+    "wasm",
+    "webassembly",
+    "webassembly-components"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seanchatmangpt/wasm4pm-compat"
+  },
+  "sideEffects": false,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "import": "./index.ts"
+    },
+    "./compat-ocel": {
+      "types": "./dist/compat-ocel.d.ts",
+      "import": "./dist/compat-ocel.js"
+    }
+  },
+  "files": [
+    "index.ts",
+    "dist/",
+    "README.md",
+    "LICENSE-MIT"
+  ],
+  "dependencies": {
+    "@bytecodealliance/preview2-shim": "0.19.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "tsc -p tsconfig.json && node --test --experimental-strip-types test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}

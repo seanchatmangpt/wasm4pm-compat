@@ -1,5 +1,9 @@
 # Ecosystem Census Index — wasm4pm-compat Projection Manufacturing
 
+> **Staleness/archival note (2026-10-12):** point-in-time snapshot. `NIGHTLY_TYPE_LAW.md`
+> references in the body now live at `docs/archive/pre-v26.10.12/NIGHTLY_TYPE_LAW.md`.
+> Body content preserved as captured; paths are not live.
+
 **Generated:** 2026-06-01  
 **Authority:** Sean Chatman (xpointsh@gmail.com)  
 **Scope:** Complete ecosystem inventory for type-law projection manufacturing (51 sources, 2529 lines of documentation)

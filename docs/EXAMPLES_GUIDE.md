@@ -24,6 +24,12 @@ write state anywhere. They are self-contained demonstrations of structure.
 
 ## Existing examples
 
+This guide covers a representative subset in depth. The full set lives in
+`examples/` — every example opens with a self-describing `//!` header naming the
+concept demonstrated and the exact `cargo run` invocation.
+
+### `basic_eventlog`
+
 ### `basic_eventlog`
 
 **File:** `examples/basic_eventlog.rs`

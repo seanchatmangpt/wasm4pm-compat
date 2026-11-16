@@ -1,6 +1,8 @@
 # Reference: Publish Readiness Checklist
 
-This document provides a checklist of all verification steps and metadata audits required to approve a new release of `wasm4pm-compat` to crates.io.
+This document is the **crates.io-only** checklist for a `wasm4pm-compat` release. npm artifacts (`@wasm4pm/compat-ts`, `@wasm4pm/compat-wasm`) are out of scope here — they are gated and published by `.github/workflows/npm-release.yml` (fires on `v*` tags); see that workflow for the npm gate list.
+
+All commands run on the pinned toolchain `nightly-2026-06-22` (`rust-toolchain.toml`). Status columns are left blank on purpose: re-verify each row on the exact release candidate before sign-off — a previously PASSing row is not evidence for this release.
 
 ---
 
@@ -8,11 +10,12 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Description / Verification Method | Status | Notes / Known Constraints |
 |---|---|---|---|
-| **Crate Version** | Verify root version matches target release version (`26.6.23`). | ✅ | Workspace subcrates and configs are properly aligned to `26.6.23`. |
-| **Repository URL** | Cargo.toml `repository` field must point to `https://github.com/seanchatmangpt/wasm4pm-compat`. |  | Matches actual repository URL. |
-| **Readme Metadata** | Cargo.toml `readme` must point to `README.md`. |  | Configured properly in root manifest. |
-| **License Files** | Verify presence of `LICENSE-MIT` and `LICENSE-APACHE` in the package root. |  | Both files exist in root directory. |
-| **Feature Model** | Crate must have exactly **three** features: `formats`, `strict`, `wasm4pm`. |  | migrated features `ts` and `wasm` are retired. |
+| **Crate Version** | Root `Cargo.toml` version matches the target release (currently `26.10.12`). |  | Workspace subcrates (`c8-*`) and derived ggen manifests stay at `26.6.x` — workspace-internal, excluded from the published package; do not gate on them. |
+| **Registry Auth** | `cargo login <token>` completed (crates.io API token; stored by your credential provider). |  | `cargo publish --dry-run` contacts the registry and fails without it. |
+| **Repository URL** | Cargo.toml `repository` field points to `https://github.com/seanchatmangpt/wasm4pm-compat`. |  | Matches actual repository URL. |
+| **Readme Metadata** | Cargo.toml `readme` points to `README.md`. |  | Configured in root manifest. |
+| **License Files** | `LICENSE-MIT` and `LICENSE-APACHE` present in the package root. |  | Both files exist and are packaged. |
+| **Feature Model** | Exactly **three** features: `formats`, `strict`, `wasm4pm`. |  | `ts` and `wasm` are retired. |
 
 ---
 
@@ -20,9 +23,9 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **Styling & Fmt** | `cargo fmt --check` | PASS | Adheres to rustfmt rules. |
-| **Static Analysis** | `cargo clippy --all-features -- -D warnings` | PASS | Clean compilation under warnings-as-errors. |
-| **Library Build** | `cargo build --all-features` | PASS | Compiles successfully. |
+| **Styling & Fmt** | `cargo fmt --check` (`cargo make fmt`) |  | Re-run on the release candidate. |
+| **Static Analysis** | `cargo clippy --all-features -- -D warnings` (`cargo make clippy`) |  | Warnings as errors. |
+| **Library Build** | `cargo build --all-features` |  | Compiles successfully. |
 
 ---
 
@@ -30,9 +33,9 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **Unit & Integration** | `cargo test --all-features --tests` | PASS | All 132 logical boundary tests passed. |
-| **Doctests** | `cargo test --doc --all-features` | PASS | Standard inline doc examples compile and pass (exactly zero warnings). |
-| **Trybuild (UI)** | `cargo test --test ui_tests -- --ignored` | PASS | All 409 UI tests compiled and passed. |
+| **Unit & Integration** | `cargo test --all-features --tests` |  | Re-run on the release candidate. |
+| **Doctests** | `cargo test --doc --all-features` (explicit opt-in; disabled in the default run) |  | `cargo make doc-test`. |
+| **Trybuild (UI)** | `cargo test --test ui_tests -- --ignored` (the ALIVE gate, `cargo make alive`) |  | Compile-fail fixtures must fail for the intended named law, not accidentally. |
 
 ---
 
@@ -40,16 +43,24 @@ This document provides a checklist of all verification steps and metadata audits
 
 | Check Category | Command / Verification Method | Status | Notes |
 |---|---|---|---|
-| **File Exclusions** | `cargo package --list` | PASS | Tracked .DS_Store untracked and LSP build directories ignored. |
-| **Dry-Run Publish** | `cargo publish --dry-run` | PASS | Passes cleanly with dry-run upload aborted. |
+| **File Exclusions** | `cargo package --list --allow-dirty` |  | No `.DS_Store`, `target/`, `.agents/`, `ggen/`, or `c8-*` paths in the listing. |
+| **Dry-Run Publish** | `cargo publish --dry-run --allow-dirty` |  | Ends with `warning: aborting upload due to dry run`; requires registry login (see §1). |
 
 ---
 
-## 5. Deployment Sign-off
+## 5. npm Release (cross-reference, out of scope)
+
+| Step | Where | Status | Requirement |
+|---|---|---|---|
+| **npm packages** | `.github/workflows/npm-release.yml` |  | `@wasm4pm/compat-ts` and `@wasm4pm/compat-wasm` publish only on `v*` tags, after the workflow's own build/test/`npm publish --dry-run` gates. Do not run `npm publish` locally. |
+
+---
+
+## 6. Deployment Sign-off
 
 | Step | Responsible Role | Status | Requirement |
 |---|---|---|---|
-| **Actual Publish** | Human / Orchestrator | 🛑 | **DO NOT AUTOMATE**. A human operator must manually run the final `cargo publish` command after verifying this checklist. |
+| **Actual Publish** | Human / Orchestrator | 🛑 | **DO NOT AUTOMATE**. A human operator must manually run the final `cargo publish` from a clean tagged commit after verifying this checklist. |
 
 ---
 
@@ -57,5 +68,6 @@ This document provides a checklist of all verification steps and metadata audits
 
 - Back to [README](../../README.md)
 - [Preparing for a Crates.io Release](../how-to/prepare-crates-io-publish.md)
-- [Verification Report](../reports/v26.6.23-verification-report.md)
+- [NPM Release Workflow](../../.github/workflows/npm-release.yml)
+- [Version Policy](../VERSION_POLICY.md)
 - [Feature Model](feature-model.md)

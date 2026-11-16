@@ -108,7 +108,9 @@ cargo test <test_name>
 cargo test --all-features <test_name>
 ```
 
-The crate has **no runtime dependencies**.
+The crate has a small, fixed set of runtime dependencies (`quick-xml`, `blake3`,
+`chrono`, `serde`, `serde_json`, `uuid`, `hashbrown`, `rustc-hash`) — see
+`Cargo.toml` `[dependencies]`.
 
 ## Architecture
 

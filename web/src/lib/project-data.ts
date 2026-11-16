@@ -103,7 +103,7 @@ export async function getCoverageStatus(): Promise<{
 }> {
   const [examples, schemas] = await Promise.all([getExamples(), getSchemas()]);
 
-  const log = await readFile(join(REPO_ROOT, 'DOC_COVERAGE_LOG.md'), 'utf-8');
+  const log = await readFile(join(REPO_ROOT, 'docs/archive/pre-v26.10.12/DOC_COVERAGE_LOG.md'), 'utf-8');
   const coveredModules = (log.match(/✅/g) || []).length;
 
   return {

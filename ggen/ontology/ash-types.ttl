@@ -16,7 +16,7 @@
     a owl:Ontology ;
     rdfs:label "wasm4pm-compat Ash.Type projections" ;
     rdfs:comment "Admitted Elixir/Ash storage and casting projections of wasm4pm-compat public value carriers. Rust law remains authoritative." ;
-    owl:versionInfo "26.8.7" .
+    owl:versionInfo "26.10.12" .
 
 ashbind:AshTypeProjectionGroup a rdfs:Class ;
     rdfs:comment "A shared lawful projection morphism applied to an RDF Collection of Rust public value carriers." .

@@ -12,7 +12,8 @@ fn construct_intent_reports_construct_phase() {
         ReceiptPolicy::Optional,
         "evt",
     );
-    let i = Intent::<ConstructPhase>::try_new(&c, SubjectRef::new("s", "sd"), "id").unwrap();
+    let i =
+        ProtocolIntent::<ConstructPhase>::try_new(&c, SubjectRef::new("s", "sd"), "id").unwrap();
     assert_eq!(i.consequence_class(), ConsequenceClass::Construct);
     assert!(i.reversible());
 }
